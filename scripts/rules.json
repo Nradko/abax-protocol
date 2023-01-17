@@ -1,0 +1,44 @@
+[
+  {
+    "ruleId": 0,
+    "needsPermission": false,
+    "permittedUsers": [],
+    "collaterals": "1111",
+    "borrowable": "1111",
+    "borrowableStable": "1111",
+    "assetRulesList": [
+      [
+        "DAI",
+        {
+          "collateralCoefficientE6": 0.97,
+          "borrowCoefficientE6": 1.03,
+          "penalty": 0.01
+        }
+      ],
+      [
+        "USDC",
+        {
+          "collateralCoefficientE6": 0.98,
+          "borrowCoefficientE6": 1.02,
+          "penalty": 0.01
+        }
+      ],
+      [
+        "WETH",
+        {
+          "collateralCoefficientE6": 0.8,
+          "borrowCoefficientE6": 1.2,
+          "penalty": 0.1
+        }
+      ],
+      [
+        "LINK",
+        {
+          "collateralCoefficientE6": 0.6,
+          "borrowCoefficientE6": 1.4,
+          "penalty": 0.2
+        }
+      ]
+    ]
+  }
+]

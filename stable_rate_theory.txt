@@ -1,0 +1,35 @@
+Abacus Stable Rate Interest theory:
+
+1) Stable rates are given with an not automatically incremented debt
+	Thus the interest are given by (1 + rate * \[CapitalDelta]time)
+	This is why the APR will be higher then in AAVE case where stable_debt is automatically incremented. However this doesnt mean that APY is higher.
+2)The interest can be compounded manually by everyone. This operation doesn't change rate. This operation may be called by aToken holders or share token holders as it will increase their yield.
+
+3) There are following storage data used to keep account of debts
+	- user_stable_debt: mapping <AccountId, Balance> :: the amount of borrowed tokens, (or after the compound, the amount of debt after compunding) for each user
+	- user_stable_rate :mapping <AccountId,u128> :: the stable_rate for each user
+	- avarage_stable_rate: u128 :: arthmetic weighted average of stable rates with weight being the debts from 1st mapping
+	- applied_debt: Balance:: the sum of debts from 1st mapping
+	- not_applied_debt: Balance :: the debt that should be accumulated
+4) There are following operations that influence storage from point 3):
+	-  borrow
+	- pay_back
+	- compound
+	- rebalance_debt
+
+5) Compund
+		- the reserve data is updated
+		-the user_stable_debt is increased by applying user_Stable_rate
+		- increase the applied_debt
+		- decrease the not_applied_debt	
+6) Borrow
+		- Compund
+		-the new user_stable_rate is calculated as a weighted average of  previous and current stable rate
+		- the user_stable_debt is increase bynew_borrow_amount
+		- the avarage_stable_rate is updated as  (avarage_stable_rate* applied_debt + stable_rate_of_new_borrow*new_borrow_amount) / (applied_debt  + new_borrow_amount)
+		- applied_debt is increased by new_borrowing
+7) pay_back
+		- Compund
+		-the new user_stable_rate is calculated as a weighted average of  previous and current stable rate
+		- the user_stable_debt is decreased by pay_back_amount
+		- applied_debt is decreased by pay_back_amount

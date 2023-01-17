@@ -1,0 +1,42 @@
+[
+  {
+    "name": "DAI",
+    "decimals": 6,
+    "feeD6": 10,
+    "flashLoanFeeE6": 1000,
+    "stableBaseRate": 50000000000,
+    "collateralCoefficient": 0.97,
+    "borrowCoefficient": 1.03,
+    "penalty": 0.015
+  },
+  {
+    "name": "USDC",
+    "decimals": 6,
+    "feeD6": 10,
+    "flashLoanFeeE6": 1000,
+    "stableBaseRate": 50000000000,
+    "collateralCoefficient": 0.98,
+    "borrowCoefficient": 1.02,
+    "penalty": 0.01
+  },
+  {
+    "name": "WETH",
+    "decimals": 18,
+    "feeD6": 10,
+    "flashLoanFeeE6": 1000,
+    "stableBaseRate": 50000000000,
+    "collateralCoefficient": 0.8,
+    "borrowCoefficient": 1.2,
+    "penalty": 0.1
+  },
+  {
+    "name": "LINK",
+    "decimals": 18,
+    "feeD6": 10,
+    "flashLoanFeeE6": 1000,
+    "stableBaseRate": null,
+    "collateralCoefficient": 0.7,
+    "borrowCoefficient": 1.3,
+    "penalty": 0.15
+  }
+]

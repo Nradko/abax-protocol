@@ -1,0 +1,83 @@
+import { ChildProcess } from 'child_process';
+import { deployAndConfigureSystem, DeploymentConfig } from 'tests/setup/deploymentHelpers';
+import { TestEnv } from './scenarios/utils/make-suite';
+import { E6 } from './scenarios/utils/misc';
+import { expect } from './setup/chai';
+import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './setup/helpers';
+import { restartAndRestoreNodeState } from './setup/nodePersistence';
+
+describe('Custom deployment', () => {
+  let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
+  after(async () => {
+    return await apiProviderWrapper.closeApi();
+  });
+  before(async () => {
+    getContractsNodeProcess = await restartAndRestoreNodeState(getContractsNodeProcess);
+    await apiProviderWrapper.getAndWaitForReady();
+  });
+
+  describe('Completely new custom deployment', async () => {
+    let testEnv: TestEnv;
+    before(async () => {
+      const signers = getSigners();
+      //Arrange
+      const customDeploymentConfig: Partial<DeploymentConfig> = {
+        testReserveTokensToDeploy: [
+          {
+            decimals: 7,
+            feeD6: 100,
+            name: 'BOI',
+            stableBaseRate: 100,
+            flashLoanFeeE6: 2000,
+            collateralCoefficient: 0.9,
+            borrowCoefficient: 1.1,
+            penalty: 0.05,
+          },
+          {
+            decimals: 9,
+            feeD6: 200,
+            name: 'WMN',
+            stableBaseRate: 200,
+            flashLoanFeeE6: 5000,
+            collateralCoefficient: 0.9,
+            borrowCoefficient: 1.1,
+            penalty: 0.05,
+          },
+        ],
+        priceOverridesE8: { BOI: 500 * E6, WMN: 0.5 * E6 },
+        shouldUseMockTimestamp: false,
+        users: getSignersWithoutOwner(signers, 5),
+        owner: signers[5],
+      };
+      testEnv = await deployAndConfigureSystem(customDeploymentConfig);
+    });
+    it('BlockTimestampProvider does not use mocked timestamp', async () => {
+      await expect(testEnv.blockTimestampProvider.query.getShouldReturnMockValue()).to.eventually.be.fulfilled.and.to.have.deep.property(
+        'value',
+        false,
+      );
+    });
+    it('Contains deployed reserves', async () => {
+      const { value: reserveBOI } = await testEnv.lendingPool.query.viewReserveData(testEnv.reserves['BOI'].underlying.address);
+      expect.soft(reserveBOI).to.be.not.null;
+      expect.soft(reserveBOI?.aTokenAddress).to.be.ok;
+      expect.soft(reserveBOI?.flashLoanFeeE6.toNumber()).to.equal(2000);
+      expect.flushSoft();
+    });
+  });
+
+  describe('Partial overrides', () => {
+    it('Price override', async () => {
+      const priceToOverride = 50 * E6;
+      const reserveSymbol = 'WETH';
+      //Arrange
+      const customDeploymentConfig: Partial<DeploymentConfig> = {
+        priceOverridesE8: { [reserveSymbol]: priceToOverride },
+      };
+      const testEnv = await deployAndConfigureSystem(customDeploymentConfig);
+
+      const { value: price } = await testEnv.lendingPool.query.getReserveTokenPriceE8(testEnv.reserves['WETH'].underlying.address);
+      expect(price?.toString()).to.equal(priceToOverride.toString());
+    });
+  });
+});

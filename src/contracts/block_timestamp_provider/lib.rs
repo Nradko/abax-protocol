@@ -1,0 +1,82 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+#![feature(min_specialization)]
+
+#[openbrush::contract]
+pub mod block_timestamp_provider {
+    use ink_storage::traits::SpreadAllocate;
+    use lending_project::traits::block_timestamp_provider::*;
+    use openbrush::{
+        contracts::ownable::{
+            OwnableError,
+            *,
+        },
+        modifiers,
+        traits::{
+            DefaultEnv,
+            Storage,
+        },
+    };
+
+    #[ink(storage)]
+    #[derive(Default, SpreadAllocate, Storage)]
+    pub struct BlockTimestampProvider {
+        #[storage_field]
+        ownable: ownable::Data,
+        should_return_mock_value: bool,
+        mock_timestamp: u64,
+    }
+
+    impl BlockTimestampProvider {
+        #[ink(constructor)]
+        pub fn new(init_should_return_mock_value: bool, owner: AccountId) -> Self {
+            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
+                instance.should_return_mock_value = init_should_return_mock_value;
+                instance.mock_timestamp = Default::default();
+                instance._init_with_owner(owner);
+            })
+        }
+
+        #[ink(constructor)]
+        pub fn default(owner: AccountId) -> Self {
+            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
+                instance.should_return_mock_value = false;
+                instance.mock_timestamp = Default::default();
+                instance._init_with_owner(owner);
+            })
+        }
+    }
+
+    impl Ownable for BlockTimestampProvider {}
+
+    impl BlockTimestampProviderInterface for BlockTimestampProvider {
+        #[ink(message)]
+        fn get_block_timestamp(&self) -> u64 {
+            if self.should_return_mock_value {
+                return self.mock_timestamp
+            }
+            return Self::env().block_timestamp()
+        }
+        #[ink(message)]
+        #[modifiers(only_owner)]
+        fn set_block_timestamp(&mut self, timestamp: u64) -> Result<(), OwnableError> {
+            self.mock_timestamp = timestamp;
+            Ok(())
+        }
+        #[ink(message)]
+        #[modifiers(only_owner)]
+        fn increase_block_timestamp(&mut self, delta_timestamp: u64) -> Result<(), OwnableError> {
+            self.mock_timestamp += delta_timestamp;
+            Ok(())
+        }
+        #[ink(message)]
+        #[modifiers(only_owner)]
+        fn set_should_return_mock_value(&mut self, should_return_mock_value: bool) -> Result<(), OwnableError> {
+            self.should_return_mock_value = should_return_mock_value;
+            Ok(())
+        }
+        #[ink(message)]
+        fn get_should_return_mock_value(&self) -> bool {
+            self.should_return_mock_value
+        }
+    }
+}

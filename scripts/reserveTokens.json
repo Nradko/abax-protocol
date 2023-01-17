@@ -1,0 +1,30 @@
+[
+  {
+    "name": "DAI",
+    "address": "???",
+    "decimals": 18,
+    "feeD6": 10,
+    "stableBaseRate": 50000
+  },
+  {
+    "name": "WETH",
+    "address": "???",
+    "decimals": 18,
+    "feeD6": 10,
+    "stableBaseRate": 50000
+  },
+  {
+    "name": "LINK",
+    "address": "???",
+    "decimals": 18,
+    "feeD6": 10,
+    "stableBaseRate": 50000
+  },
+  {
+    "name": "USDC",
+    "address": "???",
+    "decimals": 6,
+    "feeD6": 10,
+    "stableBaseRate": 50000
+  }
+]
