@@ -2,22 +2,37 @@
 
 #![allow(unused_variables)]
 use checked_math::checked_math;
-use ink_prelude::{vec::Vec, *};
+use ink_prelude::{
+    vec::Vec,
+    *,
+};
 
 use openbrush::{
     contracts::traits::psp22::*,
-    traits::{AccountId, Balance, Storage},
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
 };
 
 use crate::{
     impls::{
-        constants::{E18, E6, MATH_ERROR_MESSAGE},
+        constants::{
+            E18,
+            E6,
+            MATH_ERROR_MESSAGE,
+        },
         lending_pool::{
-            internal::{_accumulate_interest, *},
+            internal::{
+                _accumulate_interest,
+                *,
+            },
             storage::{
                 lending_pool_storage::LendingPoolStorage,
                 structs::{
-                    reserve_data::ReserveData, user_config::UserConfig,
+                    reserve_data::ReserveData,
+                    user_config::UserConfig,
                     user_reserve_data::UserReserveData,
                 },
             },
@@ -26,7 +41,9 @@ use crate::{
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
         lending_pool::{
-            errors::LendingPoolError, events::*, traits::actions::LendingPoolLiquidate,
+            errors::LendingPoolError,
+            events::*,
+            traits::actions::LendingPoolLiquidate,
         },
     },
 };
@@ -42,15 +59,13 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         data: Vec<u8>,
     ) -> Result<(Balance, Balance), LendingPoolError> {
         if data.len() == 0 {
-            return Err(LendingPoolError::UnspecifiedAction);
+            return Err(LendingPoolError::UnspecifiedAction)
         }
-        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-            &self.data::<LendingPoolStorage>().block_timestamp_provider,
-        );
-        let (collaterized, _) =
-            self._get_user_free_collateral_coefficient_e6(&liquidated_user, block_timestamp);
+        let block_timestamp =
+            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&liquidated_user, block_timestamp);
         if collaterized {
-            return Err(LendingPoolError::Collaterized);
+            return Err(LendingPoolError::Collaterized)
         }
         let caller = Self::env().caller();
         let (
@@ -61,19 +76,14 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             mut reserve_data_to_take,
             mut user_reserve_data_to_take,
             mut caller_reserve_data_to_take,
-        ) = self._pull_data_for_liquidate(
-            &liquidated_user,
-            &caller,
-            &asset_to_repay,
-            &asset_to_take,
-        )?;
+        ) = self._pull_data_for_liquidate(&liquidated_user, &caller, &asset_to_repay, &asset_to_take)?;
         let asset_to_repay_price_e8 = reserve_data_to_repay.token_price_e8()?;
         let asset_to_take_price_e8 = reserve_data_to_take.token_price_e8()?;
         let penalty_to_repay_e6 = reserve_data_to_repay.penalty_e6;
         let penalty_to_take_e6 = reserve_data_to_take.penalty_e6;
         // Check if asset_to_take is marked as collateral
         if (user_config.collaterals >> reserve_data_to_take.id) & 1_u128 != 1 {
-            return Err(LendingPoolError::TakingNotACollateral);
+            return Err(LendingPoolError::TakingNotACollateral)
         }
         // Check if there is any debt to repay
         let user_debt = match data[0] {
@@ -82,11 +92,11 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             _ => return Err(LendingPoolError::UnspecifiedAction),
         };
         if user_debt == 0 {
-            return Err(LendingPoolError::NothingToRepay);
+            return Err(LendingPoolError::NothingToRepay)
         }
         // Check if there is any supply to take
         if user_reserve_data_to_take.supplied == 0 {
-            return Err(LendingPoolError::NothingToCompensateWith);
+            return Err(LendingPoolError::NothingToCompensateWith)
         }
         // MODIFY PULLED STORAGE
         // accumulate to repay
@@ -130,7 +140,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             None => user_debt,
         };
         if amount_to_repay_value == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero);
+            return Err(LendingPoolError::AmountNotGreaterThanZero)
         }
         let mut amount_to_take = calculate_amount_to_take(
             amount_to_repay_value,
@@ -150,7 +160,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
                 .expect(MATH_ERROR_MESSAGE);
 
         if recieved_for_one_repaid_token_e18 < minimum_recieved_for_one_repaid_token_e18 {
-            return Err(LendingPoolError::MinimumRecieved);
+            return Err(LendingPoolError::MinimumRecieved)
         }
         // modify configs
         if amount_to_take >= user_reserve_data_to_take.supplied {
@@ -376,16 +386,12 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
         LendingPoolError,
     > {
         Ok((
-            self.data::<LendingPoolStorage>()
-                .get_user_config(&liquidated_user)?,
-            self.data::<LendingPoolStorage>()
-                .get_or_create_user_config(&caller),
-            self.data::<LendingPoolStorage>()
-                .get_reserve_data(&asset_to_repay)?,
+            self.data::<LendingPoolStorage>().get_user_config(&liquidated_user)?,
+            self.data::<LendingPoolStorage>().get_or_create_user_config(&caller),
+            self.data::<LendingPoolStorage>().get_reserve_data(&asset_to_repay)?,
             self.data::<LendingPoolStorage>()
                 .get_user_reserve(&asset_to_repay, &liquidated_user)?,
-            self.data::<LendingPoolStorage>()
-                .get_reserve_data(&asset_to_take)?,
+            self.data::<LendingPoolStorage>().get_reserve_data(&asset_to_take)?,
             self.data::<LendingPoolStorage>()
                 .get_user_reserve(&asset_to_take, &liquidated_user)?,
             self.data::<LendingPoolStorage>()
@@ -424,11 +430,8 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
             &liquidated_user,
             &user_reserve_data_to_take,
         );
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &asset_to_take,
-            &caller,
-            &caller_reserve_data_to_take,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&asset_to_take, &caller, &caller_reserve_data_to_take);
     }
 }
 
@@ -464,8 +467,7 @@ fn _change_state_liquidate_variable(
     amount_to_take: u128,
 ) {
     // sub variable debt
-    user_reserve_data_to_repay.variable_borrowed =
-        user_reserve_data_to_repay.variable_borrowed - amount_to_repay_value;
+    user_reserve_data_to_repay.variable_borrowed = user_reserve_data_to_repay.variable_borrowed - amount_to_repay_value;
     reserve_data_to_repay.total_variable_borrowed =
         reserve_data_to_repay.total_variable_borrowed - amount_to_repay_value;
     // sub supplied from user
@@ -487,10 +489,7 @@ fn _change_state_liquidate_stable(
 ) {
     // sub stable debt
     // user
-    user_reserve_data_to_repay.stable_borrowed = u128::try_from(
-        checked_math!(user_reserve_data_to_repay.stable_borrowed - amount_to_repay_value).unwrap(),
-    )
-    .expect(MATH_ERROR_MESSAGE);
+    user_reserve_data_to_repay.stable_borrowed = user_reserve_data_to_repay.stable_borrowed - amount_to_repay_value;
     ink_env::debug_println!(
         " | Liquidate || _change_state_liquidate_stable | user_reserve_data_to_repay.stable_borrowed = {}",
         user_reserve_data_to_repay.stable_borrowed
@@ -499,13 +498,10 @@ fn _change_state_liquidate_stable(
     ink_env::debug_println!(
         " | Liquidate || _change_state_liquidate_stable | reserve_data_to_repay.avarage_stable_rate_e18"
     );
-    reserve_data_to_repay.avarage_stable_rate_e24 = if reserve_data_to_repay.sum_stable_debt
-        > amount_to_repay_value
-    {
+    reserve_data_to_repay.avarage_stable_rate_e24 = if reserve_data_to_repay.sum_stable_debt > amount_to_repay_value {
         u128::try_from(
             checked_math!(
-                (reserve_data_to_repay.avarage_stable_rate_e24
-                    * reserve_data_to_repay.sum_stable_debt
+                (reserve_data_to_repay.avarage_stable_rate_e24 * reserve_data_to_repay.sum_stable_debt
                     - user_reserve_data_to_repay.stable_borrow_rate_e24 * amount_to_repay_value)
                     / (reserve_data_to_repay.sum_stable_debt - amount_to_repay_value)
             )
@@ -516,12 +512,14 @@ fn _change_state_liquidate_stable(
         0
     };
 
-    reserve_data_to_repay.sum_stable_debt =
-        reserve_data_to_repay.sum_stable_debt - amount_to_repay_value;
+    reserve_data_to_repay.sum_stable_debt = reserve_data_to_repay.sum_stable_debt - amount_to_repay_value;
     // sub supplied from user
     user_reserve_data_to_take.supplied = user_reserve_data_to_take.supplied - amount_to_take;
     // add supplied to caller
-    caller_reserve_data_to_take.supplied = caller_reserve_data_to_take.supplied + amount_to_take;
+    caller_reserve_data_to_take.supplied = caller_reserve_data_to_take
+        .supplied
+        .checked_add(amount_to_take)
+        .expect(MATH_ERROR_MESSAGE)
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitLiquidateEvents for T {

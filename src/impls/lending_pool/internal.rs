@@ -244,16 +244,16 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 )
                 .expect(MATH_ERROR_MESSAGE);
                 ink_env::debug_println!("asset {:X?} collateral {}", asset, value_to_add);
-                total_collateral_coefficient_e6 =
-                    u128::try_from(checked_math!(total_collateral_coefficient_e6 + value_to_add).unwrap())
-                        .expect(MATH_ERROR_MESSAGE);
+                total_collateral_coefficient_e6 = total_collateral_coefficient_e6
+                    .checked_add(value_to_add)
+                    .expect(MATH_ERROR_MESSAGE);
             }
 
             if ((borrows >> i) & 1) == 1 {
-                let debt = u128::try_from(
-                    checked_math!(user_reserve.variable_borrowed + user_reserve.stable_borrowed).unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
+                let debt = user_reserve
+                    .variable_borrowed
+                    .checked_add(user_reserve.stable_borrowed)
+                    .expect(MATH_ERROR_MESSAGE);
                 let asset_debt_value_e8 =
                     u128::try_from(checked_math!(debt * asset_price_e8 / reserve_data.decimals).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
@@ -261,9 +261,9 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 let value_to_add =
                     u128::try_from(checked_math!(asset_debt_value_e8 * borrow_coefficient_e6 / 100_000_000).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
-                total_debt_coefficient_e6 =
-                    u128::try_from(checked_math!(total_debt_coefficient_e6 + value_to_add).unwrap())
-                        .expect(MATH_ERROR_MESSAGE);
+                total_debt_coefficient_e6 = total_debt_coefficient_e6
+                    .checked_add(value_to_add)
+                    .expect(MATH_ERROR_MESSAGE);
             }
         }
 
