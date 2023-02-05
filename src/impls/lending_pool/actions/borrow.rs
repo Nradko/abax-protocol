@@ -4,25 +4,38 @@ use crate::{
     impls::{
         constants::MATH_ERROR_MESSAGE,
         lending_pool::{
-            internal::{Internal, *},
+            internal::{
+                Internal,
+                *,
+            },
             storage::{
                 lending_pool_storage::LendingPoolStorage,
                 structs::{
-                    reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::*,
+                    reserve_data::ReserveData,
+                    user_config::UserConfig,
+                    user_reserve_data::*,
                 },
             },
         },
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{errors::LendingPoolError, events::*, traits::actions::LendingPoolBorrow},
+        lending_pool::{
+            errors::LendingPoolError,
+            events::*,
+            traits::actions::LendingPoolBorrow,
+        },
     },
 };
 use checked_math::checked_math;
 use ink_prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
-    traits::{AccountId, Balance, Storage},
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
 };
 
 impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> LendingPoolBorrow for T {
@@ -34,16 +47,13 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         //// PULL DATA AND INIT CONDITIONS CHECK
         let caller = Self::env().caller();
         let reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
-        let mut user_config = self
-            .data::<LendingPoolStorage>()
-            .get_or_create_user_config(&caller);
+        let mut user_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&caller);
         let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6;
         if use_as_collateral_to_set && collateral_coefficient_e6.is_none() {
-            return Err(LendingPoolError::RuleCollateralDisable);
+            return Err(LendingPoolError::RuleCollateralDisable)
         }
-        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-            &self.data::<LendingPoolStorage>().block_timestamp_provider,
-        );
+        let block_timestamp =
+            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
 
         //// MODIFY PULLED STORAGE
         if use_as_collateral_to_set {
@@ -56,10 +66,9 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         self.data::<LendingPoolStorage>()
             .insert_user_config(&caller, &user_config);
         if !use_as_collateral_to_set {
-            let (collaterized, _) =
-                self._get_user_free_collateral_coefficient_e6(&caller, block_timestamp);
+            let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&caller, block_timestamp);
             if !collaterized {
-                return Err(LendingPoolError::InsufficientUserFreeCollateral);
+                return Err(LendingPoolError::InsufficientUserFreeCollateral)
             }
         }
 
@@ -75,17 +84,16 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
     ) -> Result<(), LendingPoolError> {
         // TODO:: Check the maximum borrow
         if data.len() == 0 {
-            return Err(LendingPoolError::UnspecifiedAction);
+            return Err(LendingPoolError::UnspecifiedAction)
         }
         //// PULL DATA AND INIT CONDITIONS CHECK
         if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero);
+            return Err(LendingPoolError::AmountNotGreaterThanZero)
         }
         let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
             self._pull_data_for_borrow(&asset, &on_behalf_of)?;
-        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-            &self.data::<LendingPoolStorage>().block_timestamp_provider,
-        );
+        let block_timestamp =
+            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         //// MODIFY PULLED STORAGE
         // accumulate
         let (
@@ -111,21 +119,11 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                 );
                 //// ABACUS TOKEN EVENTS
                 // ATOKEN
-                let allowance_before1 = PSP22Ref::allowance(
-                    &reserve_data.v_token_address,
-                    on_behalf_of,
-                    Self::env().caller(),
-                );
-                let allowance_before2 = PSP22Ref::allowance(
-                    &reserve_data.v_token_address,
-                    Self::env().caller(),
-                    on_behalf_of,
-                );
-                ink_env::debug_println!(
-                    "allowances: {}    {}",
-                    allowance_before1,
-                    allowance_before2
-                );
+                let allowance_before1 =
+                    PSP22Ref::allowance(&reserve_data.v_token_address, on_behalf_of, Self::env().caller());
+                let allowance_before2 =
+                    PSP22Ref::allowance(&reserve_data.v_token_address, Self::env().caller(), on_behalf_of);
+                ink_env::debug_println!("allowances: {}    {}", allowance_before1, allowance_before2);
                 _emit_abacus_token_transfer_event(
                     &reserve_data.a_token_address,
                     &on_behalf_of,
@@ -146,16 +144,8 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     interest_on_behalf_of_stable_borrow as i128,
                 )?;
                 self._emit_borrow_variable_event(asset, Self::env().caller(), on_behalf_of, amount);
-                let allowance1 = PSP22Ref::allowance(
-                    &reserve_data.v_token_address,
-                    on_behalf_of,
-                    Self::env().caller(),
-                );
-                let allowance2 = PSP22Ref::allowance(
-                    &reserve_data.v_token_address,
-                    Self::env().caller(),
-                    on_behalf_of,
-                );
+                let allowance1 = PSP22Ref::allowance(&reserve_data.v_token_address, on_behalf_of, Self::env().caller());
+                let allowance2 = PSP22Ref::allowance(&reserve_data.v_token_address, Self::env().caller(), on_behalf_of);
             }
             1 => {
                 _check_borrowing_stable_enabled(&reserve_data)?;
@@ -213,7 +203,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
             ink_env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
-            return Err(LendingPoolError::InsufficientUserFreeCollateral);
+            return Err(LendingPoolError::InsufficientUserFreeCollateral)
         }
         //// TOKEN TRANSFER
         PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
@@ -229,14 +219,13 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
     ) -> Result<Balance, LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
         if data.len() == 0 {
-            return Err(LendingPoolError::UnspecifiedAction);
+            return Err(LendingPoolError::UnspecifiedAction)
         }
         let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
             self._pull_data_for_repay(&asset, &on_behalf_of)?;
         _check_activeness(&reserve_data)?;
-        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-            &self.data::<LendingPoolStorage>().block_timestamp_provider,
-        );
+        let block_timestamp =
+            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate
         let (
@@ -278,12 +267,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     interest_on_behalf_of_stable_borrow as i128,
                 )?;
                 //// EVENT
-                self._emit_repay_variable_event(
-                    asset,
-                    Self::env().caller(),
-                    on_behalf_of,
-                    amount_val,
-                );
+                self._emit_repay_variable_event(asset, Self::env().caller(), on_behalf_of, amount_val);
             }
             1 => {
                 amount_val = _change_state_repay_stable(
@@ -313,12 +297,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     interest_on_behalf_of_stable_borrow as i128 - amount_val as i128,
                 )?;
                 //// EVENT
-                self._emit_repay_stable_event(
-                    asset,
-                    Self::env().caller(),
-                    on_behalf_of,
-                    amount_val,
-                );
+                self._emit_repay_stable_event(asset, Self::env().caller(), on_behalf_of, amount_val);
             }
             _ => return Err(LendingPoolError::UnspecifiedAction),
         }
@@ -337,7 +316,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
             ink_env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
-            return Err(LendingPoolError::InsufficientUserFreeCollateral);
+            return Err(LendingPoolError::InsufficientUserFreeCollateral)
         }
         //// TOKEN TRANSFER
         PSP22Ref::transfer_from_builder(
@@ -401,9 +380,7 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
         let on_behalf_of_reserve_data = self
             .data::<LendingPoolStorage>()
             .get_user_reserve(&asset, &on_behalf_of)?;
-        let on_behalf_of_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(on_behalf_of)?;
+        let on_behalf_of_config = self.data::<LendingPoolStorage>().get_user_config(on_behalf_of)?;
         Ok((reserve_data, on_behalf_of_reserve_data, on_behalf_of_config))
     }
 
@@ -417,11 +394,8 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
     ) {
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(asset, reserve_data);
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            asset,
-            on_behalf_of,
-            on_behalf_of_reserve_data,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(asset, on_behalf_of, on_behalf_of_reserve_data);
         self.data::<LendingPoolStorage>()
             .insert_user_config(on_behalf_of, on_behalf_of_config);
     }
@@ -474,10 +448,9 @@ fn _change_state_borrow_variable(
     if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 0 {
         on_behalf_of_config.borrows_variable |= 1_u128 << reserve_data.id;
     }
-    on_behalf_of_reserve_data.variable_borrowed = u128::try_from(
-        checked_math!(on_behalf_of_reserve_data.variable_borrowed + amount).unwrap(),
-    )
-    .expect(MATH_ERROR_MESSAGE);
+    on_behalf_of_reserve_data.variable_borrowed =
+        u128::try_from(checked_math!(on_behalf_of_reserve_data.variable_borrowed + amount).unwrap())
+            .expect(MATH_ERROR_MESSAGE);
     reserve_data.total_variable_borrowed =
         u128::try_from(checked_math!(reserve_data.total_variable_borrowed + amount).unwrap())
             .expect(MATH_ERROR_MESSAGE);
@@ -493,12 +466,10 @@ fn _change_state_borrow_stable(
     if (on_behalf_of_config.borrows_stable >> reserve_data.id) & 1 == 0 {
         on_behalf_of_config.borrows_stable |= 1_u128 << reserve_data.id;
     }
-    let new_stable_borrow_rate_e24: u128 =
-        reserve_data._after_borrow_stable_borrow_rate_e24(amount)?;
+    let new_stable_borrow_rate_e24: u128 = reserve_data._after_borrow_stable_borrow_rate_e24(amount)?;
     on_behalf_of_reserve_data.stable_borrow_rate_e24 = 1 + u128::try_from(
         checked_math!(
-            (on_behalf_of_reserve_data.stable_borrow_rate_e24
-                * on_behalf_of_reserve_data.stable_borrowed
+            (on_behalf_of_reserve_data.stable_borrow_rate_e24 * on_behalf_of_reserve_data.stable_borrowed
                 + new_stable_borrow_rate_e24 * amount)
                 / (on_behalf_of_reserve_data.stable_borrowed + amount)
         )
@@ -510,16 +481,14 @@ fn _change_state_borrow_stable(
             .expect(MATH_ERROR_MESSAGE);
     reserve_data.avarage_stable_rate_e24 = u128::try_from(
         checked_math!(
-            (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt
-                + new_stable_borrow_rate_e24 * amount)
+            (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt + new_stable_borrow_rate_e24 * amount)
                 / (reserve_data.sum_stable_debt + amount)
         )
         .unwrap(),
     )
     .expect(MATH_ERROR_MESSAGE);
     reserve_data.sum_stable_debt =
-        u128::try_from(checked_math!(reserve_data.sum_stable_debt + amount).unwrap())
-            .expect(MATH_ERROR_MESSAGE);
+        u128::try_from(checked_math!(reserve_data.sum_stable_debt + amount).unwrap()).expect(MATH_ERROR_MESSAGE);
     Ok(new_stable_borrow_rate_e24)
 }
 
@@ -535,18 +504,17 @@ fn _change_state_repay_stable(
         None => on_behalf_of_reserve_data.stable_borrowed,
     };
     if amount_val == 0 {
-        return Err(LendingPoolError::AmountNotGreaterThanZero);
+        return Err(LendingPoolError::AmountNotGreaterThanZero)
     }
     if amount_val > on_behalf_of_reserve_data.stable_borrowed {
-        return Err(LendingPoolError::AmountExceedsUserDebt);
+        return Err(LendingPoolError::AmountExceedsUserDebt)
     }
     if amount_val == on_behalf_of_reserve_data.stable_borrowed {
         on_behalf_of_config.borrows_stable &= !(1_u128 << reserve_data.id);
     }
-    on_behalf_of_reserve_data.stable_borrowed = u128::try_from(
-        checked_math!(on_behalf_of_reserve_data.stable_borrowed - amount_val).unwrap(),
-    )
-    .expect(MATH_ERROR_MESSAGE);
+    on_behalf_of_reserve_data.stable_borrowed =
+        u128::try_from(checked_math!(on_behalf_of_reserve_data.stable_borrowed - amount_val).unwrap())
+            .expect(MATH_ERROR_MESSAGE);
     reserve_data.avarage_stable_rate_e24 = if reserve_data.sum_stable_debt > amount_val {
         u128::try_from(
             checked_math!(
@@ -582,25 +550,23 @@ fn _change_state_repay_variable(
         None => on_behalf_of_reserve_data.variable_borrowed,
     };
     if amount_val == 0 {
-        return Err(LendingPoolError::AmountNotGreaterThanZero);
+        return Err(LendingPoolError::AmountNotGreaterThanZero)
     }
     if amount_val > on_behalf_of_reserve_data.variable_borrowed {
-        return Err(LendingPoolError::AmountExceedsUserDebt);
+        return Err(LendingPoolError::AmountExceedsUserDebt)
     }
     if amount_val == on_behalf_of_reserve_data.variable_borrowed {
         on_behalf_of_config.borrows_variable &= !(1_u128 << reserve_data.id);
     }
-    on_behalf_of_reserve_data.variable_borrowed = u128::try_from(
-        checked_math!(on_behalf_of_reserve_data.variable_borrowed - amount_val).unwrap(),
-    )
-    .expect(MATH_ERROR_MESSAGE);
+    on_behalf_of_reserve_data.variable_borrowed =
+        u128::try_from(checked_math!(on_behalf_of_reserve_data.variable_borrowed - amount_val).unwrap())
+            .expect(MATH_ERROR_MESSAGE);
     if amount_val > reserve_data.total_variable_borrowed {
         reserve_data.total_variable_borrowed = 0;
     } else {
-        reserve_data.total_variable_borrowed = u128::try_from(
-            checked_math!(reserve_data.total_variable_borrowed - amount_val).unwrap(),
-        )
-        .expect(MATH_ERROR_MESSAGE);
+        reserve_data.total_variable_borrowed =
+            u128::try_from(checked_math!(reserve_data.total_variable_borrowed - amount_val).unwrap())
+                .expect(MATH_ERROR_MESSAGE);
     }
     Ok(amount_val)
 }

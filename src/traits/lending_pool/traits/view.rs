@@ -1,5 +1,6 @@
 use crate::impls::lending_pool::storage::structs::{
-    reserve_data::ReserveData, user_reserve_data::UserReserveData,
+    reserve_data::ReserveData,
+    user_reserve_data::UserReserveData,
 };
 
 use openbrush::traits::AccountId;
@@ -16,11 +17,7 @@ pub trait LendingPoolView {
     #[ink(message)]
     fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData>;
     #[ink(message)]
-    fn view_user_reserve_data(
-        &self,
-        asset: AccountId,
-        account: AccountId,
-    ) -> Option<UserReserveData>;
+    fn view_user_reserve_data(&self, asset: AccountId, account: AccountId) -> Option<UserReserveData>;
     #[ink(message)]
     fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128);
     #[ink(message)]

@@ -5,20 +5,33 @@ use checked_math::checked_math;
 use ink_prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
-    traits::{AccountId, Balance, Storage},
+    traits::{
+        AccountId,
+        Balance,
+        Storage,
+    },
 };
 
 use crate::{
     impls::{
         constants::MATH_ERROR_MESSAGE,
         lending_pool::{
-            internal::{_accumulate_interest, _check_activeness, _check_deposit_enabled, *},
+            internal::{
+                _accumulate_interest,
+                _check_activeness,
+                _check_deposit_enabled,
+                *,
+            },
             storage::lending_pool_storage::LendingPoolStorage,
         },
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{errors::LendingPoolError, events::*, traits::actions::LendingPoolDeposit},
+        lending_pool::{
+            errors::LendingPoolError,
+            events::*,
+            traits::actions::LendingPoolDeposit,
+        },
     },
 };
 
@@ -32,11 +45,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
     ) -> Result<(), LendingPoolError> {
         //// PULL DATA AND CHECK CONDITIONS
         if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero);
+            return Err(LendingPoolError::AmountNotGreaterThanZero)
         }
-        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-            &self.data::<LendingPoolStorage>().block_timestamp_provider,
-        );
+        let block_timestamp =
+            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
         _check_deposit_enabled(&reserve_data)?;
         let mut on_behalf_of_reserve_data = self
@@ -67,8 +79,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             u128::try_from(checked_math!(on_behalf_of_reserve_data.supplied + amount).unwrap())
                 .expect(MATH_ERROR_MESSAGE);
         reserve_data.total_supplied =
-            u128::try_from(checked_math!(reserve_data.total_supplied + amount).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
+            u128::try_from(checked_math!(reserve_data.total_supplied + amount).unwrap()).expect(MATH_ERROR_MESSAGE);
         // recalculate
         reserve_data._recalculate_current_rates()?;
 
@@ -77,11 +88,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
 
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &asset,
-            &on_behalf_of,
-            &on_behalf_of_reserve_data,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
 
         //// TOKEN TRANSFERS
         ink_env::debug_println!("[deposit] TOKEN TRANSFERS");
@@ -130,20 +138,17 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
-        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-            &self.data::<LendingPoolStorage>().block_timestamp_provider,
-        );
+        let block_timestamp =
+            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
         _check_activeness(&reserve_data)?;
         let mut on_behalf_of_reserve_data = self
             .data::<LendingPoolStorage>()
             .get_user_reserve(&asset, &on_behalf_of)?;
-        let mut on_behalf_of_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&on_behalf_of)?;
+        let mut on_behalf_of_config = self.data::<LendingPoolStorage>().get_user_config(&on_behalf_of)?;
 
         if on_behalf_of_reserve_data.supplied == 0 {
-            return Err(LendingPoolError::NothingToRedeem);
+            return Err(LendingPoolError::NothingToRedeem)
         }
 
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
@@ -163,10 +168,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             None => on_behalf_of_reserve_data.supplied,
         };
         if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero);
+            return Err(LendingPoolError::AmountNotGreaterThanZero)
         }
         if amount > on_behalf_of_reserve_data.supplied {
-            return Err(LendingPoolError::AmountExceedsUserDeposit);
+            return Err(LendingPoolError::AmountExceedsUserDeposit)
         }
         // sub from user supply
         if amount == on_behalf_of_reserve_data.supplied {
@@ -186,8 +191,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             reserve_data.total_supplied = 0;
         } else {
             reserve_data.total_supplied =
-                u128::try_from(checked_math!(reserve_data.total_supplied - amount).unwrap())
-                    .expect(MATH_ERROR_MESSAGE);
+                u128::try_from(checked_math!(reserve_data.total_supplied - amount).unwrap()).expect(MATH_ERROR_MESSAGE);
         }
         // recalculate
         reserve_data._recalculate_current_rates()?;
@@ -195,16 +199,12 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &asset,
-            &on_behalf_of,
-            &on_behalf_of_reserve_data,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
         // check if there ie enought collateral
-        let (collaterized, _) =
-            self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
-            return Err(LendingPoolError::InsufficientUserFreeCollateral);
+            return Err(LendingPoolError::InsufficientUserFreeCollateral)
         }
 
         //// TOKEN TRANSFERS
