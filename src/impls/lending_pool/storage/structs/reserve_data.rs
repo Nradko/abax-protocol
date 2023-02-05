@@ -166,9 +166,12 @@ impl ReserveData {
         }
 
         if self.current_supply_rate_e24 != 0 {
-            let index_multiplier_e18 =
-                u128::try_from(checked_math!((E18 + self.current_supply_rate_e24 * delta_timestamp / E6)).unwrap())
-                    .expect(MATH_ERROR_MESSAGE);
+            let index_multiplier_e18 = {
+                let delta_index_multiplier_e18 =
+                    u128::try_from(checked_math!((self.current_supply_rate_e24 * delta_timestamp / E6)).unwrap())
+                        .expect(MATH_ERROR_MESSAGE);
+                delta_index_multiplier_e18.checked_add(E18).expect(MATH_ERROR_MESSAGE)
+            };
             ink_env::debug_println!("current_supply_rate_e24: {}", self.current_supply_rate_e24);
             self.total_supplied =
                 u128::try_from(checked_math!((self.total_supplied * index_multiplier_e18) / E18).unwrap())
@@ -184,15 +187,26 @@ impl ReserveData {
                 "current_variable_borrow_rate_e24: {}",
                 self.current_variable_borrow_rate_e24
             );
-            let index_multiplier_e18 = u128::try_from(
-                checked_math!((E18 + self.current_variable_borrow_rate_e24 * delta_timestamp / E6)).unwrap(),
-            )
-            .expect(MATH_ERROR_MESSAGE);
+            let index_multiplier_e18 = {
+                let delta_index_multiplier_e18 = u128::try_from(
+                    checked_math!((self.current_variable_borrow_rate_e24 * delta_timestamp / E6)).unwrap(),
+                )
+                .expect(MATH_ERROR_MESSAGE);
+                delta_index_multiplier_e18.checked_add(E18).expect(MATH_ERROR_MESSAGE)
+            };
             self.total_variable_borrowed =
                 u128::try_from(checked_math!((self.total_variable_borrowed * index_multiplier_e18) / E18).unwrap())
                     .expect(MATH_ERROR_MESSAGE);
-            self.cumulative_variable_borrow_rate_index_e18 =
-                (self.cumulative_variable_borrow_rate_index_e18 * index_multiplier_e18) / E18 + 1;
+            self.cumulative_variable_borrow_rate_index_e18 = {
+                let cumulative_variable_borrow_rate_index_e18_rounded_down = u128::try_from(
+                    checked_math!((self.cumulative_variable_borrow_rate_index_e18 * index_multiplier_e18) / E18)
+                        .unwrap(),
+                )
+                .expect(MATH_ERROR_MESSAGE);
+                cumulative_variable_borrow_rate_index_e18_rounded_down
+                    .checked_add(1)
+                    .expect(MATH_ERROR_MESSAGE)
+            };
         }
 
         if self.avarage_stable_rate_e24 != 0 {

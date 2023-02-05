@@ -288,10 +288,17 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
                 .get_reserve_data(asset)
                 .unwrap_or_default();
             let balance = PSP22Ref::balance_of(asset, Self::env().account_id());
-            let income = (reserve_data.total_variable_borrowed
-                + reserve_data.sum_stable_debt
-                + reserve_data.accumulated_stable_borrow
-                + balance) as i128
+            let income = i128::try_from(
+                reserve_data
+                    .total_variable_borrowed
+                    .checked_add(reserve_data.sum_stable_debt)
+                    .expect(MATH_ERROR_MESSAGE)
+                    .checked_add(reserve_data.accumulated_stable_borrow)
+                    .expect(MATH_ERROR_MESSAGE)
+                    .checked_add(balance)
+                    .expect(MATH_ERROR_MESSAGE),
+            )
+            .expect(MATH_ERROR_MESSAGE)
                 - reserve_data.total_supplied as i128;
             result.push((*asset, income));
         }
