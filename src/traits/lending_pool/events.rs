@@ -1,21 +1,12 @@
-use openbrush::traits::{AccountId, Balance};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 
 #[openbrush::trait_definition]
 pub trait EmitDepositEvents {
-    fn _emit_deposit_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
-    fn _emit_redeem_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
+    fn _emit_deposit_event(&mut self, asset: AccountId, caller: AccountId, on_behalf_of: AccountId, amount: Balance);
+    fn _emit_redeem_event(&mut self, asset: AccountId, caller: AccountId, on_behalf_of: AccountId, amount: Balance);
 }
 
 #[openbrush::trait_definition]
