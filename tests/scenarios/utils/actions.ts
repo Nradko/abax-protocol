@@ -1,12 +1,11 @@
+import { SignAndSendSuccessResponse } from '@727-ventures/typechain-types';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { ReturnNumber, SignAndSendSuccessResponse } from '@727-ventures/typechain-types';
 import BN from 'bn.js';
 import chalk from 'chalk';
 import { isNil, maxBy } from 'lodash';
 import { LendingToken, ONE_YEAR, RateMode } from 'tests/consts';
-import { expect } from 'tests/setup/chai';
+import { assertExists, expect } from 'tests/setup/chai';
 import { apiProviderWrapper } from 'tests/setup/helpers';
-import { sleep } from 'tests/setup/nodePersistence';
 import { PSP22Metadata } from 'tests/types/PSP22Metadata';
 import {
   LendingPoolErrorBuilder,
@@ -22,7 +21,6 @@ import LendingPool from '../../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
 import SToken from '../../../typechain/contracts/s_token';
 import VToken from '../../../typechain/contracts/v_token';
-import { calcExpectedUserDataAfterSetUseAsCollateral } from './calculations';
 import {
   checkBorrowStable,
   CheckBorrowStableParameters,
@@ -37,15 +35,8 @@ import {
   checkRepayVariable,
   CheckRepayVariableParameters,
 } from './comparisons';
-import { TokenReserve, TestEnv, TestEnvReserves } from './make-suite';
-import {
-  advanceBlockTimestamp,
-  createEnumChecker,
-  getReserveDefaultObj,
-  getUserReserveDataDefaultObj,
-  parseAmountToBN,
-  subscribeOnEvents,
-} from './misc';
+import { TestEnv, TokenReserve } from './make-suite';
+import { advanceBlockTimestamp, createEnumChecker, getUserReserveDataDefaultObj, parseAmountToBN, subscribeOnEvents } from './misc';
 import { ValidateEventParameters } from './validateEvents';
 
 export const convertToCurrencyDecimals = async <T extends PSP22Metadata>(token: T, amount: BN | number | string) => {
@@ -644,12 +635,7 @@ export const setUseAsCollateral = async (
   const { lendingPool, reserves, blockTimestampProvider } = testEnv;
   const reserve = reserves[reserveSymbol].underlying;
 
-  const { reserveData: reserveDataBefore, userReserveData: userDataBefore } = await getUserReserveDataWithTimestamp(
-    reserve,
-    caller,
-    lendingPool,
-    blockTimestampProvider,
-  );
+  const { reserveData: reserveDataBefore } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
 
   const useAsCollateralToSet = useAsCollateral.toLowerCase() === 'true';
   const args: Parameters<typeof lendingPool.tx.setAsCollateral> = [reserve.address, useAsCollateralToSet];
@@ -659,12 +645,11 @@ export const setUseAsCollateral = async (
     }
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.setAsCollateral(...args));
 
-    const { userReserveData: userDataAfter } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
-
-    const expectedUserData = calcExpectedUserDataAfterSetUseAsCollateral(useAsCollateralToSet, reserveDataBefore, userDataBefore);
+    const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
 
     //TODO check that nothing else changed?
-    expect(expectedUserData.useAsCollateral).to.be.equal(useAsCollateralToSet);
+    expect.toBeDefined(userConfigAfter);
+    expect(userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id).to.equal(useAsCollateralToSet ? 1 : 0);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       await expect(lendingPool.withSigner(caller).query.setAsCollateral(...args)).to.eventually.be.rejected.and.to.have.deep.property(
@@ -686,19 +671,16 @@ export const getTxTimestamp = async (tx: SignAndSendSuccessResponse) => {
   return { txTimestamp };
 };
 
-export const getReserveAndUserReserveData = async <R extends { address: string }>(
-  reserve: R,
-  user: KeyringPair,
-  lendingPool: LendingPool,
-): Promise<{ reserveData: ReserveData; userReserveData: UserReserveData }> => {
-  const reserveDataResult = (await lendingPool.query.viewReserveData(reserve.address)).value;
-  if (!reserveDataResult) throw new Error(`ERROR READING RESERVE DATA (reserve: ${reserve.address})`);
+export const getReserveAndUserReserveData = async <R extends { address: string }>(reserve: R, user: KeyringPair, lendingPool: LendingPool) => {
+  const reserveData = (await lendingPool.query.viewReserveData(reserve.address)).value;
+  if (!reserveData) throw new Error(`ERROR READING RESERVE DATA (reserve: ${reserve.address})`);
 
   const userReserveDataResult = (await lendingPool.query.viewUserReserveData(reserve.address, user.address)).value;
+  const userConfig = (await lendingPool.query.viewUserConfig(user.address)).value;
   const result = {
-    reserveData: reserveDataResult,
-    // Since we override queryOkJson with queryOk (for simpler testing) viewUserReserveData will throw - otherwise ok will not be nullt
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    reserveData,
+    userConfig,
+    //return default obj to faciliate calculations
     userReserveData: userReserveDataResult ?? getUserReserveDataDefaultObj(),
   };
   return result;
