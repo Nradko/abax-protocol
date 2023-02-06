@@ -489,9 +489,7 @@ fn _change_state_liquidate_stable(
 ) {
     // sub stable debt
     // user
-    user_reserve_data_to_repay.stable_borrowed =
-        u128::try_from(checked_math!(user_reserve_data_to_repay.stable_borrowed - amount_to_repay_value).unwrap())
-            .expect(MATH_ERROR_MESSAGE);
+    user_reserve_data_to_repay.stable_borrowed = user_reserve_data_to_repay.stable_borrowed - amount_to_repay_value;
     ink_env::debug_println!(
         " | Liquidate || _change_state_liquidate_stable | user_reserve_data_to_repay.stable_borrowed = {}",
         user_reserve_data_to_repay.stable_borrowed
@@ -518,7 +516,10 @@ fn _change_state_liquidate_stable(
     // sub supplied from user
     user_reserve_data_to_take.supplied = user_reserve_data_to_take.supplied - amount_to_take;
     // add supplied to caller
-    caller_reserve_data_to_take.supplied = caller_reserve_data_to_take.supplied + amount_to_take;
+    caller_reserve_data_to_take.supplied = caller_reserve_data_to_take
+        .supplied
+        .checked_add(amount_to_take)
+        .expect(MATH_ERROR_MESSAGE)
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitLiquidateEvents for T {

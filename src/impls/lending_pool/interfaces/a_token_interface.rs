@@ -20,7 +20,6 @@ use crate::{
         },
     },
 };
-use checked_math::checked_math;
 use ink_prelude::*;
 use openbrush::traits::{
     AccountId,
@@ -107,15 +106,13 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
         } else if from_supplied < amount {
             return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
-        from_reserve_data.supplied =
-            u128::try_from(checked_math!(from_reserve_data.supplied - amount).unwrap()).expect(MATH_ERROR_MESSAGE);
+        from_reserve_data.supplied = from_reserve_data.supplied - amount;
         // add_to_user_supply
         if ((to_config.deposits >> reserve_data.id) & 1) == 0 {
             to_config.deposits |= 1_u128 << reserve_data.id;
             self.data::<LendingPoolStorage>().insert_user_config(&from, &to_config);
         }
-        to_reserve_data.supplied =
-            u128::try_from(checked_math!(to_reserve_data.supplied + amount).unwrap()).expect(MATH_ERROR_MESSAGE);
+        to_reserve_data.supplied = to_reserve_data.supplied.checked_add(amount).expect(MATH_ERROR_MESSAGE);
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()

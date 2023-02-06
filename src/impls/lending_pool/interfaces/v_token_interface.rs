@@ -1,6 +1,5 @@
 // TODO::tothink should transfer emit event inside lendingpool?
 
-use checked_math::checked_math;
 use openbrush::traits::{
     AccountId,
     Balance,
@@ -119,9 +118,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         } else if from_debt < amount {
             return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
-        from_reserve_data.variable_borrowed =
-            u128::try_from(checked_math!(from_reserve_data.variable_borrowed - amount).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
+        from_reserve_data.variable_borrowed = from_reserve_data.variable_borrowed - amount;
         //// TO
         // if debt was 0
         if ((to_config.borrows_variable >> reserve_data.id) & 1) == 0 {
@@ -129,9 +126,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
             self.data::<LendingPoolStorage>().insert_user_config(&from, &to_config);
         }
         // add_to_user_borrow
-        to_reserve_data.variable_borrowed =
-            u128::try_from(checked_math!(to_reserve_data.variable_borrowed + amount).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
+        to_reserve_data.variable_borrowed = to_reserve_data
+            .variable_borrowed
+            .checked_add(amount)
+            .expect(MATH_ERROR_MESSAGE);
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()

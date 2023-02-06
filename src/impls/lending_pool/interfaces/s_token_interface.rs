@@ -131,8 +131,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolSTokenInterface for T {
             + (to_reserve_data.stable_borrow_rate_e24 * to_reserve_data.stable_borrowed
                 + from_reserve_data.stable_borrow_rate_e24 * amount)
                 / (to_reserve_data.stable_borrowed + amount);
-        to_reserve_data.stable_borrowed =
-            u128::try_from(checked_math!(to_reserve_data.stable_borrowed + amount).unwrap()).expect(MATH_ERROR_MESSAGE);
+        to_reserve_data.stable_borrowed = to_reserve_data
+            .stable_borrowed
+            .checked_add(amount)
+            .expect(MATH_ERROR_MESSAGE);
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()
