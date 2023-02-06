@@ -2,7 +2,7 @@ import { ApiPromise } from '@polkadot/api';
 import { CodePromise, ContractPromise } from '@polkadot/api-contract';
 import { CodeSubmittableResult } from '@polkadot/api-contract/base';
 import { KeyringPair } from '@polkadot/keyring/types';
-import type { Weight } from '@polkadot/types/interfaces';
+import type { WeightV1 } from '@polkadot/types/interfaces';
 import { BN } from 'bn.js';
 import fs, { readFileSync } from 'fs-extra';
 import path from 'path';
@@ -33,8 +33,8 @@ export const setupContract = async (owner: KeyringPair, contractName: string, co
   // maximum gas to be consumed for the instantiation. if limit is too small the instantiation will fail.
   const gasLimit = 100000n * 1000000n;
   const gasLimitFromNetwork = api.consts.system.blockWeights
-    ? (api.consts.system.blockWeights as unknown as { maxBlock: Weight }).maxBlock
-    : (api.consts.system.maximumBlockWeight as unknown as Weight);
+    ? (api.consts.system.blockWeights as unknown as { maxBlock: WeightV1 }).maxBlock
+    : (api.consts.system.maximumBlockWeight as unknown as WeightV1);
   // a limit to how much Balance to be used to pay for the storage created by the instantiation
   // if null is passed, unlimited balance can be used
   const storageDepositLimit = null;
