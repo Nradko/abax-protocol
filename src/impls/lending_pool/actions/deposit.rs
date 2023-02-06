@@ -1,7 +1,6 @@
 // TODO::think should we emit events on set_as_collateral
 
 #![allow(unused_variables)]
-use checked_math::checked_math;
 use ink_prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
@@ -75,11 +74,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             self.data::<LendingPoolStorage>()
                 .insert_user_config(&on_behalf_of, &on_behalf_of_config);
         }
-        on_behalf_of_reserve_data.supplied =
-            u128::try_from(checked_math!(on_behalf_of_reserve_data.supplied + amount).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
-        reserve_data.total_supplied =
-            u128::try_from(checked_math!(reserve_data.total_supplied + amount).unwrap()).expect(MATH_ERROR_MESSAGE);
+        on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data
+            .supplied
+            .checked_add(amount)
+            .expect(MATH_ERROR_MESSAGE);
+        reserve_data.total_supplied = reserve_data
+            .total_supplied
+            .checked_add(amount)
+            .expect(MATH_ERROR_MESSAGE);
         // recalculate
         reserve_data._recalculate_current_rates()?;
 
@@ -179,10 +181,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             self.data::<LendingPoolStorage>()
                 .insert_user_config(&on_behalf_of, &on_behalf_of_config);
         }
-        on_behalf_of_reserve_data.supplied =
-            u128::try_from(checked_math!(on_behalf_of_reserve_data.supplied - amount).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
-        if amount > reserve_data.total_supplied {
+        on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data.supplied - amount;
+        if amount >= reserve_data.total_supplied {
             ink_env::debug_println!(
                 "subtracting {} from reserve_data.total_supplied ({}) would cause an underflow",
                 amount,
@@ -190,8 +190,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             );
             reserve_data.total_supplied = 0;
         } else {
-            reserve_data.total_supplied =
-                u128::try_from(checked_math!(reserve_data.total_supplied - amount).unwrap()).expect(MATH_ERROR_MESSAGE);
+            reserve_data.total_supplied = reserve_data.total_supplied - amount;
         }
         // recalculate
         reserve_data._recalculate_current_rates()?;

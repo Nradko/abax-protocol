@@ -171,37 +171,51 @@ makeSuite('Access Control tests', (getTestEnv) => {
   describe('set reserve parameters with...', () => {
     it('flashBorrower should return Err(MissingRole)', async () => {
       await expect(
-        lendingPool.withSigner(flashBorrower).query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, null, null, null, 0, 0, 0),
+        lendingPool
+          .withSigner(flashBorrower)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0),
       ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('assetListingAdmin should return Err(MissingRole)', async () => {
       await expect(
-        lendingPool.withSigner(assetListingAdmin).query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, null, null, null, 0, 0, 0),
+        lendingPool
+          .withSigner(assetListingAdmin)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0),
       ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('parametersAdmin should succed', async () => {
       await expect(
-        lendingPool.withSigner(parametersAdmin).query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, null, null, null, 0, 0, 0),
+        lendingPool
+          .withSigner(parametersAdmin)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0),
       ).to.eventually.be.fulfilled;
     });
     it('emergancyAdmin should return Err(MissingRole)', async () => {
       await expect(
-        lendingPool.withSigner(emergancyAdmin).query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, null, null, null, 0, 0, 0),
+        lendingPool
+          .withSigner(emergancyAdmin)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0),
       ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('globalAdmin should succeed', async () => {
       await expect(
-        lendingPool.withSigner(globalAdmin).query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, null, null, null, 0, 0, 0),
+        lendingPool
+          .withSigner(globalAdmin)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0),
       ).to.eventually.be.fulfilled;
     });
     it('roleAdmin should return Err(MissingRole)', async () => {
       await expect(
-        lendingPool.withSigner(roleAdmin).query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, null, null, null, 0, 0, 0),
+        lendingPool
+          .withSigner(roleAdmin)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0),
       ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('treasury should return Err(MissingRole)', async () => {
       await expect(
-        lendingPool.withSigner(treasury).query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, null, null, null, 0, 0, 0),
+        lendingPool
+          .withSigner(treasury)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0),
       ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
   });

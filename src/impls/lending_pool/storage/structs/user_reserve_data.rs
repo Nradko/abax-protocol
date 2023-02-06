@@ -69,10 +69,8 @@ impl UserReserveData {
                 .unwrap(),
             )
             .expect(MATH_ERROR_MESSAGE);
-            delta_user_supply =
-                u128::try_from(checked_math!(updated_supply - self.supplied).unwrap()).expect(MATH_ERROR_MESSAGE);
-            self.supplied =
-                u128::try_from(checked_math!(self.supplied + delta_user_supply).unwrap()).expect(MATH_ERROR_MESSAGE);
+            delta_user_supply = updated_supply - self.supplied;
+            self.supplied = updated_supply;
         }
         self.applied_cumulative_supply_rate_index_e18 = reserve.cumulative_supply_rate_index_e18;
 
@@ -81,35 +79,42 @@ impl UserReserveData {
             && self.applied_cumulative_variable_borrow_rate_index_e18
                 < reserve.cumulative_variable_borrow_rate_index_e18
         {
-            let updated_borrow = 1 + u128::try_from(
-                checked_math!(
-                    self.variable_borrowed * reserve.cumulative_variable_borrow_rate_index_e18
-                        / self.applied_cumulative_variable_borrow_rate_index_e18
+            let updated_borrow = {
+                let updated_borrow_rounded_down = u128::try_from(
+                    checked_math!(
+                        self.variable_borrowed * reserve.cumulative_variable_borrow_rate_index_e18
+                            / self.applied_cumulative_variable_borrow_rate_index_e18
+                    )
+                    .unwrap(),
                 )
-                .unwrap(),
-            )
-            .expect(MATH_ERROR_MESSAGE);
-            delta_user_varaible_borrow =
-                u128::try_from(checked_math!(updated_borrow - self.variable_borrowed).unwrap())
-                    .expect(MATH_ERROR_MESSAGE);
-            self.variable_borrowed =
-                u128::try_from(checked_math!(self.variable_borrowed + delta_user_varaible_borrow).unwrap())
-                    .expect(MATH_ERROR_MESSAGE);
+                .expect(MATH_ERROR_MESSAGE);
+                updated_borrow_rounded_down.checked_add(1).expect(MATH_ERROR_MESSAGE)
+            };
+            delta_user_varaible_borrow = updated_borrow - self.variable_borrowed;
+            self.variable_borrowed = updated_borrow;
         }
         self.applied_cumulative_variable_borrow_rate_index_e18 = reserve.cumulative_variable_borrow_rate_index_e18;
 
         if self.stable_borrowed != 0 {
-            delta_user_stable_borrow = 1 + u128::try_from(
-                checked_math!(
-                    self.stable_borrowed
-                        * self.stable_borrow_rate_e24
-                        * (reserve.indexes_update_timestamp - self.update_timestamp).into()
-                        / E24
+            delta_user_stable_borrow = {
+                let delta_user_stable_borrow_rounded_down = u128::try_from(
+                    checked_math!(
+                        self.stable_borrowed
+                            * self.stable_borrow_rate_e24
+                            * (reserve.indexes_update_timestamp - self.update_timestamp).into()
+                            / E24
+                    )
+                    .unwrap(),
                 )
-                .unwrap(),
-            )
-            .expect(MATH_ERROR_MESSAGE);
-            self.stable_borrowed = self.stable_borrowed + delta_user_stable_borrow;
+                .expect(MATH_ERROR_MESSAGE);
+                delta_user_stable_borrow_rounded_down
+                    .checked_add(1)
+                    .expect(MATH_ERROR_MESSAGE)
+            };
+            self.stable_borrowed = self
+                .stable_borrowed
+                .checked_add(delta_user_stable_borrow)
+                .expect(MATH_ERROR_MESSAGE);
             reserve.avarage_stable_rate_e24 = u128::try_from(
                 checked_math!(
                     (reserve.sum_stable_debt * reserve.avarage_stable_rate_e24
@@ -119,14 +124,12 @@ impl UserReserveData {
                 .unwrap(),
             )
             .expect(MATH_ERROR_MESSAGE);
-            reserve.sum_stable_debt =
-                u128::try_from(checked_math!(reserve.sum_stable_debt + delta_user_stable_borrow).unwrap())
-                    .expect(MATH_ERROR_MESSAGE);
-            if reserve.accumulated_stable_borrow > delta_user_stable_borrow {
-                reserve.accumulated_stable_borrow = u128::try_from(
-                    checked_math!(reserve.accumulated_stable_borrow - delta_user_stable_borrow).unwrap(),
-                )
+            reserve.sum_stable_debt = reserve
+                .sum_stable_debt
+                .checked_add(delta_user_stable_borrow)
                 .expect(MATH_ERROR_MESSAGE);
+            if reserve.accumulated_stable_borrow > delta_user_stable_borrow {
+                reserve.accumulated_stable_borrow = reserve.accumulated_stable_borrow - delta_user_stable_borrow;
             } else {
                 reserve.accumulated_stable_borrow = 0;
             }

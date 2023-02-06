@@ -161,8 +161,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
             return Err(LendingPoolError::RebalanceCondition)
         }
 
-        let new_stable_borrow_rate_e24 =
-            reserve_data.current_supply_rate_e24 + reserve_data.stable_rate_base_e24.unwrap_or_default();
+        let new_stable_borrow_rate_e24 = reserve_data
+            .current_supply_rate_e24
+            .checked_add(reserve_data.stable_rate_base_e24.unwrap_or_default())
+            .expect(MATH_ERROR_MESSAGE);
         reserve_data.avarage_stable_rate_e24 = u128::try_from(
             checked_math!(
                 ((reserve_data.sum_stable_debt - user_reserve_data.stable_borrowed)

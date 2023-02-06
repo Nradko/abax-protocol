@@ -50,7 +50,7 @@ export const setupContract = async (owner: KeyringPair, contractName: string, co
     const tx = codePromise.tx[constructorName](
       {
         storageDepositLimit: null,
-        gasLimit: gasLimitFromNetwork.muln(2).divn(10),
+        gasLimit: new BN(gasLimitFromNetwork.toString()).divn(2),
         salt: undefined,
         value: undefined,
       },

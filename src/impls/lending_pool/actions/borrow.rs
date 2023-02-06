@@ -448,12 +448,14 @@ fn _change_state_borrow_variable(
     if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 0 {
         on_behalf_of_config.borrows_variable |= 1_u128 << reserve_data.id;
     }
-    on_behalf_of_reserve_data.variable_borrowed =
-        u128::try_from(checked_math!(on_behalf_of_reserve_data.variable_borrowed + amount).unwrap())
-            .expect(MATH_ERROR_MESSAGE);
-    reserve_data.total_variable_borrowed =
-        u128::try_from(checked_math!(reserve_data.total_variable_borrowed + amount).unwrap())
-            .expect(MATH_ERROR_MESSAGE);
+    on_behalf_of_reserve_data.variable_borrowed = on_behalf_of_reserve_data
+        .variable_borrowed
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
+    reserve_data.total_variable_borrowed = reserve_data
+        .total_variable_borrowed
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
 }
 
 fn _change_state_borrow_stable(
@@ -467,18 +469,24 @@ fn _change_state_borrow_stable(
         on_behalf_of_config.borrows_stable |= 1_u128 << reserve_data.id;
     }
     let new_stable_borrow_rate_e24: u128 = reserve_data._after_borrow_stable_borrow_rate_e24(amount)?;
-    on_behalf_of_reserve_data.stable_borrow_rate_e24 = 1 + u128::try_from(
-        checked_math!(
-            (on_behalf_of_reserve_data.stable_borrow_rate_e24 * on_behalf_of_reserve_data.stable_borrowed
-                + new_stable_borrow_rate_e24 * amount)
-                / (on_behalf_of_reserve_data.stable_borrowed + amount)
+    on_behalf_of_reserve_data.stable_borrow_rate_e24 = {
+        let stable_borrow_rate_e24_rounded_down = u128::try_from(
+            checked_math!(
+                (on_behalf_of_reserve_data.stable_borrow_rate_e24 * on_behalf_of_reserve_data.stable_borrowed
+                    + new_stable_borrow_rate_e24 * amount)
+                    / (on_behalf_of_reserve_data.stable_borrowed + amount)
+            )
+            .unwrap(),
         )
-        .unwrap(),
-    )
-    .expect(MATH_ERROR_MESSAGE);
-    on_behalf_of_reserve_data.stable_borrowed =
-        u128::try_from(checked_math!(on_behalf_of_reserve_data.stable_borrowed + amount).unwrap())
-            .expect(MATH_ERROR_MESSAGE);
+        .expect(MATH_ERROR_MESSAGE);
+        stable_borrow_rate_e24_rounded_down
+            .checked_add(1)
+            .expect(MATH_ERROR_MESSAGE)
+    };
+    on_behalf_of_reserve_data.stable_borrowed = on_behalf_of_reserve_data
+        .stable_borrowed
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
     reserve_data.avarage_stable_rate_e24 = u128::try_from(
         checked_math!(
             (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt + new_stable_borrow_rate_e24 * amount)
@@ -487,8 +495,10 @@ fn _change_state_borrow_stable(
         .unwrap(),
     )
     .expect(MATH_ERROR_MESSAGE);
-    reserve_data.sum_stable_debt =
-        u128::try_from(checked_math!(reserve_data.sum_stable_debt + amount).unwrap()).expect(MATH_ERROR_MESSAGE);
+    reserve_data.sum_stable_debt = reserve_data
+        .sum_stable_debt
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
     Ok(new_stable_borrow_rate_e24)
 }
 
@@ -512,9 +522,7 @@ fn _change_state_repay_stable(
     if amount_val == on_behalf_of_reserve_data.stable_borrowed {
         on_behalf_of_config.borrows_stable &= !(1_u128 << reserve_data.id);
     }
-    on_behalf_of_reserve_data.stable_borrowed =
-        u128::try_from(checked_math!(on_behalf_of_reserve_data.stable_borrowed - amount_val).unwrap())
-            .expect(MATH_ERROR_MESSAGE);
+    on_behalf_of_reserve_data.stable_borrowed = on_behalf_of_reserve_data.stable_borrowed - amount_val;
     reserve_data.avarage_stable_rate_e24 = if reserve_data.sum_stable_debt > amount_val {
         u128::try_from(
             checked_math!(
@@ -528,12 +536,10 @@ fn _change_state_repay_stable(
     } else {
         0
     };
-    if amount_val > reserve_data.sum_stable_debt {
+    if amount_val >= reserve_data.sum_stable_debt {
         reserve_data.sum_stable_debt = 0;
     } else {
-        reserve_data.sum_stable_debt =
-            u128::try_from(checked_math!(reserve_data.sum_stable_debt - amount_val).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
+        reserve_data.sum_stable_debt = reserve_data.sum_stable_debt - amount_val;
     }
     Ok(amount_val)
 }
@@ -558,15 +564,11 @@ fn _change_state_repay_variable(
     if amount_val == on_behalf_of_reserve_data.variable_borrowed {
         on_behalf_of_config.borrows_variable &= !(1_u128 << reserve_data.id);
     }
-    on_behalf_of_reserve_data.variable_borrowed =
-        u128::try_from(checked_math!(on_behalf_of_reserve_data.variable_borrowed - amount_val).unwrap())
-            .expect(MATH_ERROR_MESSAGE);
+    on_behalf_of_reserve_data.variable_borrowed = on_behalf_of_reserve_data.variable_borrowed - amount_val;
     if amount_val > reserve_data.total_variable_borrowed {
         reserve_data.total_variable_borrowed = 0;
     } else {
-        reserve_data.total_variable_borrowed =
-            u128::try_from(checked_math!(reserve_data.total_variable_borrowed - amount_val).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
+        reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed - amount_val;
     }
     Ok(amount_val)
 }

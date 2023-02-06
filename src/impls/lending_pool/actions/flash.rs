@@ -107,7 +107,10 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
                 .unwrap(),
             )
             .expect(MATH_ERROR_MESSAGE);
-            reserve_data_vec[i].total_supplied += fees[i];
+            reserve_data_vec[i].total_supplied = reserve_data_vec[i]
+                .total_supplied
+                .checked_add(fees[i])
+                .expect(MATH_ERROR_MESSAGE);
 
             reserve_data_vec[i]._recalculate_current_rates()?;
 
@@ -118,7 +121,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
                 &assets[i],
                 receiver_address,
                 Self::env().account_id(),
-                amounts[i] + fees[i],
+                amounts[i].checked_add(fees[i]).expect(MATH_ERROR_MESSAGE),
                 Vec::<u8>::new(),
             )
             .call_flags(ink_env::CallFlags::default().set_allow_reentry(true))
