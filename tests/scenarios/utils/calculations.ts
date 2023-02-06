@@ -119,15 +119,3 @@ export const calcExpectedUserDataAfterRedeem = (
   const expectedUserData = <UserReserveData>{ ...userDataBeforeAction };
   return expectedUserData;
 };
-
-export const calcExpectedUserDataAfterSetUseAsCollateral = (
-  useAsCollateralToSet: boolean,
-  reserveDataBeforeAction: ReserveData,
-  userDataBeforeAction: UserReserveData,
-): UserReserveData => {
-  const expectedUserData = { ...userDataBeforeAction };
-
-  expectedUserData.useAsCollateral = useAsCollateralToSet;
-
-  return expectedUserData;
-};
