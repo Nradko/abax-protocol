@@ -78,5 +78,5 @@
     "husky": "^8.0.0",
     "tsconfig-paths": "^4.1.0"
   },
-  "packageManager": "yarn@3.3.0"
+  "packageManager": "yarn@3.4.1"
 }
