@@ -14,11 +14,19 @@ pub type LendingPoolViewRef = dyn LendingPoolView;
 #[openbrush::trait_definition]
 pub trait LendingPoolView {
     #[ink(message)]
-    fn view_registered_asset(&self) -> Vec<AccountId>;
+    fn view_registered_assets(&self) -> Vec<AccountId>;
     #[ink(message)]
     fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData>;
     #[ink(message)]
+    fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)>;
+    #[ink(message)]
     fn view_user_reserve_data(&self, asset: AccountId, account: AccountId) -> Option<UserReserveData>;
+    #[ink(message)]
+    fn view_user_reserve_datas(
+        &self,
+        assets: Option<Vec<AccountId>>,
+        account: AccountId,
+    ) -> Vec<(AccountId, Option<UserReserveData>)>;
     #[ink(message)]
     fn view_user_config(&self, user: AccountId) -> Option<UserConfig>;
     #[ink(message)]

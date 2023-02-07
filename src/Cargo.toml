@@ -15,6 +15,7 @@ members = [
 
     "contracts/lending_pool_facets/owner_actions/**",
     "contracts/lending_pool_facets/view/**",
+    "contracts/periphery/**",
 ]
 
 [package]
