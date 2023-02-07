@@ -210,10 +210,16 @@ impl ReserveData {
         }
 
         if self.avarage_stable_rate_e24 != 0 {
-            self.accumulated_stable_borrow += u128::try_from(
-                checked_math!(self.sum_stable_debt * (self.avarage_stable_rate_e24 * delta_timestamp) / E24).unwrap(),
-            )
-            .expect(MATH_ERROR_MESSAGE);
+            self.accumulated_stable_borrow = {
+                let accumulated_stable_borrow_delta = u128::try_from(
+                    checked_math!(self.sum_stable_debt * (self.avarage_stable_rate_e24 * delta_timestamp) / E24)
+                        .unwrap(),
+                )
+                .expect(MATH_ERROR_MESSAGE);
+                self.accumulated_stable_borrow
+                    .checked_add(accumulated_stable_borrow_delta)
+                    .expect(MATH_ERROR_MESSAGE)
+            }
         }
         self.indexes_update_timestamp = new_timestamp;
     }

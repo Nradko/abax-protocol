@@ -14,7 +14,10 @@ use openbrush::{
 
 use crate::{
     impls::{
-        constants::MATH_ERROR_MESSAGE,
+        constants::{
+            E8,
+            MATH_ERROR_MESSAGE,
+        },
         lending_pool::storage::{
             lending_pool_storage::LendingPoolStorage,
             structs::{
@@ -239,10 +242,9 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 )
                 .expect(MATH_ERROR_MESSAGE);
                 let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6.unwrap_or(0);
-                let value_to_add = u128::try_from(
-                    checked_math!(asset_supplied_value_e8 * collateral_coefficient_e6 / 100_000_000).unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
+                let value_to_add =
+                    u128::try_from(checked_math!(asset_supplied_value_e8 * collateral_coefficient_e6 / E8).unwrap())
+                        .expect(MATH_ERROR_MESSAGE);
                 ink_env::debug_println!("asset {:X?} collateral {}", asset, value_to_add);
                 total_collateral_coefficient_e6 = total_collateral_coefficient_e6
                     .checked_add(value_to_add)

@@ -118,19 +118,27 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolSTokenInterface for T {
         } else if from_debt < amount {
             return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
-        from_reserve_data.stable_borrowed =
-            u128::try_from(checked_math!(from_reserve_data.stable_borrowed - amount).unwrap())
-                .expect(MATH_ERROR_MESSAGE);
+        from_reserve_data.stable_borrowed = from_reserve_data.stable_borrowed - amount;
         //// TO
         if ((to_config.borrows_stable >> reserve_data.id) & 1) == 0 {
             to_config.borrows_stable &= 1_u128 << reserve_data.id;
             self.data::<LendingPoolStorage>().insert_user_config(&from, &to_config);
         }
         // add_to_user_borrow
-        to_reserve_data.stable_borrow_rate_e24 = 1
-            + (to_reserve_data.stable_borrow_rate_e24 * to_reserve_data.stable_borrowed
-                + from_reserve_data.stable_borrow_rate_e24 * amount)
-                / (to_reserve_data.stable_borrowed + amount);
+        to_reserve_data.stable_borrow_rate_e24 = {
+            let stable_borrow_rate_e24_rounded_down = u128::try_from(
+                checked_math!(
+                    (to_reserve_data.stable_borrow_rate_e24 * to_reserve_data.stable_borrowed
+                        + from_reserve_data.stable_borrow_rate_e24 * amount)
+                        / (to_reserve_data.stable_borrowed + amount)
+                )
+                .unwrap(),
+            )
+            .expect(MATH_ERROR_MESSAGE);
+            stable_borrow_rate_e24_rounded_down
+                .checked_add(1)
+                .expect(MATH_ERROR_MESSAGE)
+        };
         to_reserve_data.stable_borrowed = to_reserve_data
             .stable_borrowed
             .checked_add(amount)

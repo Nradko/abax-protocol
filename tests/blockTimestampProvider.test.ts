@@ -32,14 +32,4 @@ makeSuite('BlockTimestampProvider', () => {
     const { value } = await timestampProvider.query.getBlockTimestamp();
     expect(value.toString()).to.equal(timestamp.toString());
   });
-
-  it.skip('[Skipped by definition] Expect soft test', async () => {
-    expect.soft(1).to.equal(2);
-    expect.soft(2).to.equal(3);
-    expect.soft({ x: 'a' }).to.deep.equal({ x: 'b' });
-    expect.flushSoft();
-    expect(5).to.equal(5);
-    expect(5).to.equal(6);
-    expect(5).to.equal(7);
-  });
 });

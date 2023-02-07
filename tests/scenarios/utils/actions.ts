@@ -649,7 +649,9 @@ export const setUseAsCollateral = async (
 
     //TODO check that nothing else changed?
     expect.toBeDefined(userConfigAfter);
-    expect(userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id).to.equal(useAsCollateralToSet ? 1 : 0);
+    expect((userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id) % 2, 'setUseAsCollateral didnt work').to.equal(
+      useAsCollateralToSet ? 1 : 0,
+    );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       await expect(lendingPool.withSigner(caller).query.setAsCollateral(...args)).to.eventually.be.rejected.and.to.have.deep.property(
