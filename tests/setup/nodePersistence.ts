@@ -41,7 +41,17 @@ export async function waitFor(valueGetter: () => any, logMessage = 'Waiting for 
 const spawnContractsNode = async (testChainStateLocation: string) => {
   if (!process.env.PWD) throw 'could not determine pwd';
   const command = path.join(process.env.PWD, 'substrate-contracts-node');
-  const cliArgs = ['--dev', '--base-path', `${testChainStateLocation}`, '--ws-max-connections', '1000', '--max-runtime-instances', '256'];
+  const cliArgs = [
+    '--dev',
+    '--base-path',
+    `${testChainStateLocation}`,
+    '--ws-max-connections',
+    '1000',
+    '--max-runtime-instances',
+    '256',
+    '--ws-port',
+    '9944',
+  ];
   const contractsNodeProcess = spawn(command, cliArgs, { cwd: process.env.PWD, stdio: 'overlapped' });
 
   contractsNodeProcess.on('exit', function (code) {

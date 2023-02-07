@@ -6,9 +6,11 @@ import { flush, proxy } from 'tests/soft-assert';
 import { E12, parseAmountToBN } from 'tests/scenarios/utils/misc';
 const softExpect = proxy(chai.expect);
 
-interface ExpectStaticWithSoft extends Chai.ExpectStatic {
+export interface ExpectStaticWithSoft extends Chai.ExpectStatic {
   soft: (val: any, message?: string) => Chai.Assertion;
   flushSoft: () => void;
+  toBeDefined<T>(val: T): asserts val is NonNullable<T>;
+  notToBeDefined(val: unknown): asserts val is undefined | null;
 }
 declare global {
   export namespace Chai {
@@ -88,4 +90,18 @@ expectWithSoft.soft = function (val: any, message?: string) {
 };
 expectWithSoft.flushSoft = flush;
 
-export const expect = expectWithSoft;
+expectWithSoft.toBeDefined = function <T>(val: T | null): asserts val is NonNullable<T> {
+  chai.assert(val !== null && val !== undefined, `expected ${val} not to be null or undefined`);
+};
+expectWithSoft.notToBeDefined = function (val: unknown): asserts val is undefined | null {
+  chai.assert(val === null || val === undefined, `expected ${val} to be null or undefined`);
+};
+
+export const expect: ExpectStaticWithSoft = expectWithSoft;
+
+export function assertExists<T>(maybe: T): asserts maybe is NonNullable<T> {
+  if (maybe === null || maybe === undefined) throw new Error(`${maybe} doesn't exist`);
+}
+export function expectExists<T>(maybe: T): asserts maybe is NonNullable<T> {
+  if (maybe === null || maybe === undefined) throw new Error(`${maybe} doesn't exist`);
+}

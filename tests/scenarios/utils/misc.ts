@@ -23,7 +23,7 @@ export const E12 = Math.pow(10, 12);
 export const E18 = Math.pow(10, 18);
 export const toE6 = (num: NumericArg) => (typeof num === 'number' ? num : BN.isBN(num) ? num.toNumber() : parseInt(num)) * E6;
 export const toNullableNumArg = <T>(num: NumericArg | null, convert: (num: NumericArg) => T) => (num ? convert(num) : num);
-export const toE12 = (num: number) => num * E12;
+export const toE12 = (num: NumericArg) => (typeof num === 'number' ? num : BN.isBN(num) ? num.toNumber() : parseInt(num)) * E12;
 export const fromE6 = (num: BN | string): number => {
   if (typeof num === 'string') return parseFloat(num) / E6;
   try {
@@ -200,6 +200,5 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
     appliedCumulativeVariableBorrowRateIndexE18: new ReturnNumber(0),
     stableBorrowRateE24: new ReturnNumber(0),
     updateTimestamp: -1,
-    useAsCollateral: false,
   };
 };

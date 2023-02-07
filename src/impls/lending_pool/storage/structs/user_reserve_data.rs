@@ -39,8 +39,6 @@ pub struct UserReserveData {
     pub stable_borrow_rate_e24: u128,
     /// timestamp of UserReserveData update
     pub update_timestamp: Timestamp,
-    /// is this token used as collateral by the user
-    pub use_as_collateral: bool,
 }
 
 impl UserReserveData {
@@ -150,7 +148,6 @@ impl UserReserveData {
             applied_cumulative_variable_borrow_rate_index_e18: E18,
             stable_borrow_rate_e24: 0,
             update_timestamp: 0,
-            use_as_collateral: false,
         }
     }
 }

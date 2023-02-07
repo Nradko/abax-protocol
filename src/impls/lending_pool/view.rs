@@ -19,9 +19,12 @@ use openbrush::traits::{
 
 use ink_prelude::vec::Vec;
 
-use super::internal::{
-    Internal,
-    InternalIncome,
+use super::{
+    internal::{
+        Internal,
+        InternalIncome,
+    },
+    storage::structs::user_config::UserConfig,
 };
 
 impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
@@ -34,6 +37,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
 
     default fn view_user_reserve_data(&self, asset: AccountId, user: AccountId) -> Option<UserReserveData> {
         self.data::<LendingPoolStorage>().get_user_reserve(&asset, &user).ok()
+    }
+
+    default fn view_user_config(&self, user: AccountId) -> Option<UserConfig> {
+        self.data::<LendingPoolStorage>().get_user_config(&user).ok()
     }
 
     default fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128) {
