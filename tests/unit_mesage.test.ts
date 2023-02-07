@@ -270,7 +270,7 @@ makeSuite('Unit message', (getTestEnv) => {
             users[5].address,
           );
 
-        const registerAssets = (await lendingPool.query.viewRegisteredAsset()).value;
+        const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value;
         const reserveData = (await lendingPool.query.viewReserveData(users[2].address)).value!;
         const AssetRegisteredEvent = Object.values(txResult.events!).find((e) => e.name === ContractsEvents.LendingPoolEvents.AssetRegistered)
           ?.args as AssetRegistered;

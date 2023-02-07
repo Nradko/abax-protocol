@@ -17,6 +17,7 @@ import LendingPool from '../../typechain/contracts/lending_pool';
 import EmittedTokenContract from '../../typechain/contracts/psp22_emitable';
 import STokenContract from '../../typechain/contracts/s_token';
 import VTokenContract from '../../typechain/contracts/v_token';
+import BalanceViewer from '../../typechain/contracts/balance_viewer';
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './helpers';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
@@ -106,6 +107,10 @@ export const deployReserveToken = async (owner: KeyringPair, name: string, decim
 
 export const deployFlashLoanReceiverMock = async (owner: KeyringPair) => {
   return deployWithLog(owner, FlashLoanReceiverMock, 'flash_loan_receiver_mock');
+};
+
+export const deployBalanceViewer = async (owner: KeyringPair, lendingPoolAddress: string) => {
+  return deployWithLog(owner, BalanceViewer, 'balance_viewer', lendingPoolAddress);
 };
 
 export const deployDiamond = async (owner: KeyringPair) => deployWithLog(owner, DiamondContract, 'diamond', owner.address);

@@ -17,7 +17,10 @@ use openbrush::traits::{
     Storage,
 };
 
-use ink_prelude::vec::Vec;
+use ink_prelude::{
+    vec::Vec,
+    *,
+};
 
 use super::{
     internal::{
@@ -28,15 +31,47 @@ use super::{
 };
 
 impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
-    default fn view_registered_asset(&self) -> Vec<AccountId> {
+    default fn view_registered_assets(&self) -> Vec<AccountId> {
         self.data::<LendingPoolStorage>().registered_assets.to_vec()
     }
     default fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
         self.data::<LendingPoolStorage>().get_reserve_data(&asset).ok()
     }
 
+    default fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)> {
+        let assets_to_view = if assets.is_some() {
+            assets.unwrap()
+        } else {
+            self.view_registered_assets()
+        };
+
+        let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
+        for asset in assets_to_view {
+            ret.push((asset, self.view_reserve_data(asset)));
+        }
+        ret
+    }
+
     default fn view_user_reserve_data(&self, asset: AccountId, user: AccountId) -> Option<UserReserveData> {
         self.data::<LendingPoolStorage>().get_user_reserve(&asset, &user).ok()
+    }
+
+    default fn view_user_reserve_datas(
+        &self,
+        assets: Option<Vec<AccountId>>,
+        user: AccountId,
+    ) -> Vec<(AccountId, Option<UserReserveData>)> {
+        let assets_to_view = if assets.is_some() {
+            assets.unwrap()
+        } else {
+            self.view_registered_assets()
+        };
+
+        let mut ret: Vec<(AccountId, Option<UserReserveData>)> = vec![];
+        for asset in assets_to_view {
+            ret.push((asset, self.view_user_reserve_data(asset, user)));
+        }
+        ret
     }
 
     default fn view_user_config(&self, user: AccountId) -> Option<UserConfig> {
