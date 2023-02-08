@@ -52,30 +52,34 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
         ret
     }
 
-    default fn view_user_reserve_data(&self, asset: AccountId, user: AccountId) -> Option<UserReserveData> {
-        self.data::<LendingPoolStorage>().get_user_reserve(&asset, &user).ok()
+    default fn view_user_reserve_data(&self, asset: AccountId, user: AccountId) -> UserReserveData {
+        self.data::<LendingPoolStorage>()
+            .get_user_reserve(&asset, &user)
+            .unwrap_or_default()
     }
 
     default fn view_user_reserve_datas(
         &self,
         assets: Option<Vec<AccountId>>,
         user: AccountId,
-    ) -> Vec<(AccountId, Option<UserReserveData>)> {
+    ) -> Vec<(AccountId, UserReserveData)> {
         let assets_to_view = if assets.is_some() {
             assets.unwrap()
         } else {
             self.view_registered_assets()
         };
 
-        let mut ret: Vec<(AccountId, Option<UserReserveData>)> = vec![];
+        let mut ret: Vec<(AccountId, UserReserveData)> = vec![];
         for asset in assets_to_view {
             ret.push((asset, self.view_user_reserve_data(asset, user)));
         }
         ret
     }
 
-    default fn view_user_config(&self, user: AccountId) -> Option<UserConfig> {
-        self.data::<LendingPoolStorage>().get_user_config(&user).ok()
+    default fn view_user_config(&self, user: AccountId) -> UserConfig {
+        self.data::<LendingPoolStorage>()
+            .get_user_config(&user)
+            .unwrap_or_default()
     }
 
     default fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128) {

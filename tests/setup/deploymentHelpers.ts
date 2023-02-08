@@ -287,13 +287,16 @@ export const deployAndConfigureSystem = async (
   }
 
   if (process.env.DEBUG) console.log('Asset rules added');
+  const balanceViewer = await deployBalanceViewer(owner, contracts.lendingPool.address);
   const testEnv = {
     blockTimestampProvider: contracts.blockTimestampProvider,
     users: users,
     owner,
     lendingPool: contracts.lendingPool,
     reserves: reservesWithLendingTokens,
+    balanceViewer,
   };
+
   if (saveConfigToFilePath) {
     await saveConfigToFile(testEnv, saveConfigToFilePath);
   }
@@ -318,6 +321,10 @@ async function saveConfigToFile(testEnv: TestEnv, writePath: string) {
           reserveName,
         })),
       ),
+      {
+        name: testEnv.balanceViewer.name,
+        address: testEnv.balanceViewer.address,
+      },
     ],
     writePath,
   );
