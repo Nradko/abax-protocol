@@ -20,15 +20,15 @@ pub trait LendingPoolView {
     #[ink(message)]
     fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)>;
     #[ink(message)]
-    fn view_user_reserve_data(&self, asset: AccountId, account: AccountId) -> Option<UserReserveData>;
+    fn view_user_reserve_data(&self, asset: AccountId, account: AccountId) -> UserReserveData;
     #[ink(message)]
     fn view_user_reserve_datas(
         &self,
         assets: Option<Vec<AccountId>>,
         account: AccountId,
-    ) -> Vec<(AccountId, Option<UserReserveData>)>;
+    ) -> Vec<(AccountId, UserReserveData)>;
     #[ink(message)]
-    fn view_user_config(&self, user: AccountId) -> Option<UserConfig>;
+    fn view_user_config(&self, user: AccountId) -> UserConfig;
     #[ink(message)]
     fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128);
     #[ink(message)]

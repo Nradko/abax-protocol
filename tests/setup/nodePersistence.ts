@@ -8,6 +8,7 @@ import LendingPool from '../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
 import SToken from '../../typechain/contracts/s_token';
 import VToken from '../../typechain/contracts/v_token';
+import BalanceViewer from '../../typechain/contracts/balance_viewer';
 import BlockTimestampProvider from '../../typechain/contracts/block_timestamp_provider';
 import { getContractObject } from './deploymentHelpers';
 import findProcess from 'find-process';
@@ -134,12 +135,17 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     }
   }
 
+  const balanceViewerContractInfo = contracts.find((c) => c.name === 'balance_viewer');
+  if (!balanceViewerContractInfo) throw 'BalanceViewer ContractInfo not found';
+  const balanceViewer = await getContractObject(BalanceViewer, balanceViewerContractInfo.address, owner);
+
   return {
     users: users,
     owner,
     lendingPool: lendingPool,
     reserves: reservesWithLendingTokens,
     blockTimestampProvider,
+    balanceViewer,
   };
 };
 

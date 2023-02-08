@@ -36,7 +36,7 @@ import {
   CheckRepayVariableParameters,
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
-import { advanceBlockTimestamp, createEnumChecker, getUserReserveDataDefaultObj, parseAmountToBN, subscribeOnEvents } from './misc';
+import { advanceBlockTimestamp, createEnumChecker, parseAmountToBN, subscribeOnEvents } from './misc';
 import { ValidateEventParameters } from './validateEvents';
 
 export const convertToCurrencyDecimals = async <T extends PSP22Metadata>(token: T, amount: BN | number | string) => {
@@ -683,7 +683,7 @@ export const getReserveAndUserReserveData = async <R extends { address: string }
     reserveData,
     userConfig,
     //return default obj to faciliate calculations
-    userReserveData: userReserveDataResult ?? getUserReserveDataDefaultObj(),
+    userReserveData: userReserveDataResult,
   };
   return result;
 };

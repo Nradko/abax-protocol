@@ -1,6 +1,7 @@
 import { ChildProcess } from 'child_process';
 import { readContractsFromFile, restartAndRestoreNodeState, sleep } from 'tests/setup/nodePersistence';
 import ATokenContract from '../../../typechain/contracts/a_token';
+import BalanceViewer from '../../../typechain/contracts/balance_viewer';
 import LendingPoolContract from '../../../typechain/contracts/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import EmittedTokenContract from '../../../typechain/contracts/psp22_emitable';
@@ -8,7 +9,6 @@ import STokenContract from '../../../typechain/contracts/s_token';
 import VTokenContract from '../../../typechain/contracts/v_token';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { apiProviderWrapper } from 'tests/setup/helpers';
-import { Context } from 'mocha';
 
 export type TokenReserve = {
   underlying: EmittedTokenContract;
@@ -25,6 +25,7 @@ export interface TestEnv {
   lendingPool: LendingPoolContract;
   reserves: TestEnvReserves;
   blockTimestampProvider: BlockTimestampProvider;
+  balanceViewer: BalanceViewer;
 }
 
 function makeSuiteInternal(
