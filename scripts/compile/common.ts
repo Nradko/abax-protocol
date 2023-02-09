@@ -70,7 +70,13 @@ export const compileContractByNameAndCopyArtifacts = async (contractsRootPath: s
 export const argvObj = process.argv.reduce((acc, val, index) => {
   const isSingleHyphenArg = val[0] === '-' && val[1] !== '-';
   const isDoubleHyphenArg = val.substring(0, 2) !== '--' && val[2] !== '-';
-  if (!isSingleHyphenArg && !isDoubleHyphenArg) return acc;
+  const equalsPosition = val.indexOf('=');
+  const isEqualsArg = equalsPosition !== -1;
+  if (!isSingleHyphenArg && !isDoubleHyphenArg && !isEqualsArg) return acc;
+  if (isEqualsArg) {
+    acc[val.substring(0, equalsPosition)] = val.substring(equalsPosition + 1);
+    return acc;
+  }
   acc[isSingleHyphenArg ? val.substring(1) : val.substring(2)] = process.argv[index + 1];
   return acc;
-}, {} as Record<string, unknown>);
+}, {} as Record<string, string>);

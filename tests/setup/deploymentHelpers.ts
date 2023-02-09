@@ -255,6 +255,7 @@ export const deployAndConfigureSystem = async (
   const timestampToSet = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
   await contracts.blockTimestampProvider.withSigner(owner).tx.setBlockTimestamp(timestampToSet.toString());
 
+  if (process.env.DEBUG) console.log({ shouldUseMockTimestamp });
   if (shouldUseMockTimestamp) {
     await contracts.blockTimestampProvider.withSigner(owner).tx.setShouldReturnMockValue(true);
   }
