@@ -6,7 +6,7 @@
     "ansiToHtml": "npx ts-node ./scripts/ansiToHtml.ts",
     "cs": "npx ts-node ./scripts/compile/compileSingleContract.ts",
     "build": "./build.sh",
-    "deploy": "npx ts-node runWithoutWarnings.ts env DEBUG=1 npx ts-node scripts/deploy.ts",
+    "deploy": "npx ts-node runWithoutWarnings.ts env DEBUG=1 npx ts-node scripts/deploy.ts $*",
     "deployTest": "npx ts-node runWithoutWarnings.ts env DEBUG=1 npx ts-node scripts/deployTest.ts",
     "benchmark": "npx ts-node runWithoutWarnings.ts npx ts-node scripts/benchmarkPlayground.ts",
     "localnode": "./substrate-contracts-node --dev --tmp -lerror,runtime::contracts=debug --ws-max-connections 5000 --pruning=archive",
