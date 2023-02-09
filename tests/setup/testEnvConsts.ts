@@ -1,5 +1,5 @@
 import BN from 'bn.js';
-import { E6, parseAmountToBN } from 'tests/scenarios/utils/misc';
+import { E8, parseAmountToBN } from 'tests/scenarios/utils/misc';
 
 export const oneEther = new BN(Math.pow(10, 18).toString());
 
@@ -9,10 +9,10 @@ const mutliplyBy = (b: BN, amount: string | number) => {
 };
 export const MOCK_CHAINLINK_AGGREGATORS_PRICES = {
   // Update to USD-based price feeds
-  DAI: E6,
-  USDC: E6,
-  WETH: 270 * E6,
-  LINK: 100 * E6,
+  DAI: E8,
+  USDC: E8,
+  WETH: 270 * E8,
+  LINK: 100 * E8,
 };
 
 export interface ReserveTokenDeploymentData {
