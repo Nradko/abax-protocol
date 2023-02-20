@@ -26,7 +26,7 @@ use crate::{
     },
 };
 use checked_math::checked_math;
-use ink_prelude::*;
+use ink::prelude::*;
 use openbrush::traits::{
     AccountId,
     Balance,
@@ -47,7 +47,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
     }
 
     default fn accumulate_interest(&mut self, asset: AccountId) -> Result<(), LendingPoolError> {
-        ink_env::debug_println!("(accumulate_interest) START");
+        ink::env::debug_println!("(accumulate_interest) START");
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
@@ -93,7 +93,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         if interest_user_of_supply != 0 {
             AbacusTokenRef::emit_transfer_events(
                 &reserve_data.a_token_address,
-                ink_prelude::vec![TransferEventData {
+                ink::prelude::vec![TransferEventData {
                     from: None,
                     to: Some(user),
                     amount: interest_user_of_supply,
@@ -148,11 +148,11 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         ) = _accumulate_interest(&mut reserve_data, &mut user_reserve_data, block_timestamp);
         reserve_data._recalculate_current_rates()?;
 
-        ink_env::debug_println!(
+        ink::env::debug_println!(
             "reserve_data.current_supply_rate_e24 = {}",
             reserve_data.current_supply_rate_e24
         );
-        ink_env::debug_println!(
+        ink::env::debug_println!(
             "user_reserve_data.stable_borrow_rate_e24 = {}",
             user_reserve_data.stable_borrow_rate_e24
         );
@@ -187,7 +187,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         if interest_user_of_supply != 0 {
             AbacusTokenRef::emit_transfer_events(
                 &reserve_data.a_token_address,
-                ink_prelude::vec![TransferEventData {
+                ink::prelude::vec![TransferEventData {
                     from: None,
                     to: Some(user),
                     amount: interest_user_of_supply,

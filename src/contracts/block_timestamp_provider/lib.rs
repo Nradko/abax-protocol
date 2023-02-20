@@ -3,7 +3,6 @@
 
 #[openbrush::contract]
 pub mod block_timestamp_provider {
-    use ink_storage::traits::SpreadAllocate;
     use lending_project::traits::block_timestamp_provider::*;
     use openbrush::{
         contracts::ownable::{
@@ -18,7 +17,7 @@ pub mod block_timestamp_provider {
     };
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct BlockTimestampProvider {
         #[storage_field]
         ownable: ownable::Data,
@@ -29,20 +28,14 @@ pub mod block_timestamp_provider {
     impl BlockTimestampProvider {
         #[ink(constructor)]
         pub fn new(init_should_return_mock_value: bool, owner: AccountId) -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                instance.should_return_mock_value = init_should_return_mock_value;
-                instance.mock_timestamp = Default::default();
-                instance._init_with_owner(owner);
-            })
-        }
+            ink::env::debug_println!("construct BlockTimestampProvider | START");
+            let mut instance = Self::default();
+            instance.should_return_mock_value = init_should_return_mock_value;
+            instance.mock_timestamp = Default::default();
+            instance._init_with_owner(owner);
+            ink::env::debug_println!("construct BlockTimestampProvider | STOP");
 
-        #[ink(constructor)]
-        pub fn default(owner: AccountId) -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                instance.should_return_mock_value = false;
-                instance.mock_timestamp = Default::default();
-                instance._init_with_owner(owner);
-            })
+            instance
         }
     }
 

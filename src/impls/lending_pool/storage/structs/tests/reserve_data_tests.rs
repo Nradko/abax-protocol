@@ -16,9 +16,6 @@ pub mod reserve_data_tests {
             tests::helpers::*,
         },
     };
-
-    use ink_lang as ink;
-
     use openbrush::traits::Balance;
 
     const YEAR: Timestamp = 365 * 24 * 60 * 60;
@@ -26,7 +23,7 @@ pub mod reserve_data_tests {
 
     #[ink::test]
     fn xxx_recalculate() {
-        let init_reserve_data = ReserveData::my_default();
+        let init_reserve_data = ReserveData::default();
         let mut final_reserve_data = init_reserve_data.clone();
         final_reserve_data._recalculate_current_rates().unwrap_or_default();
         //
@@ -35,7 +32,7 @@ pub mod reserve_data_tests {
     #[ink::test]
 
     fn xxx_accumulate() {
-        let init_reserve_data = ReserveData::my_default();
+        let init_reserve_data = ReserveData::default();
         let mut final_reserve_data = init_reserve_data.clone();
 
         final_reserve_data._accumulate_interest(YEAR);
@@ -47,7 +44,7 @@ pub mod reserve_data_tests {
 
     #[ink::test]
     fn dxx_recalculate() {
-        let mut init_reserve_data = ReserveData::my_default();
+        let mut init_reserve_data = ReserveData::default();
         init_reserve_data.total_supplied += SUPPLY;
         let mut final_reserve_data = init_reserve_data.clone();
 
@@ -58,7 +55,7 @@ pub mod reserve_data_tests {
 
     #[ink::test]
     fn dxx_accumulate() {
-        let mut init_reserve_data = ReserveData::my_default();
+        let mut init_reserve_data = ReserveData::default();
         init_reserve_data.total_supplied += SUPPLY;
         let mut final_reserve_data = init_reserve_data.clone();
 
@@ -77,7 +74,7 @@ pub mod reserve_data_tests {
     }
     #[ink::test]
     fn dvx_recalculate() {
-        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::my_default().interest_rate_model;
+        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::default().interest_rate_model;
         pub struct TestData {
             // utilization_rate
             ur: u128,
@@ -162,7 +159,7 @@ pub mod reserve_data_tests {
         }
 
         for case in test_cases {
-            let mut init_reserve_data = ReserveData::my_default();
+            let mut init_reserve_data = ReserveData::default();
             init_reserve_data.total_supplied = case.total_supplied;
             init_reserve_data.total_variable_borrowed = case.total_variable_borrowed;
             let mut final_reserve_data = init_reserve_data.clone();
@@ -191,7 +188,7 @@ pub mod reserve_data_tests {
     }
     #[ink::test]
     fn dvx_accumulate() {
-        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::my_default().interest_rate_model;
+        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::default().interest_rate_model;
         pub struct TestData {
             // utilization_rate
             ur: u128,
@@ -281,7 +278,7 @@ pub mod reserve_data_tests {
             });
         }
         for case in test_cases {
-            let mut init_reserve_data = ReserveData::my_default();
+            let mut init_reserve_data = ReserveData::default();
             init_reserve_data.total_supplied = case.init_total_supplied;
             init_reserve_data.total_variable_borrowed = case.init_total_variable_borrowed;
 
@@ -315,7 +312,7 @@ pub mod reserve_data_tests {
     }
     #[ink::test]
     fn dvs_recalculate() {
-        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::my_default().interest_rate_model;
+        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::default().interest_rate_model;
         // (varaible_deposit_part, stable_deposit_part, accumulated_stable_debt_part, variable_interest_rate, average_stable_rate_base)
         pub struct TestData {
             // variable to suply rate * 100
@@ -580,7 +577,7 @@ pub mod reserve_data_tests {
 
         for case in test_cases {
             print!("x");
-            let mut init_reserve_data = ReserveData::my_default();
+            let mut init_reserve_data = ReserveData::default();
             init_reserve_data.total_supplied = case.total_supplied;
             init_reserve_data.total_variable_borrowed = case.total_variable_borrowed;
             init_reserve_data.sum_stable_debt = case.sum_stable_debt;
@@ -616,7 +613,7 @@ pub mod reserve_data_tests {
     }
     #[ink::test]
     fn dvs_accumulate() {
-        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::my_default().interest_rate_model;
+        let [t50, t60, t70, t80, t90, t95, t100] = ReserveData::default().interest_rate_model;
         // (varaible_deposit_part, stable_deposit_part, accumulated_stable_debt_part, variable_interest_rate, average_stable_rate_base)
         pub struct TestData {
             // variable to suply rate * 100
@@ -896,7 +893,7 @@ pub mod reserve_data_tests {
         // /(E12 * t.vts * (t.vts * t.vr_e18 + t.ssts * (t.vr_e18 + t.bsr_e18)) / 100 * DAY)as i128,
         for case in test_cases {
             print!("x");
-            let mut init_reserve_data = ReserveData::my_default();
+            let mut init_reserve_data = ReserveData::default();
             init_reserve_data.total_supplied = case.init_total_supplied;
             init_reserve_data.total_variable_borrowed = case.init_total_variable_borrowed;
             init_reserve_data.sum_stable_debt = case.sum_stable_debt;

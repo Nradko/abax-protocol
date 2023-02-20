@@ -57,7 +57,7 @@ async function printTimestamp() {
 export const advanceBlockTimestamp = async function (timestampProvider: BlockTimestampProvider, forwardTime: number) {
   await timestampProvider.tx.setShouldReturnMockValue(true);
   const { value } = await timestampProvider.query.getBlockTimestamp();
-  await timestampProvider.tx.setBlockTimestamp(value + forwardTime);
+  await timestampProvider.tx.setBlockTimestamp(value.unwrap() + forwardTime);
 };
 
 export function parseAmountToBN(amount: number | string) {

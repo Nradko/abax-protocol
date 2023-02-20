@@ -19,7 +19,7 @@ makeSuite('BlockTimestampProvider', () => {
   it('Given should return mock value is set to true should return mock timestamp value', async () => {
     await timestampProvider.tx.setShouldReturnMockValue(true);
     await timestampProvider.tx.setBlockTimestamp(123);
-    const { value } = await timestampProvider.query.getBlockTimestamp();
+    const value = (await timestampProvider.query.getBlockTimestamp()).value.ok;
     const timestamp = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
     expect(value).to.equal(123);
     expect(value).not.to.equal(timestamp);
@@ -29,7 +29,7 @@ makeSuite('BlockTimestampProvider', () => {
     await timestampProvider.tx.setShouldReturnMockValue(false);
     await timestampProvider.tx.setBlockTimestamp(123);
     const timestamp = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
-    const { value } = await timestampProvider.query.getBlockTimestamp();
+    const value = (await timestampProvider.query.getBlockTimestamp()).value.ok!;
     expect(value.toString()).to.equal(timestamp.toString());
   });
 });

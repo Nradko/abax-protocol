@@ -1,8 +1,4 @@
 use checked_math::checked_math;
-use ink_storage::traits::{
-    PackedLayout,
-    SpreadLayout,
-};
 use openbrush::traits::{
     AccountId,
     Balance,
@@ -25,12 +21,12 @@ use crate::traits::lending_pool::errors::{
     LendingPoolError,
     StorageError,
 };
-use ink_prelude::string::String;
+use ink::prelude::string::String;
 
 /// is a struct containing all important constants and non-constant parameters and variables for each asset available on market.
 /// records  total supplly and debt, interest rates.
-#[derive(Debug, Default, Encode, Decode, SpreadLayout, PackedLayout, Clone, Copy)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[derive(Debug, Encode, Decode, Clone, Copy)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct ReserveData {
     /// unique reserve id. it is the position of the coresponding underlying asset in registered_asset Vec<AccountId>.
     pub id: u64,
@@ -172,7 +168,7 @@ impl ReserveData {
                         .expect(MATH_ERROR_MESSAGE);
                 delta_index_multiplier_e18.checked_add(E18).expect(MATH_ERROR_MESSAGE)
             };
-            ink_env::debug_println!("current_supply_rate_e24: {}", self.current_supply_rate_e24);
+            ink::env::debug_println!("current_supply_rate_e24: {}", self.current_supply_rate_e24);
             self.total_supplied =
                 u128::try_from(checked_math!((self.total_supplied * index_multiplier_e18) / E18).unwrap())
                     .expect(MATH_ERROR_MESSAGE);
@@ -183,7 +179,7 @@ impl ReserveData {
         }
 
         if self.current_variable_borrow_rate_e24 != 0 {
-            ink_env::debug_println!(
+            ink::env::debug_println!(
                 "current_variable_borrow_rate_e24: {}",
                 self.current_variable_borrow_rate_e24
             );
@@ -260,8 +256,8 @@ impl ReserveData {
     }
 }
 
-impl ReserveData {
-    pub fn my_default() -> Self {
+impl Default for ReserveData {
+    fn default() -> Self {
         Self {
             id: 0,
             activated: true,
@@ -293,9 +289,9 @@ impl ReserveData {
             accumulated_stable_borrow: 0,
             avarage_stable_rate_e24: 0,
             indexes_update_timestamp: 0,
-            a_token_address: AccountId::default(),
-            v_token_address: AccountId::default(),
-            s_token_address: AccountId::default(),
+            a_token_address: ink::blake2x256!("ZERO_ADRESS").into(),
+            v_token_address: ink::blake2x256!("ZERO_ADRESS").into(),
+            s_token_address: ink::blake2x256!("ZERO_ADRESS").into(),
         }
     }
 }

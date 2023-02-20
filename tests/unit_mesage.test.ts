@@ -34,12 +34,8 @@ makeSuite('Unit message', (getTestEnv) => {
     describe('Configure', () => {
       describe('setAsCollateral', () => {
         it('Fails if asset does not exist', async () => {
-          await expect(
-            lendingPool.withSigner(users[0]).query.setAsCollateral(users[1].address, true),
-          ).to.eventually.be.rejected.and.to.have.deep.property(
-            '_err',
-            LendingPoolErrorBuilder.StorageError(StorageErrorBuilder.EntityNotFound('ReserveData')),
-          );
+          const queryRes = (await lendingPool.withSigner(users[0]).query.setAsCollateral(users[1].address, true)).value.ok;
+          expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.StorageError(StorageErrorBuilder.EntityNotFound('ReserveData')));
         });
         it('Fails if user gets undercollaterized', async () => {
           const mintedAmount = new BN('1000000000000000000');
@@ -50,9 +46,8 @@ makeSuite('Unit message', (getTestEnv) => {
           await lendingPool.withSigner(users[0]).tx.setAsCollateral(reserve.underlying.address, true);
           await lendingPool.withSigner(users[0]).tx.borrow(reserve.underlying.address, users[0].address, mintedAmount.div(new BN(2)), [0]);
 
-          await expect(
-            lendingPool.withSigner(users[0]).query.setAsCollateral(reserve.underlying.address, false),
-          ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.InsufficientUserFreeCollateral());
+          const queryRes = (await lendingPool.withSigner(users[0]).query.setAsCollateral(reserve.underlying.address, false)).value.ok;
+          expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.InsufficientUserFreeCollateral());
         });
         it('Succeeds without deposit', async () => {
           const reserve = testEnv.reserves['DAI'];
@@ -87,8 +82,8 @@ makeSuite('Unit message', (getTestEnv) => {
         await testEnv.lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
-        const userReserveDataAfter = (await lendingPool.query.viewUserReserveData(reserve.underlying.address, testUser.address)).value!;
-        const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value;
+        const userReserveDataAfter = (await lendingPool.query.viewUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
+        const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
         expect(userReserveDataAfter.supplied.rawNumber.toString()).to.be.equal('0');
         expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
       });
@@ -104,8 +99,8 @@ makeSuite('Unit message', (getTestEnv) => {
         await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
-        const userReserveDataAfter = (await lendingPool.query.viewUserReserveData(reserve.underlying.address, testUser.address)).value!;
-        const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value;
+        const userReserveDataAfter = (await lendingPool.query.viewUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
+        const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
         expect(userReserveDataAfter.supplied.rawNumber.toNumber()).to.be.greaterThan(0);
         expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
       });
@@ -137,7 +132,7 @@ makeSuite('Unit message', (getTestEnv) => {
           });
         });
 
-        const txResult = await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
+        await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
         const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
@@ -194,7 +189,7 @@ makeSuite('Unit message', (getTestEnv) => {
           });
         });
 
-        const txResult = await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, null, []);
+        await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, null, []);
 
         const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
         const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
@@ -233,8 +228,8 @@ makeSuite('Unit message', (getTestEnv) => {
 
     describe(' RegisterAsset', () => {
       it('fails for non admin caller', async () => {
-        await expect(
-          lendingPool
+        const queryRes = (
+          await lendingPool
             .withSigner(users[1])
             .query.registerAsset(
               users[1].address,
@@ -248,8 +243,9 @@ makeSuite('Unit message', (getTestEnv) => {
               users[1].address,
               users[1].address,
               users[1].address,
-            ),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+            )
+        ).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       });
 
       it('asset is properly registered', async () => {
@@ -270,8 +266,8 @@ makeSuite('Unit message', (getTestEnv) => {
             users[5].address,
           );
 
-        const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value;
-        const reserveData = (await lendingPool.query.viewReserveData(users[2].address)).value!;
+        const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value.ok!;
+        const reserveData = (await lendingPool.query.viewReserveData(users[2].address)).value.ok!;
         const AssetRegisteredEvent = Object.values(txResult.events!).find((e) => e.name === ContractsEvents.LendingPoolEvents.AssetRegistered)
           ?.args as AssetRegistered;
 
@@ -298,38 +294,54 @@ makeSuite('Unit message', (getTestEnv) => {
       reserve = testEnv.reserves['DAI'];
     });
     it('A regular user should not be able to emit transfer events', async () => {
-      await expect(
-        reserve.aToken.withSigner(testEnv.users[0]).query.emitTransferEvents([{ from: null, to: testEnv.users[0].address, amount: 1_000_000 }]),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', PSP22ErrorBuilder.Custom('NotLendingPool'));
+      const queryRes = (
+        await reserve.aToken.withSigner(testEnv.users[0]).query.emitTransferEvents([{ from: null, to: testEnv.users[0].address, amount: 1_000_000 }])
+      ).value.ok;
+      expect(queryRes).to.have.deep.property(
+        'err',
+        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
+      );
     });
-    it('An owner of Lending Pool should not be able to emit transfer events', async () => {
-      await expect(
-        reserve.aToken.withSigner(testEnv.owner).query.emitTransferEvents([{ from: null, to: testEnv.users[0].address, amount: 1_000_000 }]),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', PSP22ErrorBuilder.Custom('NotLendingPool'));
+    it('An owner/admin of Lending Pool should not be able to emit transfer events', async () => {
+      const queryRes = (
+        await reserve.aToken.withSigner(testEnv.owner).query.emitTransferEvents([{ from: null, to: testEnv.users[0].address, amount: 1_000_000 }])
+      ).value.ok;
+      expect(queryRes).to.have.deep.property(
+        'err',
+        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
+      );
     });
     it('A regular user should not be able to call emit_transfer_event_and_decrease_allowance', async () => {
-      await expect(
-        reserve.aToken
+      const queryRes = (
+        await reserve.aToken
           .withSigner(testEnv.users[0])
           .query.emitTransferEventAndDecreaseAllowance(
             { from: null, to: testEnv.users[0].address, amount: 1_000_000 },
             testEnv.users[0].address,
             testEnv.users[1].address,
             1_000_000,
-          ),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', PSP22ErrorBuilder.Custom('NotLendingPool'));
+          )
+      ).value.ok;
+      expect(queryRes).to.have.deep.property(
+        'err',
+        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
+      );
     });
     it('An owner of Lending Pool should not be able call emit_transfer_event_and_decrease_allowance', async () => {
-      await expect(
-        reserve.aToken
+      const queryRes = (
+        await reserve.aToken
           .withSigner(testEnv.owner)
           .query.emitTransferEventAndDecreaseAllowance(
             { from: null, to: testEnv.users[0].address, amount: 1_000_000 },
             testEnv.users[0].address,
             testEnv.users[1].address,
             1_000_000,
-          ),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', PSP22ErrorBuilder.Custom('NotLendingPool'));
+          )
+      ).value.ok;
+      expect(queryRes).to.have.deep.property(
+        'err',
+        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
+      );
     });
   });
   describe('Abacus A/V/S Token caller check', () => {
@@ -345,11 +357,12 @@ makeSuite('Unit message', (getTestEnv) => {
       await reserveDAI.aToken.withSigner(testEnv.users[0]).tx.approve(testEnv.users[1].address, mintedAmount);
     });
     it('A regular user should not be able to execute transfer supply on AToken', async () => {
-      await expect(
-        lendingPool
+      const queryRes = (
+        await lendingPool
           .withSigner(testEnv.users[1])
-          .query.transferSupplyFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
+          .query.transferSupplyFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000)
+      ).value.ok;
+      expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });
     it('A regular user should not be able to execute transfer supply on VToken', async () => {
       await reserveWETH.underlying.tx.mint(users[1].address, mintedAmount);
@@ -360,11 +373,12 @@ makeSuite('Unit message', (getTestEnv) => {
       await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, 1_000, [0]);
       await reserveWETH.vToken.withSigner(testEnv.users[1]).tx.approve(testEnv.users[1].address, mintedAmount);
 
-      await expect(
-        lendingPool
+      const queryRes = (
+        await lendingPool
           .withSigner(testEnv.users[0])
-          .query.transferVariableDebtFromTo(reserveDAI.underlying.address, testEnv.users[1].address, testEnv.users[0].address, 1_000_000),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
+          .query.transferVariableDebtFromTo(reserveDAI.underlying.address, testEnv.users[1].address, testEnv.users[0].address, 1_000_000)
+      ).value.ok;
+      expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });
     it('A regular user should not be able to execute transfer supply on SToken', async () => {
       await reserveWETH.underlying.tx.mint(users[1].address, mintedAmount);
@@ -375,11 +389,12 @@ makeSuite('Unit message', (getTestEnv) => {
       await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, 1_000, [1]);
       await reserveWETH.vToken.withSigner(testEnv.users[1]).tx.approve(testEnv.users[1].address, mintedAmount);
 
-      await expect(
-        lendingPool
+      const queryRes = (
+        await lendingPool
           .withSigner(testEnv.users[1])
-          .query.transferStableDebtFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
+          .query.transferStableDebtFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000)
+      ).value.ok;
+      expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });
   });
 });

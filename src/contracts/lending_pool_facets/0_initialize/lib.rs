@@ -10,7 +10,6 @@
 
 #[openbrush::contract]
 pub mod lending_pool_v0_facet_initialize {
-    use ink_storage::traits::SpreadAllocate;
     use lending_project::{
         self,
         impls::lending_pool::{
@@ -36,33 +35,32 @@ pub mod lending_pool_v0_facet_initialize {
 
     /// storage of the contract
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct LendingPoolV0InitializeFacet {
-        #[storage_field]
         /// storage used by openbrush's `Ownable` trait
+        #[storage_field]
         ownable: ownable::Data,
-        #[storage_field]
         /// storage used by openbrush's `AccesControl` trait
-        access: access_control::Data,
         #[storage_field]
+        access: access_control::Data,
         /// reserve and user datas
+        #[storage_field]
         lending_pool: LendingPoolStorage,
     }
 
     impl LendingPoolV0InitializeFacet {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|_instance: &mut LendingPoolV0InitializeFacet| {})
+            Self::default()
         }
 
         #[ink(message)]
         #[modifiers(only_owner)]
         pub fn initialize_contract(&mut self) -> Result<(), OwnableError> {
-            ink_lang::codegen::initialize_contract(|instance: &mut LendingPoolV0InitializeFacet| {
-                let caller = self.env().caller();
-                instance._init_with_admin(caller);
-                instance.access.members.add(GLOBAL_ADMIN, &caller);
-            });
+            let caller = self.env().caller();
+            self._init_with_admin(caller);
+            self.access.members.add(GLOBAL_ADMIN, &caller);
+
             Ok(())
         }
     }

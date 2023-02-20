@@ -2,7 +2,7 @@ use openbrush::traits::AccountId;
 
 use crate::traits::lending_pool::errors::LendingPoolError;
 
-use ink_prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 
 #[openbrush::wrapper]
 pub type LendingPoolManageRef = dyn LendingPoolManage;

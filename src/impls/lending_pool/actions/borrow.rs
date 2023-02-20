@@ -28,7 +28,7 @@ use crate::{
     },
 };
 use checked_math::checked_math;
-use ink_prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
     traits::{
@@ -108,7 +108,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         // modify state
         match data[0] {
             0 => {
-                ink_env::debug_println!("(borrow-variable)");
+                ink::env::debug_println!("(borrow-variable)");
                 _check_borrowing_enabled(&reserve_data)?;
                 _change_state_borrow_variable(
                     &on_behalf_of,
@@ -119,11 +119,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                 );
                 //// ABACUS TOKEN EVENTS
                 // ATOKEN
-                let allowance_before1 =
-                    PSP22Ref::allowance(&reserve_data.v_token_address, on_behalf_of, Self::env().caller());
-                let allowance_before2 =
-                    PSP22Ref::allowance(&reserve_data.v_token_address, Self::env().caller(), on_behalf_of);
-                ink_env::debug_println!("allowances: {}    {}", allowance_before1, allowance_before2);
                 _emit_abacus_token_transfer_event(
                     &reserve_data.a_token_address,
                     &on_behalf_of,
@@ -144,8 +139,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     interest_on_behalf_of_stable_borrow as i128,
                 )?;
                 self._emit_borrow_variable_event(asset, Self::env().caller(), on_behalf_of, amount);
-                let allowance1 = PSP22Ref::allowance(&reserve_data.v_token_address, on_behalf_of, Self::env().caller());
-                let allowance2 = PSP22Ref::allowance(&reserve_data.v_token_address, Self::env().caller(), on_behalf_of);
             }
             1 => {
                 _check_borrowing_stable_enabled(&reserve_data)?;
@@ -202,7 +195,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         let (collaterized, collateral_value) =
             self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
-            ink_env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
+            ink::env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolError::InsufficientUserFreeCollateral)
         }
         //// TOKEN TRANSFER
@@ -315,7 +308,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         let (collaterized, collateral_value) =
             self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
-            ink_env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
+            ink::env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolError::InsufficientUserFreeCollateral)
         }
         //// TOKEN TRANSFER
@@ -326,9 +319,9 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             amount_val,
             Vec::<u8>::new(),
         )
-        .call_flags(ink_env::CallFlags::default().set_allow_reentry(true))
-        .fire()
-        .unwrap()?;
+        .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
+        .try_invoke()
+        .unwrap()??;
         Ok(amount_val)
     }
 }

@@ -3,15 +3,16 @@
 
 #[openbrush::contract]
 pub mod flash_loan_receiver_mock {
-    use ink_lang::codegen::{
-        EmitEvent,
-        Env,
+    use ink::{
+        codegen::{
+            EmitEvent,
+            Env,
+        },
+        prelude::{
+            format,
+            vec::Vec,
+        },
     };
-    use ink_prelude::{
-        format,
-        vec::Vec,
-    };
-    use ink_storage::traits::SpreadAllocate;
     use lending_project::traits::flash_loan_receiver::{
         FlashLoanReceiverError,
         *,
@@ -44,7 +45,7 @@ pub mod flash_loan_receiver_mock {
     }
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct FlashLoanReceiverMock {
         fail_execute_operation: bool,
         simulate_balance_to_cover_fee: bool,
@@ -97,12 +98,12 @@ pub mod flash_loan_receiver_mock {
         #[ink(constructor)]
         // pub fn new(lending_pool: AccountId) -> Self {
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                // instance.lending_pool = lending_pool;
-                instance.custom_amount_to_approve = None;
-                instance.fail_execute_operation = false;
-                instance.simulate_balance_to_cover_fee = true;
-            })
+            let mut instance = Self::default();
+            // instance.lending_pool = lending_pool;
+            instance.custom_amount_to_approve = None;
+            instance.fail_execute_operation = false;
+            instance.simulate_balance_to_cover_fee = true;
+            instance
         }
 
         #[ink(message)]
