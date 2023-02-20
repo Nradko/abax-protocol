@@ -1,4 +1,7 @@
-use ink_prelude::string::String;
+use ink::{
+    prelude::string::String,
+    LangError,
+};
 use openbrush::contracts::{
     access_control::AccessControlError,
     psp22::PSP22Error,
@@ -14,6 +17,7 @@ pub enum LendingPoolError {
     FlashLoanReceiverError(FlashLoanReceiverError),
 
     AccessControlError(AccessControlError),
+    LangError(LangError),
     Inactive,
     Freezed,
     AssetNotRegistered,
@@ -54,6 +58,12 @@ pub enum LendingPoolError {
     AssetRuleCoefficientsEqualZero,
 }
 
+impl From<LangError> for LendingPoolError {
+    fn from(error: LangError) -> Self {
+        LendingPoolError::LangError(error)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum LendingPoolTokenInterfaceError {
@@ -87,21 +97,19 @@ impl From<LendingPoolTokenInterfaceError> for PSP22Error {
     fn from(error: LendingPoolTokenInterfaceError) -> Self {
         match error {
             LendingPoolTokenInterfaceError::InsufficientBalance => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::InsufficientBalance"))
+                PSP22Error::Custom(String::from("LendingPoolTokenInterface::InsufficientBalance").into())
             }
             LendingPoolTokenInterfaceError::WrongCaller => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::WrongCaller"))
+                PSP22Error::Custom(String::from("LendingPoolTokenInterface::WrongCaller").into())
             }
             LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral => {
-                PSP22Error::Custom(String::from(
-                    "LendingPoolTokenInterface::InsufficientUserFreeCollateral",
-                ))
+                PSP22Error::Custom(String::from("LendingPoolTokenInterface::InsufficientUserFreeCollateral").into())
             }
             LendingPoolTokenInterfaceError::TransfersDisabled => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::TransfersDisabled"))
+                PSP22Error::Custom(String::from("LendingPoolTokenInterface::TransfersDisabled").into())
             }
             LendingPoolTokenInterfaceError::StorageError(_) => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterfaceError::StorageError"))
+                PSP22Error::Custom(String::from("LendingPoolTokenInterfaceError::StorageError").into())
             }
             LendingPoolTokenInterfaceError::PSP22Error(psp22_error) => psp22_error,
         }

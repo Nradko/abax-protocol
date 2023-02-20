@@ -40,7 +40,7 @@ export const copyArtifacts = async (contractName: string) => {
   fs.ensureDirSync(artifactsOutputPath);
   fs.copyFileSync(path.join(artifactsCompileOutputPath, `${contractName}.contract`), path.join(artifactsOutputPath, `${contractName}.contract`));
   fs.copyFileSync(path.join(artifactsCompileOutputPath, `${contractName}.wasm`), path.join(artifactsOutputPath, `${contractName}.wasm`));
-  fs.copyFileSync(path.join(artifactsCompileOutputPath, `metadata.json`), path.join(artifactsOutputPath, `${contractName}.json`));
+  fs.copyFileSync(path.join(artifactsCompileOutputPath, `${contractName}.json`), path.join(artifactsOutputPath, `${contractName}.json`));
 };
 
 const getContractsFolderPath = (contractsRootPath: string, contractName: string) => {

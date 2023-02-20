@@ -19,8 +19,6 @@ pub mod user_reserve_data_tests {
         Timestamp,
     };
 
-    use ink_lang as ink;
-
     pub struct DvsUA {
         pub init_user_supplied: Balance,
         pub init_user_variable_borrowed: Balance,
@@ -84,7 +82,7 @@ pub mod user_reserve_data_tests {
         }
 
         for case in test_cases {
-            let mut init_reserve_data = ReserveData::my_default();
+            let mut init_reserve_data = ReserveData::default();
             init_reserve_data.indexes_update_timestamp = case.update_timestamp;
             init_reserve_data.cumulative_supply_rate_index_e18 = case.cumulative_supply_rate_index_e12;
             init_reserve_data.cumulative_variable_borrow_rate_index_e18 =

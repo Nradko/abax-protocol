@@ -8,11 +8,11 @@ import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { E18, E6 } from './scenarios/utils/misc';
 import { expect } from './setup/chai';
-function getDeployedTokenDecimals(tokenSymbol: string) {
-  const token = reserveTokensDeployed.find((t) => t.name === tokenSymbol);
-  if (!token) throw new Error(`token ${tokenSymbol} not found`);
-  return token.decimals;
-}
+// function getDeployedTokenDecimals(tokenSymbol: string) {
+//   const token = reserveTokensDeployed.find((t) => t.name === tokenSymbol);
+//   if (!token) throw new Error(`token ${tokenSymbol} not found`);
+//   return token.decimals;
+// }
 makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
@@ -80,9 +80,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     });
 
     it('liquidation fails because the borrower is collateralized', async () => {
-      await expect(
-        lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [0]),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.Collaterized());
+      const queryRes = (
+        await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [0])
+      ).value.ok;
+      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
     });
 
     describe('WETH price changes to 1290$, borrower remains collateralized. Then ...', () => {
@@ -91,9 +92,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidation fails because the borrower is collaterized', async () => {
-        await expect(
-          lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [0]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.Collaterized());
+        const queryRes = (
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [0])
+        ).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
       });
     });
 
@@ -103,15 +105,19 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidator choses wrong asset to repay - liquidation fails', async () => {
-        await expect(
-          lendingPool.withSigner(liquidator).query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [0]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.NothingToRepay());
+        const queryRes = (
+          await lendingPool
+            .withSigner(liquidator)
+            .query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [0])
+        ).value.ok;
+        await expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.NothingToRepay());
       });
 
       it('liquidator choses a reserve to take from that the user has not marked as collaterall - liquidation fails', async () => {
-        await expect(
-          lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [0]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.TakingNotACollateral());
+        const queryRes = (
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [0])
+        ).value.ok;
+        await expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.TakingNotACollateral());
       });
 
       it('liquidator choses a minimum for repaid token that is too big (greater than 871093750000000000000000000) - liquidation fails', async () => {
@@ -121,38 +127,39 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         // above didnt include liquidation penalty which is (1 + 0.1 (WETH) + 0.015(DAI)) = 1.115
         // in total for one absDAI liquidator should receive 7.8125 * 10^14 * 1.115 = 8,7109375 * 10^8
         // the parameter is _e18 so maximal accepted parameter is 8,7109375 * 10^26
-        await expect(
-          lendingPool
+
+        const queryRes = (
+          await lendingPool
             .withSigner(liquidator)
-            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [0]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.MinimumRecieved());
+            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [0])
+        ).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.MinimumRecieved());
       });
 
       it('liquidation succeeds', async () => {
-        const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value!;
-        const { value: lendingPoolDAIBalanceBefore } = await daiContract.query.balanceOf(lendingPool.address);
-        const borrowerData = await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address);
-
-        console.log(daiReserveDataBefore);
-        console.log(borrowerData);
+        const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
+        // const borrowerData = await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address);
 
         await lendingPool
           .withSigner(liquidator)
           .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [0]);
         //Act & Assert
+
         await expect(
           lendingPool
             .withSigner(liquidator)
             .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [0]),
-        ).to.eventually.be.fulfilled;
+        ).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         //Assert
-        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value!;
-        const borrowersDAIDataAfter = (await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address)).value!;
-        const borrowersWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, borrower.address)).value!;
-        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, liquidator.address)).value!;
-        const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value!;
-        const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value!;
+        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value
+          .ok!;
+        const borrowersDAIDataAfter = (await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address)).value.ok!;
+        const borrowersWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, borrower.address)).value.ok!;
+        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, liquidator.address)).value.ok!;
+        const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
         expect
           .soft(borrowersDAIDataAfter.variableBorrowed.toString())
@@ -218,9 +225,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     });
 
     it('liquidation fails because the borrower is collateralized', async () => {
-      await expect(
-        lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [1]),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.Collaterized());
+      const queryRes = (
+        await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [1])
+      ).value.ok;
+      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
     });
 
     describe('WETH price changes to 1290$, borrower remains collateralized. Then ...', () => {
@@ -229,9 +237,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidation fails because the borrower is collaterized', async () => {
-        await expect(
-          lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [1]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.Collaterized());
+        const queryRes = (
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [1])
+        ).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
       });
     });
 
@@ -241,15 +250,19 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidator choses wrong asset to repay - liquidation fails', async () => {
-        await expect(
-          lendingPool.withSigner(liquidator).query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [1]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.NothingToRepay());
+        const queryRes = (
+          await lendingPool
+            .withSigner(liquidator)
+            .query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [1])
+        ).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.NothingToRepay());
       });
 
       it('liquidator choses a reserve to take from that the user has not marked as collaterall - liquidation fails', async () => {
-        await expect(
-          lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [1]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.TakingNotACollateral());
+        const queryRes = (
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [1])
+        ).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.TakingNotACollateral());
       });
 
       it('liquidator choses a minimum for repaid token that is too big (greater than 871093750000000000000000000) - liquidation fails', async () => {
@@ -259,16 +272,17 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         // above didnt include liquidation penalty which is (1 + 0.1 (WETH) + 0.015(DAI)) = 1.115
         // in total for one absDAI liquidator should receive 7.8125 * 10^14 * 1.115 = 8,7109375 * 10^8
         // the parameter is _e12 so maximal accepted parameter is 8,7109375 * 10^20
-        await expect(
-          lendingPool
+        const queryRes = (
+          await lendingPool
             .withSigner(liquidator)
-            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [1]),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.MinimumRecieved());
+            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [1])
+        ).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.MinimumRecieved());
       });
 
       it('liquidation succeeds', async () => {
-        const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value!;
-        const { value: lendingPoolDAIBalanceBefore } = await daiContract.query.balanceOf(lendingPool.address);
+        const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
 
         // const borrowerData = await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address);
         // console.log(daiReserveDataBefore);
@@ -281,15 +295,16 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
           lendingPool
             .withSigner(liquidator)
             .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [1]),
-        ).to.eventually.be.fulfilled;
+        ).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         //Assert
-        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value!;
-        const borrowersDAIDataAfter = (await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address)).value!;
-        const borrowersWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, borrower.address)).value!;
-        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, liquidator.address)).value!;
-        const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value!;
-        const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value!;
+        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value
+          .ok!;
+        const borrowersDAIDataAfter = (await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address)).value.ok!;
+        const borrowersWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, borrower.address)).value.ok!;
+        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, liquidator.address)).value.ok!;
+        const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
         expect
           .soft(borrowersDAIDataAfter.variableBorrowed.toString())

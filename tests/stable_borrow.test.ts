@@ -77,22 +77,22 @@ makeSuite('LendingPool stable borrow & and stable rate rebalance', (getTestEnv) 
 
     it('borrower tries to borrow_stable Link what is not allowed by the rules. AssetStableBorrowDisabled ERROR', async () => {
       const linkAmountToBorrow = await convertToCurrencyDecimals(linkContract, 1);
-      await expect(
-        lendingPool.withSigner(borrower).query.borrow(linkContract.address, borrower.address, linkAmountToBorrow, [1]),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.AssetStableBorrowDisabled());
+      const queryRes = (await lendingPool.withSigner(borrower).query.borrow(linkContract.address, borrower.address, linkAmountToBorrow, [1])).value
+        .ok;
+      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AssetStableBorrowDisabled());
     });
 
     it('borrower tries to borrow_stable 1500$ Dai what is more than borrower free collateral. InsufficientUserFreeCollateral ERROR', async () => {
       const daiAmountToBorrow = await convertToCurrencyDecimals(daiContract, 1500);
-      await expect(
-        lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, daiAmountToBorrow, [1]),
-      ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.InsufficientUserFreeCollateral());
+      const queryRes = (await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, daiAmountToBorrow, [1])).value.ok;
+      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.InsufficientUserFreeCollateral());
     });
 
     it('borrower succesfully borrow_stable 1000$ Dai.', async () => {
       const daiAmountToBorrow = await convertToCurrencyDecimals(daiContract, 1000);
-      await expect(lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, daiAmountToBorrow, [1])).to.eventually.be
-        .fulfilled;
+      const tx = lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, daiAmountToBorrow, [1]);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      // await expect(tx).to.eventually.be.fulfilled.and.to.have.deep.property('contractEvents', []);
     });
 
     describe('borrower borrow_stable 1000 Dai. Then ...', () => {
@@ -101,15 +101,13 @@ makeSuite('LendingPool stable borrow & and stable rate rebalance', (getTestEnv) 
       });
 
       it('rebalancer tries to rebalance borrower LINK stable rate. NoStableBorrow ERROR.', async () => {
-        await expect(
-          lendingPool.withSigner(rebalancer).query.rebalanceStableBorrowRate(linkContract.address, borrower.address),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.NoStableBorrow());
+        const queryRes = (await lendingPool.withSigner(rebalancer).query.rebalanceStableBorrowRate(linkContract.address, borrower.address)).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.NoStableBorrow());
       });
 
       it('rebalancer tries to rebalance borrower DAI stable rate. RebalanceCondition ERROR.', async () => {
-        await expect(
-          lendingPool.withSigner(rebalancer).query.rebalanceStableBorrowRate(daiContract.address, borrower.address),
-        ).to.eventually.be.rejected.and.to.have.deep.property('_err', LendingPoolErrorBuilder.RebalanceCondition());
+        const queryRes = (await lendingPool.withSigner(rebalancer).query.rebalanceStableBorrowRate(daiContract.address, borrower.address)).value.ok;
+        expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.RebalanceCondition());
       });
       describe('whaleBorrower borrow_stable 90% of DAI supply. Then ...', () => {
         beforeEach('', async () => {
@@ -117,8 +115,8 @@ makeSuite('LendingPool stable borrow & and stable rate rebalance', (getTestEnv) 
         });
 
         it('rebalancer tries to rebalance borrower DAI stable rate.', async () => {
-          await expect(lendingPool.withSigner(rebalancer).query.rebalanceStableBorrowRate(daiContract.address, borrower.address)).to.eventually.be
-            .fulfilled;
+          const tx = lendingPool.withSigner(rebalancer).query.rebalanceStableBorrowRate(daiContract.address, borrower.address);
+          await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
           //TODO add checks!
         });

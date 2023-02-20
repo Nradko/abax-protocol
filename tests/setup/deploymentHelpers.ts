@@ -2,7 +2,7 @@ import { ApiPromise } from '@polkadot/api';
 import { CodePromise, ContractPromise } from '@polkadot/api-contract';
 import { CodeSubmittableResult } from '@polkadot/api-contract/base';
 import { KeyringPair } from '@polkadot/keyring/types';
-import type { WeightV1 } from '@polkadot/types/interfaces';
+import type { WeightV2 } from '@polkadot/types/interfaces';
 import { BN } from 'bn.js';
 import fs, { readFileSync } from 'fs-extra';
 import path from 'path';
@@ -32,11 +32,12 @@ export const setupContract = async (owner: KeyringPair, contractName: string, co
   const api = await apiProviderWrapper.getAndWaitForReady();
   const codePromise = getCodePromise(api, contractName);
   // maximum gas to be consumed for the instantiation. if limit is too small the instantiation will fail.
-  const gasLimit = 100000n * 1000000n;
-  const gasLimitFromNetwork = api.consts.system.blockWeights
-    ? (api.consts.system.blockWeights as unknown as { maxBlock: WeightV1 }).maxBlock
-    : (api.consts.system.maximumBlockWeight as unknown as WeightV1);
-  // a limit to how much Balance to be used to pay for the storage created by the instantiation
+  const milion = 1000000n;
+  const gasLimit = milion * milion;
+  // const gasLimitFromNetwork = api.consts.system.blockWeights
+  //   ? (api.consts.system.blockWeights as unknown as { maxBlock: WeightV1 }).maxBlock
+  //   : (api.consts.system.maximumBlockWeight as unknown as WeightV1);
+  // // a limit to how much Balance to be used to pay for the storage created by the instantiation
   // if null is passed, unlimited balance can be used
   const storageDepositLimit = null;
   // used to derive contract address,
@@ -51,7 +52,8 @@ export const setupContract = async (owner: KeyringPair, contractName: string, co
     const tx = codePromise.tx[constructorName](
       {
         storageDepositLimit: null,
-        gasLimit: new BN(gasLimitFromNetwork.toString()).divn(2),
+        // gasLimit: new BN(gasLimitFromNetwork.toString()).divn(2),
+        gasLimit: gasLimit,
         salt: undefined,
         value: undefined,
       },
@@ -88,6 +90,8 @@ const deployWithLog = async <T>(
   if (process.env.DEBUG) console.log(`Deployed ${contractName}: ${ret.deployedContract.address.toString()}`);
   return getContractObject<T>(constructor, ret.deployedContract.address.toString(), ret.owner);
 };
+
+export const deployLendingPool = async (owner: KeyringPair) => await deployWithLog(owner, LendingPool, 'lending_pool');
 
 export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldReturnMockValue = false) =>
   await deployWithLog(owner, BlockTimestampProvider, 'block_timestamp_provider', shouldReturnMockValue, owner.address);
@@ -142,7 +146,7 @@ export const setupUpgradableContract = async <T>(
   await deployWithLog(defaultSigner, constructor, facetWithInitializeMethod);
 
   const initCodeHash = (initCodePromise.abi.json.source as any).hash as string;
-  const initMessages = (initCodePromise.abi.json.V3 as any).spec.messages;
+  const initMessages = (initCodePromise.abi.json as any).spec.messages;
   const initSelector = getSelectorByName(initMessages, 'initialize_contract');
   const initSelectors = getSelectorsFromMessages(initMessages);
   const initCut: FacetCut[] = [{ hash: initCodeHash, selectors: initSelectors }];
@@ -192,19 +196,19 @@ export async function deployCoreContracts(owner: KeyringPair) {
     console.log(`Deployer: ${owner.address}`);
   }
   const blockTimestampProvider = await deployBlockTimestampProvider(owner);
-  // const lendingPool = await deployWithLog(owner, LendingPool, 'lending_pool');
-  const lendingPool = await setupUpgradableContract(LendingPool, owner, owner, 'lending_pool_v0_initialize_facet', [
-    'lending_pool_v0_borrow_facet',
-    'lending_pool_v0_deposit_facet',
-    'lending_pool_v0_flash_facet',
-    'lending_pool_v0_liquidate_facet',
-    'lending_pool_v0_maintain_facet',
-    'lending_pool_v0_a_token_interface_facet',
-    'lending_pool_v0_v_token_interface_facet',
-    'lending_pool_v0_s_token_interface_facet',
-    'lending_pool_v0_manage_facet',
-    'lending_pool_v0_view_facet',
-  ]);
+  const lendingPool = await deployLendingPool(owner);
+  // const lendingPool = await setupUpgradableContract(LendingPool, owner, owner, 'lending_pool_v0_initialize_facet', [
+  //   'lending_pool_v0_borrow_facet',
+  //   'lending_pool_v0_deposit_facet',
+  //   'lending_pool_v0_flash_facet',
+  //   'lending_pool_v0_liquidate_facet',
+  //   'lending_pool_v0_maintain_facet',
+  //   'lending_pool_v0_a_token_interface_facet',
+  //   'lending_pool_v0_v_token_interface_facet',
+  //   'lending_pool_v0_s_token_interface_facet',
+  //   'lending_pool_v0_manage_facet',
+  //   'lending_pool_v0_view_facet',
+  // ]);
   return { blockTimestampProvider, lendingPool };
 }
 
@@ -361,7 +365,7 @@ export async function registerNewAsset(
     vToken.address,
     sToken.address,
   ];
-  await lendingPool.query.registerAsset(...registerAssetArgs);
+  const res = await lendingPool.query.registerAsset(...registerAssetArgs);
 
   await lendingPool.tx.registerAsset(...registerAssetArgs);
 

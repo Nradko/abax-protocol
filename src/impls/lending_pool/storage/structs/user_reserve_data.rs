@@ -1,8 +1,4 @@
 use checked_math::checked_math;
-use ink_storage::traits::{
-    PackedLayout,
-    SpreadLayout,
-};
 use openbrush::traits::{
     Balance,
     Timestamp,
@@ -22,8 +18,8 @@ use crate::impls::{
 };
 
 /// stores all importand data corresponding to some asset for an user.
-#[derive(Debug, Default, Encode, Decode, SpreadLayout, PackedLayout, Clone, Copy)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+#[derive(Debug, Default, Encode, Decode, Clone, Copy)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
 pub struct UserReserveData {
     /// underlying asset amount of supplied plus accumulated interest.
     pub supplied: Balance,
@@ -45,7 +41,7 @@ impl UserReserveData {
     // TODO:: make it easier to read!!!
     pub fn _accumulate_user_interest(&mut self, reserve: &mut ReserveData) -> (Balance, Balance, Balance) {
         if self.update_timestamp >= reserve.indexes_update_timestamp {
-            ink_env::debug_println!("USER | UPDATE_TIMESTAMP GREATER THAN RESREVE's");
+            ink::env::debug_println!("USER | UPDATE_TIMESTAMP GREATER THAN RESREVE's");
             return (0, 0, 0)
         }
 

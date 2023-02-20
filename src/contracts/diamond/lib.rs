@@ -10,14 +10,13 @@
 
 #[openbrush::contract]
 pub mod diamond {
-    use ink_storage::traits::SpreadAllocate;
     use openbrush::{
         contracts::diamond::extensions::diamond_loupe::*,
         traits::Storage,
     };
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct Contract {
         #[storage_field]
         ownable: ownable::Data,
@@ -28,18 +27,18 @@ pub mod diamond {
     impl Contract {
         #[ink(constructor)]
         pub fn new(owner: AccountId) -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                instance._init_with_owner(owner);
-            })
+            let mut instance = Self::default();
+            instance._init_with_owner(owner);
+            instance
         }
 
         #[ink(message, payable, selector = _)]
         pub fn forward(&mut self) {
-            let selector = ink_env::decode_input::<Selector>().unwrap_or_else(|_| panic!("Calldata error"));
-            ink_env::debug_println!("selector: {:X?}", selector);
+            let selector = ink::env::decode_input::<Selector>().unwrap_or_else(|_| panic!("Calldata error"));
+            ink::env::debug_println!("selector: {:X?}", selector);
 
             let delegate_code = self.diamond.selector_to_hash.get(&selector);
-            ink_env::debug_println!("delegate_code: {:X?}", delegate_code);
+            ink::env::debug_println!("delegate_code: {:X?}", delegate_code);
 
             self._fallback()
         }

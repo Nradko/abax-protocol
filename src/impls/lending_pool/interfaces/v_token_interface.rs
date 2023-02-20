@@ -6,7 +6,7 @@ use openbrush::traits::{
     Storage,
 };
 
-use ink_prelude::*;
+use ink::prelude::*;
 
 use crate::{
     impls::{
@@ -143,7 +143,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         // check if there ie enought collateral
         let (collaterized, collateral_value) = self._get_user_free_collateral_coefficient_e6(&to, block_timestamp);
         if !collaterized {
-            ink_env::debug_println!("v token | User is undercollaterized: {}", collateral_value);
+            ink::env::debug_println!("v token | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral)
         }
 

@@ -163,5 +163,5 @@ async function restoreTestChainState(oldContractsNodeProcess: ChildProcess | und
   }
 
   fs.rmSync(testChainStateLocation, { force: true, recursive: true });
-  await fs.copy(backupLocation, testChainStateLocation, { recursive: true });
+  fs.copySync(backupLocation, testChainStateLocation);
 }

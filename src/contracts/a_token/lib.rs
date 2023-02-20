@@ -4,21 +4,17 @@
 #[openbrush::contract]
 pub mod a_token {
     // imports from ink!
-    use ink_lang::codegen::{
+    use ink::codegen::{
         EmitEvent,
         Env,
     };
 
-    use ink_prelude::{
+    use ink::prelude::{
         string::String,
         vec::Vec,
     };
-    use ink_storage::traits::SpreadAllocate;
 
-    use ink_env::{
-        CallFlags,
-        Error as EnvError,
-    };
+    use ink::env::CallFlags;
     use lending_project::{
         impls::abacus_token::data as abacus_token,
         traits::{
@@ -40,7 +36,7 @@ pub mod a_token {
     };
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct AToken {
         #[storage_field]
         abacus_token: abacus_token::AbacusTokenData,
@@ -207,14 +203,14 @@ pub mod a_token {
 
     impl psp22::Internal for AToken {
         fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {
-            ink_env::debug_println!("[  AToken ] _emit_transfer_event START");
+            ink::env::debug_println!("[  AToken ] _emit_transfer_event START");
 
             self.env().emit_event(Transfer {
                 from: _from,
                 to: _to,
                 value: _amount,
             });
-            ink_env::debug_println!("[  AToken ] _emit_transfer_event STOP");
+            ink::env::debug_println!("[  AToken ] _emit_transfer_event STOP");
         }
         fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {
             self.env().emit_event(Approval {
@@ -252,27 +248,17 @@ pub mod a_token {
                 data.clone(),
             )
             .call_flags(CallFlags::default().set_allow_reentry(true));
-            let result = match builder.fire() {
-                Ok(result) => {
-                    match result {
-                        Ok(_) => Ok(()),
-                        Err(e) => Err(e.into()),
-                    }
-                }
-                Err(e) => {
-                    match e {
-                        // `NotCallable` means that the receiver is not a contract.
-
-                        // `CalleeTrapped` means that the receiver has no method called `before_received` or it failed inside.
-                        // First case is expected. Second - not. But we can't tell them apart so it is a positive case for now.
-                        // https://github.com/paritytech/ink/issues/1002
-                        EnvError::NotCallable | EnvError::CalleeTrapped => Ok(()),
-                        _ => {
-                            Err(PSP22Error::SafeTransferCheckFailed(String::from(
-                                "Error during call to receiver",
-                            )))
-                        }
-                    }
+            let result = match builder.try_invoke() {
+                Ok(Ok(Ok(_))) => Ok(()),
+                Ok(Ok(Err(e))) => Err(e.into()),
+                // Means unknown method
+                Ok(Err(ink::LangError::CouldNotReadInput)) => Ok(()),
+                // `NotCallable` means that the receiver is not a contract.
+                Err(ink::env::Error::NotCallable) => Ok(()),
+                _ => {
+                    Err(PSP22Error::SafeTransferCheckFailed(
+                        String::from("Error during call to receiver").into(),
+                    ))
                 }
             };
             self.load();
@@ -332,7 +318,7 @@ pub mod a_token {
             Ok(())
         }
 
-        fn _mint(&mut self, _account: AccountId, _amount: Balance) -> Result<(), PSP22Error> {
+        fn _mint_to(&mut self, _account: AccountId, _amount: Balance) -> Result<(), PSP22Error> {
             panic!("Unsupported operation!")
         }
 
@@ -348,20 +334,20 @@ pub mod a_token {
     impl AToken {
         #[ink(constructor)]
         pub fn new(
-            name: Option<String>,
-            symbol: Option<String>,
+            name: String,
+            symbol: String,
             decimal: u8,
             lending_pool: AccountId,
             underlying_asset: AccountId,
         ) -> Self {
-            ink_lang::codegen::initialize_contract(|_instance: &mut AToken| {
-                _instance.metadata.name = name;
-                _instance.metadata.symbol = symbol;
-                _instance.metadata.decimals = decimal;
+            let mut instance = Self::default();
+            instance.metadata.name = Some(name.into());
+            instance.metadata.symbol = Some(symbol.into());
+            instance.metadata.decimals = decimal;
 
-                _instance.abacus_token.lending_pool = lending_pool;
-                _instance.abacus_token.underlying_asset = underlying_asset;
-            })
+            instance.abacus_token.lending_pool = lending_pool;
+            instance.abacus_token.underlying_asset = underlying_asset;
+            instance
         }
     }
 }

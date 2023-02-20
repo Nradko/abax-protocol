@@ -6,7 +6,7 @@ use crate::impls::lending_pool::storage::structs::{
 
 use openbrush::traits::AccountId;
 
-use ink_prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 
 #[openbrush::wrapper]
 pub type LendingPoolViewRef = dyn LendingPoolView;

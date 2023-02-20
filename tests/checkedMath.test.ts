@@ -22,43 +22,19 @@ describe('Checked Math', () => {
     getContractsNodeProcess()?.kill();
   });
 
-  // !! actions do not longer trigger overflow as U256 is used for calculations !!
-  // it('Trigger overflow by borrow action', async () => {
-  //   const reserveSymbol = 'DAI';
-  //   const reserve2Symbol = 'USDC';
-  //   const reserve = testEnv.reserves[reserveSymbol].underlying;
-  //   const reserve2 = testEnv.reserves[reserve2Symbol].underlying;
-  //   const user = testEnv.users[0];
-  //   const user2 = testEnv.users[1];
-  //   const amountToDeposit = U128_MAX_VALUE.subn(E6);
-
-  //   await reserve.tx.mint(user.address, U128_MAX_VALUE);
-  //   await approve(reserveSymbol, user, testEnv, U128_MAX_VALUE);
-  //   await reserve2.tx.mint(user2.address, U128_MAX_VALUE);
-  //   await approve(reserve2Symbol, user2, testEnv, U128_MAX_VALUE);
-
-  //   await testEnv.lendingPool.withSigner(user).tx.deposit(reserve.address, user.address, amountToDeposit, []);
-  //   await testEnv.lendingPool.withSigner(user).tx.setAsCollateral(reserve.address, true);
-  //   await testEnv.lendingPool.withSigner(user2).tx.deposit(reserve2.address, user2.address, amountToDeposit, []);
-  //   await testEnv.lendingPool.withSigner(user2).tx.setAsCollateral(reserve2.address, true);
-
-  //   // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-  //   const amountToBorrow = amountToDeposit.muln(4).divn(5);
-  //   await expect(testEnv.lendingPool.withSigner(user2).query.borrow(reserve.address, user2.address, amountToBorrow, [0])).to.eventually.be.fulfilled;
-  // });
-  it('Trigger overflow by time travel', async () => {
+  it('Trigger overflow by borrow action, during value calculation in getUserCollateralCoefficient', async () => {
     const reserveSymbol = 'DAI';
     const reserve2Symbol = 'USDC';
     const reserve = testEnv.reserves[reserveSymbol].underlying;
     const reserve2 = testEnv.reserves[reserve2Symbol].underlying;
     const user = testEnv.users[0];
     const user2 = testEnv.users[1];
-    const amountToDeposit = U128_MAX_VALUE.sub(new BN(E12.toString()));
+    const amountToDeposit = U128_MAX_VALUE.subn(E6);
 
-    await reserve.tx.mint(user.address, amountToDeposit);
-    await approve(reserveSymbol, user, testEnv, amountToDeposit);
-    await reserve2.tx.mint(user2.address, amountToDeposit);
-    await approve(reserve2Symbol, user2, testEnv, amountToDeposit);
+    await reserve.tx.mint(user.address, U128_MAX_VALUE);
+    await approve(reserveSymbol, user, testEnv, U128_MAX_VALUE);
+    await reserve2.tx.mint(user2.address, U128_MAX_VALUE);
+    await approve(reserve2Symbol, user2, testEnv, U128_MAX_VALUE);
 
     await testEnv.lendingPool.withSigner(user).tx.deposit(reserve.address, user.address, amountToDeposit, []);
     await testEnv.lendingPool.withSigner(user).tx.setAsCollateral(reserve.address, true);
@@ -66,10 +42,35 @@ describe('Checked Math', () => {
     await testEnv.lendingPool.withSigner(user2).tx.setAsCollateral(reserve2.address, true);
 
     // eslint-disable-next-line @typescript-eslint/no-magic-numbers
-    const amountToBorrow = amountToDeposit.muln(2).divn(3);
-    await testEnv.lendingPool.withSigner(user2).tx.borrow(reserve.address, user2.address, amountToBorrow, [0]);
-    await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR);
-
-    await expect(testEnv.lendingPool.query.accumulateUserInterest(reserve.address, user.address)).to.eventually.be.rejected;
+    const amountToBorrow = amountToDeposit.muln(4).divn(5);
+    await expect(testEnv.lendingPool.withSigner(user2).tx.borrow(reserve.address, user2.address, amountToBorrow, [0])).to.eventually.be.rejected;
   });
+  // !! it is hard to trigger mathoverflow by time travel !! TODO ??
+  // it('Trigger overflow by time travel', async () => {
+  //   const reserveSymbol = 'DAI';
+  //   const reserve2Symbol = 'USDC';
+  //   const reserve = testEnv.reserves[reserveSymbol].underlying;
+  //   const reserve2 = testEnv.reserves[reserve2Symbol].underlying;
+  //   const supplier = testEnv.users[0];
+  //   const borrower = testEnv.users[1];
+  //   const amountBorrowable = U128_MAX_VALUE.div(new BN(E12.toString()));
+  //   const collateralAmount = U128_MAX_VALUE.div(new BN(E12.toString())).muln(2);
+
+  //   await reserve.tx.mint(supplier.address, amountBorrowable);
+  //   await approve(reserveSymbol, supplier, testEnv, amountBorrowable);
+  //   await reserve2.tx.mint(borrower.address, collateralAmount);
+  //   await approve(reserve2Symbol, borrower, testEnv, collateralAmount);
+
+  //   await testEnv.lendingPool.withSigner(supplier).tx.deposit(reserve.address, supplier.address, amountBorrowable, []);
+  //   await testEnv.lendingPool.withSigner(supplier).tx.setAsCollateral(reserve.address, true);
+  //   await testEnv.lendingPool.withSigner(borrower).tx.deposit(reserve2.address, borrower.address, collateralAmount, []);
+  //   await testEnv.lendingPool.withSigner(borrower).tx.setAsCollateral(reserve2.address, true);
+
+  //   // eslint-disable-next-line @typescript-eslint/no-magic-numbers
+  //   const amountToBorrow = amountBorrowable;
+  //   await testEnv.lendingPool.withSigner(borrower).tx.borrow(reserve.address, borrower.address, amountToBorrow, [0]);
+  //   await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR.mul(1000));
+
+  //   await expect(testEnv.lendingPool.tx.accumulateUserInterest(reserve.address, supplier.address)).to.eventually.be.rejected;
+  // });
 });

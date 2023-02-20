@@ -1,7 +1,7 @@
 // TODO::think should we emit events on set_as_collateral
 
 #![allow(unused_variables)]
-use ink_prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
     traits::{
@@ -86,7 +86,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         reserve_data._recalculate_current_rates()?;
 
         //// PUSH STORAGE
-        ink_env::debug_println!("[deposit] PUSH STORAGE");
+        ink::env::debug_println!("[deposit] PUSH STORAGE");
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
 
@@ -94,7 +94,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
 
         //// TOKEN TRANSFERS
-        ink_env::debug_println!("[deposit] TOKEN TRANSFERS");
+        ink::env::debug_println!("[deposit] TOKEN TRANSFERS");
         PSP22Ref::transfer_from_builder(
             &asset,
             Self::env().caller(),
@@ -102,10 +102,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             amount,
             Vec::<u8>::new(),
         )
-        .call_flags(ink_env::CallFlags::default().set_allow_reentry(true))
-        .fire()
-        .unwrap()?;
-        ink_env::debug_println!("[deposit] ABACUS TOKEN EVENTS");
+        .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
+        .try_invoke()
+        .unwrap()??;
+        ink::env::debug_println!("[deposit] ABACUS TOKEN EVENTS");
         //// ABACUS TOKEN EVENTS
         // ATOKEN
         _emit_abacus_token_transfer_event(
@@ -183,7 +183,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         }
         on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data.supplied - amount;
         if amount >= reserve_data.total_supplied {
-            ink_env::debug_println!(
+            ink::env::debug_println!(
                 "subtracting {} from reserve_data.total_supplied ({}) would cause an underflow",
                 amount,
                 reserve_data.total_supplied

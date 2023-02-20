@@ -39,8 +39,8 @@ import { TestEnv, TokenReserve } from './make-suite';
 import { advanceBlockTimestamp, createEnumChecker, parseAmountToBN, subscribeOnEvents } from './misc';
 import { ValidateEventParameters } from './validateEvents';
 
-export const convertToCurrencyDecimals = async <T extends PSP22Metadata>(token: T, amount: BN | number | string) => {
-  const { value: decimals } = await token.methods.tokenDecimals({});
+export const convertToCurrencyDecimals = async (token: any, amount: BN | number | string) => {
+  const decimals = (await token.methods.tokenDecimals({})).value.ok!;
   const { amountParsed, amountParsedDecimals } = BN.isBN(amount) ? { amountParsed: amount, amountParsedDecimals: 0 } : parseAmountToBN(amount);
   return amountParsed.mul(new BN(Math.pow(10, decimals - amountParsedDecimals).toString()));
 };
@@ -213,12 +213,10 @@ export const deposit = async (
     });
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      await expect(lendingPool.withSigner(caller).query.deposit(...args)).to.eventually.be.rejected.and.to.have.deep.property(
-        '_err',
-        getExpectedError(expectedErrorName),
-      );
+      const queryRes = (await lendingPool.withSigner(caller).query.deposit(...args)).value.ok;
+      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).query.deposit(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.deposit(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -286,12 +284,10 @@ export const redeem = async (
     );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      await expect(lendingPool.withSigner(caller).query.redeem(...args)).to.eventually.be.rejected.and.to.have.deep.property(
-        '_err',
-        getExpectedError(expectedErrorName),
-      );
+      const queryRes = (await lendingPool.withSigner(caller).query.redeem(...args)).value.ok;
+      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).query.redeem(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.redeem(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -378,12 +374,10 @@ export const borrowVariable = async (
     );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      await expect(lendingPool.withSigner(caller).query.borrow(...args)).to.eventually.be.rejected.and.to.have.deep.property(
-        '_err',
-        getExpectedError(expectedErrorName),
-      );
+      const queryRes = (await lendingPool.withSigner(caller).query.borrow(...args)).value.ok;
+      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).query.borrow(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.borrow(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -452,12 +446,10 @@ export const borrowStable = async (
     );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      await expect(lendingPool.withSigner(caller).query.borrow(...args)).to.eventually.be.rejected.and.to.have.deep.property(
-        '_err',
-        getExpectedError(expectedErrorName),
-      );
+      const queryRes = (await lendingPool.withSigner(caller).query.borrow(...args)).value.ok;
+      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).query.borrow(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.borrow(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -541,12 +533,10 @@ export const repayVariable = async (
     );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      await expect(lendingPool.withSigner(caller).query.repay(...args)).to.eventually.be.rejected.and.to.have.deep.property(
-        '_err',
-        getExpectedError(expectedErrorName),
-      );
+      const queryRes = (await lendingPool.withSigner(caller).query.repay(...args)).value.ok;
+      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).query.repay(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.repay(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -614,12 +604,10 @@ export const repayStable = async (
     );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      await expect(lendingPool.withSigner(caller).query.repay(...args)).to.eventually.be.rejected.and.to.have.deep.property(
-        '_err',
-        getExpectedError(expectedErrorName),
-      );
+      const queryRes = (await lendingPool.withSigner(caller).query.repay(...args)).value.ok;
+      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).query.repay(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.repay(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -654,12 +642,10 @@ export const setUseAsCollateral = async (
     );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      await expect(lendingPool.withSigner(caller).query.setAsCollateral(...args)).to.eventually.be.rejected.and.to.have.deep.property(
-        '_err',
-        getExpectedError(expectedErrorName),
-      );
+      const queryRes = (await lendingPool.withSigner(caller).query.setAsCollateral(...args)).value.ok;
+      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).query.setAsCollateral(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.setAsCollateral(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -674,11 +660,11 @@ export const getTxTimestamp = async (tx: SignAndSendSuccessResponse) => {
 };
 
 export const getReserveAndUserReserveData = async <R extends { address: string }>(reserve: R, user: KeyringPair, lendingPool: LendingPool) => {
-  const reserveData = (await lendingPool.query.viewReserveData(reserve.address)).value;
+  const reserveData = (await lendingPool.query.viewReserveData(reserve.address)).value.unwrap();
   if (!reserveData) throw new Error(`ERROR READING RESERVE DATA (reserve: ${reserve.address})`);
 
-  const userReserveDataResult = (await lendingPool.query.viewUserReserveData(reserve.address, user.address)).value;
-  const userConfig = (await lendingPool.query.viewUserConfig(user.address)).value;
+  const userReserveDataResult = (await lendingPool.query.viewUserReserveData(reserve.address, user.address)).value.unwrap();
+  const userConfig = (await lendingPool.query.viewUserConfig(user.address)).value.unwrap();
   const result = {
     reserveData,
     userConfig,
@@ -694,7 +680,7 @@ export const getUserReserveDataWithTimestamp = async <R extends { address: strin
   lendingPool: LendingPool,
   blockTimestampProvider: BlockTimestampProvider,
 ) => {
-  const { value: timestamp } = await blockTimestampProvider.query.getBlockTimestamp();
+  const timestamp = (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap();
   return {
     ...(await getReserveAndUserReserveData(reserve, user, lendingPool)),
     timestamp: new BN(timestamp.toString()),
@@ -711,10 +697,10 @@ export const getCheckDepositParameters = async (
 ): Promise<CheckDepositParameters> => {
   return {
     ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.toString()),
-    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.toString()),
-    aBalance: new BN((await aToken.query.balanceOf(onBehalfOf.address)).value.toString()),
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value,
+    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
+    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
+    aBalance: new BN((await aToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
+    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.ok!,
   };
 };
 
@@ -728,12 +714,14 @@ export const getCheckRedeemParameters = async (
 ): Promise<CheckRedeemParameters> => {
   return {
     ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.toString()),
-    callerBalance: new BN((await underlying.query.balanceOf(caller.address)).value.toString()),
-    aBalance: new BN((await aToken.query.balanceOf(onBehalfOf.address)).value.toString()),
+    poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.ok!.toString()),
+    callerBalance: new BN((await underlying.query.balanceOf(caller.address)).value.ok!.toString()),
+    aBalance: new BN((await aToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
     aAllowance:
-      caller.address !== onBehalfOf.address ? new BN((await aToken.query.allowance(onBehalfOf.address, caller.address)).value.toString()) : undefined,
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value,
+      caller.address !== onBehalfOf.address
+        ? new BN((await aToken.query.allowance(onBehalfOf.address, caller.address)).value.ok!.toString())
+        : undefined,
+    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.ok!,
   };
 };
 
@@ -747,12 +735,14 @@ export const getCheckBorrowVariableParameters = async (
 ): Promise<CheckBorrowVariableParameters> => {
   return {
     ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.toString()),
-    callerBalance: new BN((await underlying.query.balanceOf(caller.address)).value.toString()),
-    vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.toString()),
+    poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.ok!.toString()),
+    callerBalance: new BN((await underlying.query.balanceOf(caller.address)).value.ok!.toString()),
+    vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
     vAllowance:
-      caller.address !== onBehalfOf.address ? new BN((await vToken.query.allowance(onBehalfOf.address, caller.address)).value.toString()) : undefined,
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value,
+      caller.address !== onBehalfOf.address
+        ? new BN((await vToken.query.allowance(onBehalfOf.address, caller.address)).value.ok!.toString())
+        : undefined,
+    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
   };
 };
 
@@ -766,10 +756,10 @@ export const getCheckRepayVariableParameters = async (
 ): Promise<CheckRepayVariableParameters> => {
   return {
     ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.toString()),
-    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.toString()),
-    vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.toString()),
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value,
+    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
+    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
+    vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
+    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
   };
 };
 
@@ -783,12 +773,14 @@ export const getCheckBorrowStableParameters = async (
 ): Promise<CheckBorrowStableParameters> => {
   return {
     ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.toString()),
-    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.toString()),
-    sBalance: new BN((await sToken.query.balanceOf(onBehalfOf.address)).value.toString()),
+    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
+    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
+    sBalance: new BN((await sToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
     sAllowance:
-      caller.address !== onBehalfOf.address ? new BN((await sToken.query.allowance(onBehalfOf.address, caller.address)).value.toString()) : undefined,
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value,
+      caller.address !== onBehalfOf.address
+        ? new BN((await sToken.query.allowance(onBehalfOf.address, caller.address)).value.ok!.toString())
+        : undefined,
+    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
   };
 };
 
@@ -802,9 +794,9 @@ export const getCheckRepayStableParameters = async (
 ): Promise<CheckRepayStableParameters> => {
   return {
     ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.toString()),
-    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.toString()),
-    sBalance: new BN((await sToken.query.balanceOf(onBehalfOf.address)).value.toString()),
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value,
+    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
+    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
+    sBalance: new BN((await sToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
+    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
   };
 };

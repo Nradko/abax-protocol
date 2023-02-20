@@ -19,14 +19,13 @@ use crate::{
         },
     },
 };
-use ink_prelude::{
+use ink::prelude::{
     vec,
     vec::Vec,
 };
 use openbrush::{
     contracts::{
         access_control::*,
-        ownable,
         psp22::PSP22Ref,
     },
     modifiers,
@@ -38,23 +37,21 @@ use openbrush::{
 };
 
 /// pays only 10% of standard flash loan fee
-pub const FLASH_BORROWER: RoleType = ink_lang::selector_id!("FLASH_BORROWER"); // 1_112_475_474_u32
+pub const FLASH_BORROWER: RoleType = ink::selector_id!("FLASH_BORROWER"); // 1_112_475_474_u32
 /// can add new asset to the market
-pub const ASSET_LISTING_ADMIN: RoleType = ink_lang::selector_id!("ASSET_LISTING_ADMIN"); // 1_094_072_439_u32
+pub const ASSET_LISTING_ADMIN: RoleType = ink::selector_id!("ASSET_LISTING_ADMIN"); // 1_094_072_439_u32
 /// can modify reserveData parameters
-pub const PARAMETERS_ADMIN: RoleType = ink_lang::selector_id!("PARAMETERS_ADMIN"); // 368_001_360_u32
+pub const PARAMETERS_ADMIN: RoleType = ink::selector_id!("PARAMETERS_ADMIN"); // 368_001_360_u32
 /// can pause/unpause freeze/unfreeze reserves
-pub const EMERGENCY_ADMIN: RoleType = ink_lang::selector_id!("EMERGENCY_ADMIN"); // 297_099_943_u32
+pub const EMERGENCY_ADMIN: RoleType = ink::selector_id!("EMERGENCY_ADMIN"); // 297_099_943_u32
 /// can do what ASSET_LISTING_ADMIN, PARAMETERS_ADMIN and EMERGANCY_ADMIN can do
-pub const GLOBAL_ADMIN: RoleType = ink_lang::selector_id!("GLOBAL_ADMIN"); // 2_459_877_095_u32
+pub const GLOBAL_ADMIN: RoleType = ink::selector_id!("GLOBAL_ADMIN"); // 2_459_877_095_u32
 /// can assign all the roles
 pub const ROLE_ADMIN: RoleType = 0; // 0
 /// can withdraw protocol income
-pub const TREASURY: RoleType = ink_lang::selector_id!("TREASURY"); // 2_434_241_257_u32
+pub const TREASURY: RoleType = ink::selector_id!("TREASURY"); // 2_434_241_257_u32
 
-impl<T: Storage<LendingPoolStorage> + Storage<ownable::Data> + Storage<access_control::Data> + InternalIncome>
-    LendingPoolManage for T
-{
+impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIncome> LendingPoolManage for T {
     /// used for testing
     default fn set_block_timestamp_provider(&mut self, provider_address: AccountId) -> Result<(), LendingPoolError> {
         self.data::<LendingPoolStorage>().block_timestamp_provider = provider_address;

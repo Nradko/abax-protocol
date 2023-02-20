@@ -17,7 +17,7 @@ use openbrush::traits::{
     Storage,
 };
 
-use ink_prelude::{
+use ink::prelude::{
     vec::Vec,
     *,
 };
