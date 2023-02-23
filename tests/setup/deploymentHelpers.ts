@@ -192,6 +192,7 @@ export async function deployCoreContracts(owner: KeyringPair) {
     console.log(`Deployer: ${owner.address}`);
   }
   const blockTimestampProvider = await deployBlockTimestampProvider(owner);
+  // const lendingPool = await deployWithLog(owner, LendingPool, 'lending_pool');
   const lendingPool = await setupUpgradableContract(LendingPool, owner, owner, 'lending_pool_v0_initialize_facet', [
     'lending_pool_v0_borrow_facet',
     'lending_pool_v0_deposit_facet',

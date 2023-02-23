@@ -17,7 +17,10 @@ pub mod lending_pool {
     use ink_storage::traits::SpreadAllocate;
 
     use lending_project::{
-        impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
+        impls::lending_pool::{
+            manage::GLOBAL_ADMIN,
+            storage::lending_pool_storage::LendingPoolStorage,
+        },
         traits::lending_pool::traits::{
             a_token_interface::*,
             actions::*,
@@ -31,7 +34,10 @@ pub mod lending_pool {
     use lending_project::traits::lending_pool::events::*;
     use openbrush::{
         contracts::{
-            access_control::*,
+            access_control::{
+                members::MembersManager,
+                *,
+            },
             ownable::*,
         },
         traits::Storage,
@@ -82,6 +88,7 @@ pub mod lending_pool {
             ink_lang::codegen::initialize_contract(|instance: &mut LendingPool| {
                 let caller = instance.env().caller();
                 instance._init_with_admin(caller);
+                instance.access.members.add(GLOBAL_ADMIN, &caller);
             })
         }
     }
