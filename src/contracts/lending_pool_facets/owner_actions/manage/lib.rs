@@ -10,11 +10,10 @@
 
 #[openbrush::contract]
 pub mod lending_pool_v0_manage_facet {
-    use ink_lang::codegen::{
+    use ink::codegen::{
         EmitEvent,
         Env,
     };
-    use ink_storage::traits::SpreadAllocate;
     use lending_project::{
         impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
         traits::lending_pool::traits::manage::*,
@@ -31,7 +30,7 @@ pub mod lending_pool_v0_manage_facet {
 
     /// storage of the contract
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct LendingPoolV0ManageFacet {
         #[storage_field]
         /// storage used by openbrush's `Ownable` trait
@@ -52,7 +51,7 @@ pub mod lending_pool_v0_manage_facet {
     impl LendingPoolV0ManageFacet {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|_instance: &mut LendingPoolV0ManageFacet| {})
+            Self::default()
         }
     }
     #[ink(event)]

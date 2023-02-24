@@ -14,11 +14,10 @@ pub mod psp22_emitable {
         traits::Storage,
     };
 
-    use ink_prelude::string::String;
-    use ink_storage::traits::SpreadAllocate;
+    use ink::prelude::string::String;
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct PSP22EmitableContract {
         #[storage_field]
         psp22: psp22::Data,
@@ -34,13 +33,13 @@ pub mod psp22_emitable {
 
     impl PSP22EmitableContract {
         #[ink(constructor)]
-        pub fn new(name: Option<String>, symbol: Option<String>, decimal: u8) -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                // metadata
-                instance.metadata.name = name;
-                instance.metadata.symbol = symbol;
-                instance.metadata.decimals = decimal;
-            })
+        pub fn new(name: String, symbol: String, decimal: u8) -> Self {
+            let mut instance = Self::default();
+            instance.metadata.name = Some(name.into());
+            instance.metadata.symbol = Some(symbol.into());
+            instance.metadata.decimals = decimal;
+
+            instance
         }
     }
 

@@ -8,8 +8,6 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
   if (require.main !== module) return;
   const outputJsonFolder = args['path'] ?? process.env.PWD;
   const shouldUseMockTimestamp = (args['shouldUseMockTimestamp'] === 'true' || args['shouldUseMockTimestamp'] === '1') ?? true;
-  console.log(shouldUseMockTimestamp);
-  console.log(args);
   if (!outputJsonFolder) throw 'could not determine path';
   const api = await apiProviderWrapper.getAndWaitForReady();
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.json');

@@ -10,11 +10,10 @@
 
 #[openbrush::contract]
 pub mod lending_pool_v0_flash_facet {
-    use ink_lang::codegen::{
+    use ink::codegen::{
         EmitEvent,
         Env,
     };
-    use ink_storage::traits::SpreadAllocate;
 
     use lending_project::{
         impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
@@ -34,7 +33,7 @@ pub mod lending_pool_v0_flash_facet {
 
     /// storage of the contract
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct LendingPoolV0FlashFacet {
         #[storage_field]
         /// storage used by openbrush's `Ownable` trait
@@ -53,7 +52,7 @@ pub mod lending_pool_v0_flash_facet {
     impl LendingPoolV0FlashFacet {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|_instance: &mut LendingPoolV0FlashFacet| {})
+            Self::default()
         }
     }
 

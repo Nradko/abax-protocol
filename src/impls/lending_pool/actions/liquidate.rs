@@ -2,7 +2,7 @@
 
 #![allow(unused_variables)]
 use checked_math::checked_math;
-use ink_prelude::{
+use ink::prelude::{
     vec::Vec,
     *,
 };
@@ -326,9 +326,9 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             amount_to_repay_value,
             Vec::<u8>::new(),
         )
-        .call_flags(ink_env::CallFlags::default().set_allow_reentry(true))
-        .fire()
-        .unwrap()?;
+        .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
+        .try_invoke()
+        .unwrap()??;
         Ok((amount_to_repay_value, amount_to_take))
     }
 }
@@ -490,12 +490,12 @@ fn _change_state_liquidate_stable(
     // sub stable debt
     // user
     user_reserve_data_to_repay.stable_borrowed = user_reserve_data_to_repay.stable_borrowed - amount_to_repay_value;
-    ink_env::debug_println!(
+    ink::env::debug_println!(
         " | Liquidate || _change_state_liquidate_stable | user_reserve_data_to_repay.stable_borrowed = {}",
         user_reserve_data_to_repay.stable_borrowed
     );
     // reserve
-    ink_env::debug_println!(
+    ink::env::debug_println!(
         " | Liquidate || _change_state_liquidate_stable | reserve_data_to_repay.avarage_stable_rate_e18"
     );
     reserve_data_to_repay.avarage_stable_rate_e24 = if reserve_data_to_repay.sum_stable_debt > amount_to_repay_value {

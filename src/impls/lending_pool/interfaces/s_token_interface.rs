@@ -33,7 +33,7 @@ use crate::{
         },
     },
 };
-use ink_prelude::*;
+use ink::prelude::*;
 
 impl<T: Storage<LendingPoolStorage>> LendingPoolSTokenInterface for T {
     default fn total_stable_debt_of(&self, underlying_asset: AccountId) -> Balance {
@@ -154,7 +154,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolSTokenInterface for T {
         // check if there ie enought collateral
         let (collaterized, collateral_value) = self._get_user_free_collateral_coefficient_e6(&to, block_timestamp);
         if !collaterized {
-            ink_env::debug_println!("s token | User is undercollaterized: {}", collateral_value);
+            ink::env::debug_println!("s token | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral)
         }
 

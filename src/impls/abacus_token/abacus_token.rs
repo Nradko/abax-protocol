@@ -1,5 +1,5 @@
 #![allow(unused_variables)]
-use ink_prelude::{
+use ink::prelude::{
     string::String,
     vec::Vec,
 };
@@ -32,7 +32,7 @@ where
     let lending_pool: AccountId = instance.get_lending_pool();
 
     if lending_pool != T::env().caller() {
-        return Err(From::from(PSP22Error::Custom(String::from("NotLendingPool"))))
+        return Err(From::from(PSP22Error::Custom(String::from("NotLendingPool").into())))
     }
 
     body(instance)
@@ -41,13 +41,13 @@ where
 impl<T: Storage<AbacusTokenData> + psp22::Internal> AbacusToken for T {
     #[modifiers(only_lending_pool)]
     default fn emit_transfer_events(&mut self, events: Vec<TransferEventData>) -> Result<(), PSP22Error> {
-        ink_env::debug_println!("[ impl AbacusToken ] emit_transfer_events START");
+        ink::env::debug_println!("[ impl AbacusToken ] emit_transfer_events START");
         for event in &events {
             if event.amount != 0 {
                 <Self as psp22::Internal>::_emit_transfer_event(self, event.from, event.to, event.amount);
             }
         }
-        ink_env::debug_println!("[ impl AbacusToken ] emit_transfer_events STOP");
+        ink::env::debug_println!("[ impl AbacusToken ] emit_transfer_events STOP");
         Ok(())
     }
 

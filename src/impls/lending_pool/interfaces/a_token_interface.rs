@@ -20,7 +20,7 @@ use crate::{
         },
     },
 };
-use ink_prelude::*;
+use ink::prelude::*;
 use openbrush::traits::{
     AccountId,
     Balance,
@@ -124,7 +124,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
         // check if there ie enought collateral
         let (collaterized, collateral_value) = self._get_user_free_collateral_coefficient_e6(&from, block_timestamp);
         if !collaterized {
-            ink_env::debug_println!("a token | User is undercollaterized: {}", collateral_value);
+            ink::env::debug_println!("a token | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral)
         }
 

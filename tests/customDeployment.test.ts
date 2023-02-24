@@ -52,13 +52,11 @@ describe('Custom deployment', () => {
       testEnv = await deployAndConfigureSystem(customDeploymentConfig);
     });
     it('BlockTimestampProvider does not use mocked timestamp', async () => {
-      await expect(testEnv.blockTimestampProvider.query.getShouldReturnMockValue()).to.eventually.be.fulfilled.and.to.have.deep.property(
-        'value',
-        false,
-      );
+      const queryRes = (await testEnv.blockTimestampProvider.query.getShouldReturnMockValue()).value.ok;
+      expect(queryRes).to.be.equal(false);
     });
     it('Contains deployed reserves', async () => {
-      const { value: reserveBOI } = await testEnv.lendingPool.query.viewReserveData(testEnv.reserves['BOI'].underlying.address);
+      const reserveBOI = (await testEnv.lendingPool.query.viewReserveData(testEnv.reserves['BOI'].underlying.address)).value.ok;
       expect.soft(reserveBOI).to.be.not.null;
       expect.soft(reserveBOI?.aTokenAddress).to.be.ok;
       expect.soft(reserveBOI?.flashLoanFeeE6.toNumber()).to.equal(2000);
@@ -76,8 +74,8 @@ describe('Custom deployment', () => {
       };
       const testEnv = await deployAndConfigureSystem(customDeploymentConfig);
 
-      const { value: price } = await testEnv.lendingPool.query.getReserveTokenPriceE8(testEnv.reserves['WETH'].underlying.address);
-      expect(price?.toString()).to.equal(priceToOverride.toString());
+      const price = (await testEnv.lendingPool.query.getReserveTokenPriceE8(testEnv.reserves['WETH'].underlying.address)).value.ok!;
+      expect(price.toString()).to.equal(priceToOverride.toString());
     });
   });
 });

@@ -10,14 +10,16 @@
 
 #[openbrush::contract]
 pub mod lending_pool {
-    use ink_lang::codegen::{
+    use ink::codegen::{
         EmitEvent,
         Env,
     };
-    use ink_storage::traits::SpreadAllocate;
 
     use lending_project::{
-        impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
+        impls::lending_pool::{
+            manage::GLOBAL_ADMIN,
+            storage::lending_pool_storage::LendingPoolStorage,
+        },
         traits::lending_pool::traits::{
             a_token_interface::*,
             actions::*,
@@ -30,19 +32,20 @@ pub mod lending_pool {
     // use openbrush::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
     use openbrush::{
-        contracts::{
-            access_control::*,
-            ownable::*,
+        contracts::access_control::{
+            self,
+            members::MembersManager,
+            *,
         },
         traits::Storage,
     };
     /// storage of the contract
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Default, Storage)]
     pub struct LendingPool {
-        #[storage_field]
-        /// storage used by openbrush's `Ownable` trait
-        ownable: ownable::Data,
+        // #[storage_field]
+        // /// storage used by openbrush's `Ownable` trait
+        // ownable: ownable::Data,
         #[storage_field]
         /// storage used by openbrush's `AccesControl` trait
         access: access_control::Data,
@@ -79,10 +82,11 @@ pub mod lending_pool {
     impl LendingPool {
         #[ink(constructor)]
         pub fn new() -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut LendingPool| {
-                let caller = instance.env().caller();
-                instance._init_with_admin(caller);
-            })
+            let mut instance = Self::default();
+            let caller = instance.env().caller();
+            instance._init_with_admin(caller);
+            instance.access.members.add(GLOBAL_ADMIN, &caller);
+            instance
         }
     }
 

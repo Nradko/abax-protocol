@@ -1,6 +1,6 @@
-use ink_prelude::{
+use ink::prelude::{
     string::String,
-    vec::Vec,
+    vec::*,
 };
 use openbrush::{
     storage::Mapping,
@@ -16,9 +16,9 @@ use crate::{
     traits::lending_pool::errors::StorageError,
 };
 
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
+pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(LendingPoolStorage);
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct LendingPoolStorage {
     pub block_timestamp_provider: AccountId,
@@ -26,6 +26,18 @@ pub struct LendingPoolStorage {
     pub asset_to_reserve: Mapping<AccountId, ReserveData>,
     pub asset_user_to_user_reserve: Mapping<(AccountId, AccountId), UserReserveData>,
     pub user_to_user_config: Mapping<AccountId, UserConfig>,
+}
+
+impl Default for LendingPoolStorage {
+    fn default() -> Self {
+        Self {
+            block_timestamp_provider: ink::blake2x256!("ZERO_ADRESS").into(),
+            registered_assets: Vec::new(),
+            asset_to_reserve: Default::default(),
+            asset_user_to_user_reserve: Default::default(),
+            user_to_user_config: Default::default(),
+        }
+    }
 }
 
 impl LendingPoolStorage {

@@ -1,4 +1,4 @@
-use ink_prelude::string::String;
+use ink::prelude::string::String;
 use num_traits::{
     FromPrimitive,
     NumCast,

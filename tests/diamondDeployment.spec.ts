@@ -9,7 +9,8 @@ import { apiProviderWrapper } from './setup/helpers';
 import { readContractsFromFile, restartAndRestoreNodeState } from './setup/nodePersistence';
 import LendingPool from 'typechain/contracts/lending_pool';
 
-describe('Diamond Contract', () => {
+// skip for now as we dont use diamond in ink4 yet
+describe.skip('Diamond Contract', () => {
   let testEnv: TestEnv;
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
   afterEach(async () => {

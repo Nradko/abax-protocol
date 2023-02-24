@@ -1,4 +1,4 @@
-use ink_prelude::{
+use ink::prelude::{
     string::String,
     vec::Vec,
 };

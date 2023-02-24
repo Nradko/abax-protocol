@@ -10,17 +10,24 @@ pub mod balance_viewer {
         traits::Storage,
     };
 
-    use ink_prelude::{
+    use ink::prelude::{
         vec::Vec,
         *,
     };
-    use ink_storage::traits::SpreadAllocate;
     use lending_project::traits::lending_pool::traits::view::LendingPoolViewRef;
 
     #[ink(storage)]
-    #[derive(Default, SpreadAllocate, Storage)]
+    #[derive(Storage)]
     pub struct BalanceViewer {
         lending_pool: AccountId,
+    }
+
+    impl Default for BalanceViewer {
+        fn default() -> Self {
+            Self {
+                lending_pool: ink::blake2x256!("ZERO_ADRESS").into(),
+            }
+        }
     }
 
     // impl Managing for PSP22EmitableContract {}
@@ -28,10 +35,9 @@ pub mod balance_viewer {
     impl BalanceViewer {
         #[ink(constructor)]
         pub fn new(lending_pool: AccountId) -> Self {
-            ink_lang::codegen::initialize_contract(|instance: &mut Self| {
-                // metadata
-                instance.lending_pool = lending_pool;
-            })
+            let mut instance = Self::default(); // metadata
+            instance.lending_pool = lending_pool;
+            instance
         }
 
         #[ink(message)]

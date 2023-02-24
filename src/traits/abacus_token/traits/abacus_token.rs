@@ -1,4 +1,4 @@
-use ink_prelude::vec::Vec;
+use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::psp22::PSP22Error,
     traits::{
