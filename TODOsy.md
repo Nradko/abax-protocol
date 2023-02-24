@@ -1,3 +1,4 @@
+1. testy do abacus token transfers
 1. sprawdzić czy ilości (amounty) przy likwidacji mają sens/dobrze się liczą (choćby printami)
 1. wypłacanie interest_for_owner
 1. testy do liquidation stable

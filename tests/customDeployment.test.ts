@@ -31,6 +31,8 @@ describe('Custom deployment', () => {
             flashLoanFeeE6: 2000,
             collateralCoefficient: 0.9,
             borrowCoefficient: 1.1,
+            minimalCollateral: 0,
+            minimalDebt: 0,
             penalty: 0.05,
           },
           {
@@ -41,6 +43,8 @@ describe('Custom deployment', () => {
             flashLoanFeeE6: 5000,
             collateralCoefficient: 0.9,
             borrowCoefficient: 1.1,
+            minimalCollateral: 0,
+            minimalDebt: 0,
             penalty: 0.05,
           },
         ],

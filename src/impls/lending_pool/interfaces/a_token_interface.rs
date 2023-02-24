@@ -84,6 +84,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
             .data::<LendingPoolStorage>()
             .get_or_create_user_reserve(&underlying_asset, &to);
         let mut to_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&to);
+        let mut from_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&from);
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate reserve
         reserve_data._accumulate_interest(block_timestamp);
@@ -98,13 +99,16 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
             to_reserve_data._accumulate_user_interest(&mut reserve_data);
         // amount check and sub supply
         let from_supplied = from_reserve_data.supplied;
+        if from_supplied < amount {
+            return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
+        }
         if from_supplied == amount {
-            let mut from_config = self.data::<LendingPoolStorage>().get_user_config(&from)?;
             from_config.deposits &= !(1_u128 << reserve_data.id);
+        }
+        if from_supplied - amount <= reserve_data.minimal_collateral {
+            from_config.collaterals &= !(1_u128 << reserve_data.id);
             self.data::<LendingPoolStorage>()
                 .insert_user_config(&from, &from_config);
-        } else if from_supplied < amount {
-            return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
         from_reserve_data.supplied = from_reserve_data.supplied - amount;
         // add_to_user_supply

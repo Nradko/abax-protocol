@@ -14,6 +14,7 @@ use crate::{
             internal::{
                 Internal,
                 _check_borrowing_stable_enabled,
+                _check_enough_stable_debt,
             },
             storage::{
                 lending_pool_storage::LendingPoolStorage,
@@ -143,6 +144,15 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolSTokenInterface for T {
             .stable_borrowed
             .checked_add(amount)
             .expect(MATH_ERROR_MESSAGE);
+
+        match _check_enough_stable_debt(&reserve_data, &from_reserve_data) {
+            Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
+            Ok(_) => (),
+        };
+        match _check_enough_stable_debt(&reserve_data, &to_reserve_data) {
+            Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
+            Ok(_) => (),
+        };
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()

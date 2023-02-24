@@ -43,9 +43,6 @@ pub mod lending_pool {
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct LendingPool {
-        // #[storage_field]
-        // /// storage used by openbrush's `Ownable` trait
-        // ownable: ownable::Data,
         #[storage_field]
         /// storage used by openbrush's `AccesControl` trait
         access: access_control::Data,

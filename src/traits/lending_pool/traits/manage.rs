@@ -1,4 +1,7 @@
-use openbrush::traits::AccountId;
+use openbrush::traits::{
+    AccountId,
+    Balance,
+};
 
 use crate::traits::lending_pool::errors::LendingPoolError;
 
@@ -33,6 +36,8 @@ pub trait LendingPoolManage {
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
         penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
@@ -70,6 +75,8 @@ pub trait LendingPoolManage {
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
         penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,

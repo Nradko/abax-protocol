@@ -91,6 +91,36 @@ pub fn _check_borrowing_stable_enabled(reserve_data: &ReserveData) -> Result<(),
     Ok(())
 }
 
+pub fn _check_enough_supply_to_be_collateral(
+    reserve_data: &ReserveData,
+    user_reserve_data: &UserReserveData,
+) -> Result<(), LendingPoolError> {
+    if user_reserve_data.supplied <= reserve_data.minimal_collateral {
+        return Err(LendingPoolError::InsufficientSupply)
+    }
+    Ok(())
+}
+
+pub fn _check_enough_variable_debt(
+    reserve_data: &ReserveData,
+    user_reserve_data: &UserReserveData,
+) -> Result<(), LendingPoolError> {
+    if user_reserve_data.variable_borrowed <= reserve_data.minimal_debt {
+        return Err(LendingPoolError::InsufficientDebt)
+    }
+    Ok(())
+}
+
+pub fn _check_enough_stable_debt(
+    reserve_data: &ReserveData,
+    user_reserve_data: &UserReserveData,
+) -> Result<(), LendingPoolError> {
+    if user_reserve_data.stable_borrowed <= reserve_data.minimal_debt {
+        return Err(LendingPoolError::InsufficientDebt)
+    }
+    Ok(())
+}
+
 pub fn _emit_all_abacus_token_transfer_events(
     reserve_data: &ReserveData,
     user: &AccountId,

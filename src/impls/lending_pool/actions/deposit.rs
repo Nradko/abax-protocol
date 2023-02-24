@@ -175,13 +175,18 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         if amount > on_behalf_of_reserve_data.supplied {
             return Err(LendingPoolError::AmountExceedsUserDeposit)
         }
-        // sub from user supply
+        // notice thatis the '1st if' is true then the '2nd if' is true
+        // thus if we modify config in the '1st if' it will be pushed in the '2nd if'.
         if amount == on_behalf_of_reserve_data.supplied {
             on_behalf_of_config.deposits &= !(1_u128 << reserve_data.id);
+        }
+        if on_behalf_of_reserve_data.supplied - amount <= reserve_data.minimal_collateral {
+            on_behalf_of_config.collaterals &= !(1_u128 << reserve_data.id);
             self.data::<LendingPoolStorage>()
                 .insert_user_config(&on_behalf_of, &on_behalf_of_config);
         }
         on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data.supplied - amount;
+        // sub from user supply
         if amount >= reserve_data.total_supplied {
             ink::env::debug_println!(
                 "subtracting {} from reserve_data.total_supplied ({}) would cause an underflow",

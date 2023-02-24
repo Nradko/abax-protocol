@@ -97,7 +97,8 @@ makeSuite('LendingPool stable borrow & and stable rate rebalance', (getTestEnv) 
 
     describe('borrower borrow_stable 1000 Dai. Then ...', () => {
       beforeEach('', async () => {
-        await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, 1000, [1]);
+        const daiAmountToBorrow = await convertToCurrencyDecimals(daiContract, 1000);
+        await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, daiAmountToBorrow, [1]);
       });
 
       it('rebalancer tries to rebalance borrower LINK stable rate. NoStableBorrow ERROR.', async () => {

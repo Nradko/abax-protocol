@@ -131,6 +131,15 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
             .checked_add(amount)
             .expect(MATH_ERROR_MESSAGE);
 
+        match _check_enough_variable_debt(&reserve_data, &from_reserve_data) {
+            Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
+            Ok(_) => (),
+        };
+        match _check_enough_variable_debt(&reserve_data, &to_reserve_data) {
+            Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
+            Ok(_) => (),
+        };
+
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&underlying_asset, &reserve_data);
