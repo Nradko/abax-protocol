@@ -173,6 +173,8 @@ export const getReserveDefaultObj = (): ReserveData => {
     penaltyE6: new ReturnNumber(0),
     stableRateBaseE24: new ReturnNumber(0),
     incomeForSuppliersPartE6: new ReturnNumber(E6),
+    minimalCollateral: new ReturnNumber(0),
+    minimalDebt: new ReturnNumber(0),
     flashLoanFeeE6: new ReturnNumber(0),
     tokenPriceE8: null,
     totalSupplied: new ReturnNumber(0),

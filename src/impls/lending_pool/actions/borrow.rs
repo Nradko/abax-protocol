@@ -47,6 +47,8 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         //// PULL DATA AND INIT CONDITIONS CHECK
         let caller = Self::env().caller();
         let reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let user_reserve_data = self.data::<LendingPoolStorage>().get_user_reserve(&asset, &caller)?;
+        _check_enough_supply_to_be_collateral(&reserve_data, &user_reserve_data)?;
         let mut user_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&caller);
         let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6;
         if use_as_collateral_to_set && collateral_coefficient_e6.is_none() {
@@ -117,6 +119,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     &mut on_behalf_of_config,
                     amount,
                 );
+                _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
                 //// ABACUS TOKEN EVENTS
                 // ATOKEN
                 _emit_abacus_token_transfer_event(
@@ -149,6 +152,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     &mut on_behalf_of_config,
                     amount,
                 )?;
+                _check_enough_stable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
                 //// ABACUS TOKEN EVENTS
                 // ATOKEN
                 _emit_abacus_token_transfer_event(
@@ -240,6 +244,9 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     &mut on_behalf_of_config,
                     amount,
                 )?;
+                if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 1 {
+                    _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
+                }
                 //// ABACUS TOKEN EVENTS
                 // ATOKEN
                 _emit_abacus_token_transfer_event(
@@ -270,6 +277,9 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     &mut on_behalf_of_config,
                     amount,
                 )?;
+                if (on_behalf_of_config.borrows_stable >> reserve_data.id) & 1 == 1 {
+                    _check_enough_stable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
+                }
                 //// ABACUS TOKEN EVENTS
                 // ATOKEN
                 _emit_abacus_token_transfer_event(

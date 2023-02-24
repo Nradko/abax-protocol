@@ -3,7 +3,7 @@ import { CodePromise, ContractPromise } from '@polkadot/api-contract';
 import { CodeSubmittableResult } from '@polkadot/api-contract/base';
 import { KeyringPair } from '@polkadot/keyring/types';
 import type { WeightV2 } from '@polkadot/types/interfaces';
-import { BN } from 'bn.js';
+import BN from 'bn.js';
 import fs, { readFileSync } from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
@@ -277,6 +277,8 @@ export const deployAndConfigureSystem = async (
       reserveData.collateralCoefficient,
       reserveData.borrowCoefficient,
       reserveData.stableBaseRate,
+      reserveData.minimalCollateral,
+      reserveData.minimalDebt,
       reserveData.penalty,
       reserveData.decimals,
       reserveData.feeD6,
@@ -344,6 +346,8 @@ export async function registerNewAsset(
   collateralCoefficient: null | number,
   borrowCoefficient: null | number,
   stableRateBaseE24: number | null,
+  minimalCollatral: number | BN,
+  minimalDebt: number | BN,
   penalty: number,
   decimals: number,
   feeD6: number,
@@ -358,6 +362,8 @@ export async function registerNewAsset(
     collateralCoefficient ? toE6(collateralCoefficient) : null,
     borrowCoefficient ? toE6(borrowCoefficient) : null,
     stableRateBaseE24,
+    minimalCollatral,
+    minimalDebt,
     toE6(penalty),
     toE6(1) - feeD6,
     flashLoanFeeE6,

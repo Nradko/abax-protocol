@@ -47,6 +47,14 @@ pub struct ReserveData {
     pub borrow_coefficient_e6: Option<u128>,
     /// stable_rate = base + variable rates. If None then can not be stable borrowed.
     pub stable_rate_base_e24: Option<u128>,
+    /// minimal collateral that can be used by each user.
+    /// if user's collateral drops below this value (during redeem) then it will be automatically turned off (as collateral).
+    /// it may happen during liquidation that users collateral will drop below this value.
+    pub minimal_collateral: Balance,
+    /// minimal debt that can be taken and maintain by each user.
+    /// At any time user's debt can not bee smaller than minimal debt.
+    /// Exception! it may happen during liquidation that users debt will drop below this value.
+    pub minimal_debt: Balance,
     /// penalty when liquidated, 1e6 == 100%.
     pub penalty_e6: u128,
     /// part of interest paid by borrowers that is redistributed to the suppliers. 10^6 = 100%.
@@ -274,6 +282,8 @@ impl Default for ReserveData {
             ],
             collateral_coefficient_e6: None,
             borrow_coefficient_e6: None,
+            minimal_collateral: 0,
+            minimal_debt: 0,
             penalty_e6: 0,
             stable_rate_base_e24: None,
             income_for_suppliers_part_e6: E6,

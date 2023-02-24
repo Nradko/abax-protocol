@@ -73,6 +73,7 @@ pub enum LendingPoolTokenInterfaceError {
     WrongCaller,
     InsufficientUserFreeCollateral,
     TransfersDisabled,
+    MinimalDebt,
 }
 
 impl From<PSP22Error> for LendingPoolError {
@@ -110,6 +111,9 @@ impl From<LendingPoolTokenInterfaceError> for PSP22Error {
             }
             LendingPoolTokenInterfaceError::StorageError(_) => {
                 PSP22Error::Custom(String::from("LendingPoolTokenInterfaceError::StorageError").into())
+            }
+            LendingPoolTokenInterfaceError::MinimalDebt => {
+                PSP22Error::Custom(String::from("LendingPoolTokenInterface::MinimalDebt").into())
             }
             LendingPoolTokenInterfaceError::PSP22Error(psp22_error) => psp22_error,
         }

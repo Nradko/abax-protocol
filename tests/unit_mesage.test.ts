@@ -49,9 +49,9 @@ makeSuite('Unit message', (getTestEnv) => {
           const queryRes = (await lendingPool.withSigner(users[0]).query.setAsCollateral(reserve.underlying.address, false)).value.ok;
           expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.InsufficientUserFreeCollateral());
         });
-        it('Succeeds without deposit', async () => {
+        it('Fails without deposit', async () => {
           const reserve = testEnv.reserves['DAI'];
-          await expect(lendingPool.withSigner(users[0]).tx.setAsCollateral(reserve.underlying.address, true)).to.eventually.be.fulfilled;
+          await expect(lendingPool.withSigner(users[0]).tx.setAsCollateral(reserve.underlying.address, true)).to.eventually.be.rejected;
         });
       });
     });
@@ -237,6 +237,8 @@ makeSuite('Unit message', (getTestEnv) => {
               null,
               null,
               '13',
+              0,
+              0,
               '0',
               '12',
               '1000',
@@ -258,6 +260,8 @@ makeSuite('Unit message', (getTestEnv) => {
             '111',
             '222',
             '333',
+            0,
+            0,
             '100000',
             '900000',
             '1000',
@@ -365,34 +369,36 @@ makeSuite('Unit message', (getTestEnv) => {
       expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });
     it('A regular user should not be able to execute transfer supply on VToken', async () => {
+      const amountToBorrow = mintedAmount / 2;
       await reserveWETH.underlying.tx.mint(users[1].address, mintedAmount);
       await reserveWETH.underlying.withSigner(users[1]).tx.approve(lendingPool.address, mintedAmount);
       await lendingPool.withSigner(users[1]).tx.deposit(reserveWETH.underlying.address, users[1].address, mintedAmount, []);
       await lendingPool.withSigner(users[1]).tx.setAsCollateral(reserveWETH.underlying.address, true);
-      await lendingPool.withSigner(users[1]).query.borrow(reserveWETH.underlying.address, users[1].address, 1_000, [0]); //TODO why DAI does not work here?
-      await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, 1_000, [0]);
+      await lendingPool.withSigner(users[1]).query.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [0]); //TODO why DAI does not work here?
+      await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [0]);
       await reserveWETH.vToken.withSigner(testEnv.users[1]).tx.approve(testEnv.users[1].address, mintedAmount);
 
       const queryRes = (
         await lendingPool
           .withSigner(testEnv.users[0])
-          .query.transferVariableDebtFromTo(reserveDAI.underlying.address, testEnv.users[1].address, testEnv.users[0].address, 1_000_000)
+          .query.transferVariableDebtFromTo(reserveDAI.underlying.address, testEnv.users[1].address, testEnv.users[0].address, amountToBorrow)
       ).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });
     it('A regular user should not be able to execute transfer supply on SToken', async () => {
+      const amountToBorrow = mintedAmount / 2;
       await reserveWETH.underlying.tx.mint(users[1].address, mintedAmount);
       await reserveWETH.underlying.withSigner(users[1]).tx.approve(lendingPool.address, mintedAmount);
       await lendingPool.withSigner(users[1]).tx.deposit(reserveWETH.underlying.address, users[1].address, mintedAmount, []);
       await lendingPool.withSigner(users[1]).tx.setAsCollateral(reserveWETH.underlying.address, true);
-      await lendingPool.withSigner(users[1]).query.borrow(reserveWETH.underlying.address, users[1].address, 1_000, [1]);
-      await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, 1_000, [1]);
+      await lendingPool.withSigner(users[1]).query.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [1]);
+      await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [1]);
       await reserveWETH.vToken.withSigner(testEnv.users[1]).tx.approve(testEnv.users[1].address, mintedAmount);
 
       const queryRes = (
         await lendingPool
           .withSigner(testEnv.users[1])
-          .query.transferStableDebtFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000)
+          .query.transferStableDebtFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, amountToBorrow)
       ).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });

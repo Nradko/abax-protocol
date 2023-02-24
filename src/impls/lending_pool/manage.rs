@@ -65,6 +65,8 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
         penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
@@ -98,6 +100,8 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             ],
             collateral_coefficient_e6,
             borrow_coefficient_e6,
+            minimal_collateral,
+            minimal_debt,
             penalty_e6,
             stable_rate_base_e24,
             income_for_suppliers_part_e6,
@@ -161,6 +165,8 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
         penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
@@ -177,6 +183,8 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         reserve.collateral_coefficient_e6 = collateral_coefficient_e6;
         reserve.borrow_coefficient_e6 = borrow_coefficient_e6;
         reserve.stable_rate_base_e24 = stable_rate_base_e24;
+        reserve.minimal_collateral = minimal_collateral;
+        reserve.minimal_debt = minimal_debt;
         reserve.penalty_e6 = penalty_e6;
         reserve.income_for_suppliers_part_e6 = income_for_suppliers_part_e6;
         reserve.flash_loan_fee_e6 = flash_loan_fee_e6;
