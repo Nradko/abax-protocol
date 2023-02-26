@@ -39,10 +39,11 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         amount: Balance,
         data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
-        //// PULL DATA AND CHECK CONDITIONS
+        //// ARGUMENT CHECK
         if amount == 0 {
             return Err(LendingPoolError::AmountNotGreaterThanZero)
         }
+        //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
@@ -54,7 +55,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .data::<LendingPoolStorage>()
             .get_or_create_user_config(&on_behalf_of);
 
-        //// MODIFY PULLED STORAGE
+        //// MODIFY DATA
         // accumulate
         let (
             interest_on_behalf_of_supply,
@@ -65,7 +66,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             &mut on_behalf_of_reserve_data,
             block_timestamp,
         );
-        // add to supplies
+        // add deposit
         _increase_user_deposit(
             &reserve_data,
             &mut on_behalf_of_reserve_data,
@@ -132,7 +133,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         amount_arg: Option<Balance>,
         data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
-        //// PULL DATA AND INIT CONDITIONS CHECK
+        //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
@@ -141,12 +142,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .data::<LendingPoolStorage>()
             .get_user_reserve(&asset, &on_behalf_of)?;
         let mut on_behalf_of_config = self.data::<LendingPoolStorage>().get_user_config(&on_behalf_of)?;
-
-        if on_behalf_of_reserve_data.supplied == 0 {
-            return Err(LendingPoolError::NothingToRedeem)
-        }
-
-        // MODIFY PULLED STORAGE & AMOUNT CHECKS
+        // MODIFY PULLED STORAGE & AMOUNT CHECK
         // accumulate
         let (
             interest_on_behalf_of_supply,
@@ -168,7 +164,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         if amount > on_behalf_of_reserve_data.supplied {
             return Err(LendingPoolError::AmountExceedsUserDeposit)
         }
-
+        // sub deposit
         _decrease_user_deposit(
             &reserve_data,
             &mut on_behalf_of_reserve_data,

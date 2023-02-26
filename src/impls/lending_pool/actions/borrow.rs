@@ -460,6 +460,28 @@ fn _change_state_borrow_stable(
     Ok(new_stable_borrow_rate_e24)
 }
 
+fn _change_state_repay_variable(
+    reserve_data: &mut ReserveData,
+    on_behalf_of_reserve_data: &mut UserReserveData,
+    on_behalf_of_config: &mut UserConfig,
+    amount: Option<u128>,
+) -> Result<u128, LendingPoolError> {
+    let amount_val = match amount {
+        Some(v) => v,
+        None => on_behalf_of_reserve_data.variable_borrowed,
+    };
+    if amount_val == 0 {
+        return Err(LendingPoolError::AmountNotGreaterThanZero)
+    }
+    if amount_val > on_behalf_of_reserve_data.variable_borrowed {
+        return Err(LendingPoolError::AmountExceedsUserDebt)
+    }
+    _decrease_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount_val);
+    _decrease_total_variable_debt(reserve_data, amount_val);
+
+    Ok(amount_val)
+}
+
 fn _change_state_repay_stable(
     reserve_data: &mut ReserveData,
     on_behalf_of_reserve_data: &mut UserReserveData,
@@ -482,28 +504,6 @@ fn _change_state_repay_stable(
         amount_val,
         on_behalf_of_reserve_data.stable_borrow_rate_e24,
     );
-
-    Ok(amount_val)
-}
-
-fn _change_state_repay_variable(
-    reserve_data: &mut ReserveData,
-    on_behalf_of_reserve_data: &mut UserReserveData,
-    on_behalf_of_config: &mut UserConfig,
-    amount: Option<u128>,
-) -> Result<u128, LendingPoolError> {
-    let amount_val = match amount {
-        Some(v) => v,
-        None => on_behalf_of_reserve_data.variable_borrowed,
-    };
-    if amount_val == 0 {
-        return Err(LendingPoolError::AmountNotGreaterThanZero)
-    }
-    if amount_val > on_behalf_of_reserve_data.variable_borrowed {
-        return Err(LendingPoolError::AmountExceedsUserDebt)
-    }
-    _decrease_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount_val);
-    _decrease_total_variable_debt(reserve_data, amount_val);
 
     Ok(amount_val)
 }
