@@ -47,7 +47,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
     }
 
     default fn accumulate_interest(&mut self, asset: AccountId) -> Result<(), LendingPoolError> {
-        ink::env::debug_println!("(accumulate_interest) START");
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
@@ -147,15 +146,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
             Balance,
         ) = _accumulate_interest(&mut reserve_data, &mut user_reserve_data, block_timestamp);
         reserve_data._recalculate_current_rates()?;
-
-        ink::env::debug_println!(
-            "reserve_data.current_supply_rate_e24 = {}",
-            reserve_data.current_supply_rate_e24
-        );
-        ink::env::debug_println!(
-            "user_reserve_data.stable_borrow_rate_e24 = {}",
-            user_reserve_data.stable_borrow_rate_e24
-        );
 
         if reserve_data.current_supply_rate_e24 < user_reserve_data.stable_borrow_rate_e24 {
             return Err(LendingPoolError::RebalanceCondition)

@@ -176,7 +176,6 @@ impl ReserveData {
                         .expect(MATH_ERROR_MESSAGE);
                 delta_index_multiplier_e18.checked_add(E18).expect(MATH_ERROR_MESSAGE)
             };
-            ink::env::debug_println!("current_supply_rate_e24: {}", self.current_supply_rate_e24);
             self.total_supplied =
                 u128::try_from(checked_math!((self.total_supplied * index_multiplier_e18) / E18).unwrap())
                     .expect(MATH_ERROR_MESSAGE);
@@ -187,10 +186,6 @@ impl ReserveData {
         }
 
         if self.current_variable_borrow_rate_e24 != 0 {
-            ink::env::debug_println!(
-                "current_variable_borrow_rate_e24: {}",
-                self.current_variable_borrow_rate_e24
-            );
             let index_multiplier_e18 = {
                 let delta_index_multiplier_e18 = u128::try_from(
                     checked_math!((self.current_variable_borrow_rate_e24 * delta_timestamp / E6)).unwrap(),

@@ -34,12 +34,6 @@ pub mod diamond {
 
         #[ink(message, payable, selector = _)]
         pub fn forward(&mut self) {
-            let selector = ink::env::decode_input::<Selector>().unwrap_or_else(|_| panic!("Calldata error"));
-            ink::env::debug_println!("selector: {:X?}", selector);
-
-            let delegate_code = self.diamond.selector_to_hash.get(&selector);
-            ink::env::debug_println!("delegate_code: {:X?}", delegate_code);
-
             self._fallback()
         }
     }
