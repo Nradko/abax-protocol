@@ -62,12 +62,8 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         //// PUSH STORAGE & FINAL CONDION CHECK
         self.data::<LendingPoolStorage>()
             .insert_user_config(&caller, &user_config);
-        if !use_as_collateral_to_set {
-            let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&caller, block_timestamp);
-            if !collaterized {
-                return Err(LendingPoolError::InsufficientUserFreeCollateral)
-            }
-        }
+
+        self._check_user_free_collateral(&caller, block_timestamp)?;
 
         Ok(())
     }
@@ -188,10 +184,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             &on_behalf_of_config,
         );
         // check if there ie enought collateral
-        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
-        if !collaterized {
-            return Err(LendingPoolError::InsufficientUserFreeCollateral)
-        }
+        self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
         //// TOKEN TRANSFER
         PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
         Ok(())
@@ -303,10 +296,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             &on_behalf_of_config,
         );
         // check if there ie enought collateral
-        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
-        if !collaterized {
-            return Err(LendingPoolError::InsufficientUserFreeCollateral)
-        }
+        self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
         //// TOKEN TRANSFER
         PSP22Ref::transfer_from_builder(
             &asset,
