@@ -422,8 +422,13 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             user_reserve._accumulate_user_interest(&mut reserve_data);
             if ((collaterals >> i) & 1) == 1 {
                 let collateral_asset_price_e8 = asset_price_e8;
+                let collateral = if user_reserve.supplied >= reserve_data.minimal_collateral {
+                    user_reserve.supplied
+                } else {
+                    0
+                };
                 let asset_supplied_value_e8 = u128::try_from(
-                    checked_math!(user_reserve.supplied * collateral_asset_price_e8 / reserve_data.decimals).unwrap(),
+                    checked_math!(collateral * collateral_asset_price_e8 / reserve_data.decimals).unwrap(),
                 )
                 .expect(MATH_ERROR_MESSAGE);
                 let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6.unwrap_or(0);
