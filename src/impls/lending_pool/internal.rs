@@ -383,6 +383,9 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
 
 pub trait Internal {
     fn _get_user_free_collateral_coefficient_e6(&self, user: &AccountId, block_timestamp: Timestamp) -> (bool, u128);
+
+    fn _check_user_free_collateral(&self, user: &AccountId, block_timestamp: Timestamp)
+        -> Result<(), LendingPoolError>;
 }
 
 impl<T: Storage<LendingPoolStorage>> Internal for T {
@@ -463,6 +466,18 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         } else {
             (false, total_debt_coefficient_e6 - total_collateral_coefficient_e6)
         }
+    }
+
+    default fn _check_user_free_collateral(
+        &self,
+        user: &AccountId,
+        block_timestamp: Timestamp,
+    ) -> Result<(), LendingPoolError> {
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(user, block_timestamp);
+        if !collaterized {
+            return Err(LendingPoolError::InsufficientUserFreeCollateral)
+        }
+        Ok(())
     }
 }
 
