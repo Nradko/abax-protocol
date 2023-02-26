@@ -41,7 +41,6 @@ impl UserReserveData {
     // TODO:: make it easier to read!!!
     pub fn _accumulate_user_interest(&mut self, reserve: &mut ReserveData) -> (Balance, Balance, Balance) {
         if self.update_timestamp >= reserve.indexes_update_timestamp {
-            ink::env::debug_println!("USER | UPDATE_TIMESTAMP GREATER THAN RESREVE's");
             return (0, 0, 0)
         }
 

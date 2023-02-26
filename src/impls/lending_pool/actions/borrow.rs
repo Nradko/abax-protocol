@@ -105,7 +105,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         // modify state
         match data[0] {
             0 => {
-                ink::env::debug_println!("(borrow-variable)");
                 _check_borrowing_enabled(&reserve_data)?;
                 _change_state_borrow_variable(
                     &mut reserve_data,
@@ -189,10 +188,8 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             &on_behalf_of_config,
         );
         // check if there ie enought collateral
-        let (collaterized, collateral_value) =
-            self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
-            ink::env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolError::InsufficientUserFreeCollateral)
         }
         //// TOKEN TRANSFER
@@ -306,10 +303,8 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             &on_behalf_of_config,
         );
         // check if there ie enought collateral
-        let (collaterized, collateral_value) =
-            self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
-            ink::env::debug_println!("Pool | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolError::InsufficientUserFreeCollateral)
         }
         //// TOKEN TRANSFER

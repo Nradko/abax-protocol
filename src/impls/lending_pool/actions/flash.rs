@@ -69,19 +69,14 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
                 false => amounts[i] * reserve_data_vec[i].flash_loan_fee_e6 / E6,
                 true => amounts[i] * reserve_data_vec[i].flash_loan_fee_e6 / E6 / 10,
             };
-            ink::env::debug_println!("[flash] fee: {}", fee);
             fees.push(fee);
-            ink::env::debug_println!("[flash] before transfer (to receiver)");
             PSP22Ref::transfer_builder(&assets[i], receiver_address, amounts[i], Vec::<u8>::new())
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .try_invoke()
                 .unwrap()??;
-            ink::env::debug_println!("[flash] after transfer (to receiver)");
             let receiver_balance = PSP22Ref::balance_of(&assets[i], receiver_address);
-            ink::env::debug_println!("[flash] receiver_balance: {}", receiver_balance);
         }
 
-        ink::env::debug_println!("[flash] before execute_operation");
         FlashLoanReceiverRef::execute_operation_builder(
             &receiver_address,
             assets.clone(),
@@ -92,7 +87,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
         .call_flags(CallFlags::default().set_allow_reentry(true))
         .try_invoke()
         .unwrap()??;
-        ink::env::debug_println!("[flash] after execute_operation");
 
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
@@ -118,7 +112,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
 
             self.data::<LendingPoolStorage>()
                 .insert_reserve_data(&assets[i], &reserve_data_vec[i]);
-            ink::env::debug_println!("[flash] before transfer_from");
             PSP22Ref::transfer_from_builder(
                 &assets[i],
                 receiver_address,
@@ -129,7 +122,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
             .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
             .try_invoke()
             .unwrap()??;
-            ink::env::debug_println!("[flash] after transfer_from");
 
             self._emit_flash_loan_event(
                 receiver_address,

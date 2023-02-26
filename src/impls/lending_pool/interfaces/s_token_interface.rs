@@ -142,9 +142,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolSTokenInterface for T {
             .insert_user_config(&from, &from_config);
         self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
         // check if there ie enought collateral
-        let (collaterized, collateral_value) = self._get_user_free_collateral_coefficient_e6(&to, block_timestamp);
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&to, block_timestamp);
         if !collaterized {
-            ink::env::debug_println!("s token | User is undercollaterized: {}", collateral_value);
             return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral)
         }
 

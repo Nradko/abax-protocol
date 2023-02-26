@@ -28,13 +28,10 @@ pub mod block_timestamp_provider {
     impl BlockTimestampProvider {
         #[ink(constructor)]
         pub fn new(init_should_return_mock_value: bool, owner: AccountId) -> Self {
-            ink::env::debug_println!("construct BlockTimestampProvider | START");
             let mut instance = Self::default();
             instance.should_return_mock_value = init_should_return_mock_value;
             instance.mock_timestamp = Default::default();
             instance._init_with_owner(owner);
-            ink::env::debug_println!("construct BlockTimestampProvider | STOP");
-
             instance
         }
     }
