@@ -5,6 +5,7 @@ import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
+import { ReturnNumber } from '@727-ventures/typechain-types';
 
 export const FLASH_BORROWER = 1112475474;
 export const ASSET_LISTING_ADMIN = 1094072439;
@@ -55,10 +56,10 @@ makeSuite('Access Control tests', (getTestEnv) => {
     let vToken;
     let sToken;
     beforeEach('names', async () => {
-      asset = '';
-      aToken = '';
-      vToken = '';
-      sToken = '';
+      asset = '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy';
+      aToken = '5HA6b9t4DnVD7vmSX6fpU6W6qxc1pS9wKnV1Ee57fQAbNx3H';
+      vToken = '5G4bxHzTmuNtuYUYhwCEyKui83mvW4kooK6RR8Rh1wJGhHce';
+      sToken = '5DB5o77BC19df5ASA8YatCCiFnHorJsSeGTfbSS92jhKWvDT';
     });
 
     it('flashLoanBorrower should return Err(MissingRole)', async () => {
@@ -69,11 +70,32 @@ makeSuite('Access Control tests', (getTestEnv) => {
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it('assetListingAdmin should succeed', async () => {
+    it.only('assetListingAdmin should succeed and event should be emitted', async () => {
       const tx = lendingPool
         .withSigner(assetListingAdmin)
         .tx.registerAsset(asset, '100000', null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken, sToken);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'AssetRegistered',
+          args: {
+            asset: asset,
+            decimals: new ReturnNumber(100000),
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: null,
+            stableRateBaseE24: null,
+            minimalCollateral: new ReturnNumber(0),
+            minimalDebt: new ReturnNumber(0),
+            penaltyE6: new ReturnNumber(0),
+            incomeForSuppliersPartE6: new ReturnNumber(1000000),
+            flashLoanFeeE6: new ReturnNumber(1000),
+            aTokenAddress: aToken,
+            vTokenAddress: vToken,
+            sTokenAddress: sToken,
+          },
+        },
+      ]);
     });
     it('parametersAdmin should return Err(MissingRole)', async () => {
       const res = (
@@ -91,12 +113,32 @@ makeSuite('Access Control tests', (getTestEnv) => {
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it('globalAdmin should succeed', async () => {
-      const tx = lendingPool
-        .withSigner(globalAdmin)
-        .tx.registerAsset(asset, '100000', null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken, sToken);
+    it.only('globalAdmin should succeed and event should be emitted', async () => {
+      const tx = lendingPool.withSigner(globalAdmin).tx.registerAsset(asset, '1', 1, 2, 3, 4, 5, 6, '7', '8', aToken, vToken, sToken);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'AssetRegistered',
+          args: {
+            asset: asset,
+            decimals: new ReturnNumber(1),
+            collateralCoefficientE6: 1,
+            borrowCoefficientE6: 2,
+            stableRateBaseE24: 3,
+            minimalCollateral: new ReturnNumber(4),
+            minimalDebt: new ReturnNumber(5),
+            penaltyE6: new ReturnNumber(6),
+            incomeForSuppliersPartE6: new ReturnNumber(7),
+            flashLoanFeeE6: new ReturnNumber(8),
+            aTokenAddress: aToken,
+            vTokenAddress: vToken,
+            sTokenAddress: sToken,
+          },
+        },
+      ]);
     });
+
     it('roleAdmin should return Err(MissingRole)', async () => {
       const res = (
         await lendingPool

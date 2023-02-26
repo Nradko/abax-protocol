@@ -7,7 +7,7 @@ import { deployFlashLoanReceiverMock } from './setup/deploymentHelpers';
 import { expect } from './setup/chai';
 import { FlashLoanReceiverErrorBuilder, PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool_v0_flash_facet';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
-import { FLASH_BORROWER } from './access_control.test';
+import { FLASH_BORROWER } from './manage.test';
 
 makeSuite('Flash Loan', (getTestEnv) => {
   const amountWETHToDeposit = new BN((10 * E18).toString());
