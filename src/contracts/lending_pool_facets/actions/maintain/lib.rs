@@ -10,7 +10,10 @@
 
 #[openbrush::contract]
 pub mod lending_pool_v0_maintain_facet {
-
+    use ink::codegen::{
+        EmitEvent,
+        Env,
+    };
     use lending_project::{
         impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
         traits::lending_pool::traits::actions::*,
@@ -50,5 +53,43 @@ pub mod lending_pool_v0_maintain_facet {
         }
     }
 
-    impl EmitMaintainEvents for LendingPoolV0MaintainFacet {}
+    #[ink(event)]
+    pub struct InterestsAccumulated {
+        #[ink(topic)]
+        asset: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct UserInterestsAccumulated {
+        #[ink(topic)]
+        asset: AccountId,
+        #[ink(topic)]
+        user: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct RateRebalanced {
+        #[ink(topic)]
+        asset: AccountId,
+        #[ink(topic)]
+        user: AccountId,
+    }
+
+    impl EmitMaintainEvents for LendingPoolV0MaintainFacet {
+        fn _emit_accumulate_interest_event(&mut self, asset: &AccountId) {
+            self.env().emit_event(InterestsAccumulated { asset: *asset });
+        }
+        fn _emit_accumulate_user_interest_event(&mut self, asset: &AccountId, user: &AccountId) {
+            self.env().emit_event(UserInterestsAccumulated {
+                asset: *asset,
+                user: *user,
+            });
+        }
+        fn _emit_rebalance_rate_event(&mut self, asset: &AccountId, user: &AccountId) {
+            self.env().emit_event(RateRebalanced {
+                asset: *asset,
+                user: *user,
+            })
+        }
+    }
 }

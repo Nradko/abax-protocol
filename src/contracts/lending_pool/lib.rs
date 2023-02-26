@@ -132,7 +132,6 @@ pub mod lending_pool {
         #[ink(topic)]
         on_behalf_of: AccountId,
         amount: Balance,
-        stable_rate: u128,
     }
     #[ink(event)]
     pub struct RepayStable {
@@ -145,24 +144,6 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
-    pub struct ChoseRule {
-        #[ink(topic)]
-        caller: AccountId,
-        #[ink(topic)]
-        chosen_rule: u64,
-    }
-    #[ink(event)]
-    pub struct AssetRegistered {
-        #[ink(topic)]
-        asset: AccountId,
-    }
-
-    #[ink(event)]
-    pub struct RuleAdded {
-        #[ink(topic)]
-        rule_id: u64,
-    }
-    #[ink(event)]
     pub struct FlashLoan {
         #[ink(topic)]
         receiver_address: AccountId,
@@ -173,6 +154,110 @@ pub mod lending_pool {
         amount: u128,
         fee: u128,
     }
+
+    #[ink(event)]
+    pub struct LiquidateVariable {
+        #[ink(topic)]
+        liquidator: AccountId,
+        #[ink(topic)]
+        user: AccountId,
+        #[ink(topic)]
+        asset_to_rapay: AccountId,
+        #[ink(topic)]
+        asset_to_take: AccountId,
+        amount_repaid: Balance,
+        amount_taken: Balance,
+    }
+
+    #[ink(event)]
+    pub struct LiquidateStable {
+        #[ink(topic)]
+        liquidator: AccountId,
+        #[ink(topic)]
+        user: AccountId,
+        #[ink(topic)]
+        asset_to_rapay: AccountId,
+        #[ink(topic)]
+        asset_to_take: AccountId,
+        amount_repaid: Balance,
+        amount_taken: Balance,
+    }
+
+    #[ink(event)]
+    pub struct InterestsAccumulated {
+        #[ink(topic)]
+        asset: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct UserInterestsAccumulated {
+        #[ink(topic)]
+        asset: AccountId,
+        #[ink(topic)]
+        user: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct RateRebalanced {
+        #[ink(topic)]
+        asset: AccountId,
+        #[ink(topic)]
+        user: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct AssetRegistered {
+        #[ink(topic)]
+        asset: AccountId,
+        decimals: u128,
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
+        penalty_e6: u128,
+        income_for_suppliers_part_e6: u128,
+        flash_loan_fee_e6: u128,
+        a_token_address: AccountId,
+        v_token_address: AccountId,
+        s_token_address: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct ReserveActivated {
+        #[ink(topic)]
+        asset: AccountId,
+        active: bool,
+    }
+
+    #[ink(event)]
+    pub struct ReserveFreezed {
+        #[ink(topic)]
+        asset: AccountId,
+        freezed: bool,
+    }
+
+    #[ink(event)]
+    pub struct ParametersChanged {
+        #[ink(topic)]
+        asset: AccountId,
+        interest_rate_model: [u128; 7],
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
+        penalty_e6: u128,
+        income_for_suppliers_part_e6: u128,
+        flash_loan_fee_e6: u128,
+    }
+
+    #[ink(event)]
+    pub struct IncomeTaken {
+        #[ink(topic)]
+        asset: AccountId,
+    }
+
     impl EmitDepositEvents for LendingPool {
         fn _emit_deposit_event(
             &mut self,
@@ -242,14 +327,12 @@ pub mod lending_pool {
             caller: AccountId,
             on_behalf_of: AccountId,
             amount: Balance,
-            stable_rate: u128,
         ) {
             self.env().emit_event(BorrowStable {
                 asset,
                 caller,
                 on_behalf_of,
                 amount,
-                stable_rate,
             });
         }
 
@@ -269,18 +352,6 @@ pub mod lending_pool {
         }
     }
 
-    impl EmitConfigureEvents for LendingPool {
-        default fn _emit_choose_rule_event(&mut self, caller: AccountId, chosen_rule: u64) {
-            self.env().emit_event(ChoseRule { caller, chosen_rule });
-        }
-    }
-
-    impl EmitManageEvents for LendingPool {
-        default fn _emit_asset_registered_event(&mut self, asset: AccountId) {
-            self.env().emit_event(AssetRegistered { asset });
-        }
-    }
-
     impl EmitFlashEvents for LendingPool {
         fn _emit_flash_loan_event(
             &mut self,
@@ -297,6 +368,97 @@ pub mod lending_pool {
                 amount,
                 fee,
             });
+        }
+    }
+
+    impl EmitMaintainEvents for LendingPool {
+        fn _emit_accumulate_interest_event(&mut self, asset: &AccountId) {
+            self.env().emit_event(InterestsAccumulated { asset: *asset });
+        }
+        fn _emit_accumulate_user_interest_event(&mut self, asset: &AccountId, user: &AccountId) {
+            self.env().emit_event(UserInterestsAccumulated {
+                asset: *asset,
+                user: *user,
+            });
+        }
+        fn _emit_rebalance_rate_event(&mut self, asset: &AccountId, user: &AccountId) {
+            self.env().emit_event(RateRebalanced {
+                asset: *asset,
+                user: *user,
+            })
+        }
+    }
+
+    impl EmitManageEvents for LendingPool {
+        fn _emit_asset_registered_event(
+            &mut self,
+            asset: &AccountId,
+            decimals: u128,
+            collateral_coefficient_e6: Option<u128>,
+            borrow_coefficient_e6: Option<u128>,
+            stable_rate_base_e24: Option<u128>,
+            minimal_collateral: Balance,
+            minimal_debt: Balance,
+            penalty_e6: u128,
+            income_for_suppliers_part_e6: u128,
+            flash_loan_fee_e6: u128,
+            a_token_address: &AccountId,
+            v_token_address: &AccountId,
+            s_token_address: &AccountId,
+        ) {
+            self.env().emit_event(AssetRegistered {
+                asset: *asset,
+                decimals,
+                collateral_coefficient_e6,
+                borrow_coefficient_e6,
+                stable_rate_base_e24,
+                minimal_collateral,
+                minimal_debt,
+                penalty_e6,
+                income_for_suppliers_part_e6,
+                flash_loan_fee_e6,
+                a_token_address: *a_token_address,
+                v_token_address: *v_token_address,
+                s_token_address: *s_token_address,
+            })
+        }
+
+        fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool) {
+            self.env().emit_event(ReserveActivated { asset: *asset, active });
+        }
+        fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, freezed: bool) {
+            self.env().emit_event(ReserveFreezed { asset: *asset, freezed })
+        }
+
+        fn _emit_reserve_parameters_changed(
+            &mut self,
+            asset: &AccountId,
+            interest_rate_model: &[u128; 7],
+            collateral_coefficient_e6: Option<u128>,
+            borrow_coefficient_e6: Option<u128>,
+            stable_rate_base_e24: Option<u128>,
+            minimal_collateral: Balance,
+            minimal_debt: Balance,
+            penalty_e6: u128,
+            income_for_suppliers_part_e6: u128,
+            flash_loan_fee_e6: u128,
+        ) {
+            self.env().emit_event(ParametersChanged {
+                asset: *asset,
+                interest_rate_model: *interest_rate_model,
+                collateral_coefficient_e6,
+                borrow_coefficient_e6,
+                stable_rate_base_e24,
+                minimal_collateral,
+                minimal_debt,
+                penalty_e6,
+                income_for_suppliers_part_e6,
+                flash_loan_fee_e6,
+            })
+        }
+
+        fn _emit_income_taken(&mut self, asset: &AccountId) {
+            self.env().emit_event(IncomeTaken { asset: *asset });
         }
     }
 }

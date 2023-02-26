@@ -97,7 +97,6 @@ pub mod lending_pool_v0_borrow_facet {
         #[ink(topic)]
         on_behalf_of: AccountId,
         amount: Balance,
-        stable_rate: u128,
     }
     #[ink(event)]
     pub struct RepayStable {
@@ -146,14 +145,12 @@ pub mod lending_pool_v0_borrow_facet {
             caller: AccountId,
             on_behalf_of: AccountId,
             amount: Balance,
-            stable_rate: u128,
         ) {
             self.env().emit_event(BorrowStable {
                 asset,
                 caller,
                 on_behalf_of,
                 amount,
-                stable_rate,
             });
         }
 
