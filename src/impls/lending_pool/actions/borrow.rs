@@ -1,19 +1,16 @@
 // TODO::think should we emit events on set_as_collateral
 use crate::{
-    impls::{
-        constants::MATH_ERROR_MESSAGE,
-        lending_pool::{
-            internal::{
-                Internal,
-                *,
-            },
-            storage::{
-                lending_pool_storage::LendingPoolStorage,
-                structs::{
-                    reserve_data::ReserveData,
-                    user_config::UserConfig,
-                    user_reserve_data::*,
-                },
+    impls::lending_pool::{
+        internal::{
+            Internal,
+            *,
+        },
+        storage::{
+            lending_pool_storage::LendingPoolStorage,
+            structs::{
+                reserve_data::ReserveData,
+                user_config::UserConfig,
+                user_reserve_data::*,
             },
         },
     },
@@ -26,7 +23,6 @@ use crate::{
         },
     },
 };
-use checked_math::checked_math;
 use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
@@ -442,17 +438,8 @@ fn _change_state_borrow_variable(
     on_behalf_of_config: &mut UserConfig,
     amount: u128,
 ) {
-    // add variable debt
-    on_behalf_of_config.borrows_variable |= 1_u128 << reserve_data.id;
-
-    on_behalf_of_reserve_data.variable_borrowed = on_behalf_of_reserve_data
-        .variable_borrowed
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
-    reserve_data.total_variable_borrowed = reserve_data
-        .total_variable_borrowed
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
+    _increase_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
+    _increase_total_variable_debt(reserve_data, amount);
 }
 
 fn _change_state_borrow_stable(
@@ -461,39 +448,15 @@ fn _change_state_borrow_stable(
     on_behalf_of_config: &mut UserConfig,
     amount: u128,
 ) -> Result<u128, LendingPoolError> {
-    on_behalf_of_config.borrows_stable |= 1_u128 << reserve_data.id;
-
     let new_stable_borrow_rate_e24: u128 = reserve_data._after_borrow_stable_borrow_rate_e24(amount)?;
-    on_behalf_of_reserve_data.stable_borrow_rate_e24 = {
-        let stable_borrow_rate_e24_rounded_down = u128::try_from(
-            checked_math!(
-                (on_behalf_of_reserve_data.stable_borrow_rate_e24 * on_behalf_of_reserve_data.stable_borrowed
-                    + new_stable_borrow_rate_e24 * amount)
-                    / (on_behalf_of_reserve_data.stable_borrowed + amount)
-            )
-            .unwrap(),
-        )
-        .expect(MATH_ERROR_MESSAGE);
-        stable_borrow_rate_e24_rounded_down
-            .checked_add(1)
-            .expect(MATH_ERROR_MESSAGE)
-    };
-    on_behalf_of_reserve_data.stable_borrowed = on_behalf_of_reserve_data
-        .stable_borrowed
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
-    reserve_data.avarage_stable_rate_e24 = u128::try_from(
-        checked_math!(
-            (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt + new_stable_borrow_rate_e24 * amount)
-                / (reserve_data.sum_stable_debt + amount)
-        )
-        .unwrap(),
-    )
-    .expect(MATH_ERROR_MESSAGE);
-    reserve_data.sum_stable_debt = reserve_data
-        .sum_stable_debt
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
+    _increase_user_stable_debt_with_rate(
+        reserve_data,
+        on_behalf_of_reserve_data,
+        on_behalf_of_config,
+        amount,
+        new_stable_borrow_rate_e24,
+    );
+    _increase_summed_and_accumulated_stable_debt_with_rate(reserve_data, amount, new_stable_borrow_rate_e24);
     Ok(new_stable_borrow_rate_e24)
 }
 
@@ -513,25 +476,12 @@ fn _change_state_repay_stable(
     if amount_val > on_behalf_of_reserve_data.stable_borrowed {
         return Err(LendingPoolError::AmountExceedsUserDebt)
     }
-    if amount_val == on_behalf_of_reserve_data.stable_borrowed {
-        on_behalf_of_config.borrows_stable &= !(1_u128 << reserve_data.id);
-    }
-    on_behalf_of_reserve_data.stable_borrowed = on_behalf_of_reserve_data.stable_borrowed - amount_val;
-    reserve_data.avarage_stable_rate_e24 = if reserve_data.sum_stable_debt > amount_val {
-        u128::try_from(
-            checked_math!(
-                (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt
-                    - on_behalf_of_reserve_data.stable_borrow_rate_e24 * amount_val)
-                    / (reserve_data.sum_stable_debt - amount_val)
-            )
-            .unwrap(),
-        )
-        .expect(MATH_ERROR_MESSAGE)
-    } else {
-        0
-    };
-
-    reserve_data.sum_stable_debt = reserve_data.sum_stable_debt.saturating_sub(amount_val);
+    _decrease_user_stable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount_val);
+    _decrease_summed_and_accumulated_stable_debt_with_rate(
+        reserve_data,
+        amount_val,
+        on_behalf_of_reserve_data.stable_borrow_rate_e24,
+    );
 
     Ok(amount_val)
 }
@@ -552,12 +502,8 @@ fn _change_state_repay_variable(
     if amount_val > on_behalf_of_reserve_data.variable_borrowed {
         return Err(LendingPoolError::AmountExceedsUserDebt)
     }
-    if amount_val == on_behalf_of_reserve_data.variable_borrowed {
-        on_behalf_of_config.borrows_variable &= !(1_u128 << reserve_data.id);
-    }
-    on_behalf_of_reserve_data.variable_borrowed = on_behalf_of_reserve_data.variable_borrowed - amount_val;
-
-    reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed.saturating_sub(amount_val);
+    _decrease_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount_val);
+    _decrease_total_variable_debt(reserve_data, amount_val);
 
     Ok(amount_val)
 }

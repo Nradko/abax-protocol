@@ -36,6 +36,8 @@ use ink::prelude::{
     *,
 };
 
+use super::storage::structs::user_config::UserConfig;
+
 pub fn _accumulate_interest(
     reserve_data: &mut ReserveData,
     user_reserve_data: &mut UserReserveData,
@@ -119,6 +121,161 @@ pub fn _check_enough_stable_debt(
         return Err(LendingPoolError::InsufficientDebt)
     }
     Ok(())
+}
+
+pub fn _increase_user_deposit(
+    reserve_data: &ReserveData,
+    user_reserve_data: &mut UserReserveData,
+    user_config: &mut UserConfig,
+    amount: u128,
+) {
+    // add variable debt
+    user_config.deposits |= 1_u128 << reserve_data.id;
+
+    user_reserve_data.supplied = user_reserve_data
+        .supplied
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
+}
+
+pub fn _increase_total_deposit(reserve_data: &mut ReserveData, amount: u128) {
+    reserve_data.total_supplied = reserve_data
+        .total_supplied
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
+}
+
+pub fn _decrease_user_deposit(
+    reserve_data: &ReserveData,
+    user_reserve_data: &mut UserReserveData,
+    user_config: &mut UserConfig,
+    amount: u128,
+) {
+    if amount >= user_reserve_data.supplied {
+        user_config.deposits &= !(1_u128 << reserve_data.id);
+    }
+    user_reserve_data.supplied = user_reserve_data.supplied.saturating_sub(amount);
+}
+
+pub fn _decrease_total_deposit(reserve_data: &mut ReserveData, amount: u128) {
+    reserve_data.total_supplied = reserve_data.total_supplied.saturating_sub(amount);
+}
+
+pub fn _increase_user_variable_debt(
+    reserve_data: &ReserveData,
+    user_reserve_data: &mut UserReserveData,
+    user_config: &mut UserConfig,
+    amount: u128,
+) {
+    // add variable debt
+    user_config.borrows_variable |= 1_u128 << reserve_data.id;
+
+    user_reserve_data.variable_borrowed = user_reserve_data
+        .variable_borrowed
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
+}
+
+pub fn _increase_total_variable_debt(reserve_data: &mut ReserveData, amount: u128) {
+    reserve_data.total_variable_borrowed = reserve_data
+        .total_variable_borrowed
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
+}
+
+pub fn _decrease_user_variable_debt(
+    reserve_data: &ReserveData,
+    user_reserve_data: &mut UserReserveData,
+    user_config: &mut UserConfig,
+    amount: u128,
+) {
+    if amount >= user_reserve_data.variable_borrowed {
+        user_config.borrows_variable &= !(1_u128 << reserve_data.id);
+    }
+    user_reserve_data.variable_borrowed = user_reserve_data.variable_borrowed.saturating_sub(amount);
+}
+
+pub fn _decrease_total_variable_debt(reserve_data: &mut ReserveData, amount: u128) {
+    reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed.saturating_sub(amount);
+}
+
+pub fn _increase_user_stable_debt_with_rate(
+    reserve_data: &ReserveData,
+    user_reserve_data: &mut UserReserveData,
+    user_config: &mut UserConfig,
+    amount: u128,
+    borrow_rate_e24: u128,
+) {
+    user_config.borrows_stable |= 1_u128 << reserve_data.id;
+
+    user_reserve_data.stable_borrow_rate_e24 = {
+        let stable_borrow_rate_e24_rounded_down = u128::try_from(
+            checked_math!(
+                (user_reserve_data.stable_borrow_rate_e24 * user_reserve_data.stable_borrowed
+                    + borrow_rate_e24 * amount)
+                    / (user_reserve_data.stable_borrowed + amount)
+            )
+            .unwrap(),
+        )
+        .expect(MATH_ERROR_MESSAGE);
+        stable_borrow_rate_e24_rounded_down
+            .checked_add(1)
+            .expect(MATH_ERROR_MESSAGE)
+    };
+    user_reserve_data.stable_borrowed = user_reserve_data
+        .stable_borrowed
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
+}
+
+pub fn _increase_summed_and_accumulated_stable_debt_with_rate(
+    reserve_data: &mut ReserveData,
+    amount: u128,
+    borrow_rate_e24: u128,
+) {
+    reserve_data.avarage_stable_rate_e24 = u128::try_from(
+        checked_math!(
+            (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt + borrow_rate_e24 * amount)
+                / (reserve_data.sum_stable_debt + amount)
+        )
+        .unwrap(),
+    )
+    .expect(MATH_ERROR_MESSAGE);
+    reserve_data.sum_stable_debt = reserve_data
+        .sum_stable_debt
+        .checked_add(amount)
+        .expect(MATH_ERROR_MESSAGE);
+}
+
+pub fn _decrease_user_stable_debt(
+    reserve_data: &ReserveData,
+    user_reserve_data: &mut UserReserveData,
+    user_config: &mut UserConfig,
+    amount: u128,
+) {
+    if amount >= user_reserve_data.stable_borrowed {
+        user_config.borrows_stable &= !(1_u128 << reserve_data.id);
+    }
+    user_reserve_data.stable_borrowed = user_reserve_data.stable_borrowed.saturating_sub(amount);
+}
+pub fn _decrease_summed_and_accumulated_stable_debt_with_rate(
+    reserve_data: &mut ReserveData,
+    amount: u128,
+    borrow_rate_e24: u128,
+) {
+    reserve_data.avarage_stable_rate_e24 = if reserve_data.sum_stable_debt > amount {
+        u128::try_from(
+            checked_math!(
+                (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt - borrow_rate_e24 * amount)
+                    / (reserve_data.sum_stable_debt - amount)
+            )
+            .unwrap(),
+        )
+        .expect(MATH_ERROR_MESSAGE)
+    } else {
+        0
+    };
+    reserve_data.sum_stable_debt = reserve_data.sum_stable_debt.saturating_sub(amount);
 }
 
 pub fn _emit_all_abacus_token_transfer_events(

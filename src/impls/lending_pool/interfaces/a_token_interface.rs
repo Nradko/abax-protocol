@@ -1,12 +1,13 @@
 // TODO::tothink should transfer emit event inside lendingpool?
 
 use crate::{
-    impls::{
-        constants::MATH_ERROR_MESSAGE,
-        lending_pool::{
-            internal::Internal,
-            storage::lending_pool_storage::LendingPoolStorage,
+    impls::lending_pool::{
+        internal::{
+            Internal,
+            _decrease_user_deposit,
+            _increase_user_deposit,
         },
+        storage::lending_pool_storage::LendingPoolStorage,
     },
     traits::{
         abacus_token::traits::abacus_token::{
@@ -77,14 +78,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
         }
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut from_reserve_data = self
+        let mut from_user_reserve_data = self
             .data::<LendingPoolStorage>()
             .get_user_reserve(&underlying_asset, &from)?;
-        let mut to_reserve_data = self
+        let mut to_user_reserve_data = self
             .data::<LendingPoolStorage>()
             .get_or_create_user_reserve(&underlying_asset, &to);
-        let mut to_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&to);
         let mut from_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&from);
+        let mut to_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&to);
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate reserve
         reserve_data._accumulate_interest(block_timestamp);
@@ -93,38 +94,31 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
             Balance,
             Balance,
             Balance,
-        ) = from_reserve_data._accumulate_user_interest(&mut reserve_data);
+        ) = from_user_reserve_data._accumulate_user_interest(&mut reserve_data);
         // accumulate to user
         let (interest_to_supply, interest_to_variable_borrow, interst_to_stable_borrow): (Balance, Balance, Balance) =
-            to_reserve_data._accumulate_user_interest(&mut reserve_data);
+            to_user_reserve_data._accumulate_user_interest(&mut reserve_data);
         // amount check and sub supply
-        let from_supplied = from_reserve_data.supplied;
-        if from_supplied < amount {
+        if from_user_reserve_data.supplied < amount {
             return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
-        if from_supplied == amount {
-            from_config.deposits &= !(1_u128 << reserve_data.id);
-        }
-        if from_supplied - amount <= reserve_data.minimal_collateral {
+        _decrease_user_deposit(&reserve_data, &mut from_user_reserve_data, &mut from_config, amount);
+        if from_user_reserve_data.supplied <= reserve_data.minimal_collateral {
             from_config.collaterals &= !(1_u128 << reserve_data.id);
-            self.data::<LendingPoolStorage>()
-                .insert_user_config(&from, &from_config);
         }
-        from_reserve_data.supplied = from_reserve_data.supplied - amount;
         // add_to_user_supply
-        if ((to_config.deposits >> reserve_data.id) & 1) == 0 {
-            to_config.deposits |= 1_u128 << reserve_data.id;
-            self.data::<LendingPoolStorage>().insert_user_config(&from, &to_config);
-        }
-        to_reserve_data.supplied = to_reserve_data.supplied.checked_add(amount).expect(MATH_ERROR_MESSAGE);
+        _increase_user_deposit(&reserve_data, &mut to_user_reserve_data, &mut to_config, amount);
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&underlying_asset, &reserve_data);
         self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &from, &from_reserve_data);
+            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
         self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &to, &to_reserve_data);
+            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&from, &from_config);
+        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
         // check if there ie enought collateral
         let (collaterized, collateral_value) = self._get_user_free_collateral_coefficient_e6(&from, block_timestamp);
         if !collaterized {

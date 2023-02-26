@@ -9,17 +9,14 @@ use openbrush::traits::{
 use ink::prelude::*;
 
 use crate::{
-    impls::{
-        constants::MATH_ERROR_MESSAGE,
-        lending_pool::{
-            internal::{
-                _check_borrowing_enabled,
-                *,
-            },
-            storage::{
-                lending_pool_storage::LendingPoolStorage,
-                structs::user_reserve_data::UserReserveData,
-            },
+    impls::lending_pool::{
+        internal::{
+            _check_borrowing_enabled,
+            *,
+        },
+        storage::{
+            lending_pool_storage::LendingPoolStorage,
+            structs::user_reserve_data::UserReserveData,
         },
     },
     traits::{
@@ -85,13 +82,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         }
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut from_reserve_data: UserReserveData = self
+        let mut from_user_reserve_data: UserReserveData = self
             .data::<LendingPoolStorage>()
             .get_user_reserve(&underlying_asset, &from)?;
-        let mut to_reserve_data: UserReserveData = self
+        let mut to_user_reserve_data: UserReserveData = self
             .data::<LendingPoolStorage>()
             .get_or_create_user_reserve(&underlying_asset, &to);
         // check if rules allow user "to" to take debt
+        let mut from_config = self.data::<LendingPoolStorage>().get_user_config(&to)?;
         let mut to_config = self.data::<LendingPoolStorage>().get_user_config(&to)?;
         match _check_borrowing_enabled(&reserve_data) {
             Err(_) => return Err(LendingPoolTokenInterfaceError::TransfersDisabled),
@@ -105,37 +103,21 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
             Balance,
             Balance,
             Balance,
-        ) = from_reserve_data._accumulate_user_interest(&mut reserve_data);
+        ) = from_user_reserve_data._accumulate_user_interest(&mut reserve_data);
         let (interest_to_supply, interest_to_variable_borrow, interest_to_stable_borrow): (Balance, Balance, Balance) =
-            to_reserve_data._accumulate_user_interest(&mut reserve_data);
-        // if transfering whole debt
-        let from_debt = from_reserve_data.variable_borrowed;
-        if from_debt == amount {
-            let mut from_config = self.data::<LendingPoolStorage>().get_user_config(&from)?;
-            from_config.borrows_variable &= !(1_u128 << reserve_data.id);
-            self.data::<LendingPoolStorage>()
-                .insert_user_config(&from, &from_config);
-        } else if from_debt < amount {
+            to_user_reserve_data._accumulate_user_interest(&mut reserve_data);
+
+        if from_user_reserve_data.variable_borrowed < amount {
             return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
-        from_reserve_data.variable_borrowed = from_reserve_data.variable_borrowed - amount;
-        //// TO
-        // if debt was 0
-        if ((to_config.borrows_variable >> reserve_data.id) & 1) == 0 {
-            to_config.borrows_variable |= 1_u128 << reserve_data.id;
-            self.data::<LendingPoolStorage>().insert_user_config(&from, &to_config);
-        }
-        // add_to_user_borrow
-        to_reserve_data.variable_borrowed = to_reserve_data
-            .variable_borrowed
-            .checked_add(amount)
-            .expect(MATH_ERROR_MESSAGE);
+        _decrease_user_variable_debt(&reserve_data, &mut from_user_reserve_data, &mut from_config, amount);
+        _increase_user_variable_debt(&reserve_data, &mut to_user_reserve_data, &mut to_config, amount);
 
-        match _check_enough_variable_debt(&reserve_data, &from_reserve_data) {
+        match _check_enough_variable_debt(&reserve_data, &from_user_reserve_data) {
             Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
             Ok(_) => (),
         };
-        match _check_enough_variable_debt(&reserve_data, &to_reserve_data) {
+        match _check_enough_variable_debt(&reserve_data, &to_user_reserve_data) {
             Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
             Ok(_) => (),
         };
@@ -143,12 +125,13 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&underlying_asset, &reserve_data);
-
         self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &from, &from_reserve_data);
-
+            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
         self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &to, &to_reserve_data);
+            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
+        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&from, &from_config);
         // check if there ie enought collateral
         let (collaterized, collateral_value) = self._get_user_free_collateral_coefficient_e6(&to, block_timestamp);
         if !collaterized {

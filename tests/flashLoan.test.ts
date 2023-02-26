@@ -9,7 +9,7 @@ import { FlashLoanReceiverErrorBuilder, PSP22ErrorBuilder } from 'typechain/type
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import { FLASH_BORROWER } from './access_control.test';
 
-makeSuite('Flash Loan', (getTestEnv) => {
+makeSuite.only('Flash Loan', (getTestEnv) => {
   const amountWETHToDeposit = new BN((10 * E18).toString());
   let testEnv: TestEnv;
   let depositor: KeyringPair;

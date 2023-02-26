@@ -12,17 +12,14 @@ use openbrush::{
 };
 
 use crate::{
-    impls::{
-        constants::MATH_ERROR_MESSAGE,
-        lending_pool::{
-            internal::{
-                _accumulate_interest,
-                _check_activeness,
-                _check_deposit_enabled,
-                *,
-            },
-            storage::lending_pool_storage::LendingPoolStorage,
+    impls::lending_pool::{
+        internal::{
+            _accumulate_interest,
+            _check_activeness,
+            _check_deposit_enabled,
+            *,
         },
+        storage::lending_pool_storage::LendingPoolStorage,
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
@@ -69,19 +66,13 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             block_timestamp,
         );
         // add to supplies
-        if (on_behalf_of_config.deposits >> reserve_data.id) & 1 == 0 {
-            on_behalf_of_config.deposits |= 1_u128 << reserve_data.id;
-            self.data::<LendingPoolStorage>()
-                .insert_user_config(&on_behalf_of, &on_behalf_of_config);
-        }
-        on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data
-            .supplied
-            .checked_add(amount)
-            .expect(MATH_ERROR_MESSAGE);
-        reserve_data.total_supplied = reserve_data
-            .total_supplied
-            .checked_add(amount)
-            .expect(MATH_ERROR_MESSAGE);
+        _increase_user_deposit(
+            &reserve_data,
+            &mut on_behalf_of_reserve_data,
+            &mut on_behalf_of_config,
+            amount,
+        );
+        _increase_total_deposit(&mut reserve_data, amount);
         // recalculate
         reserve_data._recalculate_current_rates()?;
 
@@ -92,6 +83,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
 
         self.data::<LendingPoolStorage>()
             .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&on_behalf_of, &on_behalf_of_config);
 
         //// TOKEN TRANSFERS
         ink::env::debug_println!("[deposit] TOKEN TRANSFERS");
@@ -175,21 +168,17 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         if amount > on_behalf_of_reserve_data.supplied {
             return Err(LendingPoolError::AmountExceedsUserDeposit)
         }
-        // notice thatis the '1st if' is true then the '2nd if' is true
-        // thus if we modify config in the '1st if' it will be pushed in the '2nd if'.
-        if amount == on_behalf_of_reserve_data.supplied {
-            on_behalf_of_config.deposits &= !(1_u128 << reserve_data.id);
-        }
-        if on_behalf_of_reserve_data.supplied - amount <= reserve_data.minimal_collateral {
+
+        _decrease_user_deposit(
+            &reserve_data,
+            &mut on_behalf_of_reserve_data,
+            &mut on_behalf_of_config,
+            amount,
+        );
+        _decrease_total_deposit(&mut reserve_data, amount);
+        if on_behalf_of_reserve_data.supplied <= reserve_data.minimal_collateral {
             on_behalf_of_config.collaterals &= !(1_u128 << reserve_data.id);
-            self.data::<LendingPoolStorage>()
-                .insert_user_config(&on_behalf_of, &on_behalf_of_config);
         }
-        on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data.supplied - amount;
-        // sub from user supply
-
-        reserve_data.total_supplied = reserve_data.total_supplied.saturating_sub(amount);
-
         // recalculate
         reserve_data._recalculate_current_rates()?;
 
@@ -198,6 +187,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .insert_reserve_data(&asset, &reserve_data);
         self.data::<LendingPoolStorage>()
             .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&on_behalf_of, &on_behalf_of_config);
         // check if there ie enought collateral
         let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
