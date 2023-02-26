@@ -149,7 +149,7 @@ pub mod lending_pool_v0_manage_facet {
             self.env().emit_event(ReserveFreezed { asset: *asset, freezed })
         }
 
-        fn _emit_reserve_parameters_changed(
+        fn _emit_reserve_parameters_changed_event(
             &mut self,
             asset: &AccountId,
             interest_rate_model: &[u128; 7],

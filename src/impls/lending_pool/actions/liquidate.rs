@@ -300,7 +300,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             ],
         )?;
         // recalculate
-        reserve_data_to_repay._recalculate_current_rates()?;
+        reserve_data_to_repay._recalculate_current_rates();
         self._push_data_for_liquidate(
             &&liquidated_user,
             &caller,
