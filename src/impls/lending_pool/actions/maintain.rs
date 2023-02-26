@@ -53,14 +53,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
 
         //// MODIFY STORAGE
-        reserve_data._recalculate_current_rates()?;
-        reserve_data._accumulate_interest(block_timestamp);
-
-        reserve_data._recalculate_current_rates()?;
-        //// PUSH STORAGE
-        self.data::<LendingPoolStorage>()
-            .insert_reserve_data(&asset, &reserve_data);
-
+        if reserve_data.indexes_update_timestamp < block_timestamp {
+            reserve_data._accumulate_interest(block_timestamp);
+            reserve_data._recalculate_current_rates();
+            //// PUSH STORAGE
+            self.data::<LendingPoolStorage>()
+                .insert_reserve_data(&asset, &reserve_data);
+            self._emit_accumulate_interest_event(&asset);
+        }
         Ok(())
     }
     default fn accumulate_user_interest(&mut self, asset: AccountId, user: AccountId) -> Result<(), LendingPoolError> {
@@ -72,15 +72,13 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         if block_timestamp < user_reserve_data.update_timestamp + u64::try_from(ONE_HOUR).unwrap() {
             return Err(LendingPoolError::TooEarlyToAccumulate)
         }
-
         //// MODIFY STORAGE
         let (interest_user_of_supply, interest_user_variable_borrow, interest_user_stable_borrow): (
             Balance,
             Balance,
             Balance,
         ) = _accumulate_interest(&mut reserve_data, &mut user_reserve_data, block_timestamp);
-
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
 
         //// PUSH STORAGE
         self.data::<LendingPoolStorage>()
@@ -119,7 +117,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
                 }],
             )?;
         }
-
+        self._emit_accumulate_user_interest_event(&asset, &user);
         Ok(())
     }
     default fn rebalance_stable_borrow_rate(
@@ -145,7 +143,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
             Balance,
             Balance,
         ) = _accumulate_interest(&mut reserve_data, &mut user_reserve_data, block_timestamp);
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
 
         if reserve_data.current_supply_rate_e24 < user_reserve_data.stable_borrow_rate_e24 {
             return Err(LendingPoolError::RebalanceCondition)
@@ -204,6 +202,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
                 }],
             )?;
         }
+        self._emit_rebalance_rate_event(&asset, &user);
         Ok(new_stable_borrow_rate_e24)
     }
 }

@@ -99,9 +99,9 @@ pub struct ReserveData {
 
 impl ReserveData {
     //// VIEW
-    pub fn _current_utilization_rate_e6(&self) -> Result<u128, LendingPoolError> {
+    pub fn _current_utilization_rate_e6(&self) -> u128 {
         if self.total_supplied == 0 {
-            return Ok(E6)
+            return E6
         }
         let total_debt = self
             .total_variable_borrowed
@@ -109,7 +109,7 @@ impl ReserveData {
             .expect(MATH_ERROR_MESSAGE)
             .checked_add(self.accumulated_stable_borrow)
             .expect(MATH_ERROR_MESSAGE);
-        Ok(u128::try_from(checked_math!(total_debt * E6 / self.total_supplied).unwrap()).expect(MATH_ERROR_MESSAGE))
+        u128::try_from(checked_math!(total_debt * E6 / self.total_supplied).unwrap()).expect(MATH_ERROR_MESSAGE)
     }
 
     // call it only on updated reserve
@@ -223,13 +223,13 @@ impl ReserveData {
         self.indexes_update_timestamp = new_timestamp;
     }
 
-    pub fn _recalculate_current_rates(&mut self) -> Result<(), LendingPoolError> {
+    pub fn _recalculate_current_rates(&mut self) {
         if self.total_variable_borrowed + self.sum_stable_debt + self.accumulated_stable_borrow == 0 {
             self.current_variable_borrow_rate_e24 = 0;
             self.current_supply_rate_e24 = 0;
-            return Ok(())
+            return
         }
-        let utilization_rate_e6 = self._current_utilization_rate_e6()?;
+        let utilization_rate_e6 = self._current_utilization_rate_e6();
         self.current_variable_borrow_rate_e24 = self._utilization_rate_to_interest_rate_e24(utilization_rate_e6);
 
         if self.total_supplied != 0 {
@@ -248,7 +248,6 @@ impl ReserveData {
         } else {
             self.current_supply_rate_e24 = 0;
         }
-        Ok(())
     }
 
     pub fn token_price_e8(&self) -> Result<u128, LendingPoolError> {

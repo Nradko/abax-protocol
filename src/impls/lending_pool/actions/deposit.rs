@@ -75,7 +75,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         );
         _increase_total_deposit(&mut reserve_data, amount);
         // recalculate
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
 
         //// PUSH STORAGE
         self.data::<LendingPoolStorage>()
@@ -173,7 +173,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             on_behalf_of_config.collaterals &= !(1_u128 << reserve_data.id);
         }
         // recalculate
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self.data::<LendingPoolStorage>()

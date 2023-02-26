@@ -51,7 +51,9 @@ pub const ROLE_ADMIN: RoleType = 0; // 0
 /// can withdraw protocol income
 pub const TREASURY: RoleType = ink::selector_id!("TREASURY"); // 2_434_241_257_u32
 
-impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIncome> LendingPoolManage for T {
+impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIncome + EmitManageEvents>
+    LendingPoolManage for T
+{
     /// used for testing
     default fn set_block_timestamp_provider(&mut self, provider_address: AccountId) -> Result<(), LendingPoolError> {
         self.data::<LendingPoolStorage>().block_timestamp_provider = provider_address;
@@ -154,8 +156,11 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         }
 
         let mut reserve = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
-        reserve.activated = active;
-        self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
+        if reserve.activated != active {
+            reserve.activated = active;
+            self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
+            self._emit_reserve_activated_event(&asset, active);
+        }
         Ok(())
     }
 
@@ -167,8 +172,11 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             return Err(LendingPoolError::from(AccessControlError::MissingRole))
         }
         let mut reserve = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
-        reserve.freezed = freeze;
-        self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
+        if reserve.freezed != freeze {
+            reserve.freezed = freeze;
+            self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
+            self._emit_reserve_freezed_event(&asset, freeze);
+        }
         Ok(())
     }
 
@@ -203,6 +211,18 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         reserve.income_for_suppliers_part_e6 = income_for_suppliers_part_e6;
         reserve.flash_loan_fee_e6 = flash_loan_fee_e6;
         self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
+        self._emit_reserve_parameters_changed_event(
+            &asset,
+            &interest_rate_model,
+            collateral_coefficient_e6,
+            borrow_coefficient_e6,
+            stable_rate_base_e24,
+            minimal_collateral,
+            minimal_debt,
+            penalty_e6,
+            income_for_suppliers_part_e6,
+            flash_loan_fee_e6,
+        );
         Ok(())
     }
 
@@ -222,6 +242,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
 
         for asset_and_amount in assets_and_amounts.iter().take_while(|x| x.1.is_positive()) {
             PSP22Ref::transfer(&asset_and_amount.0, to, asset_and_amount.1 as Balance, vec![])?;
+            self._emit_income_taken(&asset_and_amount.0);
         }
 
         Ok(assets_and_amounts)
@@ -250,7 +271,7 @@ impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
     default fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool) {}
     default fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, active: bool) {}
 
-    default fn _emit_reserve_parameters_changed(
+    default fn _emit_reserve_parameters_changed_event(
         &mut self,
         asset: &AccountId,
         interest_rate_model: &[u128; 7],

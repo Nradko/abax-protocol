@@ -25,7 +25,7 @@ pub mod reserve_data_tests {
     fn xxx_recalculate() {
         let init_reserve_data = ReserveData::default();
         let mut final_reserve_data = init_reserve_data.clone();
-        final_reserve_data._recalculate_current_rates().unwrap_or_default();
+        final_reserve_data._recalculate_current_rates();
         //
         assert_reserve_data_difference(init_reserve_data, final_reserve_data, ReserveDataDifference::default());
     }
@@ -48,7 +48,7 @@ pub mod reserve_data_tests {
         init_reserve_data.total_supplied += SUPPLY;
         let mut final_reserve_data = init_reserve_data.clone();
 
-        final_reserve_data._recalculate_current_rates().unwrap_or_default();
+        final_reserve_data._recalculate_current_rates();
 
         assert_reserve_data_difference(init_reserve_data, final_reserve_data, ReserveDataDifference::default());
     }
@@ -164,7 +164,7 @@ pub mod reserve_data_tests {
             init_reserve_data.total_variable_borrowed = case.total_variable_borrowed;
             let mut final_reserve_data = init_reserve_data.clone();
 
-            final_reserve_data._recalculate_current_rates().unwrap_or_default();
+            final_reserve_data._recalculate_current_rates();
 
             let mut differences = ReserveDataDifference::default();
             differences.current_supply_rate_e24 = case.expected_current_supply_rate_difference_e18;
@@ -284,7 +284,7 @@ pub mod reserve_data_tests {
 
             let mut final_reserve_data = init_reserve_data.clone();
 
-            final_reserve_data._recalculate_current_rates().unwrap_or_default();
+            final_reserve_data._recalculate_current_rates();
             final_reserve_data._accumulate_interest(case.time_travel);
 
             let mut differences = ReserveDataDifference::default();
@@ -585,7 +585,7 @@ pub mod reserve_data_tests {
             init_reserve_data.avarage_stable_rate_e24 = case.avarage_stable_rate_e18;
             let mut final_reserve_data = init_reserve_data.clone();
 
-            final_reserve_data._recalculate_current_rates().unwrap_or_default();
+            final_reserve_data._recalculate_current_rates();
 
             let mut differences = ReserveDataDifference::default();
             differences.current_supply_rate_e24 = case.expected_current_supply_rate_e24;
@@ -901,7 +901,7 @@ pub mod reserve_data_tests {
             init_reserve_data.avarage_stable_rate_e24 = case.avarage_stable_rate_e18;
             let mut final_reserve_data = init_reserve_data.clone();
 
-            final_reserve_data._recalculate_current_rates().unwrap_or_default();
+            final_reserve_data._recalculate_current_rates();
             final_reserve_data._accumulate_interest(DAY as Timestamp);
 
             let mut differences = ReserveDataDifference::default();

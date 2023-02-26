@@ -168,7 +168,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         }
 
         // recalculate
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
         // PUSH DATA
         self._push_data(
             &asset,
@@ -280,7 +280,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             _ => return Err(LendingPoolError::UnspecifiedAction),
         }
         // recalculate
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
         // PUSH DATA
         self._push_data(
             &asset,
@@ -376,6 +376,7 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
 
 impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
     #![allow(unused_variables)]
+    default fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool) {}
     default fn _emit_borrow_variable_event(
         &mut self,
         asset: AccountId,
