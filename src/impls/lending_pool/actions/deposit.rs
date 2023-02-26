@@ -12,17 +12,14 @@ use openbrush::{
 };
 
 use crate::{
-    impls::{
-        constants::MATH_ERROR_MESSAGE,
-        lending_pool::{
-            internal::{
-                _accumulate_interest,
-                _check_activeness,
-                _check_deposit_enabled,
-                *,
-            },
-            storage::lending_pool_storage::LendingPoolStorage,
+    impls::lending_pool::{
+        internal::{
+            _accumulate_interest,
+            _check_activeness,
+            _check_deposit_enabled,
+            *,
         },
+        storage::lending_pool_storage::LendingPoolStorage,
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
@@ -42,10 +39,11 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         amount: Balance,
         data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
-        //// PULL DATA AND CHECK CONDITIONS
+        //// ARGUMENT CHECK
         if amount == 0 {
             return Err(LendingPoolError::AmountNotGreaterThanZero)
         }
+        //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
@@ -57,7 +55,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .data::<LendingPoolStorage>()
             .get_or_create_user_config(&on_behalf_of);
 
-        //// MODIFY PULLED STORAGE
+        //// MODIFY DATA
         // accumulate
         let (
             interest_on_behalf_of_supply,
@@ -68,20 +66,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             &mut on_behalf_of_reserve_data,
             block_timestamp,
         );
-        // add to supplies
-        if (on_behalf_of_config.deposits >> reserve_data.id) & 1 == 0 {
-            on_behalf_of_config.deposits |= 1_u128 << reserve_data.id;
-            self.data::<LendingPoolStorage>()
-                .insert_user_config(&on_behalf_of, &on_behalf_of_config);
-        }
-        on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data
-            .supplied
-            .checked_add(amount)
-            .expect(MATH_ERROR_MESSAGE);
-        reserve_data.total_supplied = reserve_data
-            .total_supplied
-            .checked_add(amount)
-            .expect(MATH_ERROR_MESSAGE);
+        // add deposit
+        _increase_user_deposit(
+            &reserve_data,
+            &mut on_behalf_of_reserve_data,
+            &mut on_behalf_of_config,
+            amount,
+        );
+        _increase_total_deposit(&mut reserve_data, amount);
         // recalculate
         reserve_data._recalculate_current_rates()?;
 
@@ -92,6 +84,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
 
         self.data::<LendingPoolStorage>()
             .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&on_behalf_of, &on_behalf_of_config);
 
         //// TOKEN TRANSFERS
         ink::env::debug_println!("[deposit] TOKEN TRANSFERS");
@@ -139,7 +133,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         amount_arg: Option<Balance>,
         data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
-        //// PULL DATA AND INIT CONDITIONS CHECK
+        //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
@@ -148,12 +142,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .data::<LendingPoolStorage>()
             .get_user_reserve(&asset, &on_behalf_of)?;
         let mut on_behalf_of_config = self.data::<LendingPoolStorage>().get_user_config(&on_behalf_of)?;
-
-        if on_behalf_of_reserve_data.supplied == 0 {
-            return Err(LendingPoolError::NothingToRedeem)
-        }
-
-        // MODIFY PULLED STORAGE & AMOUNT CHECKS
+        // MODIFY PULLED STORAGE & AMOUNT CHECK
         // accumulate
         let (
             interest_on_behalf_of_supply,
@@ -175,27 +164,16 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         if amount > on_behalf_of_reserve_data.supplied {
             return Err(LendingPoolError::AmountExceedsUserDeposit)
         }
-        // notice thatis the '1st if' is true then the '2nd if' is true
-        // thus if we modify config in the '1st if' it will be pushed in the '2nd if'.
-        if amount == on_behalf_of_reserve_data.supplied {
-            on_behalf_of_config.deposits &= !(1_u128 << reserve_data.id);
-        }
-        if on_behalf_of_reserve_data.supplied - amount <= reserve_data.minimal_collateral {
+        // sub deposit
+        _decrease_user_deposit(
+            &reserve_data,
+            &mut on_behalf_of_reserve_data,
+            &mut on_behalf_of_config,
+            amount,
+        );
+        _decrease_total_deposit(&mut reserve_data, amount);
+        if on_behalf_of_reserve_data.supplied <= reserve_data.minimal_collateral {
             on_behalf_of_config.collaterals &= !(1_u128 << reserve_data.id);
-            self.data::<LendingPoolStorage>()
-                .insert_user_config(&on_behalf_of, &on_behalf_of_config);
-        }
-        on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data.supplied - amount;
-        // sub from user supply
-        if amount >= reserve_data.total_supplied {
-            ink::env::debug_println!(
-                "subtracting {} from reserve_data.total_supplied ({}) would cause an underflow",
-                amount,
-                reserve_data.total_supplied
-            );
-            reserve_data.total_supplied = 0;
-        } else {
-            reserve_data.total_supplied = reserve_data.total_supplied - amount;
         }
         // recalculate
         reserve_data._recalculate_current_rates()?;
@@ -205,6 +183,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .insert_reserve_data(&asset, &reserve_data);
         self.data::<LendingPoolStorage>()
             .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&on_behalf_of, &on_behalf_of_config);
         // check if there ie enought collateral
         let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
         if !collaterized {
