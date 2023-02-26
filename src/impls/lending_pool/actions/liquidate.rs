@@ -166,27 +166,18 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         if amount_to_take >= user_reserve_data_to_take.supplied {
             // amount_to_take can be smaller than expected!!! caller should specify minimum_amount_per_token_paid
             amount_to_take = user_reserve_data_to_take.supplied;
-            user_config.deposits &= !(1_u128 << reserve_data_to_repay.id);
         }
 
-        if amount_to_repay_value == user_debt {
-            match data[0] {
-                0 => user_config.borrows_variable &= !(1_u128 << reserve_data_to_repay.id),
-                1 => user_config.borrows_stable &= !(1_u128 << reserve_data_to_repay.id),
-                _ => (),
-            };
-        }
-
-        if (caller_config.deposits >> reserve_data_to_take.id) & 1 == 0 {
-            caller_config.deposits |= 1_u128 << reserve_data_to_take.id;
-        }
         match data[0] {
             0 => {
                 _change_state_liquidate_variable(
                     &mut reserve_data_to_repay,
+                    &reserve_data_to_take,
                     &mut user_reserve_data_to_repay,
                     &mut user_reserve_data_to_take,
+                    &mut user_config,
                     &mut caller_reserve_data_to_take,
+                    &mut caller_config,
                     amount_to_repay_value,
                     amount_to_take,
                 );
@@ -223,9 +214,12 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             1 => {
                 _change_state_liquidate_stable(
                     &mut reserve_data_to_repay,
+                    &reserve_data_to_take,
                     &mut user_reserve_data_to_repay,
                     &mut user_reserve_data_to_take,
+                    &mut user_config,
                     &mut caller_reserve_data_to_take,
+                    &mut caller_config,
                     amount_to_repay_value,
                     amount_to_take,
                 );
@@ -460,66 +454,74 @@ fn calculate_amount_to_take(
 
 fn _change_state_liquidate_variable(
     reserve_data_to_repay: &mut ReserveData,
+    reserve_data_to_take: &ReserveData,
     user_reserve_data_to_repay: &mut UserReserveData,
     user_reserve_data_to_take: &mut UserReserveData,
+    user_config: &mut UserConfig,
     caller_reserve_data_to_take: &mut UserReserveData,
+    caller_config: &mut UserConfig,
     amount_to_repay_value: u128,
     amount_to_take: u128,
 ) {
-    // sub variable debt
-    user_reserve_data_to_repay.variable_borrowed = user_reserve_data_to_repay.variable_borrowed - amount_to_repay_value;
-    reserve_data_to_repay.total_variable_borrowed =
-        reserve_data_to_repay.total_variable_borrowed - amount_to_repay_value;
-    // sub supplied from user
-    user_reserve_data_to_take.supplied = user_reserve_data_to_take.supplied - amount_to_take;
-    // add supplied to caller
-    caller_reserve_data_to_take.supplied = caller_reserve_data_to_take
-        .supplied
-        .checked_add(amount_to_take)
-        .unwrap();
+    _decrease_user_variable_debt(
+        reserve_data_to_repay,
+        user_reserve_data_to_repay,
+        user_config,
+        amount_to_repay_value,
+    );
+    _decrease_total_variable_debt(reserve_data_to_repay, amount_to_repay_value);
+
+    _decrease_user_deposit(
+        reserve_data_to_take,
+        user_reserve_data_to_take,
+        user_config,
+        amount_to_take,
+    );
+    _increase_user_deposit(
+        reserve_data_to_take,
+        caller_reserve_data_to_take,
+        caller_config,
+        amount_to_take,
+    )
 }
 
 fn _change_state_liquidate_stable(
     reserve_data_to_repay: &mut ReserveData,
+    reserve_data_to_take: &ReserveData,
     user_reserve_data_to_repay: &mut UserReserveData,
     user_reserve_data_to_take: &mut UserReserveData,
+    user_config: &mut UserConfig,
     caller_reserve_data_to_take: &mut UserReserveData,
+    caller_config: &mut UserConfig,
     amount_to_repay_value: u128,
     amount_to_take: u128,
 ) {
-    // sub stable debt
-    // user
-    user_reserve_data_to_repay.stable_borrowed = user_reserve_data_to_repay.stable_borrowed - amount_to_repay_value;
-    ink::env::debug_println!(
-        " | Liquidate || _change_state_liquidate_stable | user_reserve_data_to_repay.stable_borrowed = {}",
-        user_reserve_data_to_repay.stable_borrowed
+    _decrease_user_stable_debt(
+        reserve_data_to_repay,
+        user_reserve_data_to_repay,
+        user_config,
+        amount_to_repay_value,
     );
-    // reserve
-    ink::env::debug_println!(
-        " | Liquidate || _change_state_liquidate_stable | reserve_data_to_repay.avarage_stable_rate_e18"
+    _decrease_summed_and_accumulated_stable_debt_with_rate(
+        reserve_data_to_repay,
+        amount_to_repay_value,
+        user_reserve_data_to_repay.stable_borrow_rate_e24,
     );
-    reserve_data_to_repay.avarage_stable_rate_e24 = if reserve_data_to_repay.sum_stable_debt > amount_to_repay_value {
-        u128::try_from(
-            checked_math!(
-                (reserve_data_to_repay.avarage_stable_rate_e24 * reserve_data_to_repay.sum_stable_debt
-                    - user_reserve_data_to_repay.stable_borrow_rate_e24 * amount_to_repay_value)
-                    / (reserve_data_to_repay.sum_stable_debt - amount_to_repay_value)
-            )
-            .unwrap(),
-        )
-        .expect(MATH_ERROR_MESSAGE)
-    } else {
-        0
-    };
 
-    reserve_data_to_repay.sum_stable_debt = reserve_data_to_repay.sum_stable_debt - amount_to_repay_value;
     // sub supplied from user
-    user_reserve_data_to_take.supplied = user_reserve_data_to_take.supplied - amount_to_take;
+    _decrease_user_deposit(
+        reserve_data_to_take,
+        user_reserve_data_to_take,
+        user_config,
+        amount_to_take,
+    );
     // add supplied to caller
-    caller_reserve_data_to_take.supplied = caller_reserve_data_to_take
-        .supplied
-        .checked_add(amount_to_take)
-        .expect(MATH_ERROR_MESSAGE)
+    _increase_user_deposit(
+        reserve_data_to_take,
+        caller_reserve_data_to_take,
+        caller_config,
+        amount_to_take,
+    );
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitLiquidateEvents for T {
