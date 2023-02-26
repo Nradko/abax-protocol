@@ -134,7 +134,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             }
             1 => {
                 _check_borrowing_stable_enabled(&reserve_data)?;
-                let new_stable_borrow_rate_e24 = _change_state_borrow_stable(
+                _change_state_borrow_stable(
                     &mut reserve_data,
                     &mut on_behalf_of_reserve_data,
                     &mut on_behalf_of_config,
@@ -162,13 +162,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                     &(Self::env().caller()),
                     amount,
                 )?;
-                self._emit_borrow_stable_event(
-                    asset,
-                    Self::env().caller(),
-                    on_behalf_of,
-                    amount,
-                    new_stable_borrow_rate_e24,
-                );
+                self._emit_borrow_stable_event(asset, Self::env().caller(), on_behalf_of, amount);
             }
             _ => return Err(LendingPoolError::UnspecifiedAction),
         }
@@ -404,7 +398,6 @@ impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
         caller: AccountId,
         on_behalf_of: AccountId,
         amount: Balance,
-        stable_rate: u128,
     ) {
     }
     default fn _emit_repay_stable_event(

@@ -7,7 +7,7 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
 
 const scenarioFolder = path.join(__dirname, 'stories');
 
-const selectedFiles: string[] = [];
+const selectedFiles: string[] = ['withdraw'];
 const selectedScenarios: string[] = [];
 const skipScenarios = false;
 

@@ -127,7 +127,21 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
 
         self.data::<LendingPoolStorage>().register_asset(&asset);
         self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
-        self._emit_asset_registered_event(asset);
+        self._emit_asset_registered_event(
+            &asset,
+            decimals,
+            collateral_coefficient_e6,
+            borrow_coefficient_e6,
+            stable_rate_base_e24,
+            minimal_collateral,
+            minimal_debt,
+            penalty_e6,
+            income_for_suppliers_part_e6,
+            flash_loan_fee_e6,
+            &a_token_address,
+            &v_token_address,
+            &s_token_address,
+        );
         Ok(())
     }
 
@@ -215,5 +229,41 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
-    default fn _emit_asset_registered_event(&mut self, asset: AccountId) {}
+    default fn _emit_asset_registered_event(
+        &mut self,
+        asset: &AccountId,
+        decimals: u128,
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
+        penalty_e6: u128,
+        income_for_suppliers_part_e6: u128,
+        flash_loan_fee_e6: u128,
+        a_token_address: &AccountId,
+        v_token_address: &AccountId,
+        s_token_address: &AccountId,
+    ) {
+    }
+
+    default fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool) {}
+    default fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, active: bool) {}
+
+    default fn _emit_reserve_parameters_changed(
+        &mut self,
+        asset: &AccountId,
+        interest_rate_model: &[u128; 7],
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        stable_rate_base_e24: Option<u128>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
+        penalty_e6: u128,
+        income_for_suppliers_part_e6: u128,
+        flash_loan_fee_e6: u128,
+    ) {
+    }
+
+    default fn _emit_income_taken(&mut self, asset: &AccountId) {}
 }

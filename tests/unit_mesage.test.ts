@@ -2,7 +2,7 @@ import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { ChildProcess } from 'child_process';
 import { maxBy } from 'lodash';
-import { AssetRegistered, RuleAdded } from 'typechain/event-types/lending_pool';
+import { AssetRegistered } from 'typechain/event-types/lending_pool';
 import { ContractsEvents } from 'typechain/events/enum';
 import { AccountId } from 'typechain/types-arguments/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';

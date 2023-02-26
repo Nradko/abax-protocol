@@ -208,4 +208,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
     }
 }
 
-impl<T: Storage<LendingPoolStorage>> EmitMaintainEvents for T {}
+impl<T: Storage<LendingPoolStorage>> EmitMaintainEvents for T {
+    default fn _emit_accumulate_interest_event(&mut self, asset: &AccountId) {}
+    default fn _emit_accumulate_user_interest_event(&mut self, asset: &AccountId, user: &AccountId) {}
+    default fn _emit_rebalance_rate_event(&mut self, asset: &AccountId, user: &AccountId) {}
+}
