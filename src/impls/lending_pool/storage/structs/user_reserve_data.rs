@@ -122,11 +122,10 @@ impl UserReserveData {
                 .sum_stable_debt
                 .checked_add(delta_user_stable_borrow)
                 .expect(MATH_ERROR_MESSAGE);
-            if reserve.accumulated_stable_borrow > delta_user_stable_borrow {
-                reserve.accumulated_stable_borrow = reserve.accumulated_stable_borrow - delta_user_stable_borrow;
-            } else {
-                reserve.accumulated_stable_borrow = 0;
-            }
+
+            reserve.accumulated_stable_borrow = reserve
+                .accumulated_stable_borrow
+                .saturating_sub(delta_user_stable_borrow);
         }
         self.update_timestamp = reserve.indexes_update_timestamp;
 

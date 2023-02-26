@@ -187,16 +187,9 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         }
         on_behalf_of_reserve_data.supplied = on_behalf_of_reserve_data.supplied - amount;
         // sub from user supply
-        if amount >= reserve_data.total_supplied {
-            ink::env::debug_println!(
-                "subtracting {} from reserve_data.total_supplied ({}) would cause an underflow",
-                amount,
-                reserve_data.total_supplied
-            );
-            reserve_data.total_supplied = 0;
-        } else {
-            reserve_data.total_supplied = reserve_data.total_supplied - amount;
-        }
+
+        reserve_data.total_supplied = reserve_data.total_supplied.saturating_sub(amount);
+
         // recalculate
         reserve_data._recalculate_current_rates()?;
 

@@ -530,11 +530,9 @@ fn _change_state_repay_stable(
     } else {
         0
     };
-    if amount_val >= reserve_data.sum_stable_debt {
-        reserve_data.sum_stable_debt = 0;
-    } else {
-        reserve_data.sum_stable_debt = reserve_data.sum_stable_debt - amount_val;
-    }
+
+    reserve_data.sum_stable_debt = reserve_data.sum_stable_debt.saturating_sub(amount_val);
+
     Ok(amount_val)
 }
 
@@ -558,10 +556,8 @@ fn _change_state_repay_variable(
         on_behalf_of_config.borrows_variable &= !(1_u128 << reserve_data.id);
     }
     on_behalf_of_reserve_data.variable_borrowed = on_behalf_of_reserve_data.variable_borrowed - amount_val;
-    if amount_val > reserve_data.total_variable_borrowed {
-        reserve_data.total_variable_borrowed = 0;
-    } else {
-        reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed - amount_val;
-    }
+
+    reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed.saturating_sub(amount_val);
+
     Ok(amount_val)
 }

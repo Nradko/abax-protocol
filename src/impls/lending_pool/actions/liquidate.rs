@@ -468,8 +468,9 @@ fn _change_state_liquidate_variable(
 ) {
     // sub variable debt
     user_reserve_data_to_repay.variable_borrowed = user_reserve_data_to_repay.variable_borrowed - amount_to_repay_value;
-    reserve_data_to_repay.total_variable_borrowed =
-        reserve_data_to_repay.total_variable_borrowed - amount_to_repay_value;
+    reserve_data_to_repay.total_variable_borrowed = reserve_data_to_repay
+        .total_variable_borrowed
+        .saturating_sub(amount_to_repay_value);
     // sub supplied from user
     user_reserve_data_to_take.supplied = user_reserve_data_to_take.supplied - amount_to_take;
     // add supplied to caller
@@ -512,7 +513,9 @@ fn _change_state_liquidate_stable(
         0
     };
 
-    reserve_data_to_repay.sum_stable_debt = reserve_data_to_repay.sum_stable_debt - amount_to_repay_value;
+    reserve_data_to_repay.sum_stable_debt = reserve_data_to_repay
+        .sum_stable_debt
+        .saturating_add(amount_to_repay_value);
     // sub supplied from user
     user_reserve_data_to_take.supplied = user_reserve_data_to_take.supplied - amount_to_take;
     // add supplied to caller
