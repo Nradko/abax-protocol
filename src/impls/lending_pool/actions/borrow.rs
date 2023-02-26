@@ -1,5 +1,4 @@
 // TODO::think should we emit events on set_as_collateral
-#![allow(unused_variables)]
 use crate::{
     impls::{
         constants::MATH_ERROR_MESSAGE,
@@ -113,7 +112,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                 ink::env::debug_println!("(borrow-variable)");
                 _check_borrowing_enabled(&reserve_data)?;
                 _change_state_borrow_variable(
-                    &on_behalf_of,
                     &mut reserve_data,
                     &mut on_behalf_of_reserve_data,
                     &mut on_behalf_of_config,
@@ -146,7 +144,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             1 => {
                 _check_borrowing_stable_enabled(&reserve_data)?;
                 let new_stable_borrow_rate_e24 = _change_state_borrow_stable(
-                    &on_behalf_of,
                     &mut reserve_data,
                     &mut on_behalf_of_reserve_data,
                     &mut on_behalf_of_config,
@@ -238,7 +235,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         match data[0] {
             0 => {
                 amount_val = _change_state_repay_variable(
-                    &on_behalf_of,
                     &mut reserve_data,
                     &mut on_behalf_of_reserve_data,
                     &mut on_behalf_of_config,
@@ -271,7 +267,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             }
             1 => {
                 amount_val = _change_state_repay_stable(
-                    &on_behalf_of,
                     &mut reserve_data,
                     &mut on_behalf_of_reserve_data,
                     &mut on_behalf_of_config,
@@ -405,6 +400,7 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
+    #![allow(unused_variables)]
     default fn _emit_borrow_variable_event(
         &mut self,
         asset: AccountId,
@@ -441,16 +437,14 @@ impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
 }
 
 fn _change_state_borrow_variable(
-    on_behalf_of: &AccountId,
     reserve_data: &mut ReserveData,
     on_behalf_of_reserve_data: &mut UserReserveData,
     on_behalf_of_config: &mut UserConfig,
     amount: u128,
 ) {
     // add variable debt
-    if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 0 {
-        on_behalf_of_config.borrows_variable |= 1_u128 << reserve_data.id;
-    }
+    on_behalf_of_config.borrows_variable |= 1_u128 << reserve_data.id;
+
     on_behalf_of_reserve_data.variable_borrowed = on_behalf_of_reserve_data
         .variable_borrowed
         .checked_add(amount)
@@ -462,15 +456,13 @@ fn _change_state_borrow_variable(
 }
 
 fn _change_state_borrow_stable(
-    on_behalf_of: &AccountId,
     reserve_data: &mut ReserveData,
     on_behalf_of_reserve_data: &mut UserReserveData,
     on_behalf_of_config: &mut UserConfig,
     amount: u128,
 ) -> Result<u128, LendingPoolError> {
-    if (on_behalf_of_config.borrows_stable >> reserve_data.id) & 1 == 0 {
-        on_behalf_of_config.borrows_stable |= 1_u128 << reserve_data.id;
-    }
+    on_behalf_of_config.borrows_stable |= 1_u128 << reserve_data.id;
+
     let new_stable_borrow_rate_e24: u128 = reserve_data._after_borrow_stable_borrow_rate_e24(amount)?;
     on_behalf_of_reserve_data.stable_borrow_rate_e24 = {
         let stable_borrow_rate_e24_rounded_down = u128::try_from(
@@ -506,7 +498,6 @@ fn _change_state_borrow_stable(
 }
 
 fn _change_state_repay_stable(
-    on_behalf_of: &AccountId,
     reserve_data: &mut ReserveData,
     on_behalf_of_reserve_data: &mut UserReserveData,
     on_behalf_of_config: &mut UserConfig,
@@ -548,7 +539,6 @@ fn _change_state_repay_stable(
 }
 
 fn _change_state_repay_variable(
-    on_behalf_of: &AccountId,
     reserve_data: &mut ReserveData,
     on_behalf_of_reserve_data: &mut UserReserveData,
     on_behalf_of_config: &mut UserConfig,
