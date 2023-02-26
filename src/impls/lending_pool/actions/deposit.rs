@@ -183,10 +183,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         self.data::<LendingPoolStorage>()
             .insert_user_config(&on_behalf_of, &on_behalf_of_config);
         // check if there ie enought collateral
-        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&on_behalf_of, block_timestamp);
-        if !collaterized {
-            return Err(LendingPoolError::InsufficientUserFreeCollateral)
-        }
+        self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
 
         //// TOKEN TRANSFERS
         PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;

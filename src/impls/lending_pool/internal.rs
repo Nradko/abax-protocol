@@ -383,6 +383,9 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
 
 pub trait Internal {
     fn _get_user_free_collateral_coefficient_e6(&self, user: &AccountId, block_timestamp: Timestamp) -> (bool, u128);
+
+    fn _check_user_free_collateral(&self, user: &AccountId, block_timestamp: Timestamp)
+        -> Result<(), LendingPoolError>;
 }
 
 impl<T: Storage<LendingPoolStorage>> Internal for T {
@@ -422,8 +425,13 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             user_reserve._accumulate_user_interest(&mut reserve_data);
             if ((collaterals >> i) & 1) == 1 {
                 let collateral_asset_price_e8 = asset_price_e8;
+                let collateral = if user_reserve.supplied >= reserve_data.minimal_collateral {
+                    user_reserve.supplied
+                } else {
+                    0
+                };
                 let asset_supplied_value_e8 = u128::try_from(
-                    checked_math!(user_reserve.supplied * collateral_asset_price_e8 / reserve_data.decimals).unwrap(),
+                    checked_math!(collateral * collateral_asset_price_e8 / reserve_data.decimals).unwrap(),
                 )
                 .expect(MATH_ERROR_MESSAGE);
                 let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6.unwrap_or(0);
@@ -458,6 +466,18 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         } else {
             (false, total_debt_coefficient_e6 - total_collateral_coefficient_e6)
         }
+    }
+
+    default fn _check_user_free_collateral(
+        &self,
+        user: &AccountId,
+        block_timestamp: Timestamp,
+    ) -> Result<(), LendingPoolError> {
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(user, block_timestamp);
+        if !collaterized {
+            return Err(LendingPoolError::InsufficientUserFreeCollateral)
+        }
+        Ok(())
     }
 }
 

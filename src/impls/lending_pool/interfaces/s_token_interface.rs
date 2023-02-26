@@ -142,9 +142,9 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolSTokenInterface for T {
             .insert_user_config(&from, &from_config);
         self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
         // check if there ie enought collateral
-        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&to, block_timestamp);
-        if !collaterized {
-            return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral)
+        match self._check_user_free_collateral(&to, block_timestamp) {
+            Err(_) => return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral),
+            Ok(_) => (),
         }
 
         //// ABACUS TOKEN EVENTS
