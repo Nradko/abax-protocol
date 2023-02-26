@@ -78,7 +78,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         reserve_data._recalculate_current_rates()?;
 
         //// PUSH STORAGE
-        ink::env::debug_println!("[deposit] PUSH STORAGE");
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
 
@@ -88,7 +87,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .insert_user_config(&on_behalf_of, &on_behalf_of_config);
 
         //// TOKEN TRANSFERS
-        ink::env::debug_println!("[deposit] TOKEN TRANSFERS");
         PSP22Ref::transfer_from_builder(
             &asset,
             Self::env().caller(),
@@ -99,7 +97,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
         .try_invoke()
         .unwrap()??;
-        ink::env::debug_println!("[deposit] ABACUS TOKEN EVENTS");
         //// ABACUS TOKEN EVENTS
         // ATOKEN
         _emit_abacus_token_transfer_event(

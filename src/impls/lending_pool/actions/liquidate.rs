@@ -132,7 +132,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         let amount_to_repay_value = match amount_to_repay {
             Some(v) => {
                 if v > user_debt {
-                    user_debt
+                    return Err(LendingPoolError::AmountExceedsUserDebt)
                 } else {
                     v
                 }

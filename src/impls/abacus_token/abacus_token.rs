@@ -41,13 +41,11 @@ where
 impl<T: Storage<AbacusTokenData> + psp22::Internal> AbacusToken for T {
     #[modifiers(only_lending_pool)]
     default fn emit_transfer_events(&mut self, events: Vec<TransferEventData>) -> Result<(), PSP22Error> {
-        ink::env::debug_println!("[ impl AbacusToken ] emit_transfer_events START");
         for event in &events {
             if event.amount != 0 {
                 <Self as psp22::Internal>::_emit_transfer_event(self, event.from, event.to, event.amount);
             }
         }
-        ink::env::debug_println!("[ impl AbacusToken ] emit_transfer_events STOP");
         Ok(())
     }
 

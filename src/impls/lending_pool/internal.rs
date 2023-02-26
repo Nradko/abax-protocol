@@ -403,8 +403,6 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         let collaterals = user_config.deposits & user_config.collaterals;
         let borrows = user_config.borrows_variable | user_config.borrows_stable;
         let active = collaterals | borrows;
-        ink::env::debug_println!("borrows {} collaterals {} active {}", borrows, collaterals, active);
-
         for i in 0..registered_assets.len() {
             if ((active >> i) & 1) == 0 {
                 continue
@@ -432,7 +430,6 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 let value_to_add =
                     u128::try_from(checked_math!(asset_supplied_value_e8 * collateral_coefficient_e6 / E8).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
-                ink::env::debug_println!("asset {:X?} collateral {}", asset, value_to_add);
                 total_collateral_coefficient_e6 = total_collateral_coefficient_e6
                     .checked_add(value_to_add)
                     .expect(MATH_ERROR_MESSAGE);

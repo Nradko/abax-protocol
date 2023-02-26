@@ -203,14 +203,11 @@ pub mod a_token {
 
     impl psp22::Internal for AToken {
         fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance) {
-            ink::env::debug_println!("[  AToken ] _emit_transfer_event START");
-
             self.env().emit_event(Transfer {
                 from: _from,
                 to: _to,
                 value: _amount,
             });
-            ink::env::debug_println!("[  AToken ] _emit_transfer_event STOP");
         }
         fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance) {
             self.env().emit_event(Approval {
