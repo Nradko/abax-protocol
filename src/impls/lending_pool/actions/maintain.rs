@@ -53,10 +53,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
 
         //// MODIFY STORAGE
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
         reserve_data._accumulate_interest(block_timestamp);
 
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
         //// PUSH STORAGE
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
@@ -80,7 +80,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
             Balance,
         ) = _accumulate_interest(&mut reserve_data, &mut user_reserve_data, block_timestamp);
 
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
 
         //// PUSH STORAGE
         self.data::<LendingPoolStorage>()
@@ -145,7 +145,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
             Balance,
             Balance,
         ) = _accumulate_interest(&mut reserve_data, &mut user_reserve_data, block_timestamp);
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
 
         if reserve_data.current_supply_rate_e24 < user_reserve_data.stable_borrow_rate_e24 {
             return Err(LendingPoolError::RebalanceCondition)

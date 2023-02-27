@@ -168,7 +168,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         }
 
         // recalculate
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
         // PUSH DATA
         self._push_data(
             &asset,
@@ -280,7 +280,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             _ => return Err(LendingPoolError::UnspecifiedAction),
         }
         // recalculate
-        reserve_data._recalculate_current_rates()?;
+        reserve_data._recalculate_current_rates();
         // PUSH DATA
         self._push_data(
             &asset,

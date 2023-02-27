@@ -108,7 +108,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
                 .checked_add(fees[i])
                 .expect(MATH_ERROR_MESSAGE);
 
-            reserve_data_vec[i]._recalculate_current_rates()?;
+            reserve_data_vec[i]._recalculate_current_rates();
 
             self.data::<LendingPoolStorage>()
                 .insert_reserve_data(&assets[i], &reserve_data_vec[i]);
