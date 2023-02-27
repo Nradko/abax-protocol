@@ -109,7 +109,7 @@ pub trait EmitManageEvents {
     fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool);
     fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, freezed: bool);
 
-    fn _emit_reserve_parameters_changed(
+    fn _emit_reserve_parameters_changed_event(
         &mut self,
         asset: &AccountId,
         interest_rate_model: &[u128; 7],
