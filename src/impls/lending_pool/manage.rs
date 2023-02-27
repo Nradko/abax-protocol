@@ -242,6 +242,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
 
         for asset_and_amount in assets_and_amounts.iter().take_while(|x| x.1.is_positive()) {
             PSP22Ref::transfer(&asset_and_amount.0, to, asset_and_amount.1 as Balance, vec![])?;
+            self._emit_income_taken(&asset_and_amount.0);
         }
 
         Ok(assets_and_amounts)
