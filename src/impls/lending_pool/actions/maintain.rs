@@ -53,7 +53,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
 
         //// MODIFY STORAGE
-        reserve_data._recalculate_current_rates();
         reserve_data._accumulate_interest(block_timestamp);
 
         reserve_data._recalculate_current_rates();
