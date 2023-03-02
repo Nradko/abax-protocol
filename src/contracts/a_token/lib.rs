@@ -280,6 +280,7 @@ pub mod a_token {
 
             self._do_safe_transfer_check(&from, &to, &amount, &data)?;
 
+            ink::env::debug_println!("Transfer_from_to before LPRef");
             let (mint_from_amount, mint_to_amount): (Balance, Balance) =
                 LendingPoolATokenInterfaceRef::transfer_supply_from_to(
                     &(self.abacus_token.lending_pool),
@@ -288,10 +289,17 @@ pub mod a_token {
                     to,
                     amount,
                 )?;
+            ink::env::debug_println!("Transfer_from_to after LPRef");
 
             // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
-            self._emit_transfer_event(None, Some(from), mint_from_amount);
-            self._emit_transfer_event(None, Some(to), mint_to_amount);
+            // emitting accumulated interest events
+            if mint_from_amount > 0 {
+                self._emit_transfer_event(None, Some(from), mint_from_amount);
+            }
+            if mint_to_amount > 0 {
+                self._emit_transfer_event(None, Some(to), mint_to_amount);
+            }
+            // emitting transfer event
             self._emit_transfer_event(Some(from), Some(to), amount);
 
             Ok(())

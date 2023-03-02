@@ -628,6 +628,7 @@ export const setUseAsCollateral = async (
   const useAsCollateralToSet = useAsCollateral.toLowerCase() === 'true';
   const args: Parameters<typeof lendingPool.tx.setAsCollateral> = [reserve.address, useAsCollateralToSet];
   if (expectedResult === 'success') {
+    const { userConfig: userConfigBefore } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.setAsCollateral(...args);
     }
@@ -635,6 +636,18 @@ export const setUseAsCollateral = async (
 
     const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
 
+    if (userConfigBefore.collaterals.rawNumber !== userConfigAfter.collaterals.rawNumber) {
+      expect(txResult.events).to.deep.equal([
+        {
+          args: {
+            asset: testEnv.reserves[reserveSymbol].underlying.address,
+            caller: caller.address,
+            set: (userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id) % 2 === 1 ? true : false,
+          },
+          name: 'CollateralSet',
+        },
+      ]);
+    }
     //TODO check that nothing else changed?
     expect.toBeDefined(userConfigAfter);
     expect((userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id) % 2, 'setUseAsCollateral didnt work').to.equal(

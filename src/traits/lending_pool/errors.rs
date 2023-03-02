@@ -98,23 +98,17 @@ impl From<LendingPoolTokenInterfaceError> for PSP22Error {
     fn from(error: LendingPoolTokenInterfaceError) -> Self {
         match error {
             LendingPoolTokenInterfaceError::InsufficientBalance => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::InsufficientBalance").into())
+                PSP22Error::Custom(String::from("InsufficientBalance").into())
             }
-            LendingPoolTokenInterfaceError::WrongCaller => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::WrongCaller").into())
-            }
+            LendingPoolTokenInterfaceError::WrongCaller => PSP22Error::Custom(String::from("WrongCaller").into()),
             LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::InsufficientUserFreeCollateral").into())
+                PSP22Error::Custom(String::from("InsufficientUserFreeCollateral").into())
             }
             LendingPoolTokenInterfaceError::TransfersDisabled => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::TransfersDisabled").into())
+                PSP22Error::Custom(String::from("TransfersDisabled").into())
             }
-            LendingPoolTokenInterfaceError::StorageError(_) => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterfaceError::StorageError").into())
-            }
-            LendingPoolTokenInterfaceError::MinimalDebt => {
-                PSP22Error::Custom(String::from("LendingPoolTokenInterface::MinimalDebt").into())
-            }
+            LendingPoolTokenInterfaceError::StorageError(_) => PSP22Error::Custom(String::from("StorageError").into()),
+            LendingPoolTokenInterfaceError::MinimalDebt => PSP22Error::Custom(String::from("MinimalDebt").into()),
             LendingPoolTokenInterfaceError::PSP22Error(psp22_error) => psp22_error,
         }
     }
