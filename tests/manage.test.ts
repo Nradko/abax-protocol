@@ -15,7 +15,7 @@ export const GLOBAL_ADMIN = 2459877095;
 export const ROLE_ADMIN = 0;
 export const TREASURY = 2434241257;
 
-makeSuite('Access Control tests', (getTestEnv) => {
+makeSuite.only('Access Control tests', (getTestEnv) => {
   let testEnv: TestEnv;
   let users: KeyringPair[];
   let owner: KeyringPair;
@@ -70,7 +70,7 @@ makeSuite('Access Control tests', (getTestEnv) => {
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it.only('assetListingAdmin should succeed and event should be emitted', async () => {
+    it('assetListingAdmin should succeed and event should be emitted', async () => {
       const tx = lendingPool
         .withSigner(assetListingAdmin)
         .tx.registerAsset(asset, '100000', null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken, sToken);
@@ -113,7 +113,7 @@ makeSuite('Access Control tests', (getTestEnv) => {
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it.only('globalAdmin should succeed and event should be emitted', async () => {
+    it('globalAdmin should succeed and event should be emitted', async () => {
       const tx = lendingPool.withSigner(globalAdmin).tx.registerAsset(asset, '1', 1, 2, 3, 4, 5, 6, '7', '8', aToken, vToken, sToken);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
       const txRes = await tx;
@@ -168,18 +168,51 @@ makeSuite('Access Control tests', (getTestEnv) => {
         .ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it('parametersAdmin should succeed', async () => {
+    it('parametersAdmin should return Err(MissingRole)', async () => {
       const res = (await lendingPool.withSigner(parametersAdmin).query.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, false)).value
         .ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it('emergancyAdmin should return Err(MissingRole)', async () => {
-      await expect(lendingPool.withSigner(emergancyAdmin).query.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, false)).to.eventually
-        .be.fulfilled;
-    });
-    it('globalAdmin should succeed', async () => {
-      const tx = lendingPool.withSigner(globalAdmin).query.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, false);
+    it('emergancyAdmin should succed to disactivate reserve and event should be emitted', async () => {
+      const tx = lendingPool.withSigner(emergancyAdmin).tx.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, false);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'ReserveActivated',
+          args: {
+            asset: testEnv.reserves['DAI'].underlying.address,
+            active: false,
+          },
+        },
+      ]);
+    });
+    it('emergancyAdmin should succed to activate alread activated reserve and event should NOT be emitted', async () => {
+      const tx = lendingPool.withSigner(emergancyAdmin).tx.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, true);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([]);
+    });
+
+    it('globalAdmin should succeed to disactivate reserve and event should be emitted', async () => {
+      const tx = lendingPool.withSigner(globalAdmin).tx.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, false);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'ReserveActivated',
+          args: {
+            asset: testEnv.reserves['DAI'].underlying.address,
+            active: false,
+          },
+        },
+      ]);
+    });
+    it('globalAdmin should succed to activate already activated reserve and event should NOT be emitted', async () => {
+      const tx = lendingPool.withSigner(globalAdmin).tx.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, true);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([]);
     });
     it('roleAdmin should return Err(MissingRole)', async () => {
       const res = (await lendingPool.withSigner(roleAdmin).query.setReserveIsActive(testEnv.reserves['DAI'].underlying.address, false)).value.ok;
@@ -207,13 +240,45 @@ makeSuite('Access Control tests', (getTestEnv) => {
         .ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it('emergancyAdmin should return Ok()', async () => {
-      const tx = lendingPool.withSigner(emergancyAdmin).query.setReserveIsFreezed(testEnv.reserves['DAI'].underlying.address, false);
+    it('emergancyAdmin should succed to freeze unfreezed reserve and event should be emitted', async () => {
+      const tx = lendingPool.withSigner(emergancyAdmin).tx.setReserveIsFreezed(testEnv.reserves['DAI'].underlying.address, true);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'ReserveFreezed',
+          args: {
+            asset: testEnv.reserves['DAI'].underlying.address,
+            freezed: true,
+          },
+        },
+      ]);
     });
-    it('globalAdmin should succeed', async () => {
-      const tx = lendingPool.withSigner(globalAdmin).query.setReserveIsFreezed(testEnv.reserves['DAI'].underlying.address, false);
+    it('emergancyAdmin should succed to unfreeze unfreezed reserrve and event should NOT be emitted', async () => {
+      const tx = lendingPool.withSigner(emergancyAdmin).tx.setReserveIsFreezed(testEnv.reserves['DAI'].underlying.address, false);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([]);
+    });
+    it('globalAdmin should succeed to freeze unfreezed reserve and event should be emitted', async () => {
+      const tx = lendingPool.withSigner(globalAdmin).tx.setReserveIsFreezed(testEnv.reserves['DAI'].underlying.address, true);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'ReserveFreezed',
+          args: {
+            asset: testEnv.reserves['DAI'].underlying.address,
+            freezed: true,
+          },
+        },
+      ]);
+    });
+    it('globalAdmin should succed to unfreeze unfreezed reserrve and event should NOT be emitted', async () => {
+      const tx = lendingPool.withSigner(globalAdmin).tx.setReserveIsFreezed(testEnv.reserves['DAI'].underlying.address, false);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([]);
     });
     it('roleAdmin should return Err(MissingRole)', async () => {
       const res = (await lendingPool.withSigner(roleAdmin).query.setReserveIsFreezed(testEnv.reserves['DAI'].underlying.address, false)).value.ok;
@@ -243,12 +308,37 @@ makeSuite('Access Control tests', (getTestEnv) => {
       ).value.ok;
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it('parametersAdmin should succed', async () => {
-      await expect(
-        lendingPool
-          .withSigner(parametersAdmin)
-          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0, 0, 0),
-      ).to.eventually.be.fulfilled;
+    it('parametersAdmin should succed and event should be emitted', async () => {
+      const tx = lendingPool
+        .withSigner(parametersAdmin)
+        .tx.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0, 0, 0);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'ParametersChanged',
+          args: {
+            asset: testEnv.reserves['DAI'].underlying.address,
+            interestRateModel: [
+              new ReturnNumber(1),
+              new ReturnNumber(2),
+              new ReturnNumber(3),
+              new ReturnNumber(4),
+              new ReturnNumber(5),
+              new ReturnNumber(6),
+              new ReturnNumber(7),
+            ],
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: null,
+            stableRateBaseE24: null,
+            minimalCollateral: new ReturnNumber(0),
+            minimalDebt: new ReturnNumber(0),
+            penaltyE6: new ReturnNumber(0),
+            incomeForSuppliersPartE6: new ReturnNumber(0),
+            flashLoanFeeE6: new ReturnNumber(0),
+          },
+        },
+      ]);
     });
     it('emergancyAdmin should return Err(MissingRole)', async () => {
       const queryResult = (
@@ -258,13 +348,39 @@ makeSuite('Access Control tests', (getTestEnv) => {
       ).value.ok;
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
-    it('globalAdmin should succeed', async () => {
-      await expect(
-        lendingPool
-          .withSigner(globalAdmin)
-          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, 0, 0, 0, 0, 0),
-      ).to.eventually.be.fulfilled;
+    it('globalAdmin should succeed and event should be emitted', async () => {
+      const tx = lendingPool
+        .withSigner(globalAdmin)
+        .tx.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], 1, 2, 3, 4, 5, 6, 7, 8);
+      expect(tx).to.eventually.be.fulfilled;
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'ParametersChanged',
+          args: {
+            asset: testEnv.reserves['DAI'].underlying.address,
+            interestRateModel: [
+              new ReturnNumber(1),
+              new ReturnNumber(2),
+              new ReturnNumber(3),
+              new ReturnNumber(4),
+              new ReturnNumber(5),
+              new ReturnNumber(6),
+              new ReturnNumber(7),
+            ],
+            collateralCoefficientE6: 1,
+            borrowCoefficientE6: 2,
+            stableRateBaseE24: 3,
+            minimalCollateral: new ReturnNumber(4),
+            minimalDebt: new ReturnNumber(5),
+            penaltyE6: new ReturnNumber(6),
+            incomeForSuppliersPartE6: new ReturnNumber(7),
+            flashLoanFeeE6: new ReturnNumber(8),
+          },
+        },
+      ]);
     });
+
     it('roleAdmin should return Err(MissingRole)', async () => {
       const queryResult = (
         await lendingPool
@@ -312,6 +428,9 @@ makeSuite('Access Control tests', (getTestEnv) => {
     it('treasury should succed', async () => {
       const tx = lendingPool.withSigner(treasury).tx.takeProtocolIncome(null, '');
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      //no generated income
+      expect(txRes.events).to.deep.equal([]);
     });
   });
 });
