@@ -11,6 +11,7 @@ pub trait EmitDepositEvents {
 
 #[openbrush::trait_definition]
 pub trait EmitBorrowEvents {
+    fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool);
     fn _emit_borrow_variable_event(
         &mut self,
         asset: AccountId,

@@ -107,6 +107,15 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
+    pub struct CollateralSet {
+        #[ink(topic)]
+        caller: AccountId,
+        #[ink(topic)]
+        asset: AccountId,
+        set: bool,
+    }
+
+    #[ink(event)]
     pub struct BorrowVariable {
         #[ink(topic)]
         asset: AccountId,
@@ -291,6 +300,9 @@ pub mod lending_pool {
     }
 
     impl EmitBorrowEvents for LendingPool {
+        fn _emit_collateral_set_event(&mut self, asset: AccountId, caller: AccountId, set: bool) {
+            self.env().emit_event(CollateralSet { asset, caller, set });
+        }
         fn _emit_borrow_variable_event(
             &mut self,
             asset: AccountId,

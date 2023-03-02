@@ -376,6 +376,7 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
 
 impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
     #![allow(unused_variables)]
+    default fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool) {}
     default fn _emit_borrow_variable_event(
         &mut self,
         asset: AccountId,
