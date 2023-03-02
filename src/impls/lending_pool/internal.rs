@@ -107,7 +107,7 @@ pub fn _check_enough_variable_debt(
     reserve_data: &ReserveData,
     user_reserve_data: &UserReserveData,
 ) -> Result<(), LendingPoolError> {
-    if user_reserve_data.variable_borrowed <= reserve_data.minimal_debt {
+    if user_reserve_data.variable_borrowed <= reserve_data.minimal_debt && user_reserve_data.variable_borrowed != 0 {
         return Err(LendingPoolError::InsufficientDebt)
     }
     Ok(())
@@ -117,7 +117,7 @@ pub fn _check_enough_stable_debt(
     reserve_data: &ReserveData,
     user_reserve_data: &UserReserveData,
 ) -> Result<(), LendingPoolError> {
-    if user_reserve_data.stable_borrowed <= reserve_data.minimal_debt {
+    if user_reserve_data.stable_borrowed <= reserve_data.minimal_debt && user_reserve_data.stable_borrowed != 0 {
         return Err(LendingPoolError::InsufficientDebt)
     }
     Ok(())

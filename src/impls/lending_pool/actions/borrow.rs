@@ -1,18 +1,21 @@
 // TODO::think should we emit events on set_as_collateral
 use crate::{
-    impls::lending_pool::{
-        internal::{
-            Internal,
-            *,
-        },
-        storage::{
-            lending_pool_storage::LendingPoolStorage,
-            structs::{
-                reserve_data::ReserveData,
-                user_config::UserConfig,
-                user_reserve_data::*,
+    impls::{
+        lending_pool::{
+            internal::{
+                Internal,
+                *,
+            },
+            storage::{
+                lending_pool_storage::LendingPoolStorage,
+                structs::{
+                    reserve_data::ReserveData,
+                    user_config::UserConfig,
+                    user_reserve_data::*,
+                },
             },
         },
+        types::Bitmap128,
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
@@ -53,17 +56,22 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
 
         //// MODIFY PULLED STORAGE
+        let user_config_before: Bitmap128 = user_config.collaterals;
         if use_as_collateral_to_set {
             user_config.collaterals |= 1_u128 << reserve_data.id;
         } else {
             user_config.collaterals &= !(1_u128 << reserve_data.id);
         }
 
-        //// PUSH STORAGE & FINAL CONDION CHECK
-        self.data::<LendingPoolStorage>()
-            .insert_user_config(&caller, &user_config);
+        if user_config_before != user_config.collaterals {
+            //// PUSH STORAGE & FINAL CONDION CHECK
+            self.data::<LendingPoolStorage>()
+                .insert_user_config(&caller, &user_config);
 
-        self._check_user_free_collateral(&caller, block_timestamp)?;
+            self._check_user_free_collateral(&caller, block_timestamp)?;
+
+            self._emit_collateral_set_event(asset, caller, use_as_collateral_to_set);
+        }
 
         Ok(())
     }

@@ -15,7 +15,7 @@ export const GLOBAL_ADMIN = 2459877095;
 export const ROLE_ADMIN = 0;
 export const TREASURY = 2434241257;
 
-makeSuite.only('Access Control tests', (getTestEnv) => {
+makeSuite('Access Control tests', (getTestEnv) => {
   let testEnv: TestEnv;
   let users: KeyringPair[];
   let owner: KeyringPair;
