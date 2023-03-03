@@ -13,6 +13,7 @@ import { expect } from './setup/chai';
 //   if (!token) throw new Error(`token ${tokenSymbol} not found`);
 //   return token.decimals;
 // }
+
 makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
@@ -270,8 +271,8 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         // DAI has 6 decimals and ETH has 18 so
         // for each 1 absDAI user should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
         // above didnt include liquidation penalty which is (1 + 0.1 (WETH) + 0.015(DAI)) = 1.115
-        // in total for one absDAI liquidator should receive 7.8125 * 10^14 * 1.115 = 8,7109375 * 10^8
-        // the parameter is _e12 so maximal accepted parameter is 8,7109375 * 10^20
+        // in total for one absDAI liquidator should receive 7.8125 * 10^8 * 1.115 = 8,7109375 * 10^8
+        // the parameter is _e18 so maximal accepted parameter is 8,7109375 * 10^26
         const queryRes = (
           await lendingPool
             .withSigner(liquidator)
@@ -281,21 +282,23 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidation succeeds', async () => {
+        // for each 1 DAI user should recieve  1 / 1280 ETH
+        // DAI has 6 decimals and ETH has 18 so
+        // for each 1 absDAI user should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
+        // above didnt include liquidation penalty which is (1 + 0.1 (WETH) + 0.015(DAI)) = 1.115
+        // in total for one absDAI liquidator should receive 7.8125 * 10^8 * 1.115 = 8,7109375 * 10^8
+        // the parameter is _e18 so maximal accepted parameter is 8,7109375 * 10^26
+        // liquidator is repaying 10^9 absDAI thus should return 8,7109375 * 10^17 ansWETH ~ 0,87... WETH
         const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
-
-        // const borrowerData = await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address);
-        // console.log(daiReserveDataBefore);
-        // console.log(borrowerData);
         await lendingPool
           .withSigner(liquidator)
           .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [1]);
         //Act & Assert
-        await expect(
-          lendingPool
-            .withSigner(liquidator)
-            .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [1]),
-        ).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+        const tx = lendingPool
+          .withSigner(liquidator)
+          .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [1]);
+        await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         //Assert
         const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value
@@ -309,16 +312,24 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         expect
           .soft(borrowersDAIDataAfter.variableBorrowed.toString())
           .to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
-        expect.soft(liquidatorsWETHDataAfter.supplied.rawNumber.gt(new BN((0.8 * E18).toString()))).to.be.true;
-        expect.soft(borrowersWETHDataAfter.supplied.rawNumber.lt(new BN((0.2 * E18).toString()))).to.be.true;
+        expect
+          .soft(
+            liquidatorsWETHDataAfter.supplied.rawNumber.toString(),
+            'liquidator received the exactly the minimal amount he provided as it was the maximal minimal amount he could provide',
+          )
+          .to.equal((0.87109375 * E18).toString());
+        expect
+          .soft(borrowersWETHDataAfter.supplied.rawNumber.toString(), 'liquidated user supply is decreased by what the liquidator have received')
+          .to.equal(((1 - 0.87109375) * E18).toString());
         expect
           .soft(daiReserveDataAfter.totalVariableBorrowed.toString())
           .to.equal('0', 'all borrows got repaid therefore totalVariableBorrowed should be zero');
         expect.soft(daiReserveDataAfter.totalSupplied.toString()).to.equal(daiReserveDataBefore.totalSupplied.toString());
         expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
-        expect.flushSoft();
 
-        // TODO: check rates
+        const txRes = await tx;
+        expect.soft(txRes.events).to.deep.equal([]);
+        expect.flushSoft();
       });
     });
   });
