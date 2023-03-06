@@ -1,3 +1,4 @@
+1. dogadać konwertowanie eventów na PSP22Error::Custom....
 1. testy do abacus token transfers
 1. testy do liquidation stable/remove stable
 1. testy get_user_free_collateral (important)

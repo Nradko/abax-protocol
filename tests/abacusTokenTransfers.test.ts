@@ -1,16 +1,15 @@
+import { ReturnNumber } from '@727-ventures/typechain-types';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import AToken from 'typechain/contracts/a_token';
+import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import VToken from 'typechain/contracts/v_token';
-import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool_v0_borrow_facet';
+import { PSP22ErrorBuilder } from 'typechain/types-arguments/a_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
-import { E18, E6 } from './scenarios/utils/misc';
+import { replaceRNPropsWithStrings } from './scenarios/utils/misc';
 import { expect } from './setup/chai';
-import { ReturnNumber } from '@727-ventures/typechain-types';
-import { PSP22ErrorBuilder } from 'typechain/types-arguments/a_token';
 
 makeSuite.only('AbacusToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -48,8 +47,8 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
   });
 
   describe('Alice and Bob have 10000$ of both DAI and USDC supplied to the leningPool. Then ...', () => {
-    let initialDaiBalance;
-    let initialUsdcBalance;
+    let initialDaiBalance: BN;
+    let initialUsdcBalance: BN;
 
     beforeEach('make deposit and make borrow', async () => {
       initialDaiBalance = await convertToCurrencyDecimals(daiContract, 10000);
@@ -83,7 +82,10 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
 
     it('Alice should NOT be able to transfer more than she has', async () => {
       const queryResult = (await aTokenDaiContract.withSigner(alice).query.transfer(bob.address, initialDaiBalance.addn(1), [])).value.ok;
-      expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.InsufficientBalance());
+      expect(queryResult).to.have.deep.property(
+        'err',
+        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('InsufficientBalance', 'utf8').toString('hex')) as any as number[]),
+      );
     });
 
     it('Alice should be able to transfer all her balance of aDAI to Bob, and then Bob should be able to transfer all his aDai Balance to Alice', async () => {
@@ -95,13 +97,13 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
       const tx = aTokenDaiContract.withSigner(alice).tx.transfer(bob.address, initialDaiBalance, []);
       await expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
-      expect.soft(txRes.events).to.deep.equal([
+      expect.soft(replaceRNPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Transfer',
           args: {
             from: alice.address,
             to: bob.address,
-            value: new ReturnNumber(initialDaiBalance.toNumber()),
+            value: initialDaiBalance.toString(),
           },
         },
       ]);
@@ -138,13 +140,13 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
 
       expect.soft(bobBalanceAfter.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.soft(bobSupplyAfter.supplied.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
-      expect.soft(txRes.events).to.deep.equal([
+      expect.soft(replaceRNPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Approval',
           args: {
             owner: alice.address,
             spender: charlie.address,
-            value: new ReturnNumber(0),
+            value: '0',
           },
         },
         {
@@ -152,7 +154,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
           args: {
             from: alice.address,
             to: bob.address,
-            value: new ReturnNumber(initialDaiBalance.toNumber()),
+            value: initialDaiBalance.toString(),
           },
         },
       ]);
@@ -161,7 +163,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
 
     describe('Alice takes 1WETH loan after Charlie has supplied 10 WETH. Then...', () => {
       let vTokenWETHContract: VToken;
-      let aliceDebt;
+      let aliceDebt: BN;
       beforeEach('Alice SetAsCollateral USDC and DAI and she takes loan', async () => {
         const charliesDeposit = await convertToCurrencyDecimals(wethContract, 10);
         await wethContract.tx.mint(charlie.address, charliesDeposit);
@@ -219,13 +221,13 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
             await expect(tx).to.eventually.be.fulfilled;
             const txRes = await tx;
             const RN = ReturnNumber;
-            expect(txRes.events).to.deep.equal([
+            expect(replaceRNPropsWithStrings(txRes.events)).to.deep.equal([
               {
                 name: 'Approval',
                 args: {
                   owner: bob.address,
                   spender: alice.address,
-                  value: new ReturnNumber(0),
+                  value: '0',
                 },
               },
               {
@@ -233,7 +235,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
                 args: {
                   from: alice.address,
                   to: bob.address,
-                  value: new ReturnNumber(aliceDebt.toString()),
+                  value: aliceDebt.toString(),
                 },
               },
             ]);
@@ -243,18 +245,3 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
     });
   });
 });
-
-const replaceRNPropsWithStrings = function (obj) {
-  // if (Array.isArray(obj)) return obj.map((val) => replaceRNPropsWithStrings(val));
-  if (typeof obj === 'object') {
-    for (const key in obj) {
-      if (typeof obj[key] === 'object') {
-        replaceRNPropsWithStrings(obj[key]);
-      } else {
-        const value = obj[key]?.rawNumber ? obj[key].rawNumber.toString() : obj[key];
-        obj[key] = value;
-      }
-    }
-  }
-  return obj;
-};
