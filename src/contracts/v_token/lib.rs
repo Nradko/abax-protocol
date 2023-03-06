@@ -303,8 +303,13 @@ pub mod v_token {
                 )?;
 
             // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
-            self._emit_transfer_event(None, Some(from), mint_from_amount);
-            self._emit_transfer_event(None, Some(to), mint_to_amount);
+            if mint_from_amount > 0 {
+                self._emit_transfer_event(None, Some(from), mint_from_amount);
+            }
+            if mint_to_amount > 0 {
+                self._emit_transfer_event(None, Some(to), mint_to_amount);
+            }
+
             self._emit_transfer_event(Some(from), Some(to), amount);
 
             Ok(())

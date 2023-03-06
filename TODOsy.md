@@ -1,5 +1,4 @@
 1. testy do abacus token transfers
-1. sprawdzić czy ilości (amounty) przy likwidacji mają sens/dobrze się liczą (choćby printami)
 1. testy do liquidation stable/remove stable
 1. testy get_user_free_collateral (important)
 1. dokończyć wykresy
