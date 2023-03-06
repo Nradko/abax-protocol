@@ -204,3 +204,16 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
     updateTimestamp: -1,
   };
 };
+
+export const replaceRNPropsWithStrings = function (obj) {
+  if (typeof obj === 'object') {
+    for (const key in obj) {
+      if (obj[key]?.rawNumber) {
+        obj[key] = obj[key].rawNumber.toString();
+      } else if (typeof obj[key] === 'object') {
+        replaceRNPropsWithStrings(obj[key]);
+      }
+    }
+  }
+  return obj;
+};

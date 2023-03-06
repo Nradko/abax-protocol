@@ -155,7 +155,10 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             return Err(LendingPoolError::from(AccessControlError::MissingRole))
         }
 
-        let mut reserve = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         if reserve.activated != active {
             reserve.activated = active;
             self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
@@ -171,7 +174,10 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         {
             return Err(LendingPoolError::from(AccessControlError::MissingRole))
         }
-        let mut reserve = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         if reserve.freezed != freeze {
             reserve.freezed = freeze;
             self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
@@ -200,7 +206,10 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             return Err(LendingPoolError::from(AccessControlError::MissingRole))
         }
 
-        let mut reserve = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         reserve.interest_rate_model = interest_rate_model;
         reserve.collateral_coefficient_e6 = collateral_coefficient_e6;
         reserve.borrow_coefficient_e6 = borrow_coefficient_e6;

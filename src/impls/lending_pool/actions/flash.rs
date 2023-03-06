@@ -61,7 +61,11 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
         let mut fees: Vec<u128> = vec![];
 
         for i in 0..assets.len() {
-            reserve_data_vec.push(self.data::<LendingPoolStorage>().get_reserve_data(&assets[i])?);
+            reserve_data_vec.push(
+                self.data::<LendingPoolStorage>()
+                    .get_reserve_data(&assets[i])
+                    .ok_or(LendingPoolError::AssetNotRegistered)?,
+            );
             let fee = match self
                 .data::<access_control::Data>()
                 .has_role(FLASH_BORROWER, Self::env().caller())

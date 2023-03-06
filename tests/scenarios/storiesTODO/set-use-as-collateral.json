@@ -89,7 +89,7 @@
             "user": "1"
           },
           "expected": "revert",
-          "revertMessage": "InsufficientUserFreeCollateral"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     },

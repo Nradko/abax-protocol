@@ -71,7 +71,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&underlying_asset)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&underlying_asset)
+            .ok_or(LendingPoolTokenInterfaceError::AssetNotRegistered)?;
 
         if Self::env().caller() != reserve_data.a_token_address {
             return Err(LendingPoolTokenInterfaceError::WrongCaller)
@@ -80,12 +83,20 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut from_user_reserve_data = self
             .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &from)?;
+            .get_user_reserve(&underlying_asset, &from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
         let mut to_user_reserve_data = self
             .data::<LendingPoolStorage>()
-            .get_or_create_user_reserve(&underlying_asset, &to);
-        let mut from_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&from);
-        let mut to_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&to);
+            .get_user_reserve(&underlying_asset, &to)
+            .unwrap_or_default();
+        let mut from_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        let mut to_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&to)
+            .unwrap_or_default();
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate reserve
         reserve_data._accumulate_interest(block_timestamp);
@@ -121,7 +132,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
         self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
         // check if there ie enought collateral
         match self._check_user_free_collateral(&from, block_timestamp) {
-            Err(_) => return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral),
+            Err(_) => return Err(LendingPoolTokenInterfaceError::InsufficientCollateral),
             Ok(_) => (),
         }
 

@@ -123,7 +123,7 @@
             "user": "1"
           },
           "expected": "revert",
-          "revertMessage": "InsufficientUserFreeCollateral"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     },
@@ -579,7 +579,7 @@
             "user": "1"
           },
           "expected": "revert",
-          "revertMessage": "InsufficientUserFreeCollateral"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     },
@@ -683,7 +683,7 @@
             "user": "3"
           },
           "expected": "revert",
-          "revertMessage": "InsufficientUserFreeCollateral"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     },
@@ -734,7 +734,7 @@
             "user": "3"
           },
           "expected": "revert",
-          "revertMessage": "InsufficientUserFreeCollateral"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     },
@@ -790,7 +790,7 @@
             "user": "3"
           },
           "expected": "revert",
-          "revertMessage": "InsufficientUserFreeCollateral"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     },
@@ -841,7 +841,7 @@
             "user": "3"
           },
           "expected": "revert",
-          "revertMessage": "InsufficientUserFreeCollateral"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     },

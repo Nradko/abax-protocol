@@ -28,7 +28,7 @@ pub enum LendingPoolError {
     RuleCollateralDisable,
     RuleNotStated,
     TransferFailed,
-    InsufficientUserFreeCollateral,
+    InsufficientCollateral,
     NotAToken,
     NotVToken,
     InsufficientDebt,
@@ -47,7 +47,6 @@ pub enum LendingPoolError {
     RebalanceCondition,
     NoStableBorrow,
     UnspecifiedAction,
-    InsufficientCollateral,
     RuleNeedsPermission,
     CurrentlyBorrowingWrongAsset,
     NothingToRedeem,
@@ -56,6 +55,7 @@ pub enum LendingPoolError {
     WrongLength,
     RulesIncorrectOrderingOfAssets,
     AssetRuleCoefficientsEqualZero,
+    NothingToAccumulate,
 }
 
 impl From<LangError> for LendingPoolError {
@@ -71,9 +71,10 @@ pub enum LendingPoolTokenInterfaceError {
     StorageError(StorageError),
     InsufficientBalance,
     WrongCaller,
-    InsufficientUserFreeCollateral,
+    InsufficientCollateral,
     TransfersDisabled,
     MinimalDebt,
+    AssetNotRegistered,
 }
 
 impl From<PSP22Error> for LendingPoolError {
@@ -97,12 +98,13 @@ impl From<PSP22Error> for LendingPoolTokenInterfaceError {
 impl From<LendingPoolTokenInterfaceError> for PSP22Error {
     fn from(error: LendingPoolTokenInterfaceError) -> Self {
         match error {
-            LendingPoolTokenInterfaceError::InsufficientBalance => {
-                PSP22Error::Custom(String::from("InsufficientBalance").into())
+            LendingPoolTokenInterfaceError::InsufficientBalance => PSP22Error::InsufficientBalance,
+            LendingPoolTokenInterfaceError::AssetNotRegistered => {
+                PSP22Error::Custom(String::from("AssetNotRegistered").into())
             }
             LendingPoolTokenInterfaceError::WrongCaller => PSP22Error::Custom(String::from("WrongCaller").into()),
-            LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral => {
-                PSP22Error::Custom(String::from("InsufficientUserFreeCollateral").into())
+            LendingPoolTokenInterfaceError::InsufficientCollateral => {
+                PSP22Error::Custom(String::from("InsufficientCollateral").into())
             }
             LendingPoolTokenInterfaceError::TransfersDisabled => {
                 PSP22Error::Custom(String::from("TransfersDisabled").into())

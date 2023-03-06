@@ -35,19 +35,19 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
         self.data::<LendingPoolStorage>().registered_assets.to_vec()
     }
     default fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
-        self.data::<LendingPoolStorage>().get_reserve_data(&asset).ok()
+        self.data::<LendingPoolStorage>().get_reserve_data(&asset)
     }
 
     default fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)> {
         let assets_to_view = if assets.is_some() {
             assets.unwrap()
         } else {
-            self.view_registered_assets()
+            self.data::<LendingPoolStorage>().registered_assets.to_vec()
         };
 
         let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
         for asset in assets_to_view {
-            ret.push((asset, self.view_reserve_data(asset)));
+            ret.push((asset, self.data::<LendingPoolStorage>().get_reserve_data(&asset)));
         }
         ret
     }
@@ -66,12 +66,17 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
         let assets_to_view = if assets.is_some() {
             assets.unwrap()
         } else {
-            self.view_registered_assets()
+            self.data::<LendingPoolStorage>().registered_assets.to_vec()
         };
 
         let mut ret: Vec<(AccountId, UserReserveData)> = vec![];
         for asset in assets_to_view {
-            ret.push((asset, self.view_user_reserve_data(asset, user)));
+            ret.push((
+                asset,
+                self.data::<LendingPoolStorage>()
+                    .get_user_reserve(&asset, &user)
+                    .unwrap_or_default(),
+            ));
         }
         ret
     }
@@ -96,7 +101,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
             .data::<LendingPoolStorage>()
             .get_reserve_data(&reserve_token_address)
         {
-            Ok(v) => v.token_price_e8,
+            Some(v) => v.token_price_e8,
             _ => None,
         }
     }
