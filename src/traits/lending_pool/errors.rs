@@ -97,9 +97,7 @@ impl From<PSP22Error> for LendingPoolTokenInterfaceError {
 impl From<LendingPoolTokenInterfaceError> for PSP22Error {
     fn from(error: LendingPoolTokenInterfaceError) -> Self {
         match error {
-            LendingPoolTokenInterfaceError::InsufficientBalance => {
-                PSP22Error::Custom(String::from("InsufficientBalance").into())
-            }
+            LendingPoolTokenInterfaceError::InsufficientBalance => PSP22Error::InsufficientBalance,
             LendingPoolTokenInterfaceError::WrongCaller => PSP22Error::Custom(String::from("WrongCaller").into()),
             LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral => {
                 PSP22Error::Custom(String::from("InsufficientUserFreeCollateral").into())

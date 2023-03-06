@@ -4,7 +4,8 @@ import BN from 'bn.js';
 import AToken from 'typechain/contracts/a_token';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import VToken from 'typechain/contracts/v_token';
-import { PSP22ErrorBuilder } from 'typechain/types-arguments/a_token';
+import { PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool';
+import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
@@ -82,10 +83,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
 
     it('Alice should NOT be able to transfer more than she has', async () => {
       const queryResult = (await aTokenDaiContract.withSigner(alice).query.transfer(bob.address, initialDaiBalance.addn(1), [])).value.ok;
-      expect(queryResult).to.have.deep.property(
-        'err',
-        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('InsufficientBalance', 'utf8').toString('hex')) as any as number[]),
-      );
+      expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.InsufficientBalance());
     });
 
     it('Alice should be able to transfer all her balance of aDAI to Bob, and then Bob should be able to transfer all his aDai Balance to Alice', async () => {
