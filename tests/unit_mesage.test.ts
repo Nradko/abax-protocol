@@ -35,7 +35,7 @@ makeSuite('Unit message', (getTestEnv) => {
       describe('setAsCollateral', () => {
         it('Fails if asset does not exist', async () => {
           const queryRes = (await lendingPool.withSigner(users[0]).query.setAsCollateral(users[1].address, true)).value.ok;
-          expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.StorageError(StorageErrorBuilder.EntityNotFound('ReserveData')));
+          expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AssetNotRegistered());
         });
         it('Fails if user gets undercollaterized', async () => {
           const mintedAmount = new BN('1000000000000000000');
@@ -47,7 +47,7 @@ makeSuite('Unit message', (getTestEnv) => {
           await lendingPool.withSigner(users[0]).tx.borrow(reserve.underlying.address, users[0].address, mintedAmount.div(new BN(2)), [0]);
 
           const queryRes = (await lendingPool.withSigner(users[0]).query.setAsCollateral(reserve.underlying.address, false)).value.ok;
-          expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.InsufficientUserFreeCollateral());
+          expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.InsufficientCollateral());
         });
         it('Fails without deposit', async () => {
           const reserve = testEnv.reserves['DAI'];

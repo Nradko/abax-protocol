@@ -46,14 +46,19 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         _check_deposit_enabled(&reserve_data)?;
         let mut on_behalf_of_reserve_data = self
             .data::<LendingPoolStorage>()
-            .get_or_create_user_reserve(&asset, &on_behalf_of);
+            .get_user_reserve(&asset, &on_behalf_of)
+            .unwrap_or_default();
         let mut on_behalf_of_config = self
             .data::<LendingPoolStorage>()
-            .get_or_create_user_config(&on_behalf_of);
+            .get_user_config(&on_behalf_of)
+            .unwrap_or_default();
 
         //// MODIFY DATA
         // accumulate
@@ -133,12 +138,19 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         _check_activeness(&reserve_data)?;
         let mut on_behalf_of_reserve_data = self
             .data::<LendingPoolStorage>()
-            .get_user_reserve(&asset, &on_behalf_of)?;
-        let mut on_behalf_of_config = self.data::<LendingPoolStorage>().get_user_config(&on_behalf_of)?;
+            .get_user_reserve(&asset, &on_behalf_of)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
+        let mut on_behalf_of_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&on_behalf_of)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
         // MODIFY PULLED STORAGE & AMOUNT CHECK
         // accumulate
         let (

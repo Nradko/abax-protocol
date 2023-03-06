@@ -76,7 +76,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
         // pull reserve_data
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&underlying_asset)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&underlying_asset)
+            .ok_or(LendingPoolTokenInterfaceError::AssetNotRegistered)?;
         if reserve_data.v_token_address != Self::env().caller() {
             return Err(LendingPoolTokenInterfaceError::WrongCaller)
         }
@@ -84,13 +87,21 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let mut from_user_reserve_data: UserReserveData = self
             .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &from)?;
+            .get_user_reserve(&underlying_asset, &from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
         let mut to_user_reserve_data: UserReserveData = self
             .data::<LendingPoolStorage>()
-            .get_or_create_user_reserve(&underlying_asset, &to);
+            .get_user_reserve(&underlying_asset, &to)
+            .unwrap_or_default();
         // check if rules allow user "to" to take debt
-        let mut from_config = self.data::<LendingPoolStorage>().get_user_config(&to)?;
-        let mut to_config = self.data::<LendingPoolStorage>().get_user_config(&to)?;
+        let mut from_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        let mut to_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&to)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientCollateral)?;
         match _check_borrowing_enabled(&reserve_data) {
             Err(_) => return Err(LendingPoolTokenInterfaceError::TransfersDisabled),
             Ok(_) => (),
@@ -134,7 +145,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
             .insert_user_config(&from, &from_config);
         // check if there ie enought collateral
         match self._check_user_free_collateral(&to, block_timestamp) {
-            Err(_) => return Err(LendingPoolTokenInterfaceError::InsufficientUserFreeCollateral),
+            Err(_) => return Err(LendingPoolTokenInterfaceError::InsufficientCollateral),
             Ok(_) => (),
         }
 

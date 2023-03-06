@@ -380,16 +380,27 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
         LendingPoolError,
     > {
         Ok((
-            self.data::<LendingPoolStorage>().get_user_config(&liquidated_user)?,
-            self.data::<LendingPoolStorage>().get_or_create_user_config(&caller),
-            self.data::<LendingPoolStorage>().get_reserve_data(&asset_to_repay)?,
             self.data::<LendingPoolStorage>()
-                .get_user_reserve(&asset_to_repay, &liquidated_user)?,
-            self.data::<LendingPoolStorage>().get_reserve_data(&asset_to_take)?,
+                .get_user_config(&liquidated_user)
+                .ok_or(LendingPoolError::NothingToRepay)?,
             self.data::<LendingPoolStorage>()
-                .get_user_reserve(&asset_to_take, &liquidated_user)?,
+                .get_user_config(&caller)
+                .unwrap_or_default(),
             self.data::<LendingPoolStorage>()
-                .get_or_create_user_reserve(&asset_to_take, &caller),
+                .get_reserve_data(&asset_to_repay)
+                .ok_or(LendingPoolError::AssetNotRegistered)?,
+            self.data::<LendingPoolStorage>()
+                .get_user_reserve(&asset_to_repay, &liquidated_user)
+                .ok_or(LendingPoolError::NothingToRepay)?,
+            self.data::<LendingPoolStorage>()
+                .get_reserve_data(&asset_to_take)
+                .ok_or(LendingPoolError::AssetNotRegistered)?,
+            self.data::<LendingPoolStorage>()
+                .get_user_reserve(&asset_to_take, &liquidated_user)
+                .ok_or(LendingPoolError::NothingToRepay)?,
+            self.data::<LendingPoolStorage>()
+                .get_user_reserve(&asset_to_take, &caller)
+                .unwrap_or_default(),
         ))
     }
     fn _push_data_for_liquidate(

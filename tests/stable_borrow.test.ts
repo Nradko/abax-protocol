@@ -82,10 +82,10 @@ makeSuite('LendingPool stable borrow & and stable rate rebalance', (getTestEnv) 
       expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AssetStableBorrowDisabled());
     });
 
-    it('borrower tries to borrow_stable 1500$ Dai what is more than borrower free collateral. InsufficientUserFreeCollateral ERROR', async () => {
+    it('borrower tries to borrow_stable 1500$ Dai what is more than borrower free collateral. InsufficientCollateral ERROR', async () => {
       const daiAmountToBorrow = await convertToCurrencyDecimals(daiContract, 1500);
       const queryRes = (await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, daiAmountToBorrow, [1])).value.ok;
-      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.InsufficientUserFreeCollateral());
+      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.InsufficientCollateral());
     });
 
     it('borrower succesfully borrow_stable 1000$ Dai.', async () => {

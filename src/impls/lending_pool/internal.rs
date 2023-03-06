@@ -475,7 +475,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
     ) -> Result<(), LendingPoolError> {
         let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(user, block_timestamp);
         if !collaterized {
-            return Err(LendingPoolError::InsufficientUserFreeCollateral)
+            return Err(LendingPoolError::InsufficientCollateral)
         }
         Ok(())
     }

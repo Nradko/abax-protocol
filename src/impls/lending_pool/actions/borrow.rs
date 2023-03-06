@@ -44,10 +44,19 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
     ) -> Result<(), LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
         let caller = Self::env().caller();
-        let reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
-        let user_reserve_data = self.data::<LendingPoolStorage>().get_user_reserve(&asset, &caller)?;
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+        let user_reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset, &caller)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
+        let mut user_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&caller)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
         _check_enough_supply_to_be_collateral(&reserve_data, &user_reserve_data)?;
-        let mut user_config = self.data::<LendingPoolStorage>().get_or_create_user_config(&caller);
         let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6;
         if use_as_collateral_to_set && collateral_coefficient_e6.is_none() {
             return Err(LendingPoolError::RuleCollateralDisable)
@@ -342,13 +351,18 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
         asset: &AccountId,
         on_behalf_of: &AccountId,
     ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError> {
-        let reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(asset)?;
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         let on_behalf_of_reserve_data = self
             .data::<LendingPoolStorage>()
-            .get_or_create_user_reserve(&asset, &on_behalf_of);
+            .get_user_reserve(&asset, &on_behalf_of)
+            .unwrap_or_default();
         let on_behalf_of_config = self
             .data::<LendingPoolStorage>()
-            .get_or_create_user_config(on_behalf_of);
+            .get_user_config(on_behalf_of)
+            .ok_or(LendingPoolError::InsufficientCollateral)?;
         Ok((reserve_data, on_behalf_of_reserve_data, on_behalf_of_config))
     }
 
@@ -357,11 +371,18 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
         asset: &AccountId,
         on_behalf_of: &AccountId,
     ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError> {
-        let reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(asset)?;
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         let on_behalf_of_reserve_data = self
             .data::<LendingPoolStorage>()
-            .get_user_reserve(&asset, &on_behalf_of)?;
-        let on_behalf_of_config = self.data::<LendingPoolStorage>().get_user_config(on_behalf_of)?;
+            .get_user_reserve(&asset, &on_behalf_of)
+            .ok_or(LendingPoolError::NothingToRepay)?;
+        let on_behalf_of_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(on_behalf_of)
+            .ok_or(LendingPoolError::NothingToRepay)?;
         Ok((reserve_data, on_behalf_of_reserve_data, on_behalf_of_config))
     }
 

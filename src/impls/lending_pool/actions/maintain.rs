@@ -39,7 +39,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         asset: AccountId,
         price_e8: u128,
     ) -> Result<(), LendingPoolError> {
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         reserve_data.token_price_e8 = Some(price_e8);
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
@@ -50,7 +53,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
 
         //// MODIFY STORAGE
         if reserve_data.indexes_update_timestamp < block_timestamp {
@@ -67,8 +73,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
         //// PULL DATA & INIT CONDITION CHECK
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
-        let mut user_reserve_data = self.data::<LendingPoolStorage>().get_user_reserve(&asset, &user)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+        let mut user_reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset, &user)
+            .ok_or(LendingPoolError::NothingToAccumulate)?;
         if block_timestamp < user_reserve_data.update_timestamp + u64::try_from(ONE_HOUR).unwrap() {
             return Err(LendingPoolError::TooEarlyToAccumulate)
         }
@@ -127,11 +139,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolMaintain for T {
     ) -> Result<u128, LendingPoolError> {
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut reserve_data = self.data::<LendingPoolStorage>().get_reserve_data(&asset)?;
+        let mut reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         let mut user_reserve_data = self
             .data::<LendingPoolStorage>()
             .get_user_reserve(&asset, &user)
-            .unwrap_or_default();
+            .ok_or(LendingPoolError::NoStableBorrow)?;
 
         if user_reserve_data.stable_borrowed == 0 {
             return Err(LendingPoolError::NoStableBorrow)
