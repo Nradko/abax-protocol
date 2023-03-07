@@ -237,6 +237,8 @@ makeSuite('Unit message', (getTestEnv) => {
               null,
               null,
               '13',
+              null,
+              null,
               0,
               0,
               '0',
@@ -260,6 +262,8 @@ makeSuite('Unit message', (getTestEnv) => {
             '111',
             '222',
             '333',
+            '99999999',
+            '11111111',
             0,
             0,
             '100000',
@@ -280,6 +284,8 @@ makeSuite('Unit message', (getTestEnv) => {
         expect.soft(reserveData.collateralCoefficientE6?.toString()).to.equal('111');
         expect.soft(reserveData.borrowCoefficientE6?.toString()).to.equal('222');
         expect.soft(reserveData.stableRateBaseE24?.toString()).to.equal('333');
+        expect.soft(reserveData.maximalTotalSupply?.toString()).to.equal('99999999');
+        expect.soft(reserveData.maximalTotalDebt?.toString()).to.equal('11111111');
         expect.soft(reserveData.penaltyE6.toString()).to.equal('100000');
         expect.soft(reserveData.incomeForSuppliersPartE6.toString()).to.equal('900000');
         expect.soft(reserveData.flashLoanFeeE6.toString()).to.equal('1000');

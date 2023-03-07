@@ -184,6 +184,16 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             _ => return Err(LendingPoolError::UnspecifiedAction),
         }
 
+        if reserve_data.maximal_total_debt.is_some() {
+            if reserve_data.total_variable_borrowed
+                + reserve_data.sum_stable_debt
+                + reserve_data.accumulated_stable_borrow
+                > reserve_data.maximal_total_debt.unwrap()
+            {
+                return Err(LendingPoolError::MaxDebtReached)
+            }
+        }
+
         // recalculate
         reserve_data._recalculate_current_rates();
         // PUSH DATA

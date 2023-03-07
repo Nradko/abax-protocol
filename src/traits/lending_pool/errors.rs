@@ -56,6 +56,8 @@ pub enum LendingPoolError {
     RulesIncorrectOrderingOfAssets,
     AssetRuleCoefficientsEqualZero,
     NothingToAccumulate,
+    MaxSupplyReached,
+    MaxDebtReached,
 }
 
 impl From<LangError> for LendingPoolError {
