@@ -69,14 +69,22 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         }
         let caller = Self::env().caller();
         let (
-            mut user_config,
-            mut caller_config,
             mut reserve_data_to_repay,
-            mut user_reserve_data_to_repay,
             mut reserve_data_to_take,
+            mut user_config,
+            mut user_reserve_data_to_repay,
             mut user_reserve_data_to_take,
+            mut caller_config,
             mut caller_reserve_data_to_take,
-        ) = self._pull_data_for_liquidate(&liquidated_user, &caller, &asset_to_repay, &asset_to_take)?;
+        ): (
+            ReserveData,
+            ReserveData,
+            UserConfig,
+            UserReserveData,
+            UserReserveData,
+            UserConfig,
+            UserReserveData,
+        ) = self._pull_data_for_liquidate(&asset_to_repay, &asset_to_take, &liquidated_user, &caller)?;
         let asset_to_repay_price_e8 = reserve_data_to_repay.token_price_e8()?;
         let asset_to_take_price_e8 = reserve_data_to_take.token_price_e8()?;
         let penalty_to_repay_e6 = reserve_data_to_repay.penalty_e6;
@@ -307,9 +315,11 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             &asset_to_repay,
             &asset_to_take,
             &reserve_data_to_repay,
-            &user_reserve_data_to_repay,
             &reserve_data_to_take,
+            &user_config,
+            &user_reserve_data_to_repay,
             &user_reserve_data_to_take,
+            &caller_config,
             &caller_reserve_data_to_take,
         );
         //// TOKEN TRANSFERS
@@ -330,18 +340,18 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
 pub trait LiquidateInternal {
     fn _pull_data_for_liquidate(
         &self,
-        liquidated_user: &AccountId,
-        caller: &AccountId,
         asset_to_repay: &AccountId,
         asset_to_take: &AccountId,
+        liquidated_user: &AccountId,
+        caller: &AccountId,
     ) -> Result<
         (
-            UserConfig,
-            UserConfig,
             ReserveData,
-            UserReserveData,
             ReserveData,
+            UserConfig,
             UserReserveData,
+            UserReserveData,
+            UserConfig,
             UserReserveData,
         ),
         LendingPoolError,
@@ -353,9 +363,11 @@ pub trait LiquidateInternal {
         asset_to_repay: &AccountId,
         asset_to_take: &AccountId,
         reserve_data_to_repay: &ReserveData,
-        user_reserve_data_to_repay: &UserReserveData,
         reserve_data_to_take: &ReserveData,
+        liquidated_user_config: &UserConfig,
+        user_reserve_data_to_repay: &UserReserveData,
         user_reserve_data_to_take: &UserReserveData,
+        caller_config: &UserConfig,
         caller_reserve_data_to_take: &UserReserveData,
     );
 }
@@ -363,41 +375,41 @@ pub trait LiquidateInternal {
 impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for T {
     fn _pull_data_for_liquidate(
         &self,
-        liquidated_user: &AccountId,
-        caller: &AccountId,
         asset_to_repay: &AccountId,
         asset_to_take: &AccountId,
+        liquidated_user: &AccountId,
+        caller: &AccountId,
     ) -> Result<
         (
-            UserConfig,
-            UserConfig,
             ReserveData,
-            UserReserveData,
             ReserveData,
+            UserConfig,
             UserReserveData,
+            UserReserveData,
+            UserConfig,
             UserReserveData,
         ),
         LendingPoolError,
     > {
         Ok((
             self.data::<LendingPoolStorage>()
-                .get_user_config(&liquidated_user)
-                .ok_or(LendingPoolError::NothingToRepay)?,
-            self.data::<LendingPoolStorage>()
-                .get_user_config(&caller)
-                .unwrap_or_default(),
-            self.data::<LendingPoolStorage>()
                 .get_reserve_data(&asset_to_repay)
                 .ok_or(LendingPoolError::AssetNotRegistered)?,
-            self.data::<LendingPoolStorage>()
-                .get_user_reserve(&asset_to_repay, &liquidated_user)
-                .ok_or(LendingPoolError::NothingToRepay)?,
             self.data::<LendingPoolStorage>()
                 .get_reserve_data(&asset_to_take)
                 .ok_or(LendingPoolError::AssetNotRegistered)?,
             self.data::<LendingPoolStorage>()
+                .get_user_config(&liquidated_user)
+                .ok_or(LendingPoolError::NothingToRepay)?,
+            self.data::<LendingPoolStorage>()
+                .get_user_reserve(&asset_to_repay, &liquidated_user)
+                .ok_or(LendingPoolError::NothingToRepay)?,
+            self.data::<LendingPoolStorage>()
                 .get_user_reserve(&asset_to_take, &liquidated_user)
                 .ok_or(LendingPoolError::NothingToRepay)?,
+            self.data::<LendingPoolStorage>()
+                .get_user_config(&caller)
+                .unwrap_or_default(),
             self.data::<LendingPoolStorage>()
                 .get_user_reserve(&asset_to_take, &caller)
                 .unwrap_or_default(),
@@ -410,9 +422,11 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
         asset_to_repay: &AccountId,
         asset_to_take: &AccountId,
         reserve_data_to_repay: &ReserveData,
-        user_reserve_data_to_repay: &UserReserveData,
         reserve_data_to_take: &ReserveData,
+        liquidated_user_config: &UserConfig,
+        user_reserve_data_to_repay: &UserReserveData,
         user_reserve_data_to_take: &UserReserveData,
+        caller_config: &UserConfig,
         caller_reserve_data_to_take: &UserReserveData,
     ) {
         // asset_to_repay
@@ -437,6 +451,11 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
         );
         self.data::<LendingPoolStorage>()
             .insert_user_reserve(&asset_to_take, &caller, &caller_reserve_data_to_take);
+        // configs
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(liquidated_user, liquidated_user_config);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(caller, caller_config);
     }
 }
 
