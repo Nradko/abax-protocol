@@ -170,6 +170,8 @@ export const getReserveDefaultObj = (): ReserveData => {
     ],
     collateralCoefficientE6: null,
     borrowCoefficientE6: null,
+    maximalTotalSupply: null,
+    maximalTotalDebt: null,
     penaltyE6: new ReturnNumber(0),
     stableRateBaseE24: new ReturnNumber(0),
     incomeForSuppliersPartE6: new ReturnNumber(E6),

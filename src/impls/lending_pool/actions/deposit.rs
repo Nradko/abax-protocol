@@ -79,6 +79,12 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             amount,
         );
         _increase_total_deposit(&mut reserve_data, amount);
+
+        if reserve_data.maximal_total_supply.is_some() {
+            if reserve_data.total_supplied > reserve_data.maximal_total_supply.unwrap() {
+                return Err(LendingPoolError::MaxSupplyReached)
+            }
+        }
         // recalculate
         reserve_data._recalculate_current_rates();
 
