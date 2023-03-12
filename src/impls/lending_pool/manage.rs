@@ -1,4 +1,3 @@
-#![allow(unused_variables)]
 use crate::{
     impls::{
         constants::E18,
@@ -66,7 +65,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -76,7 +74,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         flash_loan_fee_e6: u128,
         a_token_address: AccountId,
         v_token_address: AccountId,
-        s_token_address: AccountId,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !(self
@@ -109,7 +106,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             minimal_collateral,
             minimal_debt,
             penalty_e6,
-            stable_rate_base_e24,
             income_for_suppliers_part_e6,
             flash_loan_fee_e6,
             token_price_e8: None,
@@ -120,15 +116,11 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             total_variable_borrowed: 0,
             cumulative_variable_borrow_rate_index_e18: E18,
             current_variable_borrow_rate_e24: 0,
-            sum_stable_debt: 0,
-            accumulated_stable_borrow: 0,
-            avarage_stable_rate_e24: 0,
             indexes_update_timestamp: BlockTimestampProviderRef::get_block_timestamp(
                 &self.data::<LendingPoolStorage>().block_timestamp_provider,
             ),
             a_token_address,
             v_token_address,
-            s_token_address,
         };
 
         self.data::<LendingPoolStorage>().register_asset(&asset);
@@ -138,7 +130,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             decimals,
             collateral_coefficient_e6,
             borrow_coefficient_e6,
-            stable_rate_base_e24,
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
@@ -148,7 +139,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             flash_loan_fee_e6,
             &a_token_address,
             &v_token_address,
-            &s_token_address,
         );
         Ok(())
     }
@@ -198,7 +188,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         interest_rate_model: [u128; 7],
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -221,7 +210,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         reserve.interest_rate_model = interest_rate_model;
         reserve.collateral_coefficient_e6 = collateral_coefficient_e6;
         reserve.borrow_coefficient_e6 = borrow_coefficient_e6;
-        reserve.stable_rate_base_e24 = stable_rate_base_e24;
         reserve.maximal_total_supply = maximal_total_supply;
         reserve.maximal_total_debt = maximal_total_debt;
         reserve.minimal_collateral = minimal_collateral;
@@ -235,7 +223,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             &interest_rate_model,
             collateral_coefficient_e6,
             borrow_coefficient_e6,
-            stable_rate_base_e24,
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
@@ -271,13 +258,13 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
+    #[allow(unused_variables)]
     default fn _emit_asset_registered_event(
         &mut self,
         asset: &AccountId,
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -287,20 +274,21 @@ impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
         flash_loan_fee_e6: u128,
         a_token_address: &AccountId,
         v_token_address: &AccountId,
-        s_token_address: &AccountId,
     ) {
     }
 
+    #[allow(unused_variables)]
     default fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool) {}
+    #[allow(unused_variables)]
     default fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, active: bool) {}
 
+    #[allow(unused_variables)]
     default fn _emit_reserve_parameters_changed_event(
         &mut self,
         asset: &AccountId,
         interest_rate_model: &[u128; 7],
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -311,5 +299,6 @@ impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
     ) {
     }
 
+    #[allow(unused_variables)]
     default fn _emit_income_taken(&mut self, asset: &AccountId) {}
 }

@@ -35,7 +35,6 @@ pub trait LendingPoolManage {
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -45,7 +44,6 @@ pub trait LendingPoolManage {
         flash_loan_fee_e6: u128,
         a_token_address: AccountId,
         v_token_address: AccountId,
-        s_token_address: AccountId,
     ) -> Result<(), LendingPoolError>;
 
     ///  activates or disactivates reserv
@@ -76,7 +74,6 @@ pub trait LendingPoolManage {
         interest_rate_model: [u128; 7],
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,

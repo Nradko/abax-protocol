@@ -146,12 +146,6 @@ pub trait LendingPoolMaintain {
     ///  * `user` - AccountId (aka address) of an user whose deposits, variable and stable debts should be updated
     #[ink(message)]
     fn accumulate_user_interest(&mut self, asset: AccountId, user: AccountId) -> Result<(), LendingPoolError>;
-    /// is used by anyone to rebalance to small or too high stable debts
-    ///
-    ///  * `asset` - AccountId (aka address) of an asset for which stable rate should be adjusted
-    ///  * `user` - AccountId (aka address) of a user or which stable rate should be adjusted
-    #[ink(message)]
-    fn rebalance_stable_borrow_rate(&mut self, asset: AccountId, user: AccountId) -> Result<u128, LendingPoolError>;
     /// is used by anyone to update reserve's asset price //TODO
     ///
     ///  * `reserve_token_address` - AccountId (aka address) of an asset to update price for

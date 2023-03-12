@@ -26,20 +26,6 @@ pub trait EmitBorrowEvents {
         on_behalf_of: AccountId,
         amount: Balance,
     );
-    fn _emit_borrow_stable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
-    fn _emit_repay_stable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
 }
 
 #[openbrush::trait_definition]
@@ -70,15 +56,6 @@ pub trait EmitLiquidateEvents {
         amount_repaid: Balance,
         amount_taken: Balance,
     );
-    fn _emit_liquidation_stable_event(
-        &mut self,
-        liquidator: AccountId,
-        user: AccountId,
-        asset_to_rapay: AccountId,
-        asset_to_take: AccountId,
-        amount_repaid: Balance,
-        amount_taken: Balance,
-    );
 }
 
 #[openbrush::trait_definition]
@@ -96,7 +73,6 @@ pub trait EmitManageEvents {
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -106,7 +82,6 @@ pub trait EmitManageEvents {
         flash_loan_fee_e6: u128,
         a_token_address: &AccountId,
         v_token_address: &AccountId,
-        s_token_address: &AccountId,
     );
 
     fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool);
@@ -118,7 +93,6 @@ pub trait EmitManageEvents {
         interest_rate_model: &[u128; 7],
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,

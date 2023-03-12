@@ -42,7 +42,7 @@ pub fn _accumulate_interest(
     reserve_data: &mut ReserveData,
     user_reserve_data: &mut UserReserveData,
     block_timestamp: Timestamp,
-) -> (Balance, Balance, Balance) {
+) -> (Balance, Balance) {
     // TODO:: should this line be here?  reserve_data._recalculate_current_rates();
     reserve_data._accumulate_interest(block_timestamp);
     user_reserve_data._accumulate_user_interest(reserve_data)
@@ -85,14 +85,6 @@ pub fn _check_borrowing_enabled(reserve_data: &ReserveData) -> Result<(), Lendin
     Ok(())
 }
 
-pub fn _check_borrowing_stable_enabled(reserve_data: &ReserveData) -> Result<(), LendingPoolError> {
-    _check_borrowing_enabled(reserve_data)?;
-    if !reserve_data.stable_rate_base_e24.is_some() {
-        return Err(LendingPoolError::AssetStableBorrowDisabled)
-    }
-    Ok(())
-}
-
 pub fn _check_enough_supply_to_be_collateral(
     reserve_data: &ReserveData,
     user_reserve_data: &UserReserveData,
@@ -108,16 +100,6 @@ pub fn _check_enough_variable_debt(
     user_reserve_data: &UserReserveData,
 ) -> Result<(), LendingPoolError> {
     if user_reserve_data.variable_borrowed <= reserve_data.minimal_debt && user_reserve_data.variable_borrowed != 0 {
-        return Err(LendingPoolError::InsufficientDebt)
-    }
-    Ok(())
-}
-
-pub fn _check_enough_stable_debt(
-    reserve_data: &ReserveData,
-    user_reserve_data: &UserReserveData,
-) -> Result<(), LendingPoolError> {
-    if user_reserve_data.stable_borrowed <= reserve_data.minimal_debt && user_reserve_data.stable_borrowed != 0 {
         return Err(LendingPoolError::InsufficientDebt)
     }
     Ok(())
@@ -199,95 +181,14 @@ pub fn _decrease_total_variable_debt(reserve_data: &mut ReserveData, amount: u12
     reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed.saturating_sub(amount);
 }
 
-pub fn _increase_user_stable_debt_with_rate(
-    reserve_data: &ReserveData,
-    user_reserve_data: &mut UserReserveData,
-    user_config: &mut UserConfig,
-    amount: u128,
-    borrow_rate_e24: u128,
-) {
-    user_config.borrows_stable |= 1_u128 << reserve_data.id;
-
-    user_reserve_data.stable_borrow_rate_e24 = {
-        let stable_borrow_rate_e24_rounded_down = u128::try_from(
-            checked_math!(
-                (user_reserve_data.stable_borrow_rate_e24 * user_reserve_data.stable_borrowed
-                    + borrow_rate_e24 * amount)
-                    / (user_reserve_data.stable_borrowed + amount)
-            )
-            .unwrap(),
-        )
-        .expect(MATH_ERROR_MESSAGE);
-        stable_borrow_rate_e24_rounded_down
-            .checked_add(1)
-            .expect(MATH_ERROR_MESSAGE)
-    };
-    user_reserve_data.stable_borrowed = user_reserve_data
-        .stable_borrowed
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
-}
-
-pub fn _increase_summed_and_accumulated_stable_debt_with_rate(
-    reserve_data: &mut ReserveData,
-    amount: u128,
-    borrow_rate_e24: u128,
-) {
-    reserve_data.avarage_stable_rate_e24 = u128::try_from(
-        checked_math!(
-            (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt + borrow_rate_e24 * amount)
-                / (reserve_data.sum_stable_debt + amount)
-        )
-        .unwrap(),
-    )
-    .expect(MATH_ERROR_MESSAGE);
-    reserve_data.sum_stable_debt = reserve_data
-        .sum_stable_debt
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
-}
-
-pub fn _decrease_user_stable_debt(
-    reserve_data: &ReserveData,
-    user_reserve_data: &mut UserReserveData,
-    user_config: &mut UserConfig,
-    amount: u128,
-) {
-    if amount >= user_reserve_data.stable_borrowed {
-        user_config.borrows_stable &= !(1_u128 << reserve_data.id);
-    }
-    user_reserve_data.stable_borrowed = user_reserve_data.stable_borrowed.saturating_sub(amount);
-}
-pub fn _decrease_summed_and_accumulated_stable_debt_with_rate(
-    reserve_data: &mut ReserveData,
-    amount: u128,
-    borrow_rate_e24: u128,
-) {
-    reserve_data.avarage_stable_rate_e24 = if reserve_data.sum_stable_debt > amount {
-        u128::try_from(
-            checked_math!(
-                (reserve_data.avarage_stable_rate_e24 * reserve_data.sum_stable_debt - borrow_rate_e24 * amount)
-                    / (reserve_data.sum_stable_debt - amount)
-            )
-            .unwrap(),
-        )
-        .expect(MATH_ERROR_MESSAGE)
-    } else {
-        0
-    };
-    reserve_data.sum_stable_debt = reserve_data.sum_stable_debt.saturating_sub(amount);
-}
-
 pub fn _emit_all_abacus_token_transfer_events(
     reserve_data: &ReserveData,
     user: &AccountId,
     a_token_amount_transferred: i128,
     v_token_amount_transferred: i128,
-    s_token_amount_transferred: i128,
 ) -> Result<(), PSP22Error> {
     _emit_abacus_token_transfer_event(&reserve_data.a_token_address, user, a_token_amount_transferred)?;
     _emit_abacus_token_transfer_event(&reserve_data.v_token_address, user, v_token_amount_transferred)?;
-    _emit_abacus_token_transfer_event(&reserve_data.s_token_address, user, s_token_amount_transferred)?;
     Ok(())
 }
 
@@ -404,7 +305,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             .get_user_config(user)
             .unwrap_or_default();
         let collaterals = user_config.deposits & user_config.collaterals;
-        let borrows = user_config.borrows_variable | user_config.borrows_stable;
+        let borrows = user_config.borrows_variable;
         let active = collaterals | borrows;
         for i in 0..registered_assets.len() {
             if ((active >> i) & 1) == 0 {
@@ -444,10 +345,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             }
 
             if ((borrows >> i) & 1) == 1 {
-                let debt = user_reserve
-                    .variable_borrowed
-                    .checked_add(user_reserve.stable_borrowed)
-                    .expect(MATH_ERROR_MESSAGE);
+                let debt = user_reserve.variable_borrowed;
                 let asset_debt_value_e8 =
                     u128::try_from(checked_math!(debt * asset_price_e8 / reserve_data.decimals).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
@@ -497,10 +395,6 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
             let income = i128::try_from(
                 reserve_data
                     .total_variable_borrowed
-                    .checked_add(reserve_data.sum_stable_debt)
-                    .expect(MATH_ERROR_MESSAGE)
-                    .checked_add(reserve_data.accumulated_stable_borrow)
-                    .expect(MATH_ERROR_MESSAGE)
                     .checked_add(balance)
                     .expect(MATH_ERROR_MESSAGE),
             )

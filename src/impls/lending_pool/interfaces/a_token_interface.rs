@@ -101,13 +101,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
         // accumulate reserve
         reserve_data._accumulate_interest(block_timestamp);
         // accumulate from user
-        let (interest_from_supply, interest_from_variable_borrow, interst_from_stable_borrow): (
-            Balance,
-            Balance,
-            Balance,
-        ) = from_user_reserve_data._accumulate_user_interest(&mut reserve_data);
+        let (interest_from_supply, interest_from_variable_borrow): (Balance, Balance) =
+            from_user_reserve_data._accumulate_user_interest(&mut reserve_data);
         // accumulate to user
-        let (interest_to_supply, interest_to_variable_borrow, interst_to_stable_borrow): (Balance, Balance, Balance) =
+        let (interest_to_supply, interest_to_variable_borrow): (Balance, Balance) =
             to_user_reserve_data._accumulate_user_interest(&mut reserve_data);
         // amount check and sub supply
         if from_user_reserve_data.supplied < amount {
@@ -150,23 +147,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolATokenInterface for T {
                         from: None,
                         to: Some(to),
                         amount: interest_to_variable_borrow,
-                    },
-                ],
-            )?;
-        }
-        if interst_from_stable_borrow != 0 || interst_to_stable_borrow != 0 {
-            AbacusTokenRef::emit_transfer_events(
-                &reserve_data.s_token_address,
-                vec![
-                    TransferEventData {
-                        from: None,
-                        to: Some(from),
-                        amount: interst_from_stable_borrow,
-                    },
-                    TransferEventData {
-                        from: None,
-                        to: Some(to),
-                        amount: interst_to_stable_borrow,
                     },
                 ],
             )?;

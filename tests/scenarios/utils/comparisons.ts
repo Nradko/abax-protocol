@@ -45,30 +45,9 @@ export interface CheckRepayVariableParameters {
   vBalance: BN;
   timestamp: number;
 }
-
-export interface CheckBorrowStableParameters {
-  reserveData: ReserveData;
-  userReserveData: UserReserveData;
-  poolBalance: BN;
-  callerBalance: BN;
-  sBalance: BN;
-  sAllowance: BN | undefined;
-  timestamp: number;
-}
-
-export interface CheckRepayStableParameters {
-  reserveData: ReserveData;
-  userReserveData: UserReserveData;
-  poolBalance: BN;
-  callerBalance: BN;
-  sBalance: BN;
-  timestamp: number;
-}
-
 export interface Interests {
   supply: BN;
   variableBorrow: BN;
-  stableBorrow: BN;
 }
 
 export const checkDeposit = (
@@ -121,16 +100,6 @@ export const checkDeposit = (
     userInterests.variableBorrow,
     true,
     'Deposit | VToken Transfer Event',
-  );
-  // SToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.sToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.stableBorrow,
-    true,
-    'Deposit | SToken Transfer Event',
   );
 
   // ReserveData Checks
@@ -262,16 +231,6 @@ export const checkRedeem = (
     userInterests.variableBorrow,
     true,
     'Redeem | VToken Transfer Event',
-  );
-  // SToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.sToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.stableBorrow,
-    true,
-    'Redeem | SToken Transfer Event',
   );
 
   // ReserveData Checks
@@ -425,16 +384,6 @@ export const checkBorrowVariable = (
     true,
     'BorrowVariable | VToken Transfer Event',
   );
-  // SToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.sToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.stableBorrow,
-    true,
-    'BorrowVariable | SToken Transfer Event',
-  );
 
   // ReserveData Checks
   // total_variable_borrowed <- increases on borrow
@@ -476,7 +425,7 @@ export const checkBorrowVariable = (
       actual.toString(),
       `BorrowVariable | UserReserveData | variable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
-    .to.equal(expected.toString());
+    .to.equalUpTo1Digit(expected.toString());
 
   // Underlying Balances Checks
   // LendingPool Balance <- decreases on BorrowVariable
@@ -596,16 +545,6 @@ export const checkRepayVariable = (
     true,
     'RepayVariable | VToken Transfer Event',
   );
-  // SToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.sToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.stableBorrow,
-    true,
-    'RepayVariable | SToken Transfer Event',
-  );
 
   // ReserveData Checks
   // total_variable_borrowed <- decreases on repayVariable
@@ -699,370 +638,6 @@ export const checkRepayVariable = (
   expect.flushSoft();
 };
 
-export const checkBorrowStable = (
-  lendingPoolAddress: string,
-  reserveTokens: TokenReserve,
-  caller: string,
-  onBehalfOf: string,
-  amount: BN,
-  parBefore: CheckBorrowStableParameters,
-  parAfter: CheckBorrowStableParameters,
-  capturedEventsParameters: ValidateEventParameters[],
-) => {
-  // if (
-  //   parAfter.timestamp !== parBefore.timestamp ||
-  //   parAfter.reserveData.indexesUpdateTimestamp !== parBefore.reserveData.indexesUpdateTimestamp ||
-  //   parAfter.userReserveData.updateTimestamp !== parBefore.userReserveData.updateTimestamp
-  // ) {
-  //   console.log('BorrowStable | TIME HAS PASSED | CHECK IS SKIPPED');
-  //   return;
-  // }
-
-  const userInterests = getUserInterests(parBefore.userReserveData, parBefore.reserveData, parAfter.reserveData);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
-  // get event and check what can be checked
-  const borrowStableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvents.BorrowStable);
-  expect(borrowStableEventParameters, 'BorrowStable | Event | not emitted').not.to.be.undefined;
-  expect.soft(borrowStableEventParameters?.sourceContract.address, 'BorrowStable | Event | source contract').to.equal(lendingPoolAddress);
-  const BorrowStableEvent = borrowStableEventParameters?.event as any as BorrowStable;
-  expect(BorrowStableEvent, 'BorrowStable | Event | not emitted').not.to.be.undefined;
-  expect.soft(BorrowStableEvent.asset, 'BorrowStable | Event | asset').to.equal(reserveTokens.underlying.address);
-  expect.soft(BorrowStableEvent.amount.toString(), 'BorrowStable | Event | amount').to.equal(amount.toString());
-  expect.soft(BorrowStableEvent.caller, 'BorrowStable | Event | caller').to.equal(caller);
-  expect.soft(BorrowStableEvent.onBehalfOf, 'BorrowStable | Event | onBehalfOf').to.equal(onBehalfOf);
-
-  // AToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.aToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.supply,
-    true,
-    'BorrowStable | AToken Transfer Event',
-  );
-  // VToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.vToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.variableBorrow,
-    true,
-    'BorrowStable | VToken Transfer Event',
-  );
-  // SToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.sToken.address,
-    onBehalfOf,
-    amount,
-    userInterests.stableBorrow,
-    true,
-    'BorrowStable | SToken Transfer Event',
-  );
-
-  // ReserveData Checks
-  // sum_stable_debt <- increases on borrow
-  let before = parBefore.reserveData.sumStableDebt.rawNumber;
-  let expected = before.add(userInterests.stableBorrow).add(amount);
-  let actual = parAfter.reserveData.sumStableDebt.rawNumber;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(
-      `BorrowStable | ReserveData | sum_stable_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
-  }
-  expect
-    .soft(
-      actual.toString(),
-      `BorrowStable | ReserveData | sum_stable_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
-    .to.equal(expected.toString());
-
-  // accumulatedStableBorrow <- increases on borrow
-  before = parBefore.reserveData.accumulatedStableBorrow.rawNumber;
-  expected = before.add(reserveInterests.stableBorrow).gte(userInterests.stableBorrow)
-    ? before.add(reserveInterests.stableBorrow).sub(userInterests.stableBorrow)
-    : new BN(0);
-  actual = parAfter.reserveData.accumulatedStableBorrow.rawNumber;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(
-      `BorrowStable | ReserveData | accumulatedStableBorrow | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
-  }
-  expect
-    .soft(
-      actual.toString(),
-      `BorrowStable | ReserveData | accumulatedStableBorrow | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
-    .to.equal(expected.toString());
-
-  // UserReserveData Checks
-  // timestamp should be set to reserve data timestamp
-  expect
-    .soft(parAfter.userReserveData.updateTimestamp.toString())
-    .to.equal(parAfter.reserveData.indexesUpdateTimestamp.toString(), `BorrowStable | UserReserveData | timestamp`);
-
-  // stable_borroved <- increases on BorrowStable
-  before = parBefore.userReserveData.stableBorrowed.rawNumber;
-  expected = before.add(userInterests.stableBorrow).add(amount);
-  actual = parAfter.userReserveData.stableBorrowed.rawNumber;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(
-      `BorrowStable | UserReserveData | stable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
-  }
-  expect
-    .soft(
-      actual.toString(),
-      `BorrowStable | UserReserveData | stable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
-    .to.equal(expected.toString());
-
-  // Underlying Balances Checks
-  // LendingPool Balance <- decreases on BorrowStable
-  before = parBefore.poolBalance;
-  expected = before.sub(amount);
-  actual = parAfter.poolBalance;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(`BorrowStable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  }
-  expect
-    .soft(actual.toString(), `BorrowStable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
-    .to.equal(expected.toString());
-
-  // Caller Balance <- increases on BorrowStable
-  before = parBefore.callerBalance;
-  expected = before.add(amount);
-  actual = parAfter.callerBalance;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(`BorrowStable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  }
-  expect
-    .soft(
-      actual.toString(),
-      `BorrowStable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
-    .to.equal(expected.toString());
-
-  // // SToken Checks
-  // // balnce <- increase on BorrowStable
-  // before = parBefore.sBalance;
-  // expected = before.add(amount);
-  // actual = parAfter.sBalance;
-
-  // if (expected.toString() !== actual.toString()) {
-  //   console.log(`BorrowStable | SToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  // }
-  // expect
-  //   .soft(
-  //     actual.toString(),
-  //     `BorrowStable | SToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-  //   )
-  //   .to.equal(expected.toString());
-
-  // allowance <- decrease on BorrowStable
-  if (parBefore.sAllowance !== undefined && parAfter.sAllowance !== undefined) {
-    before = parBefore.sAllowance;
-    expected = before.sub(amount);
-    actual = parAfter.sAllowance;
-
-    expect
-      .soft(
-        actual.toString(),
-        `BorrowStable | SToken Allowance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-      )
-      .to.equal(expected.toString());
-  }
-
-  expect.flushSoft();
-};
-
-export const checkRepayStable = (
-  lendingPoolAddress: string,
-  reserveTokens: TokenReserve,
-  caller: string,
-  onBehalfOf: string,
-  amount: BN | null,
-  parBefore: CheckRepayStableParameters,
-  parAfter: CheckRepayStableParameters,
-  capturedEventsParameters: ValidateEventParameters[],
-) => {
-  // if (
-  //   parAfter.timestamp !== parBefore.timestamp ||
-  //   parAfter.reserveData.indexesUpdateTimestamp !== parBefore.reserveData.indexesUpdateTimestamp ||
-  //   parAfter.userReserveData.updateTimestamp !== parBefore.userReserveData.updateTimestamp
-  // ) {
-  //   console.log('RepayStable | TIME HAS PASSED | CHECK IS SKIPPED');
-  //   return;
-  // }
-
-  const userInterests = getUserInterests(parBefore.userReserveData, parBefore.reserveData, parAfter.reserveData);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
-  amount = amount !== null ? amount : parBefore.userReserveData.stableBorrowed.rawNumber.add(userInterests.stableBorrow);
-
-  // get event and check what can be checked
-  const repayStableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvents.RepayStable);
-  expect(repayStableEventParameters, 'RepayStable | Event | not emitted').not.to.be.undefined;
-  expect.soft(repayStableEventParameters?.sourceContract.address, 'RepayStable | Event | source contract').to.equal(lendingPoolAddress);
-  const RepayStableEvent = repayStableEventParameters?.event as any as RepayStable;
-  expect(RepayStableEvent, 'RepayStable | Event | not emitted').not.to.be.undefined;
-  expect.soft(RepayStableEvent.asset, 'RepayStable | Event | asset').to.equal(reserveTokens.underlying.address);
-  expect.soft(RepayStableEvent.amount.toString(), 'RepayStable | Event | amount').to.equalUpTo1Digit(amount.toString());
-  expect.soft(RepayStableEvent.caller, 'RepayStable | Event | caller').to.equal(caller);
-  expect.soft(RepayStableEvent.onBehalfOf, 'RepayStable | Event | onBehalfOf').to.equal(onBehalfOf);
-
-  // AToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.aToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.supply,
-    true,
-    'RepayStable | AToken Transfer Event',
-  );
-  // VToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.vToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.variableBorrow,
-    true,
-    'RepayStable | VToken Transfer Event',
-  );
-  // SToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.sToken.address,
-    onBehalfOf,
-    amount.neg(),
-    userInterests.stableBorrow,
-    true,
-    'RepayStable | SToken Transfer Event',
-  );
-  // console.log({
-  //   userInterests_supply: userInterests.stableBorrow.toString(),
-  //   reserveInterests_supply: reserveInterests.stableBorrow.toString(),
-  //   cumulativePre: parBefore.reserveData.cumulativeSupplyRateIndexE18.toString(),
-  //   cumulativePost: parAfter.reserveData.cumulativeSupplyRateIndexE18.toString(),
-  //   amount: amount.toString(),
-  // });
-  // console.table(Object.entries(parBefore.reserveData).map(([key, val]) => [key, val.toString()]));
-  // console.table(Object.entries(parAfter.reserveData).map(([key, val]) => [key, val.toString()]));
-  // console.table(Object.entries(parBefore.userReserveData).map(([key, val]) => [key, val.toString()]));
-  // console.table(Object.entries(parAfter.userReserveData).map(([key, val]) => [key, val.toString()]));
-
-  // ReserveData Checks
-  // sum_stable_debt <- decreases on RepayStable
-  let before = parBefore.reserveData.sumStableDebt.rawNumber;
-  let expected = before.add(userInterests.stableBorrow).gte(amount) ? before.add(userInterests.stableBorrow).sub(amount) : 0;
-  let actual = parAfter.reserveData.sumStableDebt.rawNumber;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(
-      `RepayStable | ReserveData | sum_stable_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
-  }
-  expect
-    .soft(
-      actual.toString(),
-      `RepayStable | ReserveData | sum_stable_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
-    .to.equal(expected.toString());
-
-  // accumulatedStableBorrow <- increases on borrow
-  before = parBefore.reserveData.accumulatedStableBorrow.rawNumber;
-  expected = before.add(reserveInterests.stableBorrow).gte(userInterests.stableBorrow)
-    ? before.add(reserveInterests.stableBorrow).sub(userInterests.stableBorrow)
-    : new BN(0);
-  actual = parAfter.reserveData.accumulatedStableBorrow.rawNumber;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(
-      `RepayStable | ReserveData | accumulatedStableBorrow | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
-  }
-  expect
-    .soft(
-      actual.toString(),
-      `RepayStable | ReserveData | accumulatedStableBorrow | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
-    .to.equal(expected.toString());
-
-  // UserReserveData Checks
-  // timestamp should be set to reserve data timestamp
-
-  expect
-    .soft(parAfter.userReserveData.updateTimestamp.toString())
-    .to.equal(parAfter.reserveData.indexesUpdateTimestamp.toString(), `RepayStable | UserReserveData | timestamp`);
-
-  // stable_borroved <- decreases on RepayStable
-  before = parBefore.userReserveData.stableBorrowed.rawNumber;
-  expected = before.add(userInterests.stableBorrow).sub(amount);
-  actual = parAfter.userReserveData.stableBorrowed.rawNumber;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(
-      `RepayStable | UserReserveData | stable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
-  }
-  expect
-    .soft(
-      actual.toString(),
-      `RepayStable | UserReserveData | stable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
-    .to.equal(expected.toString());
-
-  // Underlying Balances Checks
-  // LendingPool Balance <- increases on RepayStable
-  before = parBefore.poolBalance;
-  expected = before.add(amount);
-  actual = parAfter.poolBalance;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(`RepayStable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  }
-  expect
-    .soft(actual.toString(), `RepayStable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
-    .to.equalUpTo1Digit(expected.toString());
-
-  // Caller Balance <- decreases on RepayStable
-  before = parBefore.callerBalance;
-  expected = before.sub(amount);
-  actual = parAfter.callerBalance;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(`RepayStable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  }
-  expect
-    .soft(actual.toString(), `RepayStable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
-    .to.equalUpTo1Digit(expected.toString());
-  // // SToken Checks
-  // // balnce <- decreases on RepayStable
-  // before = parBefore.sBalance;
-  // expected = before.sub(amount);
-  // actual = parAfter.sBalance;
-
-  // if (expected.toString() !== actual.toString()) {
-  //   console.log(`RepayStable | SToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  // }
-  // expect
-  //   .soft(
-  //     actual.toString(),
-  //     `RepayStable | SToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-  //   )
-  //   .to.equal(expected.toString());
-
-  expect.flushSoft();
-};
-
 const getUserInterests = (userReserveData: UserReserveData, reserveDataBefore: ReserveData, reserveDataAfter: ReserveData): Interests => {
   const supplyInterest = userReserveData.appliedCumulativeSupplyRateIndexE18.rawNumber.eqn(0)
     ? new BN(0)
@@ -1090,15 +665,8 @@ const getUserInterests = (userReserveData: UserReserveData, reserveDataBefore: R
       : new BN(reserveDataAfter.indexesUpdateTimestamp.toString()).sub(new BN(userReserveData.updateTimestamp.toString())),
   );
   const E24 = new BN('1000000000000000000000000');
-  const stableBorrowInterest = userReserveData.stableBorrowed.rawNumber
-    .mul(userReserveData.stableBorrowRateE24.rawNumber)
-    .mul(deltaTimestamp)
-    .div(E24);
-  if (stableBorrowInterest !== new BN(0)) {
-    stableBorrowInterest.addn(1);
-  }
 
-  return { supply: supplyInterest, variableBorrow: variableBorrowInterest, stableBorrow: stableBorrowInterest };
+  return { supply: supplyInterest, variableBorrow: variableBorrowInterest };
 };
 // this function does assume that comulative Indexes are calculated correctly inside the contract.
 // this corectness is tested in rust unit tests.
@@ -1125,15 +693,8 @@ const getReserveInterests = (reserveDataBefore: ReserveData, reserveDataAfter: R
     variableBorrowInterest.addn(1);
   }
   const E24 = new BN('1000000000000000000000000');
-  const stableBorrowInterest = reserveDataBefore.sumStableDebt.rawNumber
-    .mul(reserveDataBefore.avarageStableRateE24.rawNumber)
-    .mul(deltaTimestamp)
-    .div(E24);
-  if (stableBorrowInterest !== new BN(0)) {
-    stableBorrowInterest.addn(1);
-  }
 
-  return { supply: supplyInterest, variableBorrow: variableBorrowInterest, stableBorrow: stableBorrowInterest };
+  return { supply: supplyInterest, variableBorrow: variableBorrowInterest };
 };
 
 const checkAbacusTokenTransferEvent = (

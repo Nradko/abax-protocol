@@ -136,7 +136,8 @@
             "reserve": "DAI",
             "amount": "0",
             "user": "1",
-            "onBehalfOf": "1"
+            "onBehalfOf": "1",
+            "borrowRateMode": "variable"
           },
           "expected": "revert",
           "revertMessage": "AmountNotGreaterThanZero"
@@ -860,7 +861,7 @@
       ]
     },
     {
-      "description": "User 0 deposits 1000 DAI, user 4 deposits 2 WETH and borrow 100 DAI at variable rate first, then 100 DAI at stable rate, repays everything. User 0 redeems",
+      "description": "User 0 deposits 1000 DAI, user 4 deposits 2 WETH and borrow 100 DAI at variable rate first, then 100 DAI at variable rate, repays everything. User 0 redeems",
       "actions": [
         {
           "name": "mint",
@@ -948,7 +949,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "100",
-            "borrowRateMode": "stable",
+            "borrowRateMode": "variable",
             "user": "4",
             "timeTravel": "365"
           },
@@ -969,17 +970,6 @@
           "args": {
             "reserve": "DAI",
             "user": "4"
-          },
-          "expected": "success"
-        },
-        {
-          "name": "repay",
-          "args": {
-            "reserve": "DAI",
-            "amount": null,
-            "user": "4",
-            "onBehalfOf": "4",
-            "borrowRateMode": "stable"
           },
           "expected": "success"
         },

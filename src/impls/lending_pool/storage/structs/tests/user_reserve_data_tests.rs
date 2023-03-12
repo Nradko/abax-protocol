@@ -91,8 +91,6 @@ pub mod user_reserve_data_tests {
             let mut init_user_reserve_data = UserReserveData::my_default();
             init_user_reserve_data.supplied = case.init_user_supplied;
             init_user_reserve_data.variable_borrowed = case.init_user_variable_borrowed;
-            init_user_reserve_data.stable_borrowed = case.init_user_stable_borrowed;
-            init_user_reserve_data.stable_borrow_rate_e24 = case.init_user_stable_borrow_rate_e18;
 
             let mut final_reserve_data = init_reserve_data.clone();
             let mut final_user_reserve_data = init_user_reserve_data.clone();
@@ -102,12 +100,10 @@ pub mod user_reserve_data_tests {
             let user_reserve_difference = UserReserveDataDifference {
                 supplied: case.expected_supplied_difference as i128,
                 variable_borrowed: case.expected_variable_borrowed_difference as i128,
-                stable_borrowed: case.expected_stable_borrowed_difference as i128,
                 applied_cumulative_supply_rate_index_e18: final_reserve_data.cumulative_supply_rate_index_e18 - E12,
                 applied_cumulative_variable_borrow_rate_index_e18: final_reserve_data
                     .cumulative_variable_borrow_rate_index_e18
                     - E12,
-                stable_borrow_rate_e18: case.expected_stable_borrow_rate_difference_e18 as i128,
                 update_timestamp: final_reserve_data.indexes_update_timestamp,
             };
 
@@ -123,10 +119,8 @@ pub mod user_reserve_data_tests {
     pub struct UserReserveDataDifference {
         supplied: i128,
         variable_borrowed: i128,
-        stable_borrowed: i128,
         applied_cumulative_supply_rate_index_e18: u128,
         applied_cumulative_variable_borrow_rate_index_e18: u128,
-        stable_borrow_rate_e18: i128,
         update_timestamp: Timestamp,
     }
 
@@ -147,12 +141,7 @@ pub mod user_reserve_data_tests {
             differences.variable_borrowed,
             "variable_borrowed".to_string(),
         );
-        assert(
-            initital_user_reserve_data.stable_borrowed,
-            final_user_reserve_data.stable_borrowed,
-            differences.stable_borrowed,
-            "stable_borrowed".to_string(),
-        );
+
         assert(
             initital_user_reserve_data.applied_cumulative_supply_rate_index_e18,
             final_user_reserve_data.applied_cumulative_supply_rate_index_e18,
@@ -165,12 +154,7 @@ pub mod user_reserve_data_tests {
             differences.applied_cumulative_variable_borrow_rate_index_e18,
             "applied_cumulative_variable_borrow_rate_index_e18".to_string(),
         );
-        assert(
-            initital_user_reserve_data.stable_borrow_rate_e24,
-            final_user_reserve_data.stable_borrow_rate_e24,
-            differences.stable_borrow_rate_e18,
-            "stable_borrow_rate_e18".to_string(),
-        );
+
         assert_timestamp(
             initital_user_reserve_data.update_timestamp,
             final_user_reserve_data.update_timestamp,
