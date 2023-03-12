@@ -16,6 +16,4 @@ pub struct UserConfig {
     pub collaterals: Bitmap128,
     /// active borrow_variable.
     pub borrows_variable: Bitmap128,
-    /// active borrow_stable.
-    pub borrows_stable: Bitmap128,
 }

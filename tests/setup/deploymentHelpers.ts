@@ -269,14 +269,13 @@ export const deployAndConfigureSystem = async (
   for (const reserveData of testReserveTokensToDeploy) {
     const reserve = await deployReserveToken(owner, reserveData.name, reserveData.decimals);
     if (process.env.DEBUG) console.log(`${reserveData.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
-    const { aToken, vToken, sToken } = await registerNewAsset(
+    const { aToken, vToken } = await registerNewAsset(
       owner,
       contracts.lendingPool,
       reserveData.name,
       reserve.address,
       reserveData.collateralCoefficient,
       reserveData.borrowCoefficient,
-      reserveData.stableBaseRate,
       reserveData.maximalTotalSupply,
       reserveData.maximalTotalDebt,
       reserveData.minimalCollateral,
@@ -291,7 +290,6 @@ export const deployAndConfigureSystem = async (
       underlying: reserve,
       aToken,
       vToken,
-      sToken,
       decimals: reserveData.decimals,
     };
   }
@@ -325,7 +323,7 @@ async function saveConfigToFile(testEnv: TestEnv, writePath: string) {
         address: testEnv.blockTimestampProvider.address,
       },
       ...Object.entries(testEnv.reserves).flatMap(([reserveName, r]) =>
-        [r.underlying, r.aToken, r.vToken, r.sToken].map((c) => ({
+        [r.underlying, r.aToken, r.vToken].map((c) => ({
           name: c.name,
           address: c.address,
           reserveName,
@@ -347,7 +345,6 @@ export async function registerNewAsset(
   assetAddress: string,
   collateralCoefficient: null | number,
   borrowCoefficient: null | number,
-  stableRateBaseE24: number | null,
   maximalTotalSupply: null | BN,
   maximalDebt: null | BN,
   minimalCollatral: number | BN,
@@ -359,13 +356,11 @@ export async function registerNewAsset(
 ) {
   const aToken = await deployAToken(owner, symbol, decimals, lendingPool.address, assetAddress);
   const vToken = await deployVToken(owner, symbol, decimals, lendingPool.address, assetAddress);
-  const sToken = await deploySToken(owner, symbol, decimals, lendingPool.address, assetAddress);
   const registerAssetArgs: Parameters<typeof lendingPool.query.registerAsset> = [
     assetAddress,
     new BN(Math.pow(10, decimals).toString()),
     collateralCoefficient ? toE6(collateralCoefficient) : null,
     borrowCoefficient ? toE6(borrowCoefficient) : null,
-    stableRateBaseE24,
     maximalTotalSupply,
     maximalDebt,
     minimalCollatral,
@@ -375,11 +370,10 @@ export async function registerNewAsset(
     flashLoanFeeE6,
     aToken.address,
     vToken.address,
-    sToken.address,
   ];
   const res = await lendingPool.query.registerAsset(...registerAssetArgs);
 
   await lendingPool.tx.registerAsset(...registerAssetArgs);
 
-  return { aToken, vToken, sToken };
+  return { aToken, vToken };
 }

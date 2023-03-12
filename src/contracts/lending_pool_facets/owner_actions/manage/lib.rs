@@ -62,7 +62,6 @@ pub mod lending_pool_v0_manage_facet {
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -72,7 +71,6 @@ pub mod lending_pool_v0_manage_facet {
         flash_loan_fee_e6: u128,
         a_token_address: AccountId,
         v_token_address: AccountId,
-        s_token_address: AccountId,
     }
 
     #[ink(event)]
@@ -96,7 +94,6 @@ pub mod lending_pool_v0_manage_facet {
         interest_rate_model: [u128; 7],
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -119,7 +116,6 @@ pub mod lending_pool_v0_manage_facet {
             decimals: u128,
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
-            stable_rate_base_e24: Option<u128>,
             maximal_total_supply: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
@@ -129,14 +125,12 @@ pub mod lending_pool_v0_manage_facet {
             flash_loan_fee_e6: u128,
             a_token_address: &AccountId,
             v_token_address: &AccountId,
-            s_token_address: &AccountId,
         ) {
             self.env().emit_event(AssetRegistered {
                 asset: *asset,
                 decimals,
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
-                stable_rate_base_e24,
                 maximal_total_supply,
                 maximal_total_debt,
                 minimal_collateral,
@@ -146,7 +140,6 @@ pub mod lending_pool_v0_manage_facet {
                 flash_loan_fee_e6,
                 a_token_address: *a_token_address,
                 v_token_address: *v_token_address,
-                s_token_address: *s_token_address,
             })
         }
 
@@ -163,7 +156,6 @@ pub mod lending_pool_v0_manage_facet {
             interest_rate_model: &[u128; 7],
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
-            stable_rate_base_e24: Option<u128>,
             maximal_total_supply: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
@@ -177,7 +169,6 @@ pub mod lending_pool_v0_manage_facet {
                 interest_rate_model: *interest_rate_model,
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
-                stable_rate_base_e24,
                 maximal_total_supply,
                 maximal_total_debt,
                 minimal_collateral,

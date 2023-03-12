@@ -1,4 +1,3 @@
-#![allow(unused_variables)]
 use ink::prelude::{
     string::String,
     vec::Vec,
