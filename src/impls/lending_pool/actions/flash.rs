@@ -1,6 +1,5 @@
 // TODO::think should we emit events on set_as_collateral
 
-#![allow(unused_variables)]
 use crate::{
     impls::{
         constants::{
@@ -78,7 +77,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
                 .call_flags(CallFlags::default().set_allow_reentry(true))
                 .try_invoke()
                 .unwrap()??;
-            let receiver_balance = PSP22Ref::balance_of(&assets[i], receiver_address);
         }
 
         FlashLoanReceiverRef::execute_operation_builder(

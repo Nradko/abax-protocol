@@ -14,7 +14,6 @@ export type TokenReserve = {
   underlying: EmittedTokenContract;
   aToken: ATokenContract;
   vToken: VTokenContract;
-  sToken: STokenContract;
   decimals: number;
 };
 

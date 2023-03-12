@@ -46,7 +46,6 @@ pub enum LendingPoolError {
     TakingNotACollateral,
     RebalanceCondition,
     NoStableBorrow,
-    UnspecifiedAction,
     RuleNeedsPermission,
     CurrentlyBorrowingWrongAsset,
     NothingToRedeem,

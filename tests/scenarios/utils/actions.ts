@@ -22,16 +22,12 @@ import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
 import SToken from '../../../typechain/contracts/s_token';
 import VToken from '../../../typechain/contracts/v_token';
 import {
-  checkBorrowStable,
-  CheckBorrowStableParameters,
   checkBorrowVariable,
   CheckBorrowVariableParameters,
   checkDeposit,
   CheckDepositParameters,
   checkRedeem,
   CheckRedeemParameters,
-  checkRepayStable,
-  CheckRepayStableParameters,
   checkRepayVariable,
   CheckRepayVariableParameters,
 } from './comparisons';
@@ -60,7 +56,6 @@ export const approve = async (reserveSymbol: string, user: KeyringPair, testEnv:
   const reserve = reserves[reserveSymbol].underlying;
   const amountBN = amount ? (BN.isBN(amount) ? amount : new BN(amount)) : new BN('100000000000000000000000000000');
   await reserve.withSigner(user).tx.approve(lendingPool.address, amountBN);
-  await reserves[reserveSymbol].sToken.withSigner(user).tx.approve(lendingPool.address, amountBN);
   await reserves[reserveSymbol].aToken.withSigner(user).tx.approve(lendingPool.address, amountBN);
   await reserves[reserveSymbol].vToken.withSigner(user).tx.approve(lendingPool.address, amountBN);
 };
@@ -107,12 +102,6 @@ export const increaseAllowance = async (
       const amountConverted = await convertToCurrencyDecimals(reserves[reserveSymbol].vToken, amount);
       if (process.env.DEBUG) await reserves[reserveSymbol].vToken.withSigner(user).query.increaseAllowance(targetUser.address, amountConverted, {});
       await reserves[reserveSymbol].vToken.withSigner(user).methods.increaseAllowance(targetUser.address, amountConverted, {});
-      break;
-    }
-    case LendingToken.SToken: {
-      const amountConverted = await convertToCurrencyDecimals(reserves[reserveSymbol].sToken, amount);
-      if (process.env.DEBUG) await reserves[reserveSymbol].sToken.withSigner(user).query.increaseAllowance(targetUser.address, amountConverted, {});
-      await reserves[reserveSymbol].sToken.withSigner(user).methods.increaseAllowance(targetUser.address, amountConverted, {});
       break;
     }
   }
@@ -303,10 +292,10 @@ export const borrow = async (
   testEnv: TestEnv,
   expectedErrorName?: string,
 ) => {
-  if (interestRateMode === RateMode.Stable) {
-    await borrowStable(reserveSymbol, amount, user, onBehalfOf, timeTravelInDays, expectedResult, testEnv, expectedErrorName);
-  } else {
+  if (interestRateMode === RateMode.Variable) {
     await borrowVariable(reserveSymbol, amount, user, onBehalfOf, timeTravelInDays, expectedResult, testEnv, expectedErrorName);
+  } else {
+    throw 'Stable rate not supported!';
   }
 };
 export const borrowVariable = async (
@@ -381,78 +370,6 @@ export const borrowVariable = async (
     }
   }
 };
-export const borrowStable = async (
-  reserveSymbol: string,
-  amount: string,
-  caller: KeyringPair,
-  onBehalfOf: KeyringPair,
-  timeTravelInDays: string,
-  expectedResult: string,
-  testEnv: TestEnv,
-  expectedErrorName?: string,
-) => {
-  const { lendingPool, reserves, blockTimestampProvider } = testEnv;
-  const reserve = reserves[reserveSymbol];
-
-  const parametersBefore = await getCheckBorrowStableParameters(
-    lendingPool,
-    reserve.underlying,
-    reserve.sToken,
-    blockTimestampProvider,
-    caller,
-    onBehalfOf,
-  );
-
-  const amountToBorrow = await convertToCurrencyDecimals(reserve.underlying, amount);
-  const args: Parameters<typeof lendingPool.tx.borrow> = [reserve.underlying.address, onBehalfOf.address, amountToBorrow, [1]];
-
-  if (expectedResult === 'success') {
-    if (process.env.DEBUG) {
-      const { gasConsumed } = await lendingPool.withSigner(caller).query.borrow(...args);
-    }
-    const capturedEvents: ValidateEventParameters[] = [];
-    const unsubscribePromises = await subscribeOnEvents(testEnv, reserveSymbol, (eventName, event, sourceContract, timestamp) => {
-      capturedEvents.push({ eventName, event, sourceContract, timestamp });
-    });
-
-    const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.borrow(...args));
-
-    const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-    const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
-
-    if (timeTravelInDays) {
-      const secondsToTravel = new BN(timeTravelInDays).mul(ONE_YEAR).div(new BN(365)).toNumber();
-      await advanceBlockTimestamp(testEnv.blockTimestampProvider, secondsToTravel);
-    }
-
-    const parametersAfter = await getCheckBorrowStableParameters(
-      lendingPool,
-      reserve.underlying,
-      reserve.sToken,
-      blockTimestampProvider,
-      caller,
-      onBehalfOf,
-    );
-
-    checkBorrowStable(
-      lendingPool.address,
-      reserve,
-      caller.address,
-      onBehalfOf.address,
-      amountToBorrow,
-      parametersBefore,
-      parametersAfter,
-      eventsFromTxOnly,
-    );
-  } else if (expectedResult === 'revert') {
-    if (expectedErrorName) {
-      const queryRes = (await lendingPool.withSigner(caller).query.borrow(...args)).value.ok;
-      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
-    } else {
-      await expect(lendingPool.withSigner(caller).tx.borrow(...args)).to.eventually.be.rejected;
-    }
-  }
-};
 
 export const repay = async (
   reserveSymbol: string,
@@ -464,10 +381,10 @@ export const repay = async (
   testEnv: TestEnv,
   expectedErrorName?: string,
 ) => {
-  if (rateMode === RateMode.Stable) {
-    await repayStable(reserveSymbol, amount, user, onBehalfOf, expectedResult, testEnv, expectedErrorName);
-  } else {
+  if (rateMode === RateMode.Variable) {
     await repayVariable(reserveSymbol, amount, user, onBehalfOf, expectedResult, testEnv, expectedErrorName);
+  } else {
+    throw 'Stable rate not supported!';
   }
 };
 
@@ -522,77 +439,6 @@ export const repayVariable = async (
     );
 
     checkRepayVariable(
-      lendingPool.address,
-      reserve,
-      caller.address,
-      onBehalfOf.address,
-      amountToRepay,
-      parametersBefore,
-      parametersAfter,
-      eventsFromTxOnly,
-    );
-  } else if (expectedResult === 'revert') {
-    if (expectedErrorName) {
-      const queryRes = (await lendingPool.withSigner(caller).query.repay(...args)).value.ok;
-      expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
-    } else {
-      await expect(lendingPool.withSigner(caller).tx.repay(...args)).to.eventually.be.rejected;
-    }
-  }
-};
-
-export const repayStable = async (
-  reserveSymbol: string,
-  amount: string,
-  caller: KeyringPair,
-  onBehalfOf: KeyringPair,
-  expectedResult: string,
-  testEnv: TestEnv,
-  expectedErrorName?: string,
-) => {
-  const { lendingPool, reserves, blockTimestampProvider } = testEnv;
-  const reserve: TokenReserve = reserves[reserveSymbol];
-
-  const parametersBefore = await getCheckRepayStableParameters(
-    lendingPool,
-    reserve.underlying,
-    reserve.sToken,
-    blockTimestampProvider,
-    caller,
-    onBehalfOf,
-  );
-
-  let amountToRepay: BN | null = null;
-
-  if (amount !== null) {
-    amountToRepay = await convertToCurrencyDecimals(reserve.underlying, amount);
-  }
-  const args: Parameters<typeof lendingPool.tx.repay> = [reserve.underlying.address, onBehalfOf.address, amountToRepay, [1]];
-
-  if (expectedResult === 'success') {
-    if (process.env.DEBUG) {
-      const { gasConsumed } = await lendingPool.withSigner(caller).query.repay(...args);
-    }
-    const capturedEvents: ValidateEventParameters[] = [];
-    const unsubscribePromises = await subscribeOnEvents(testEnv, reserveSymbol, (eventName, event, sourceContract, timestamp) => {
-      capturedEvents.push({ eventName, event, sourceContract, timestamp });
-    });
-
-    const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.repay(...args));
-
-    const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-    const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
-
-    const parametersAfter = await getCheckRepayStableParameters(
-      lendingPool,
-      reserve.underlying,
-      reserve.sToken,
-      blockTimestampProvider,
-      caller,
-      onBehalfOf,
-    );
-
-    checkRepayStable(
       lendingPool.address,
       reserve,
       caller.address,
@@ -772,44 +618,6 @@ export const getCheckRepayVariableParameters = async (
     poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
     callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
     vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
-  };
-};
-
-export const getCheckBorrowStableParameters = async (
-  lendingPool: LendingPool,
-  reserve: PSP22Emitable,
-  sToken: SToken,
-  blockTimestampProvider: BlockTimestampProvider,
-  caller: KeyringPair,
-  onBehalfOf: KeyringPair,
-): Promise<CheckBorrowStableParameters> => {
-  return {
-    ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
-    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
-    sBalance: new BN((await sToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
-    sAllowance:
-      caller.address !== onBehalfOf.address
-        ? new BN((await sToken.query.allowance(onBehalfOf.address, caller.address)).value.ok!.toString())
-        : undefined,
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
-  };
-};
-
-export const getCheckRepayStableParameters = async (
-  lendingPool: LendingPool,
-  reserve: PSP22Emitable,
-  sToken: SToken,
-  blockTimestampProvider: BlockTimestampProvider,
-  caller: KeyringPair,
-  onBehalfOf: KeyringPair,
-): Promise<CheckRepayStableParameters> => {
-  return {
-    ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
-    poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
-    callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
-    sBalance: new BN((await sToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
     timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
   };
 };

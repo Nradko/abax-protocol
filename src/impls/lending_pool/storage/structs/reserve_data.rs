@@ -12,7 +12,6 @@ use scale::{
 
 use crate::impls::constants::{
     E18,
-    E24,
     E6,
     MATH_ERROR_MESSAGE,
 };
@@ -45,8 +44,6 @@ pub struct ReserveData {
     pub collateral_coefficient_e6: Option<u128>,
     /// used while veryfing loan to debt. If None then can not be borrowed.
     pub borrow_coefficient_e6: Option<u128>,
-    /// stable_rate = base + variable rates. If None then can not be stable borrowed.
-    pub stable_rate_base_e24: Option<u128>,
     /// maximal allowed total supply
     pub maximal_total_supply: Option<Balance>,
     /// maximal allowad total debt
@@ -82,13 +79,6 @@ pub struct ReserveData {
     pub cumulative_variable_borrow_rate_index_e18: u128,
     // current interest rate for variable debt per millisecond. 10^24 = 100%  millisecond Percentage Rate.
     pub current_variable_borrow_rate_e24: u128,
-    //// stable_borrow
-    // sum of the stable debts of all users (does NOT include interests). Total supply of sToken.
-    pub sum_stable_debt: Balance,
-    // accumulated stable debt interests that werent yet accumulated for user debts.
-    pub accumulated_stable_borrow: Balance,
-    // arithmetic weighted mean over all users stable borrow rates with wieght being user debt. 10^24 = 100%  millisecond Percentage Rate.
-    pub avarage_stable_rate_e24: u128,
     ////
     /// timestamp of last borrow index update
     pub indexes_update_timestamp: Timestamp,
@@ -97,8 +87,6 @@ pub struct ReserveData {
     pub a_token_address: AccountId,
     /// address of wrapping variable borrow vToken
     pub v_token_address: AccountId,
-    /// addtess of wrapping stable borrow sToken
-    pub s_token_address: AccountId,
 }
 
 impl ReserveData {
@@ -107,33 +95,8 @@ impl ReserveData {
         if self.total_supplied == 0 {
             return E6
         }
-        let total_debt = self
-            .total_variable_borrowed
-            .checked_add(self.sum_stable_debt)
-            .expect(MATH_ERROR_MESSAGE)
-            .checked_add(self.accumulated_stable_borrow)
-            .expect(MATH_ERROR_MESSAGE);
+        let total_debt = self.total_variable_borrowed;
         u128::try_from(checked_math!(total_debt * E6 / self.total_supplied).unwrap()).expect(MATH_ERROR_MESSAGE)
-    }
-
-    // call it only on updated reserve
-    pub fn _after_borrow_utilization_rate_e6(&self, new_borrowed_amount: Balance) -> Result<u128, LendingPoolError> {
-        if self.total_supplied == 0 {
-            return Ok(E6)
-        }
-        let new_total_debt = self
-            .total_variable_borrowed
-            .checked_add(self.sum_stable_debt)
-            .expect(MATH_ERROR_MESSAGE)
-            .checked_add(self.accumulated_stable_borrow)
-            .expect(MATH_ERROR_MESSAGE)
-            .checked_add(new_borrowed_amount)
-            .expect(MATH_ERROR_MESSAGE);
-
-        Ok(
-            u128::try_from(checked_math!(new_total_debt * E6 / self.total_supplied).unwrap())
-                .expect(MATH_ERROR_MESSAGE),
-        )
     }
 
     pub fn _utilization_rate_to_interest_rate_e24(&self, utilization_rate_e6: u128) -> u128 {
@@ -149,19 +112,6 @@ impl ReserveData {
             950_000..=999_999 => t95 + (t100 - t95) * (utilization_rate_e6 - 950_000) / 50_000 + 1,
             _ => t100 * utilization_rate_e6 / E6 + 1,
         }
-    }
-
-    // // call it only on updated reserve
-    // pub fn _after_borrow_variable_borrow_rate_e12(&self, new_borrow_amount: Balance) -> u128 {
-    //     self._utilization_rate_to_interest_rate_e12(self._after_borrow_utilization_rate_e6(new_borrow_amount))
-    // }
-
-    // call it only on updated reserve
-    pub fn _after_borrow_stable_borrow_rate_e24(&self, new_borrow_amount: Balance) -> Result<u128, LendingPoolError> {
-        Ok(
-            self._utilization_rate_to_interest_rate_e24(self._after_borrow_utilization_rate_e6(new_borrow_amount)?)
-                + self.stable_rate_base_e24.unwrap_or_default(),
-        )
     }
 
     //// MUT
@@ -211,24 +161,11 @@ impl ReserveData {
                     .expect(MATH_ERROR_MESSAGE)
             };
         }
-
-        if self.avarage_stable_rate_e24 != 0 {
-            self.accumulated_stable_borrow = {
-                let accumulated_stable_borrow_delta = u128::try_from(
-                    checked_math!(self.sum_stable_debt * (self.avarage_stable_rate_e24 * delta_timestamp) / E24)
-                        .unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
-                self.accumulated_stable_borrow
-                    .checked_add(accumulated_stable_borrow_delta)
-                    .expect(MATH_ERROR_MESSAGE)
-            }
-        }
         self.indexes_update_timestamp = new_timestamp;
     }
 
     pub fn _recalculate_current_rates(&mut self) {
-        if self.total_variable_borrowed + self.sum_stable_debt + self.accumulated_stable_borrow == 0 {
+        if self.total_variable_borrowed == 0 {
             self.current_variable_borrow_rate_e24 = 0;
             self.current_supply_rate_e24 = 0;
             return
@@ -237,11 +174,9 @@ impl ReserveData {
         self.current_variable_borrow_rate_e24 = self._utilization_rate_to_interest_rate_e24(utilization_rate_e6);
 
         if self.total_supplied != 0 {
-            let current_income_per_milisecond_e24: U256 = checked_math!(
-                self.total_variable_borrowed * self.current_variable_borrow_rate_e24
-                    + self.sum_stable_debt * self.avarage_stable_rate_e24
-            )
-            .expect(MATH_ERROR_MESSAGE);
+            let current_income_per_milisecond_e24: U256 =
+                checked_math!(self.total_variable_borrowed * self.current_variable_borrow_rate_e24)
+                    .expect(MATH_ERROR_MESSAGE);
             self.current_supply_rate_e24 = u128::try_from(
                 checked_math!(
                     current_income_per_milisecond_e24 * self.income_for_suppliers_part_e6 / (self.total_supplied * E6)
@@ -285,7 +220,6 @@ impl Default for ReserveData {
             minimal_collateral: 0,
             minimal_debt: 0,
             penalty_e6: 0,
-            stable_rate_base_e24: None,
             income_for_suppliers_part_e6: E6,
             flash_loan_fee_e6: 0,
             token_price_e8: None,
@@ -295,13 +229,9 @@ impl Default for ReserveData {
             total_variable_borrowed: 0,
             cumulative_variable_borrow_rate_index_e18: E18,
             current_variable_borrow_rate_e24: 0,
-            sum_stable_debt: 0,
-            accumulated_stable_borrow: 0,
-            avarage_stable_rate_e24: 0,
             indexes_update_timestamp: 0,
             a_token_address: ink::blake2x256!("ZERO_ADRESS").into(),
             v_token_address: ink::blake2x256!("ZERO_ADRESS").into(),
-            s_token_address: ink::blake2x256!("ZERO_ADRESS").into(),
         }
     }
 }

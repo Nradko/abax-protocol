@@ -1,6 +1,4 @@
 // TODO::think should we emit events on set_as_collateral
-
-#![allow(unused_variables)]
 use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
@@ -37,7 +35,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         asset: AccountId,
         on_behalf_of: AccountId,
         amount: Balance,
-        data: Vec<u8>,
+        #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         //// ARGUMENT CHECK
         if amount == 0 {
@@ -62,15 +60,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
 
         //// MODIFY DATA
         // accumulate
-        let (
-            interest_on_behalf_of_supply,
-            interest_on_behalf_of_variable_borrow,
-            interest_on_behalf_of_stable_borrow,
-        ): (Balance, Balance, Balance) = _accumulate_interest(
-            &mut reserve_data,
-            &mut on_behalf_of_reserve_data,
-            block_timestamp,
-        );
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
+            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
         // add deposit
         _increase_user_deposit(
             &reserve_data,
@@ -121,12 +112,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             &on_behalf_of,
             interest_on_behalf_of_variable_borrow as i128,
         )?;
-        // STOKEN
-        _emit_abacus_token_transfer_event(
-            &reserve_data.s_token_address,
-            &on_behalf_of,
-            interest_on_behalf_of_stable_borrow as i128,
-        )?;
 
         //// EVENT
         self._emit_deposit_event(asset, Self::env().caller(), on_behalf_of, amount);
@@ -139,7 +124,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         asset: AccountId,
         on_behalf_of: AccountId,
         amount_arg: Option<Balance>,
-        data: Vec<u8>,
+        #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
         //// PULL DATA
         let block_timestamp =
@@ -159,15 +144,8 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             .ok_or(LendingPoolError::InsufficientSupply)?;
         // MODIFY PULLED STORAGE & AMOUNT CHECK
         // accumulate
-        let (
-            interest_on_behalf_of_supply,
-            interest_on_behalf_of_variable_borrow,
-            interest_on_behalf_of_stable_borrow,
-        ): (Balance, Balance, Balance) = _accumulate_interest(
-            &mut reserve_data,
-            &mut on_behalf_of_reserve_data,
-            block_timestamp,
-        );
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
+            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
         // amount checks
         let amount = match amount_arg {
             Some(v) => v,
@@ -221,12 +199,6 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
             &on_behalf_of,
             interest_on_behalf_of_variable_borrow as i128,
         )?;
-        // STOKEN
-        _emit_abacus_token_transfer_event(
-            &reserve_data.s_token_address,
-            &on_behalf_of,
-            interest_on_behalf_of_stable_borrow as i128,
-        )?;
 
         //// EVENT
         self._emit_redeem_event(asset, Self::env().caller(), on_behalf_of, amount);
@@ -236,6 +208,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitDepositEvents for T {
+    #[allow(unused_variables)]
     default fn _emit_deposit_event(
         &mut self,
         asset: AccountId,
@@ -244,6 +217,7 @@ impl<T: Storage<LendingPoolStorage>> EmitDepositEvents for T {
         amount: Balance,
     ) {
     }
+    #[allow(unused_variables)]
     default fn _emit_redeem_event(
         &mut self,
         asset: AccountId,

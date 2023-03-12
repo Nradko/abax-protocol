@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "contracts/a_token",
-    "contracts/s_token",
     "contracts/v_token",
     "contracts/lending_pool",
     "contracts/psp22_emitable",

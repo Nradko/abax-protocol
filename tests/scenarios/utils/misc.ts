@@ -146,9 +146,6 @@ export const subscribeOnEvents = (
   for (const event of Object.values(ContractsEvents.ATokenEvents)) {
     subscribePromises.push(subscribeOnEvent(reserve.aToken, event, callbackDecorator(event, reserve.aToken)));
   }
-  for (const event of Object.values(ContractsEvents.STokenEvents)) {
-    subscribePromises.push(subscribeOnEvent(reserve.sToken, event, callbackDecorator(event, reserve.sToken)));
-  }
 
   return Promise.all(subscribePromises);
 };
@@ -173,7 +170,6 @@ export const getReserveDefaultObj = (): ReserveData => {
     maximalTotalSupply: null,
     maximalTotalDebt: null,
     penaltyE6: new ReturnNumber(0),
-    stableRateBaseE24: new ReturnNumber(0),
     incomeForSuppliersPartE6: new ReturnNumber(E6),
     minimalCollateral: new ReturnNumber(0),
     minimalDebt: new ReturnNumber(0),
@@ -185,13 +181,9 @@ export const getReserveDefaultObj = (): ReserveData => {
     totalVariableBorrowed: new ReturnNumber(0),
     cumulativeVariableBorrowRateIndexE18: new ReturnNumber(E18),
     currentVariableBorrowRateE24: new ReturnNumber(0),
-    sumStableDebt: new ReturnNumber(0),
-    accumulatedStableBorrow: new ReturnNumber(0),
-    avarageStableRateE24: new ReturnNumber(0),
     indexesUpdateTimestamp: 0,
     aTokenAddress: '',
     vTokenAddress: '',
-    sTokenAddress: '',
   };
 };
 
@@ -199,10 +191,8 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
   return {
     supplied: new ReturnNumber(0),
     variableBorrowed: new ReturnNumber(0),
-    stableBorrowed: new ReturnNumber(0),
     appliedCumulativeSupplyRateIndexE18: new ReturnNumber(0),
     appliedCumulativeVariableBorrowRateIndexE18: new ReturnNumber(0),
-    stableBorrowRateE24: new ReturnNumber(0),
     updateTimestamp: -1,
   };
 };
