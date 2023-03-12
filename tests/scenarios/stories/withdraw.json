@@ -248,7 +248,7 @@
       ]
     },
     {
-      "description": "Users 0 deposits 1000 DAI, user 1 Deposit 1000 USDC and 1 WETH, borrows 100 DAI. User 1 tries to redeem all the USDC",
+      "description": "Users 0 deposits 1000 DAI, user 1 Deposit 1000 USDC and 1 WETH, borrows (variable) 100 DAI. User 1 tries to redeem all the USDC",
       "actions": [
         {
           "name": "deposit",
@@ -335,7 +335,7 @@
             "reserve": "DAI",
             "amount": "100",
             "user": "1",
-            "borrowRateMode": "stable"
+            "borrowRateMode": "variable"
           },
           "expected": "success"
         },

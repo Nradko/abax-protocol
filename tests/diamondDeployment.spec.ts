@@ -47,7 +47,6 @@ describe.skip('Diamond Contract', () => {
       null,
       100000,
       null,
-      null,
       0,
       0,
       12,
@@ -55,7 +54,6 @@ describe.skip('Diamond Contract', () => {
       123,
       reserve.aToken.address,
       reserve.vToken.address,
-      reserve.sToken.address,
     );
     await lendingPool.tx.registerAsset(
       reserve.underlying.address,
@@ -64,7 +62,6 @@ describe.skip('Diamond Contract', () => {
       null,
       100000,
       null,
-      null,
       0,
       0,
       12,
@@ -72,7 +69,6 @@ describe.skip('Diamond Contract', () => {
       123,
       reserve.aToken.address,
       reserve.vToken.address,
-      reserve.sToken.address,
     );
     await lendingPool.query.insertReserveTokenPriceE8(reserve.underlying.address, '123456789');
     await lendingPool.tx.insertReserveTokenPriceE8(reserve.underlying.address, '123456789');

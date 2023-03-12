@@ -63,16 +63,6 @@ pub mod lending_pool_v0_liquidate_facet {
         amount_taken: Balance,
     }
 
-    #[ink(event)]
-    pub struct LiquidationStableEvent {
-        liquidator: AccountId,
-        user: AccountId,
-        asset_to_rapay: AccountId,
-        asset_to_take: AccountId,
-        amount_repaid: Balance,
-        amount_taken: Balance,
-    }
-
     impl EmitLiquidateEvents for LendingPoolV0LiquidateFacet {
         default fn _emit_liquidation_variable_event(
             &mut self,
@@ -84,24 +74,6 @@ pub mod lending_pool_v0_liquidate_facet {
             amount_taken: Balance,
         ) {
             self.env().emit_event(LiquidationVariableEvent {
-                liquidator,
-                user,
-                asset_to_rapay,
-                asset_to_take,
-                amount_repaid,
-                amount_taken,
-            })
-        }
-        default fn _emit_liquidation_stable_event(
-            &mut self,
-            liquidator: AccountId,
-            user: AccountId,
-            asset_to_rapay: AccountId,
-            asset_to_take: AccountId,
-            amount_repaid: Balance,
-            amount_taken: Balance,
-        ) {
-            self.env().emit_event(LiquidationStableEvent {
                 liquidator,
                 user,
                 asset_to_rapay,

@@ -127,11 +127,6 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], vToken };
         break;
       }
-      case 's_token': {
-        const sToken = await getContractObject(SToken, contractInfo.address, owner);
-        reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], sToken };
-        break;
-      }
     }
   }
 

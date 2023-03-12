@@ -24,7 +24,6 @@ pub mod lending_pool {
             a_token_interface::*,
             actions::*,
             manage::*,
-            s_token_interface::*,
             v_token_interface::*,
             view::*,
         },
@@ -72,9 +71,6 @@ pub mod lending_pool {
 
     /// Implements interface for Abacus Stable Debt token - SToken
     impl LendingPoolVTokenInterface for LendingPool {}
-
-    /// Implements interface for Abacus Variable Debt token - VToken
-    impl LendingPoolSTokenInterface for LendingPool {}
 
     impl LendingPool {
         #[ink(constructor)]
@@ -133,24 +129,6 @@ pub mod lending_pool {
         on_behalf_of: AccountId,
         amount: Balance,
     }
-    #[ink(event)]
-    pub struct BorrowStable {
-        #[ink(topic)]
-        asset: AccountId,
-        caller: AccountId,
-        #[ink(topic)]
-        on_behalf_of: AccountId,
-        amount: Balance,
-    }
-    #[ink(event)]
-    pub struct RepayStable {
-        #[ink(topic)]
-        asset: AccountId,
-        caller: AccountId,
-        #[ink(topic)]
-        on_behalf_of: AccountId,
-        amount: Balance,
-    }
 
     #[ink(event)]
     pub struct FlashLoan {
@@ -177,21 +155,6 @@ pub mod lending_pool {
         amount_repaid: Balance,
         amount_taken: Balance,
     }
-
-    #[ink(event)]
-    pub struct LiquidateStable {
-        #[ink(topic)]
-        liquidator: AccountId,
-        #[ink(topic)]
-        user: AccountId,
-        #[ink(topic)]
-        asset_to_rapay: AccountId,
-        #[ink(topic)]
-        asset_to_take: AccountId,
-        amount_repaid: Balance,
-        amount_taken: Balance,
-    }
-
     #[ink(event)]
     pub struct InterestsAccumulated {
         #[ink(topic)]
@@ -221,7 +184,6 @@ pub mod lending_pool {
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -231,7 +193,6 @@ pub mod lending_pool {
         flash_loan_fee_e6: u128,
         a_token_address: AccountId,
         v_token_address: AccountId,
-        s_token_address: AccountId,
     }
 
     #[ink(event)]
@@ -255,7 +216,6 @@ pub mod lending_pool {
         interest_rate_model: [u128; 7],
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
-        stable_rate_base_e24: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -336,36 +296,6 @@ pub mod lending_pool {
                 amount,
             });
         }
-
-        fn _emit_borrow_stable_event(
-            &mut self,
-            asset: AccountId,
-            caller: AccountId,
-            on_behalf_of: AccountId,
-            amount: Balance,
-        ) {
-            self.env().emit_event(BorrowStable {
-                asset,
-                caller,
-                on_behalf_of,
-                amount,
-            });
-        }
-
-        fn _emit_repay_stable_event(
-            &mut self,
-            asset: AccountId,
-            caller: AccountId,
-            on_behalf_of: AccountId,
-            amount: Balance,
-        ) {
-            self.env().emit_event(RepayStable {
-                asset,
-                caller,
-                on_behalf_of,
-                amount,
-            });
-        }
     }
 
     impl EmitFlashEvents for LendingPool {
@@ -412,7 +342,6 @@ pub mod lending_pool {
             decimals: u128,
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
-            stable_rate_base_e24: Option<u128>,
             maximal_total_supply: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
@@ -422,14 +351,12 @@ pub mod lending_pool {
             flash_loan_fee_e6: u128,
             a_token_address: &AccountId,
             v_token_address: &AccountId,
-            s_token_address: &AccountId,
         ) {
             self.env().emit_event(AssetRegistered {
                 asset: *asset,
                 decimals,
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
-                stable_rate_base_e24,
                 maximal_total_supply,
                 maximal_total_debt,
                 minimal_collateral,
@@ -439,7 +366,6 @@ pub mod lending_pool {
                 flash_loan_fee_e6,
                 a_token_address: *a_token_address,
                 v_token_address: *v_token_address,
-                s_token_address: *s_token_address,
             })
         }
 
@@ -456,7 +382,6 @@ pub mod lending_pool {
             interest_rate_model: &[u128; 7],
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
-            stable_rate_base_e24: Option<u128>,
             maximal_total_supply: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
@@ -470,7 +395,6 @@ pub mod lending_pool {
                 interest_rate_model: *interest_rate_model,
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
-                stable_rate_base_e24,
                 maximal_total_supply,
                 maximal_total_debt,
                 minimal_collateral,

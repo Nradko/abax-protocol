@@ -156,35 +156,5 @@ pub mod lending_pool_v0_borrow_facet {
                 amount,
             });
         }
-
-        fn _emit_borrow_stable_event(
-            &mut self,
-            asset: AccountId,
-            caller: AccountId,
-            on_behalf_of: AccountId,
-            amount: Balance,
-        ) {
-            self.env().emit_event(BorrowStable {
-                asset,
-                caller,
-                on_behalf_of,
-                amount,
-            });
-        }
-
-        fn _emit_repay_stable_event(
-            &mut self,
-            asset: AccountId,
-            caller: AccountId,
-            on_behalf_of: AccountId,
-            amount: Balance,
-        ) {
-            self.env().emit_event(RepayStable {
-                asset,
-                caller,
-                on_behalf_of,
-                amount,
-            });
-        }
     }
 }

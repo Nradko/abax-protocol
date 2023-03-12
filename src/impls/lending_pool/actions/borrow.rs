@@ -77,7 +77,9 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             self.data::<LendingPoolStorage>()
                 .insert_user_config(&caller, &user_config);
 
-            self._check_user_free_collateral(&caller, block_timestamp)?;
+            if use_as_collateral_to_set == false {
+                self._check_user_free_collateral(&caller, block_timestamp)?;
+            }
 
             self._emit_collateral_set_event(asset, caller, use_as_collateral_to_set);
         }
@@ -90,12 +92,8 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         asset: AccountId,
         on_behalf_of: AccountId,
         amount: Balance,
-        data: Vec<u8>,
+        #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
-        // TODO:: Check the maximum borrow
-        if data.len() == 0 {
-            return Err(LendingPoolError::UnspecifiedAction)
-        }
         //// PULL DATA AND INIT CONDITIONS CHECK
         if amount == 0 {
             return Err(LendingPoolError::AmountNotGreaterThanZero)
@@ -106,94 +104,23 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         //// MODIFY PULLED STORAGE
         // accumulate
-        let (
-            interest_on_behalf_of_supply,
-            interest_on_behalf_of_variable_borrow,
-            interest_on_behalf_of_stable_borrow,
-        ): (Balance, Balance, Balance) = _accumulate_interest(
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
+            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
+        // modify state
+        _check_borrowing_enabled(&reserve_data)?;
+        _change_state_borrow_variable(
             &mut reserve_data,
             &mut on_behalf_of_reserve_data,
-            block_timestamp,
+            &mut on_behalf_of_config,
+            amount,
         );
-        // modify state
-        match data[0] {
-            0 => {
-                _check_borrowing_enabled(&reserve_data)?;
-                _change_state_borrow_variable(
-                    &mut reserve_data,
-                    &mut on_behalf_of_reserve_data,
-                    &mut on_behalf_of_config,
-                    amount,
-                );
-                _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
-                //// ABACUS TOKEN EVENTS
-                // ATOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.a_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_supply as i128,
-                )?;
-                // VTOKEN
-                _emit_abacus_token_transfer_event_and_decrease_allowance(
-                    &reserve_data.v_token_address,
-                    &on_behalf_of,
-                    (interest_on_behalf_of_variable_borrow + amount) as i128,
-                    &(Self::env().caller()),
-                    amount,
-                )?;
-                // STOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.s_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_stable_borrow as i128,
-                )?;
-                self._emit_borrow_variable_event(asset, Self::env().caller(), on_behalf_of, amount);
-            }
-            1 => {
-                _check_borrowing_stable_enabled(&reserve_data)?;
-                _change_state_borrow_stable(
-                    &mut reserve_data,
-                    &mut on_behalf_of_reserve_data,
-                    &mut on_behalf_of_config,
-                    amount,
-                )?;
-                _check_enough_stable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
-                //// ABACUS TOKEN EVENTS
-                // ATOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.a_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_supply as i128,
-                )?;
-                // VTOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.v_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_variable_borrow as i128,
-                )?;
-                // STOKEN
-                _emit_abacus_token_transfer_event_and_decrease_allowance(
-                    &reserve_data.s_token_address,
-                    &on_behalf_of,
-                    (interest_on_behalf_of_stable_borrow + amount) as i128,
-                    &(Self::env().caller()),
-                    amount,
-                )?;
-                self._emit_borrow_stable_event(asset, Self::env().caller(), on_behalf_of, amount);
-            }
-            _ => return Err(LendingPoolError::UnspecifiedAction),
-        }
+        _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
 
         if reserve_data.maximal_total_debt.is_some() {
-            if reserve_data.total_variable_borrowed
-                + reserve_data.sum_stable_debt
-                + reserve_data.accumulated_stable_borrow
-                > reserve_data.maximal_total_debt.unwrap()
-            {
+            if reserve_data.total_variable_borrowed > reserve_data.maximal_total_debt.unwrap() {
                 return Err(LendingPoolError::MaxDebtReached)
             }
         }
-
         // recalculate
         reserve_data._recalculate_current_rates();
         // PUSH DATA
@@ -208,6 +135,24 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
         //// TOKEN TRANSFER
         PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
+
+        //// ABACUS TOKEN EVENTS
+        // ATOKEN
+        _emit_abacus_token_transfer_event(
+            &reserve_data.a_token_address,
+            &on_behalf_of,
+            interest_on_behalf_of_supply as i128,
+        )?;
+        // VTOKEN
+        _emit_abacus_token_transfer_event_and_decrease_allowance(
+            &reserve_data.v_token_address,
+            &on_behalf_of,
+            (interest_on_behalf_of_variable_borrow + amount) as i128,
+            &(Self::env().caller()),
+            amount,
+        )?;
+        //// emit event
+        self._emit_borrow_variable_event(asset, Self::env().caller(), on_behalf_of, amount);
         Ok(())
     }
 
@@ -216,12 +161,9 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         asset: AccountId,
         on_behalf_of: AccountId,
         amount: Option<Balance>,
-        data: Vec<u8>,
+        #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
-        if data.len() == 0 {
-            return Err(LendingPoolError::UnspecifiedAction)
-        }
         let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
             self._pull_data_for_repay(&asset, &on_behalf_of)?;
         _check_activeness(&reserve_data)?;
@@ -229,82 +171,17 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate
-        let (
-            interest_on_behalf_of_supply,
-            interest_on_behalf_of_variable_borrow,
-            interest_on_behalf_of_stable_borrow,
-        ): (Balance, Balance, Balance) = _accumulate_interest(
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
+            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
+        let amount_val: Balance;
+        amount_val = _change_state_repay_variable(
             &mut reserve_data,
             &mut on_behalf_of_reserve_data,
-            block_timestamp,
-        );
-        let amount_val: Balance;
-        match data[0] {
-            0 => {
-                amount_val = _change_state_repay_variable(
-                    &mut reserve_data,
-                    &mut on_behalf_of_reserve_data,
-                    &mut on_behalf_of_config,
-                    amount,
-                )?;
-                if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 1 {
-                    _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
-                }
-                //// ABACUS TOKEN EVENTS
-                // ATOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.a_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_supply as i128,
-                )?;
-                // VTOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.v_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_variable_borrow as i128 - amount_val as i128,
-                )?;
-                // STOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.s_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_stable_borrow as i128,
-                )?;
-                //// EVENT
-                self._emit_repay_variable_event(asset, Self::env().caller(), on_behalf_of, amount_val);
-            }
-            1 => {
-                amount_val = _change_state_repay_stable(
-                    &mut reserve_data,
-                    &mut on_behalf_of_reserve_data,
-                    &mut on_behalf_of_config,
-                    amount,
-                )?;
-                if (on_behalf_of_config.borrows_stable >> reserve_data.id) & 1 == 1 {
-                    _check_enough_stable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
-                }
-                //// ABACUS TOKEN EVENTS
-                // ATOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.a_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_supply as i128,
-                )?;
-                // VTOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.v_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_variable_borrow as i128,
-                )?;
-                // STOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data.s_token_address,
-                    &on_behalf_of,
-                    interest_on_behalf_of_stable_borrow as i128 - amount_val as i128,
-                )?;
-                //// EVENT
-                self._emit_repay_stable_event(asset, Self::env().caller(), on_behalf_of, amount_val);
-            }
-            _ => return Err(LendingPoolError::UnspecifiedAction),
+            &mut on_behalf_of_config,
+            amount,
+        )?;
+        if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 1 {
+            _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
         }
         // recalculate
         reserve_data._recalculate_current_rates();
@@ -329,6 +206,21 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
         .try_invoke()
         .unwrap()??;
+        //// ABACUS TOKEN EVENTS
+        // ATOKEN
+        _emit_abacus_token_transfer_event(
+            &reserve_data.a_token_address,
+            &on_behalf_of,
+            interest_on_behalf_of_supply as i128,
+        )?;
+        // VTOKEN
+        _emit_abacus_token_transfer_event(
+            &reserve_data.v_token_address,
+            &on_behalf_of,
+            interest_on_behalf_of_variable_borrow as i128 - amount_val as i128,
+        )?;
+        //// EVENT
+        self._emit_repay_variable_event(asset, Self::env().caller(), on_behalf_of, amount_val);
         Ok(amount_val)
     }
 }
@@ -414,8 +306,9 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
-    #![allow(unused_variables)]
+    #[allow(unused_variables)]
     default fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool) {}
+    #[allow(unused_variables)]
     default fn _emit_borrow_variable_event(
         &mut self,
         asset: AccountId,
@@ -424,23 +317,8 @@ impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
         amount: Balance,
     ) {
     }
+    #[allow(unused_variables)]
     default fn _emit_repay_variable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    ) {
-    }
-    default fn _emit_borrow_stable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    ) {
-    }
-    default fn _emit_repay_stable_event(
         &mut self,
         asset: AccountId,
         caller: AccountId,
@@ -458,24 +336,6 @@ fn _change_state_borrow_variable(
 ) {
     _increase_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
     _increase_total_variable_debt(reserve_data, amount);
-}
-
-fn _change_state_borrow_stable(
-    reserve_data: &mut ReserveData,
-    on_behalf_of_reserve_data: &mut UserReserveData,
-    on_behalf_of_config: &mut UserConfig,
-    amount: u128,
-) -> Result<u128, LendingPoolError> {
-    let new_stable_borrow_rate_e24: u128 = reserve_data._after_borrow_stable_borrow_rate_e24(amount)?;
-    _increase_user_stable_debt_with_rate(
-        reserve_data,
-        on_behalf_of_reserve_data,
-        on_behalf_of_config,
-        amount,
-        new_stable_borrow_rate_e24,
-    );
-    _increase_summed_and_accumulated_stable_debt_with_rate(reserve_data, amount, new_stable_borrow_rate_e24);
-    Ok(new_stable_borrow_rate_e24)
 }
 
 fn _change_state_repay_variable(
@@ -496,32 +356,6 @@ fn _change_state_repay_variable(
     }
     _decrease_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount_val);
     _decrease_total_variable_debt(reserve_data, amount_val);
-
-    Ok(amount_val)
-}
-
-fn _change_state_repay_stable(
-    reserve_data: &mut ReserveData,
-    on_behalf_of_reserve_data: &mut UserReserveData,
-    on_behalf_of_config: &mut UserConfig,
-    amount: Option<u128>,
-) -> Result<u128, LendingPoolError> {
-    let amount_val = match amount {
-        Some(v) => v,
-        None => on_behalf_of_reserve_data.stable_borrowed,
-    };
-    if amount_val == 0 {
-        return Err(LendingPoolError::AmountNotGreaterThanZero)
-    }
-    if amount_val > on_behalf_of_reserve_data.stable_borrowed {
-        return Err(LendingPoolError::AmountExceedsUserDebt)
-    }
-    _decrease_user_stable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount_val);
-    _decrease_summed_and_accumulated_stable_debt_with_rate(
-        reserve_data,
-        amount_val,
-        on_behalf_of_reserve_data.stable_borrow_rate_e24,
-    );
 
     Ok(amount_val)
 }

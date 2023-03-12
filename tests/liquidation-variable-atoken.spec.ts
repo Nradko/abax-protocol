@@ -73,8 +73,8 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, suppliedLinkAmount, []);
       //
       debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000); //TODO;
-      await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, [0]);
-      await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, debtDaiAmount, [0]);
+      await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
+      await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
       // mint DAI for liquidator
       await daiContract.tx.mint(liquidator.address, debtDaiAmount.muln(2));
       await daiContract.withSigner(liquidator).tx.approve(lendingPool.address, debtDaiAmount.muln(2));
@@ -82,7 +82,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
     it('liquidation fails because the borrower is collateralized', async () => {
       const queryRes = (
-        await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [0])
+        await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [])
       ).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
     });
@@ -94,7 +94,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
       it('liquidation fails because the borrower is collaterized', async () => {
         const queryRes = (
-          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [0])
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [])
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
       });
@@ -107,16 +107,14 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
       it('liquidator choses wrong asset to repay - liquidation fails', async () => {
         const queryRes = (
-          await lendingPool
-            .withSigner(liquidator)
-            .query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [0])
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [])
         ).value.ok;
         await expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.NothingToRepay());
       });
 
       it('liquidator choses a reserve to take from that the user has not marked as collaterall - liquidation fails', async () => {
         const queryRes = (
-          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [0])
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [])
         ).value.ok;
         await expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.TakingNotACollateral());
       });
@@ -132,7 +130,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const queryRes = (
           await lendingPool
             .withSigner(liquidator)
-            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [0])
+            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [])
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.MinimumRecieved());
       });
@@ -144,13 +142,13 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
         await lendingPool
           .withSigner(liquidator)
-          .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [0]);
+          .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), []);
         //Act & Assert
 
         await expect(
           lendingPool
             .withSigner(liquidator)
-            .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [0]),
+            .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), []),
         ).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         //Assert
@@ -218,8 +216,8 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, suppliedLinkAmount, []);
       //
       debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000); //TODO;
-      await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, [1]);
-      await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, debtDaiAmount, [1]);
+      await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
+      await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
       // mint DAI for liquidator
       await daiContract.tx.mint(liquidator.address, debtDaiAmount.muln(2));
       await daiContract.withSigner(liquidator).tx.approve(lendingPool.address, debtDaiAmount.muln(2));
@@ -227,7 +225,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
     it('liquidation fails because the borrower is collateralized', async () => {
       const queryRes = (
-        await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [1])
+        await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [])
       ).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
     });
@@ -239,7 +237,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
       it('liquidation fails because the borrower is collaterized', async () => {
         const queryRes = (
-          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [1])
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, 1, [])
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.Collaterized());
       });
@@ -252,16 +250,14 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
       it('liquidator choses wrong asset to repay - liquidation fails', async () => {
         const queryRes = (
-          await lendingPool
-            .withSigner(liquidator)
-            .query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [1])
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, linkContract.address, wethContract.address, debtDaiAmount, 1, [])
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.NothingToRepay());
       });
 
       it('liquidator choses a reserve to take from that the user has not marked as collaterall - liquidation fails', async () => {
         const queryRes = (
-          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [1])
+          await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [])
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.TakingNotACollateral());
       });
@@ -276,7 +272,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const queryRes = (
           await lendingPool
             .withSigner(liquidator)
-            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [1])
+            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000001'), [])
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.MinimumRecieved());
       });
@@ -293,11 +289,11 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         await lendingPool
           .withSigner(liquidator)
-          .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [1]);
+          .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), []);
         //Act & Assert
         const tx = lendingPool
           .withSigner(liquidator)
-          .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), [1]);
+          .tx.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), []);
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         //Assert

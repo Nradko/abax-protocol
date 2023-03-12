@@ -1,8 +1,5 @@
 use checked_math::checked_math;
-use openbrush::traits::{
-    Balance,
-    Timestamp,
-};
+use openbrush::traits::Balance;
 use scale::{
     Decode,
     Encode,
@@ -11,7 +8,6 @@ use scale::{
 use crate::impls::{
     constants::{
         E18,
-        E24,
         MATH_ERROR_MESSAGE,
     },
     lending_pool::storage::structs::reserve_data::ReserveData,
@@ -25,30 +21,23 @@ pub struct UserReserveData {
     pub supplied: Balance,
     /// underlying asset amount of borrowed (variable rate) plus accumulates interest.
     pub variable_borrowed: Balance,
-    /// underlying asset amount of borrowed (stable rate) plus accumulates interest.
-    pub stable_borrowed: Balance,
     /// applied cumulative rate index that is used to accumulate supply interest.
     pub applied_cumulative_supply_rate_index_e18: u128,
     /// applied cumulative rate index that is used to accumulate debt (variable) interest.
     pub applied_cumulative_variable_borrow_rate_index_e18: u128,
-    /// user's stabe debt interest rate. 10^24 = 100%  Milisecond Percentage Rate.
-    pub stable_borrow_rate_e24: u128,
-    /// timestamp of UserReserveData update
-    pub update_timestamp: Timestamp,
 }
 
 impl UserReserveData {
     // TODO:: make it easier to read!!!
-    pub fn _accumulate_user_interest(&mut self, reserve: &mut ReserveData) -> (Balance, Balance, Balance) {
-        if self.update_timestamp >= reserve.indexes_update_timestamp {
-            return (0, 0, 0)
+    pub fn _accumulate_user_interest(&mut self, reserve: &mut ReserveData) -> (Balance, Balance) {
+        if self.applied_cumulative_supply_rate_index_e18 >= reserve.cumulative_supply_rate_index_e18
+            && self.applied_cumulative_variable_borrow_rate_index_e18
+                >= reserve.cumulative_variable_borrow_rate_index_e18
+        {
+            return (0, 0)
         }
 
-        let (mut delta_user_supply, mut delta_user_varaible_borrow, mut delta_user_stable_borrow): (
-            Balance,
-            Balance,
-            Balance,
-        ) = (0, 0, 0);
+        let (mut delta_user_supply, mut delta_user_varaible_borrow): (Balance, Balance) = (0, 0);
 
         if self.supplied != 0
             && self.applied_cumulative_supply_rate_index_e18 != 0
@@ -88,47 +77,7 @@ impl UserReserveData {
         }
         self.applied_cumulative_variable_borrow_rate_index_e18 = reserve.cumulative_variable_borrow_rate_index_e18;
 
-        if self.stable_borrowed != 0 {
-            delta_user_stable_borrow = {
-                let delta_user_stable_borrow_rounded_down = u128::try_from(
-                    checked_math!(
-                        self.stable_borrowed
-                            * self.stable_borrow_rate_e24
-                            * (reserve.indexes_update_timestamp - self.update_timestamp).into()
-                            / E24
-                    )
-                    .unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
-                delta_user_stable_borrow_rounded_down
-                    .checked_add(1)
-                    .expect(MATH_ERROR_MESSAGE)
-            };
-            self.stable_borrowed = self
-                .stable_borrowed
-                .checked_add(delta_user_stable_borrow)
-                .expect(MATH_ERROR_MESSAGE);
-            reserve.avarage_stable_rate_e24 = u128::try_from(
-                checked_math!(
-                    (reserve.sum_stable_debt * reserve.avarage_stable_rate_e24
-                        + delta_user_stable_borrow * self.stable_borrow_rate_e24)
-                        / (reserve.sum_stable_debt + delta_user_stable_borrow)
-                )
-                .unwrap(),
-            )
-            .expect(MATH_ERROR_MESSAGE);
-            reserve.sum_stable_debt = reserve
-                .sum_stable_debt
-                .checked_add(delta_user_stable_borrow)
-                .expect(MATH_ERROR_MESSAGE);
-
-            reserve.accumulated_stable_borrow = reserve
-                .accumulated_stable_borrow
-                .saturating_sub(delta_user_stable_borrow);
-        }
-        self.update_timestamp = reserve.indexes_update_timestamp;
-
-        return (delta_user_supply, delta_user_varaible_borrow, delta_user_stable_borrow)
+        return (delta_user_supply, delta_user_varaible_borrow)
     }
 }
 
@@ -137,11 +86,8 @@ impl UserReserveData {
         Self {
             supplied: 0,
             variable_borrowed: 0,
-            stable_borrowed: 0,
             applied_cumulative_supply_rate_index_e18: E18,
             applied_cumulative_variable_borrow_rate_index_e18: E18,
-            stable_borrow_rate_e24: 0,
-            update_timestamp: 0,
         }
     }
 }

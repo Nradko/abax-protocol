@@ -1,6 +1,5 @@
 // TODO::think should we emit events on set_as_collateral
 
-#![allow(unused_variables)]
 use checked_math::checked_math;
 use ink::prelude::{
     vec::Vec,
@@ -56,11 +55,8 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         asset_to_take: AccountId,
         amount_to_repay: Option<Balance>,
         minimum_recieved_for_one_repaid_token_e18: u128,
-        data: Vec<u8>,
+        #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        if data.len() == 0 {
-            return Err(LendingPoolError::UnspecifiedAction)
-        }
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&liquidated_user, block_timestamp);
@@ -94,11 +90,8 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             return Err(LendingPoolError::TakingNotACollateral)
         }
         // Check if there is any debt to repay
-        let user_debt = match data[0] {
-            0 => user_reserve_data_to_repay.variable_borrowed,
-            1 => user_reserve_data_to_repay.stable_borrowed,
-            _ => return Err(LendingPoolError::UnspecifiedAction),
-        };
+        let user_debt = user_reserve_data_to_repay.variable_borrowed;
+
         if user_debt == 0 {
             return Err(LendingPoolError::NothingToRepay)
         }
@@ -108,32 +101,22 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         }
         // MODIFY PULLED STORAGE
         // accumulate to repay
-        let (
-            interest_user_supply_to_repay,
-            interest_user_variable_borrow_to_repay,
-            interest_user_stable_borrow_to_repay,
-        ): (Balance, Balance, Balance) = _accumulate_interest(
-            &mut reserve_data_to_repay,
-            &mut user_reserve_data_to_repay,
-            block_timestamp,
-        );
+        let (interest_user_supply_to_repay, interest_user_variable_borrow_to_repay): (Balance, Balance) =
+            _accumulate_interest(
+                &mut reserve_data_to_repay,
+                &mut user_reserve_data_to_repay,
+                block_timestamp,
+            );
         // accumulate to take
         // user's
-        let (
-            interest_user_supply_to_take,
-            interest_user_variable_borrow_to_take,
-            interest_user_stable_borrow_to_take,
-        ): (Balance, Balance, Balance) = _accumulate_interest(
-            &mut reserve_data_to_take,
-            &mut user_reserve_data_to_take,
-            block_timestamp,
-        );
+        let (interest_user_supply_to_take, interest_user_variable_borrow_to_take): (Balance, Balance) =
+            _accumulate_interest(
+                &mut reserve_data_to_take,
+                &mut user_reserve_data_to_take,
+                block_timestamp,
+            );
         // caller's
-        let (
-            interest_caller_supply_to_take,
-            interest_caller_variable_borrow_to_take,
-            interest_caller_stable_borrow_to_take,
-        ): (Balance, Balance, Balance) =
+        let (interest_caller_supply_to_take, interest_caller_variable_borrow_to_take): (Balance, Balance) =
             caller_reserve_data_to_take._accumulate_user_interest(&mut reserve_data_to_take);
 
         // calculate and check amount to be taken by caller
@@ -176,93 +159,66 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             amount_to_take = user_reserve_data_to_take.supplied;
         }
 
-        match data[0] {
-            0 => {
-                _change_state_liquidate_variable(
-                    &mut reserve_data_to_repay,
-                    &reserve_data_to_take,
-                    &mut user_reserve_data_to_repay,
-                    &mut user_reserve_data_to_take,
-                    &mut user_config,
-                    &mut caller_reserve_data_to_take,
-                    &mut caller_config,
-                    amount_to_repay_value,
-                    amount_to_take,
-                );
-                //// ABACUS TOKEN EVENTS
-                //// to_repay_token
-                // ATOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data_to_repay.a_token_address,
-                    &liquidated_user,
-                    (interest_user_supply_to_repay) as i128,
-                )?;
-                // VTOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data_to_repay.v_token_address,
-                    &liquidated_user,
-                    interest_user_variable_borrow_to_repay as i128 - amount_to_repay_value as i128,
-                )?;
-                // STOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data_to_repay.s_token_address,
-                    &liquidated_user,
-                    interest_user_stable_borrow_to_repay as i128,
-                )?;
-                // EVENT
-                self._emit_liquidation_variable_event(
-                    caller,
-                    liquidated_user,
-                    asset_to_repay,
-                    asset_to_take,
-                    amount_to_repay_value,
-                    amount_to_take,
-                );
-            }
-            1 => {
-                _change_state_liquidate_stable(
-                    &mut reserve_data_to_repay,
-                    &reserve_data_to_take,
-                    &mut user_reserve_data_to_repay,
-                    &mut user_reserve_data_to_take,
-                    &mut user_config,
-                    &mut caller_reserve_data_to_take,
-                    &mut caller_config,
-                    amount_to_repay_value,
-                    amount_to_take,
-                );
-                //// ABACUS TOKEN EVENTS
-                //// to_repay_token
-                // ATOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data_to_repay.a_token_address,
-                    &liquidated_user,
-                    interest_user_supply_to_repay as i128,
-                )?;
-                // VTOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data_to_repay.v_token_address,
-                    &liquidated_user,
-                    interest_user_variable_borrow_to_repay as i128,
-                )?;
-                // STOKEN
-                _emit_abacus_token_transfer_event(
-                    &reserve_data_to_repay.s_token_address,
-                    &liquidated_user,
-                    interest_user_stable_borrow_to_repay as i128 - amount_to_repay_value as i128,
-                )?;
-                ////EVENT
-                self._emit_liquidation_stable_event(
-                    caller,
-                    liquidated_user,
-                    asset_to_repay,
-                    asset_to_take,
-                    amount_to_repay_value,
-                    amount_to_take,
-                );
-            }
-            _ => return Err(LendingPoolError::UnspecifiedAction),
-        }
+        _change_state_liquidate_variable(
+            &mut reserve_data_to_repay,
+            &reserve_data_to_take,
+            &mut user_reserve_data_to_repay,
+            &mut user_reserve_data_to_take,
+            &mut user_config,
+            &mut caller_reserve_data_to_take,
+            &mut caller_config,
+            amount_to_repay_value,
+            amount_to_take,
+        );
+        // recalculate
+        reserve_data_to_repay._recalculate_current_rates();
+        self._push_data_for_liquidate(
+            &&liquidated_user,
+            &caller,
+            &asset_to_repay,
+            &asset_to_take,
+            &reserve_data_to_repay,
+            &reserve_data_to_take,
+            &user_config,
+            &user_reserve_data_to_repay,
+            &user_reserve_data_to_take,
+            &caller_config,
+            &caller_reserve_data_to_take,
+        );
+        //// TOKEN TRANSFERS
+        PSP22Ref::transfer_from_builder(
+            &asset_to_repay,
+            caller,
+            Self::env().account_id(),
+            amount_to_repay_value,
+            Vec::<u8>::new(),
+        )
+        .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
+        .try_invoke()
+        .unwrap()??;
+        //// ABACUS TOKEN EVENTS
+        //// to_repay_token
+        // ATOKEN
+        _emit_abacus_token_transfer_event(
+            &reserve_data_to_repay.a_token_address,
+            &liquidated_user,
+            (interest_user_supply_to_repay) as i128,
+        )?;
+        // VTOKEN
+        _emit_abacus_token_transfer_event(
+            &reserve_data_to_repay.v_token_address,
+            &liquidated_user,
+            interest_user_variable_borrow_to_repay as i128 - amount_to_repay_value as i128,
+        )?;
+        // EVENT
+        self._emit_liquidation_variable_event(
+            caller,
+            liquidated_user,
+            asset_to_repay,
+            asset_to_take,
+            amount_to_repay_value,
+            amount_to_take,
+        );
 
         //// to_take_token
         // ATOKEN
@@ -293,46 +249,6 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
                 },
             ],
         )?;
-        // STOKEN
-        _emit_abacus_token_transfer_events(
-            &reserve_data_to_take.s_token_address,
-            &vec![
-                TransferEventDataSimplified {
-                    user: liquidated_user,
-                    amount: interest_user_stable_borrow_to_take as i128,
-                },
-                TransferEventDataSimplified {
-                    user: caller,
-                    amount: interest_caller_stable_borrow_to_take as i128,
-                },
-            ],
-        )?;
-        // recalculate
-        reserve_data_to_repay._recalculate_current_rates();
-        self._push_data_for_liquidate(
-            &&liquidated_user,
-            &caller,
-            &asset_to_repay,
-            &asset_to_take,
-            &reserve_data_to_repay,
-            &reserve_data_to_take,
-            &user_config,
-            &user_reserve_data_to_repay,
-            &user_reserve_data_to_take,
-            &caller_config,
-            &caller_reserve_data_to_take,
-        );
-        //// TOKEN TRANSFERS
-        PSP22Ref::transfer_from_builder(
-            &asset_to_repay,
-            caller,
-            Self::env().account_id(),
-            amount_to_repay_value,
-            Vec::<u8>::new(),
-        )
-        .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
-        .try_invoke()
-        .unwrap()??;
         Ok((amount_to_repay_value, amount_to_take))
     }
 }
@@ -515,57 +431,9 @@ fn _change_state_liquidate_variable(
     )
 }
 
-fn _change_state_liquidate_stable(
-    reserve_data_to_repay: &mut ReserveData,
-    reserve_data_to_take: &ReserveData,
-    user_reserve_data_to_repay: &mut UserReserveData,
-    user_reserve_data_to_take: &mut UserReserveData,
-    user_config: &mut UserConfig,
-    caller_reserve_data_to_take: &mut UserReserveData,
-    caller_config: &mut UserConfig,
-    amount_to_repay_value: u128,
-    amount_to_take: u128,
-) {
-    _decrease_user_stable_debt(
-        reserve_data_to_repay,
-        user_reserve_data_to_repay,
-        user_config,
-        amount_to_repay_value,
-    );
-    _decrease_summed_and_accumulated_stable_debt_with_rate(
-        reserve_data_to_repay,
-        amount_to_repay_value,
-        user_reserve_data_to_repay.stable_borrow_rate_e24,
-    );
-
-    // sub supplied from user
-    _decrease_user_deposit(
-        reserve_data_to_take,
-        user_reserve_data_to_take,
-        user_config,
-        amount_to_take,
-    );
-    // add supplied to caller
-    _increase_user_deposit(
-        reserve_data_to_take,
-        caller_reserve_data_to_take,
-        caller_config,
-        amount_to_take,
-    );
-}
-
 impl<T: Storage<LendingPoolStorage>> EmitLiquidateEvents for T {
+    #[allow(unused_variables)]
     default fn _emit_liquidation_variable_event(
-        &mut self,
-        liquidator: AccountId,
-        user: AccountId,
-        asset_to_rapay: AccountId,
-        asset_to_take: AccountId,
-        amount_repaid: Balance,
-        amount_taken: Balance,
-    ) {
-    }
-    default fn _emit_liquidation_stable_event(
         &mut self,
         liquidator: AccountId,
         user: AccountId,

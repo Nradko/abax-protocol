@@ -231,23 +231,7 @@ makeSuite('Unit message', (getTestEnv) => {
         const queryRes = (
           await lendingPool
             .withSigner(users[1])
-            .query.registerAsset(
-              users[1].address,
-              '1000000',
-              null,
-              null,
-              '13',
-              null,
-              null,
-              0,
-              0,
-              '0',
-              '12',
-              '1000',
-              users[1].address,
-              users[1].address,
-              users[1].address,
-            )
+            .query.registerAsset(users[1].address, '1000000', null, null, null, null, 0, 0, '0', '12', '1000', users[1].address, users[1].address)
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       });
@@ -261,7 +245,6 @@ makeSuite('Unit message', (getTestEnv) => {
             '100000000',
             '111',
             '222',
-            '333',
             '99999999',
             '11111111',
             0,
@@ -271,7 +254,6 @@ makeSuite('Unit message', (getTestEnv) => {
             '1000',
             users[3].address,
             users[4].address,
-            users[5].address,
           );
 
         const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value.ok!;
@@ -283,14 +265,12 @@ makeSuite('Unit message', (getTestEnv) => {
         expect.soft(reserveData.decimals.toString()).to.equal('100000000');
         expect.soft(reserveData.collateralCoefficientE6?.toString()).to.equal('111');
         expect.soft(reserveData.borrowCoefficientE6?.toString()).to.equal('222');
-        expect.soft(reserveData.stableRateBaseE24?.toString()).to.equal('333');
         expect.soft(reserveData.maximalTotalSupply?.toString()).to.equal('99999999');
         expect.soft(reserveData.maximalTotalDebt?.toString()).to.equal('11111111');
         expect.soft(reserveData.penaltyE6.toString()).to.equal('100000');
         expect.soft(reserveData.incomeForSuppliersPartE6.toString()).to.equal('900000');
         expect.soft(reserveData.flashLoanFeeE6.toString()).to.equal('1000');
         expect.soft(reserveData.aTokenAddress).to.equal(users[3].address);
-        expect.soft(reserveData.sTokenAddress).to.equal(users[5].address);
         expect.soft(reserveData.vTokenAddress).to.equal(users[4].address);
 
         expect.soft(AssetRegisteredEvent, 'AssetRegisteredEvent | Event | not emitted').not.to.be.undefined;
@@ -388,23 +368,6 @@ makeSuite('Unit message', (getTestEnv) => {
         await lendingPool
           .withSigner(testEnv.users[0])
           .query.transferVariableDebtFromTo(reserveDAI.underlying.address, testEnv.users[1].address, testEnv.users[0].address, amountToBorrow)
-      ).value.ok;
-      expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
-    });
-    it('A regular user should not be able to execute transfer supply on SToken', async () => {
-      const amountToBorrow = mintedAmount / 2;
-      await reserveWETH.underlying.tx.mint(users[1].address, mintedAmount);
-      await reserveWETH.underlying.withSigner(users[1]).tx.approve(lendingPool.address, mintedAmount);
-      await lendingPool.withSigner(users[1]).tx.deposit(reserveWETH.underlying.address, users[1].address, mintedAmount, []);
-      await lendingPool.withSigner(users[1]).tx.setAsCollateral(reserveWETH.underlying.address, true);
-      await lendingPool.withSigner(users[1]).query.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [1]);
-      await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [1]);
-      await reserveWETH.vToken.withSigner(testEnv.users[1]).tx.approve(testEnv.users[1].address, mintedAmount);
-
-      const queryRes = (
-        await lendingPool
-          .withSigner(testEnv.users[1])
-          .query.transferStableDebtFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, amountToBorrow)
       ).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });
