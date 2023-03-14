@@ -1,5 +1,3 @@
-// TODO::think should we emit events on set_as_collateral
-
 use checked_math::checked_math;
 use ink::prelude::{
     vec::Vec,
@@ -121,15 +119,12 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
 
         // calculate and check amount to be taken by caller
         let amount_to_repay_value = match amount_to_repay {
-            Some(v) => {
-                if v > user_debt {
-                    return Err(LendingPoolError::AmountExceedsUserDebt)
-                } else {
-                    v
-                }
-            }
+            Some(v) => v,
             None => user_debt,
         };
+        if amount_to_repay_value > user_debt {
+            return Err(LendingPoolError::AmountExceedsUserDebt)
+        }
         if amount_to_repay_value == 0 {
             return Err(LendingPoolError::AmountNotGreaterThanZero)
         }

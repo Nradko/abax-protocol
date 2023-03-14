@@ -1,4 +1,3 @@
-// TODO::think should we emit events on set_as_collateral
 use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,

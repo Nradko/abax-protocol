@@ -1,5 +1,3 @@
-// TODO::think should we emit events on set_as_collateral
-
 use crate::{
     impls::{
         constants::ONE_HOUR,
