@@ -140,12 +140,6 @@ pub trait LendingPoolMaintain {
     ///  * `asset` - AccountId (aka address) of asset of which interests should be accumulated
     #[ink(message)]
     fn accumulate_interest(&mut self, asset: AccountId) -> Result<(), LendingPoolError>;
-    /// is used by anyone to accumulate deposit and variable rate interests and update user deposit, variable and stable debts
-    ///
-    ///  * `asset` - AccountId (aka address) of asset of which interests should be accumulated
-    ///  * `user` - AccountId (aka address) of an user whose deposits, variable and stable debts should be updated
-    #[ink(message)]
-    fn accumulate_user_interest(&mut self, asset: AccountId, user: AccountId) -> Result<(), LendingPoolError>;
     /// is used by anyone to update reserve's asset price //TODO
     ///
     ///  * `reserve_token_address` - AccountId (aka address) of an asset to update price for

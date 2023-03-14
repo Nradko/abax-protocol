@@ -113,6 +113,27 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             amount,
         );
         _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
+
+        if reserve_data.maximal_total_debt.is_some() {
+            if reserve_data.total_variable_borrowed > reserve_data.maximal_total_debt.unwrap() {
+                return Err(LendingPoolError::MaxDebtReached)
+            }
+        }
+        // recalculate
+        reserve_data._recalculate_current_rates();
+        // PUSH DATA
+        self._push_data(
+            &asset,
+            &on_behalf_of,
+            &reserve_data,
+            &on_behalf_of_reserve_data,
+            &on_behalf_of_config,
+        );
+        // check if there ie enought collateral
+        self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
+        //// TOKEN TRANSFER
+        PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
+
         //// ABACUS TOKEN EVENTS
         // ATOKEN
         _emit_abacus_token_transfer_event(
@@ -128,29 +149,8 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             &(Self::env().caller()),
             amount,
         )?;
-
+        //// emit event
         self._emit_borrow_variable_event(asset, Self::env().caller(), on_behalf_of, amount);
-
-        if reserve_data.maximal_total_debt.is_some() {
-            if reserve_data.total_variable_borrowed > reserve_data.maximal_total_debt.unwrap() {
-                return Err(LendingPoolError::MaxDebtReached)
-            }
-        }
-
-        // recalculate
-        reserve_data._recalculate_current_rates();
-        // PUSH DATA
-        self._push_data(
-            &asset,
-            &on_behalf_of,
-            &reserve_data,
-            &on_behalf_of_reserve_data,
-            &on_behalf_of_config,
-        );
-        // check if there ie enought collateral
-        self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
-        //// TOKEN TRANSFER
-        PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
         Ok(())
     }
 
@@ -181,21 +181,6 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 1 {
             _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
         }
-        //// ABACUS TOKEN EVENTS
-        // ATOKEN
-        _emit_abacus_token_transfer_event(
-            &reserve_data.a_token_address,
-            &on_behalf_of,
-            interest_on_behalf_of_supply as i128,
-        )?;
-        // VTOKEN
-        _emit_abacus_token_transfer_event(
-            &reserve_data.v_token_address,
-            &on_behalf_of,
-            interest_on_behalf_of_variable_borrow as i128 - amount_val as i128,
-        )?;
-        //// EVENT
-        self._emit_repay_variable_event(asset, Self::env().caller(), on_behalf_of, amount_val);
         // recalculate
         reserve_data._recalculate_current_rates();
         // PUSH DATA
@@ -219,6 +204,21 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
         .try_invoke()
         .unwrap()??;
+        //// ABACUS TOKEN EVENTS
+        // ATOKEN
+        _emit_abacus_token_transfer_event(
+            &reserve_data.a_token_address,
+            &on_behalf_of,
+            interest_on_behalf_of_supply as i128,
+        )?;
+        // VTOKEN
+        _emit_abacus_token_transfer_event(
+            &reserve_data.v_token_address,
+            &on_behalf_of,
+            interest_on_behalf_of_variable_borrow as i128 - amount_val as i128,
+        )?;
+        //// EVENT
+        self._emit_repay_variable_event(asset, Self::env().caller(), on_behalf_of, amount_val);
         Ok(amount_val)
     }
 }

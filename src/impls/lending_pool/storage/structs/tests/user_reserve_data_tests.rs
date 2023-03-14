@@ -104,7 +104,6 @@ pub mod user_reserve_data_tests {
                 applied_cumulative_variable_borrow_rate_index_e18: final_reserve_data
                     .cumulative_variable_borrow_rate_index_e18
                     - E12,
-                update_timestamp: final_reserve_data.indexes_update_timestamp,
             };
 
             assert_user_reserve_data_difference(
@@ -121,7 +120,6 @@ pub mod user_reserve_data_tests {
         variable_borrowed: i128,
         applied_cumulative_supply_rate_index_e18: u128,
         applied_cumulative_variable_borrow_rate_index_e18: u128,
-        update_timestamp: Timestamp,
     }
 
     pub fn assert_user_reserve_data_difference(
@@ -153,13 +151,6 @@ pub mod user_reserve_data_tests {
             final_user_reserve_data.applied_cumulative_variable_borrow_rate_index_e18,
             differences.applied_cumulative_variable_borrow_rate_index_e18,
             "applied_cumulative_variable_borrow_rate_index_e18".to_string(),
-        );
-
-        assert_timestamp(
-            initital_user_reserve_data.update_timestamp,
-            final_user_reserve_data.update_timestamp,
-            differences.update_timestamp,
-            "update_timestamp".to_string(),
         );
     }
 }

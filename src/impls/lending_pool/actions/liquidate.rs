@@ -170,6 +170,32 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             amount_to_repay_value,
             amount_to_take,
         );
+        // recalculate
+        reserve_data_to_repay._recalculate_current_rates();
+        self._push_data_for_liquidate(
+            &&liquidated_user,
+            &caller,
+            &asset_to_repay,
+            &asset_to_take,
+            &reserve_data_to_repay,
+            &reserve_data_to_take,
+            &user_config,
+            &user_reserve_data_to_repay,
+            &user_reserve_data_to_take,
+            &caller_config,
+            &caller_reserve_data_to_take,
+        );
+        //// TOKEN TRANSFERS
+        PSP22Ref::transfer_from_builder(
+            &asset_to_repay,
+            caller,
+            Self::env().account_id(),
+            amount_to_repay_value,
+            Vec::<u8>::new(),
+        )
+        .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
+        .try_invoke()
+        .unwrap()??;
         //// ABACUS TOKEN EVENTS
         //// to_repay_token
         // ATOKEN
@@ -223,32 +249,6 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
                 },
             ],
         )?;
-        // recalculate
-        reserve_data_to_repay._recalculate_current_rates();
-        self._push_data_for_liquidate(
-            &&liquidated_user,
-            &caller,
-            &asset_to_repay,
-            &asset_to_take,
-            &reserve_data_to_repay,
-            &reserve_data_to_take,
-            &user_config,
-            &user_reserve_data_to_repay,
-            &user_reserve_data_to_take,
-            &caller_config,
-            &caller_reserve_data_to_take,
-        );
-        //// TOKEN TRANSFERS
-        PSP22Ref::transfer_from_builder(
-            &asset_to_repay,
-            caller,
-            Self::env().account_id(),
-            amount_to_repay_value,
-            Vec::<u8>::new(),
-        )
-        .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
-        .try_invoke()
-        .unwrap()??;
         Ok((amount_to_repay_value, amount_to_take))
     }
 }

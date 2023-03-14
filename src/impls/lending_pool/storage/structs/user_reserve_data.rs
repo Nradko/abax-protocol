@@ -1,8 +1,5 @@
 use checked_math::checked_math;
-use openbrush::traits::{
-    Balance,
-    Timestamp,
-};
+use openbrush::traits::Balance;
 use scale::{
     Decode,
     Encode,
@@ -28,14 +25,15 @@ pub struct UserReserveData {
     pub applied_cumulative_supply_rate_index_e18: u128,
     /// applied cumulative rate index that is used to accumulate debt (variable) interest.
     pub applied_cumulative_variable_borrow_rate_index_e18: u128,
-    /// timestamp of UserReserveData update
-    pub update_timestamp: Timestamp,
 }
 
 impl UserReserveData {
     // TODO:: make it easier to read!!!
     pub fn _accumulate_user_interest(&mut self, reserve: &mut ReserveData) -> (Balance, Balance) {
-        if self.update_timestamp >= reserve.indexes_update_timestamp {
+        if self.applied_cumulative_supply_rate_index_e18 >= reserve.cumulative_supply_rate_index_e18
+            && self.applied_cumulative_variable_borrow_rate_index_e18
+                >= reserve.cumulative_variable_borrow_rate_index_e18
+        {
             return (0, 0)
         }
 
@@ -79,8 +77,6 @@ impl UserReserveData {
         }
         self.applied_cumulative_variable_borrow_rate_index_e18 = reserve.cumulative_variable_borrow_rate_index_e18;
 
-        self.update_timestamp = reserve.indexes_update_timestamp;
-
         return (delta_user_supply, delta_user_varaible_borrow)
     }
 }
@@ -92,7 +88,6 @@ impl UserReserveData {
             variable_borrowed: 0,
             applied_cumulative_supply_rate_index_e18: E18,
             applied_cumulative_variable_borrow_rate_index_e18: E18,
-            update_timestamp: 0,
         }
     }
 }
