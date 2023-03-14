@@ -1,12 +1,11 @@
 import { BN_ZERO } from '@polkadot/util';
-import { ReturnNumber, SignAndSendSuccessResponse } from '@727-ventures/typechain-types';
 import BN from 'bn.js';
 import { expect } from 'tests/setup/chai';
 import { Transfer } from 'typechain/event-types/a_token';
-import { BorrowStable, BorrowVariable, Deposit, Redeem, RepayStable, RepayVariable } from 'typechain/event-types/lending_pool';
+import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
 import { ContractsEvents } from 'typechain/events/enum';
 import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
-import { TokenReserve, TestEnvReserves } from './make-suite';
+import { TokenReserve } from './make-suite';
 import { ValidateEventParameters } from './validateEvents';
 export interface CheckDepositParameters {
   reserveData: ReserveData;
