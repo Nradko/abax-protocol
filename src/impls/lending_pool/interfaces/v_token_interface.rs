@@ -16,7 +16,11 @@ use crate::{
         },
         storage::{
             lending_pool_storage::LendingPoolStorage,
-            structs::user_reserve_data::UserReserveData,
+            structs::{
+                reserve_data::ReserveData,
+                user_config::UserConfig,
+                user_reserve_data::UserReserveData,
+            },
         },
     },
     traits::{
@@ -32,7 +36,7 @@ use crate::{
     },
 };
 
-impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
+impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVTokenInterface for T {
     default fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
@@ -76,36 +80,14 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
         // pull reserve_data
-        let mut reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_reserve_data(&underlying_asset)
-            .ok_or(LendingPoolTokenInterfaceError::AssetNotRegistered)?;
+        let (mut reserve_data, mut from_config, mut from_user_reserve_data, mut to_config, mut to_user_reserve_data) =
+            self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
         if reserve_data.v_token_address != Self::env().caller() {
             return Err(LendingPoolTokenInterfaceError::WrongCaller)
         }
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut from_user_reserve_data: UserReserveData = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &from)
-            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
-        let mut to_user_reserve_data: UserReserveData = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &to)
-            .unwrap_or_default();
-        // check if rules allow user "to" to take debt
-        let mut from_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&from)
-            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
-        let mut to_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&to)
-            .ok_or(LendingPoolTokenInterfaceError::InsufficientCollateral)?;
-        match _check_borrowing_enabled(&reserve_data) {
-            Err(_) => return Err(LendingPoolTokenInterfaceError::TransfersDisabled),
-            Ok(_) => (),
-        };
+        _check_borrowing_enabled(&reserve_data).or(Err(LendingPoolTokenInterfaceError::TransfersDisabled))?;
 
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate reserve
@@ -121,30 +103,24 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         _decrease_user_variable_debt(&reserve_data, &mut from_user_reserve_data, &mut from_config, amount);
         _increase_user_variable_debt(&reserve_data, &mut to_user_reserve_data, &mut to_config, amount);
 
-        match _check_enough_variable_debt(&reserve_data, &from_user_reserve_data) {
-            Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
-            Ok(_) => (),
-        };
-        match _check_enough_variable_debt(&reserve_data, &to_user_reserve_data) {
-            Err(_) => return Err(LendingPoolTokenInterfaceError::MinimalDebt),
-            Ok(_) => (),
-        };
-
+        _check_enough_variable_debt(&reserve_data, &from_user_reserve_data)
+            .or(Err(LendingPoolTokenInterfaceError::MinimalDebt))?;
+        _check_enough_variable_debt(&reserve_data, &to_user_reserve_data)
+            .or(Err(LendingPoolTokenInterfaceError::MinimalDebt))?;
         //// PUSH STORAGE & FINAL CONDITION CHECK
-        self.data::<LendingPoolStorage>()
-            .insert_reserve_data(&underlying_asset, &reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
-        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
-        self.data::<LendingPoolStorage>()
-            .insert_user_config(&from, &from_config);
+        self._push_data(
+            &underlying_asset,
+            &reserve_data,
+            &from,
+            &from_config,
+            &from_user_reserve_data,
+            &to,
+            &to_config,
+            &to_user_reserve_data,
+        );
         // check if there ie enought collateral
-        match self._check_user_free_collateral(&to, block_timestamp) {
-            Err(_) => return Err(LendingPoolTokenInterfaceError::InsufficientCollateral),
-            Ok(_) => (),
-        }
+        self._check_user_free_collateral(&to, block_timestamp)
+            .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?;
 
         //// ABACUS TOKEN EVENTS
         if interest_from_supply != 0 || interest_to_supply != 0 {
@@ -169,5 +145,86 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolVTokenInterface for T {
         // TODO add transfer emit event
 
         Ok((interest_from_variable_borrow, interest_to_variable_borrow))
+    }
+}
+
+pub trait VTokenInterfaceInternal {
+    fn _pull_data_for_token_transfer(
+        &mut self,
+        underlying_asset: &AccountId,
+        from: &AccountId,
+        to: &AccountId,
+    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>;
+    fn _push_data(
+        &mut self,
+        underlying_asset: &AccountId,
+        reserve_data: &ReserveData,
+        from: &AccountId,
+        from_config: &UserConfig,
+        from_user_reserve_data: &UserReserveData,
+        to: &AccountId,
+        to_config: &UserConfig,
+        to_user_reserve_data: &UserReserveData,
+    );
+}
+
+impl<T: Storage<LendingPoolStorage>> VTokenInterfaceInternal for T {
+    fn _pull_data_for_token_transfer(
+        &mut self,
+        underlying_asset: &AccountId,
+        from: &AccountId,
+        to: &AccountId,
+    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>
+    {
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&underlying_asset)
+            .ok_or(LendingPoolTokenInterfaceError::AssetNotRegistered)?;
+        let from_user_reserve_data: UserReserveData = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&underlying_asset, &from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        let to_user_reserve_data: UserReserveData = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&underlying_asset, &to)
+            .unwrap_or_default();
+        // check if rules allow user "to" to take debt
+        let from_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        let to_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&to)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientCollateral)?;
+        Ok((
+            reserve_data,
+            from_config,
+            from_user_reserve_data,
+            to_config,
+            to_user_reserve_data,
+        ))
+    }
+
+    fn _push_data(
+        &mut self,
+        underlying_asset: &AccountId,
+        reserve_data: &ReserveData,
+        from: &AccountId,
+        from_config: &UserConfig,
+        from_user_reserve_data: &UserReserveData,
+        to: &AccountId,
+        to_config: &UserConfig,
+        to_user_reserve_data: &UserReserveData,
+    ) {
+        self.data::<LendingPoolStorage>()
+            .insert_reserve_data(&underlying_asset, reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&from, &from_config);
+        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
     }
 }

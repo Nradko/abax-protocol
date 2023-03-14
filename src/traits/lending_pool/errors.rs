@@ -75,6 +75,7 @@ pub enum LendingPoolTokenInterfaceError {
     InsufficientCollateral,
     TransfersDisabled,
     MinimalDebt,
+    MinimalSupply,
     AssetNotRegistered,
 }
 
@@ -112,6 +113,7 @@ impl From<LendingPoolTokenInterfaceError> for PSP22Error {
             }
             LendingPoolTokenInterfaceError::StorageError(_) => PSP22Error::Custom(String::from("StorageError").into()),
             LendingPoolTokenInterfaceError::MinimalDebt => PSP22Error::Custom(String::from("MinimalDebt").into()),
+            LendingPoolTokenInterfaceError::MinimalSupply => PSP22Error::Custom(String::from("MinimalSupply").into()),
             LendingPoolTokenInterfaceError::PSP22Error(psp22_error) => psp22_error,
         }
     }
