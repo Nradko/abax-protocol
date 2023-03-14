@@ -28,7 +28,10 @@ use crate::{
     },
     traits::{
         abacus_token::traits::abacus_token::*,
-        lending_pool::errors::LendingPoolError,
+        lending_pool::errors::{
+            LendingPoolError,
+            LendingPoolTokenInterfaceError,
+        },
     },
 };
 use ink::prelude::{
@@ -48,10 +51,12 @@ pub fn _accumulate_interest(
     user_reserve_data._accumulate_user_interest(reserve_data)
 }
 
-pub fn _value_e8(amount: Balance, decimals: u128, price_e8: u128) -> u128 {
-    amount * price_e8 / decimals
+pub fn _check_amount_not_zero(amount: u128) -> Result<(), LendingPoolError> {
+    if amount == 0 {
+        return Err(LendingPoolError::AmountNotGreaterThanZero)
+    }
+    Ok(())
 }
-
 pub fn _check_deposit_enabled(reserve_data: &ReserveData) -> Result<(), LendingPoolError> {
     if !reserve_data.activated {
         return Err(LendingPoolError::Inactive)
@@ -101,6 +106,24 @@ pub fn _check_enough_variable_debt(
 ) -> Result<(), LendingPoolError> {
     if user_reserve_data.variable_borrowed <= reserve_data.minimal_debt && user_reserve_data.variable_borrowed != 0 {
         return Err(LendingPoolError::InsufficientDebt)
+    }
+    Ok(())
+}
+
+pub fn _check_max_supply(reserve_data: ReserveData) -> Result<(), LendingPoolError> {
+    if reserve_data.maximal_total_supply.is_some() {
+        if reserve_data.total_supplied > reserve_data.maximal_total_supply.unwrap() {
+            return Err(LendingPoolError::MaxSupplyReached)
+        }
+    }
+    Ok(())
+}
+
+pub fn _check_max_debt(reserve_data: ReserveData) -> Result<(), LendingPoolError> {
+    if reserve_data.maximal_total_debt.is_some() {
+        if reserve_data.total_variable_borrowed > reserve_data.maximal_total_debt.unwrap() {
+            return Err(LendingPoolError::MaxDebtReached)
+        }
     }
     Ok(())
 }
@@ -179,17 +202,6 @@ pub fn _decrease_user_variable_debt(
 
 pub fn _decrease_total_variable_debt(reserve_data: &mut ReserveData, amount: u128) {
     reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed.saturating_sub(amount);
-}
-
-pub fn _emit_all_abacus_token_transfer_events(
-    reserve_data: &ReserveData,
-    user: &AccountId,
-    a_token_amount_transferred: i128,
-    v_token_amount_transferred: i128,
-) -> Result<(), PSP22Error> {
-    _emit_abacus_token_transfer_event(&reserve_data.a_token_address, user, a_token_amount_transferred)?;
-    _emit_abacus_token_transfer_event(&reserve_data.v_token_address, user, v_token_amount_transferred)?;
-    Ok(())
 }
 
 pub fn _emit_abacus_token_transfer_event(
@@ -403,5 +415,85 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
             result.push((*asset, income));
         }
         result
+    }
+}
+
+pub trait TokenInterfaceInternal {
+    fn _pull_data_for_token_transfer(
+        &mut self,
+        underlying_asset: &AccountId,
+        from: &AccountId,
+        to: &AccountId,
+    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>;
+    fn _push_data(
+        &mut self,
+        underlying_asset: &AccountId,
+        reserve_data: &ReserveData,
+        from: &AccountId,
+        from_config: &UserConfig,
+        from_user_reserve_data: &UserReserveData,
+        to: &AccountId,
+        to_config: &UserConfig,
+        to_user_reserve_data: &UserReserveData,
+    );
+}
+
+impl<T: Storage<LendingPoolStorage>> TokenInterfaceInternal for T {
+    fn _pull_data_for_token_transfer(
+        &mut self,
+        underlying_asset: &AccountId,
+        from: &AccountId,
+        to: &AccountId,
+    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>
+    {
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&underlying_asset)
+            .ok_or(LendingPoolTokenInterfaceError::AssetNotRegistered)?;
+        let from_user_reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&underlying_asset, &from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        let to_user_reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&underlying_asset, &to)
+            .unwrap_or_default();
+        let from_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        let to_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&to)
+            .unwrap_or_default();
+        Ok((
+            reserve_data,
+            from_config,
+            from_user_reserve_data,
+            to_config,
+            to_user_reserve_data,
+        ))
+    }
+
+    fn _push_data(
+        &mut self,
+        underlying_asset: &AccountId,
+        reserve_data: &ReserveData,
+        from: &AccountId,
+        from_config: &UserConfig,
+        from_user_reserve_data: &UserReserveData,
+        to: &AccountId,
+        to_config: &UserConfig,
+        to_user_reserve_data: &UserReserveData,
+    ) {
+        self.data::<LendingPoolStorage>()
+            .insert_reserve_data(&underlying_asset, reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&from, &from_config);
+        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
     }
 }

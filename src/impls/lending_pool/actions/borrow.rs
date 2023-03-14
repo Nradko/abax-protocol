@@ -44,19 +44,11 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
     ) -> Result<(), LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
         let caller = Self::env().caller();
-        let reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_reserve_data(&asset)
-            .ok_or(LendingPoolError::AssetNotRegistered)?;
-        let user_reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&asset, &caller)
-            .ok_or(LendingPoolError::InsufficientSupply)?;
-        let mut user_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&caller)
-            .ok_or(LendingPoolError::InsufficientSupply)?;
+        let (reserve_data, user_reserve_data, mut user_config) =
+            self._pull_data_for_set_as_collateral(asset, caller)?;
+
         _check_enough_supply_to_be_collateral(&reserve_data, &user_reserve_data)?;
+
         let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6;
         if use_as_collateral_to_set && collateral_coefficient_e6.is_none() {
             return Err(LendingPoolError::RuleCollateralDisable)
@@ -95,13 +87,13 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
-        if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero)
-        }
+        _check_amount_not_zero(amount)?;
         let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
             self._pull_data_for_borrow(&asset, &on_behalf_of)?;
+
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+
         //// MODIFY PULLED STORAGE
         // accumulate
         let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
@@ -116,11 +108,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         );
         _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
 
-        if reserve_data.maximal_total_debt.is_some() {
-            if reserve_data.total_variable_borrowed > reserve_data.maximal_total_debt.unwrap() {
-                return Err(LendingPoolError::MaxDebtReached)
-            }
-        }
+        _check_max_debt(reserve_data)?;
         // recalculate
         reserve_data._recalculate_current_rates();
         // PUSH DATA
@@ -173,13 +161,25 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         // accumulate
         let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
             _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
-        let amount_val: Balance;
-        amount_val = _change_state_repay_variable(
+
+        let amount_val = match amount {
+            Some(v) => {
+                if v > on_behalf_of_reserve_data.variable_borrowed {
+                    return Err(LendingPoolError::AmountExceedsUserDebt)
+                };
+                v
+            }
+            None => on_behalf_of_reserve_data.variable_borrowed,
+        };
+        _check_amount_not_zero(amount_val)?;
+
+        _change_state_repay_variable(
             &mut reserve_data,
             &mut on_behalf_of_reserve_data,
             &mut on_behalf_of_config,
-            amount,
-        )?;
+            amount_val,
+        );
+
         if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 1 {
             _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
         }
@@ -226,6 +226,11 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
 }
 
 pub trait BorrowInternal {
+    fn _pull_data_for_set_as_collateral(
+        &mut self,
+        asset: AccountId,
+        caller: AccountId,
+    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError>;
     fn _pull_data_for_borrow(
         &self,
         asset: &AccountId,
@@ -248,6 +253,25 @@ pub trait BorrowInternal {
 }
 
 impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
+    fn _pull_data_for_set_as_collateral(
+        &mut self,
+        asset: AccountId,
+        caller: AccountId,
+    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError> {
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+        let user_reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset, &caller)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
+        let user_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&caller)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
+        Ok((reserve_data, user_reserve_data, user_config))
+    }
     fn _pull_data_for_borrow(
         &self,
         asset: &AccountId,
@@ -332,7 +356,7 @@ fn _change_state_borrow_variable(
     reserve_data: &mut ReserveData,
     on_behalf_of_reserve_data: &mut UserReserveData,
     on_behalf_of_config: &mut UserConfig,
-    amount: u128,
+    amount: Balance,
 ) {
     _increase_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
     _increase_total_variable_debt(reserve_data, amount);
@@ -342,20 +366,8 @@ fn _change_state_repay_variable(
     reserve_data: &mut ReserveData,
     on_behalf_of_reserve_data: &mut UserReserveData,
     on_behalf_of_config: &mut UserConfig,
-    amount: Option<u128>,
-) -> Result<u128, LendingPoolError> {
-    let amount_val = match amount {
-        Some(v) => v,
-        None => on_behalf_of_reserve_data.variable_borrowed,
-    };
-    if amount_val == 0 {
-        return Err(LendingPoolError::AmountNotGreaterThanZero)
-    }
-    if amount_val > on_behalf_of_reserve_data.variable_borrowed {
-        return Err(LendingPoolError::AmountExceedsUserDebt)
-    }
-    _decrease_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount_val);
-    _decrease_total_variable_debt(reserve_data, amount_val);
-
-    Ok(amount_val)
+    amount: Balance,
+) {
+    _decrease_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
+    _decrease_total_variable_debt(reserve_data, amount);
 }

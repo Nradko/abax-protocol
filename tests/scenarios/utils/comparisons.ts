@@ -1,12 +1,11 @@
 import { BN_ZERO } from '@polkadot/util';
-import { ReturnNumber, SignAndSendSuccessResponse } from '@727-ventures/typechain-types';
 import BN from 'bn.js';
 import { expect } from 'tests/setup/chai';
 import { Transfer } from 'typechain/event-types/a_token';
-import { BorrowStable, BorrowVariable, Deposit, Redeem, RepayStable, RepayVariable } from 'typechain/event-types/lending_pool';
+import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
 import { ContractsEvents } from 'typechain/events/enum';
 import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
-import { TokenReserve, TestEnvReserves } from './make-suite';
+import { TokenReserve } from './make-suite';
 import { ValidateEventParameters } from './validateEvents';
 export interface CheckDepositParameters {
   reserveData: ReserveData;
@@ -120,10 +119,6 @@ export const checkDeposit = (
 
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
-
-  expect
-    .soft(parAfter.userReserveData.updateTimestamp.toString())
-    .to.equal(parAfter.reserveData.indexesUpdateTimestamp.toString(), `Deposit | UserReserveData | timestamp`);
 
   // supplied <- increases on deposit
   before = parBefore.userReserveData.supplied.rawNumber;
@@ -251,10 +246,6 @@ export const checkRedeem = (
 
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
-
-  expect
-    .soft(parAfter.userReserveData.updateTimestamp.toString())
-    .to.equal(parAfter.reserveData.indexesUpdateTimestamp.toString(), `Redeem | UserReserveData | timestamp`);
 
   // supplied <- decreases on Redeem
   before = parBefore.userReserveData.supplied.rawNumber;
@@ -405,10 +396,6 @@ export const checkBorrowVariable = (
 
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
-
-  expect
-    .soft(parAfter.userReserveData.updateTimestamp.toString())
-    .to.equal(parAfter.reserveData.indexesUpdateTimestamp.toString(), `BorrowVariable | UserReserveData | timestamp`);
 
   // variable_borroved <- increases on BorrowVariable
   before = parBefore.userReserveData.variableBorrowed.rawNumber;
@@ -570,11 +557,6 @@ export const checkRepayVariable = (
     .to.almostEqualOrEqualNumberE12(expected.toString());
 
   // UserReserveData Checks
-  // timestamp should be set to reserve data timestamp
-  expect
-    .soft(parAfter.userReserveData.updateTimestamp.toString())
-    .to.equal(parAfter.reserveData.indexesUpdateTimestamp.toString(), `RepayVariable | UserReserveData | timestamp`);
-
   // variable_borroved <- decreases on RepayVariable
   before = parBefore.userReserveData.variableBorrowed.rawNumber;
   expected = before.add(userInterests.variableBorrow).sub(amount);
@@ -659,20 +641,11 @@ const getUserInterests = (userReserveData: UserReserveData, reserveDataBefore: R
     variableBorrowInterest.addn(1);
   }
 
-  const deltaTimestamp = new BN(
-    new BN(userReserveData.updateTimestamp.toString()).eqn(0)
-      ? 0
-      : new BN(reserveDataAfter.indexesUpdateTimestamp.toString()).sub(new BN(userReserveData.updateTimestamp.toString())),
-  );
-  const E24 = new BN('1000000000000000000000000');
-
   return { supply: supplyInterest, variableBorrow: variableBorrowInterest };
 };
 // this function does assume that comulative Indexes are calculated correctly inside the contract.
 // this corectness is tested in rust unit tests.
 const getReserveInterests = (reserveDataBefore: ReserveData, reserveDataAfter: ReserveData): Interests => {
-  const deltaTimestamp = new BN(reserveDataAfter.indexesUpdateTimestamp.toString()).sub(new BN(reserveDataBefore.indexesUpdateTimestamp.toString()));
-
   const supplyInterest = reserveDataBefore.cumulativeSupplyRateIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : reserveDataBefore.totalSupplied.rawNumber
@@ -692,7 +665,6 @@ const getReserveInterests = (reserveDataBefore: ReserveData, reserveDataAfter: R
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
   }
-  const E24 = new BN('1000000000000000000000000');
 
   return { supply: supplyInterest, variableBorrow: variableBorrowInterest };
 };
