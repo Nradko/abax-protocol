@@ -1,4 +1,3 @@
-// TODO::think should we emit events on set_as_collateral
 use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
@@ -17,7 +16,14 @@ use crate::{
             _check_deposit_enabled,
             *,
         },
-        storage::lending_pool_storage::LendingPoolStorage,
+        storage::{
+            lending_pool_storage::LendingPoolStorage,
+            structs::{
+                reserve_data::ReserveData,
+                user_config::UserConfig,
+                user_reserve_data::UserReserveData,
+            },
+        },
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
@@ -29,7 +35,7 @@ use crate::{
     },
 };
 
-impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
+impl<T: Storage<LendingPoolStorage> + DepositInternal> LendingPoolDeposit for T {
     default fn deposit(
         &mut self,
         asset: AccountId,
@@ -38,55 +44,37 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         //// ARGUMENT CHECK
-        if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero)
-        }
+        _check_amount_not_zero(amount)?;
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_reserve_data(&asset)
-            .ok_or(LendingPoolError::AssetNotRegistered)?;
-        _check_deposit_enabled(&reserve_data)?;
-        let mut on_behalf_of_reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&asset, &on_behalf_of)
-            .unwrap_or_default();
-        let mut on_behalf_of_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&on_behalf_of)
-            .unwrap_or_default();
+        let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
+            self._pull_data_for_deposit(&asset, &on_behalf_of)?;
 
         //// MODIFY DATA
         // accumulate
         let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
             _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
         // add deposit
-        _increase_user_deposit(
-            &reserve_data,
+        _change_state_on_deposit(
+            &mut reserve_data,
             &mut on_behalf_of_reserve_data,
             &mut on_behalf_of_config,
             amount,
         );
-        _increase_total_deposit(&mut reserve_data, amount);
+        _check_max_supply(reserve_data)?;
 
-        if reserve_data.maximal_total_supply.is_some() {
-            if reserve_data.total_supplied > reserve_data.maximal_total_supply.unwrap() {
-                return Err(LendingPoolError::MaxSupplyReached)
-            }
-        }
         // recalculate
         reserve_data._recalculate_current_rates();
 
         //// PUSH STORAGE
-        self.data::<LendingPoolStorage>()
-            .insert_reserve_data(&asset, &reserve_data);
-
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_config(&on_behalf_of, &on_behalf_of_config);
+        self._push_data(
+            &asset,
+            &on_behalf_of,
+            &reserve_data,
+            &on_behalf_of_reserve_data,
+            &on_behalf_of_config,
+        );
 
         //// TOKEN TRANSFERS
         PSP22Ref::transfer_from_builder(
@@ -129,55 +117,41 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let mut reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_reserve_data(&asset)
-            .ok_or(LendingPoolError::AssetNotRegistered)?;
-        _check_activeness(&reserve_data)?;
-        let mut on_behalf_of_reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&asset, &on_behalf_of)
-            .ok_or(LendingPoolError::InsufficientSupply)?;
-        let mut on_behalf_of_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&on_behalf_of)
-            .ok_or(LendingPoolError::InsufficientSupply)?;
+        let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
+            self._pull_data_for_redeem(&asset, &on_behalf_of)?;
         // MODIFY PULLED STORAGE & AMOUNT CHECK
         // accumulate
         let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
             _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
         // amount checks
         let amount = match amount_arg {
-            Some(v) => v,
+            Some(v) => {
+                if v > on_behalf_of_reserve_data.supplied {
+                    return Err(LendingPoolError::AmountExceedsUserDeposit)
+                };
+                v
+            }
             None => on_behalf_of_reserve_data.supplied,
         };
-        if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero)
-        }
-        if amount > on_behalf_of_reserve_data.supplied {
-            return Err(LendingPoolError::AmountExceedsUserDeposit)
-        }
+        _check_amount_not_zero(amount)?;
         // sub deposit
-        _decrease_user_deposit(
-            &reserve_data,
+        _change_state_on_redeem(
+            &mut reserve_data,
             &mut on_behalf_of_reserve_data,
             &mut on_behalf_of_config,
             amount,
         );
-        _decrease_total_deposit(&mut reserve_data, amount);
-        if on_behalf_of_reserve_data.supplied <= reserve_data.minimal_collateral {
-            on_behalf_of_config.collaterals &= !(1_u128 << reserve_data.id);
-        }
         // recalculate
         reserve_data._recalculate_current_rates();
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
-        self.data::<LendingPoolStorage>()
-            .insert_reserve_data(&asset, &reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_config(&on_behalf_of, &on_behalf_of_config);
+        self._push_data(
+            &asset,
+            &on_behalf_of,
+            &reserve_data,
+            &on_behalf_of_reserve_data,
+            &on_behalf_of_config,
+        );
         // check if there ie enought collateral
         self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
 
@@ -204,6 +178,111 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolDeposit for T {
         self._emit_redeem_event(asset, Self::env().caller(), on_behalf_of, amount);
 
         Ok(amount)
+    }
+}
+
+pub trait DepositInternal {
+    fn _pull_data_for_deposit(
+        &self,
+        asset: &AccountId,
+        on_behalf_of: &AccountId,
+    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError>;
+
+    fn _pull_data_for_redeem(
+        &self,
+        asset: &AccountId,
+        on_behalf_of: &AccountId,
+    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError>;
+    fn _push_data(
+        &mut self,
+        asset: &AccountId,
+        on_behalf_of: &AccountId,
+        reserve_data: &ReserveData,
+        on_behalf_of_reserve_data: &UserReserveData,
+        on_behalf_of_config: &UserConfig,
+    );
+}
+
+impl<T: Storage<LendingPoolStorage>> DepositInternal for T {
+    fn _pull_data_for_deposit(
+        &self,
+        asset: &AccountId,
+        on_behalf_of: &AccountId,
+    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError> {
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+        _check_deposit_enabled(&reserve_data)?;
+        let on_behalf_of_reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset, &on_behalf_of)
+            .unwrap_or_default();
+        let on_behalf_of_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&on_behalf_of)
+            .unwrap_or_default();
+        Ok((reserve_data, on_behalf_of_reserve_data, on_behalf_of_config))
+    }
+
+    fn _pull_data_for_redeem(
+        &self,
+        asset: &AccountId,
+        on_behalf_of: &AccountId,
+    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError> {
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+        _check_activeness(&reserve_data)?;
+        let on_behalf_of_reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset, &on_behalf_of)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
+        let on_behalf_of_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&on_behalf_of)
+            .ok_or(LendingPoolError::InsufficientSupply)?;
+        Ok((reserve_data, on_behalf_of_reserve_data, on_behalf_of_config))
+    }
+
+    fn _push_data(
+        &mut self,
+        asset: &AccountId,
+        on_behalf_of: &AccountId,
+        reserve_data: &ReserveData,
+        on_behalf_of_reserve_data: &UserReserveData,
+        on_behalf_of_config: &UserConfig,
+    ) {
+        self.data::<LendingPoolStorage>()
+            .insert_reserve_data(&asset, &reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&on_behalf_of, &on_behalf_of_config);
+    }
+}
+
+fn _change_state_on_deposit(
+    reserve_data: &mut ReserveData,
+    on_behalf_of_reserve_data: &mut UserReserveData,
+    on_behalf_of_config: &mut UserConfig,
+    amount: u128,
+) {
+    _increase_user_deposit(&*reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
+    _increase_total_deposit(reserve_data, amount);
+}
+
+fn _change_state_on_redeem(
+    reserve_data: &mut ReserveData,
+    on_behalf_of_reserve_data: &mut UserReserveData,
+    on_behalf_of_config: &mut UserConfig,
+    amount: u128,
+) {
+    _decrease_user_deposit(&*reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
+    _decrease_total_deposit(reserve_data, amount);
+    if on_behalf_of_reserve_data.supplied <= reserve_data.minimal_collateral {
+        on_behalf_of_config.collaterals &= !(1_u128 << reserve_data.id);
     }
 }
 

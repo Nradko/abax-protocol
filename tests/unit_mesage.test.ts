@@ -360,14 +360,13 @@ makeSuite('Unit message', (getTestEnv) => {
       await reserveWETH.underlying.withSigner(users[1]).tx.approve(lendingPool.address, mintedAmount);
       await lendingPool.withSigner(users[1]).tx.deposit(reserveWETH.underlying.address, users[1].address, mintedAmount, []);
       await lendingPool.withSigner(users[1]).tx.setAsCollateral(reserveWETH.underlying.address, true);
-      await lendingPool.withSigner(users[1]).query.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [0]); //TODO why DAI does not work here?
       await lendingPool.withSigner(users[1]).tx.borrow(reserveWETH.underlying.address, users[1].address, amountToBorrow, [0]);
       await reserveWETH.vToken.withSigner(testEnv.users[1]).tx.approve(testEnv.users[1].address, mintedAmount);
 
       const queryRes = (
         await lendingPool
           .withSigner(testEnv.users[0])
-          .query.transferVariableDebtFromTo(reserveDAI.underlying.address, testEnv.users[1].address, testEnv.users[0].address, amountToBorrow)
+          .query.transferVariableDebtFromTo(reserveWETH.underlying.address, testEnv.users[1].address, testEnv.users[0].address, amountToBorrow)
       ).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
     });
