@@ -77,7 +77,9 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             self.data::<LendingPoolStorage>()
                 .insert_user_config(&caller, &user_config);
 
-            self._check_user_free_collateral(&caller, block_timestamp)?;
+            if use_as_collateral_to_set == false {
+                self._check_user_free_collateral(&caller, block_timestamp)?;
+            }
 
             self._emit_collateral_set_event(asset, caller, use_as_collateral_to_set);
         }

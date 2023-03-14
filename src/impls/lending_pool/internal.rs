@@ -306,9 +306,9 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             .unwrap_or_default();
         let collaterals = user_config.deposits & user_config.collaterals;
         let borrows = user_config.borrows_variable;
-        let active = collaterals | borrows;
+        let active_user_assets = collaterals | borrows;
         for i in 0..registered_assets.len() {
-            if ((active >> i) & 1) == 0 {
+            if ((active_user_assets >> i) & 1) == 0 {
                 continue
             }
             let asset = registered_assets[i];
