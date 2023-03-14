@@ -36,7 +36,7 @@ import { advanceBlockTimestamp, createEnumChecker, parseAmountToBN, subscribeOnE
 import { ValidateEventParameters } from './validateEvents';
 
 export const convertToCurrencyDecimals = async (token: any, amount: BN | number | string) => {
-  const decimals = (await token.methods.tokenDecimals({})).value.ok!;
+  const decimals = (await token.query.tokenDecimals()).value.ok!;
   const { amountParsed, amountParsedDecimals } = BN.isBN(amount) ? { amountParsed: amount, amountParsedDecimals: 0 } : parseAmountToBN(amount);
   return amountParsed.mul(new BN(Math.pow(10, decimals - amountParsedDecimals).toString()));
 };
