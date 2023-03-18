@@ -57,6 +57,7 @@ pub enum LendingPoolError {
     NothingToAccumulate,
     MaxSupplyReached,
     MaxDebtReached,
+    MarketRule,
 }
 
 impl From<LangError> for LendingPoolError {
@@ -77,6 +78,7 @@ pub enum LendingPoolTokenInterfaceError {
     MinimalDebt,
     MinimalSupply,
     AssetNotRegistered,
+    MarketRule,
 }
 
 impl From<PSP22Error> for LendingPoolError {
@@ -114,6 +116,7 @@ impl From<LendingPoolTokenInterfaceError> for PSP22Error {
             LendingPoolTokenInterfaceError::StorageError(_) => PSP22Error::Custom(String::from("StorageError").into()),
             LendingPoolTokenInterfaceError::MinimalDebt => PSP22Error::Custom(String::from("MinimalDebt").into()),
             LendingPoolTokenInterfaceError::MinimalSupply => PSP22Error::Custom(String::from("MinimalSupply").into()),
+            LendingPoolTokenInterfaceError::MarketRule => PSP22Error::Custom(String::from("MarketRule").into()),
             LendingPoolTokenInterfaceError::PSP22Error(psp22_error) => psp22_error,
         }
     }

@@ -9,7 +9,10 @@ use crate::{
             _increase_user_deposit,
         },
         storage::{
-            lending_pool_storage::LendingPoolStorage,
+            lending_pool_storage::{
+                LendingPoolStorage,
+                MarketRule,
+            },
             structs::{
                 reserve_data::ReserveData,
                 user_config::UserConfig,
@@ -79,8 +82,14 @@ impl<T: Storage<LendingPoolStorage> + ATokenInterfaceInternal> LendingPoolAToken
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
-        let (mut reserve_data, mut from_config, mut from_user_reserve_data, mut to_config, mut to_user_reserve_data) =
-            self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
+        let (
+            mut reserve_data,
+            mut from_config,
+            mut from_user_reserve_data,
+            mut to_config,
+            mut to_user_reserve_data,
+            from_market_rule,
+        ) = self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
         if Self::env().caller() != reserve_data.a_token_address {
             return Err(LendingPoolTokenInterfaceError::WrongCaller)
         }
@@ -123,7 +132,7 @@ impl<T: Storage<LendingPoolStorage> + ATokenInterfaceInternal> LendingPoolAToken
             &to_user_reserve_data,
         );
         // check if there ie enought collateral
-        self._check_user_free_collateral(&from, block_timestamp)
+        self._check_user_free_collateral(&from, &from_config, &from_market_rule, block_timestamp)
             .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?;
 
         //// ABACUS TOKEN EVENTS
@@ -158,7 +167,17 @@ pub trait ATokenInterfaceInternal {
         underlying_asset: &AccountId,
         from: &AccountId,
         to: &AccountId,
-    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>;
+    ) -> Result<
+        (
+            ReserveData,
+            UserConfig,
+            UserReserveData,
+            UserConfig,
+            UserReserveData,
+            MarketRule,
+        ),
+        LendingPoolTokenInterfaceError,
+    >;
     fn _push_data(
         &mut self,
         underlying_asset: &AccountId,
@@ -178,8 +197,17 @@ impl<T: Storage<LendingPoolStorage>> ATokenInterfaceInternal for T {
         underlying_asset: &AccountId,
         from: &AccountId,
         to: &AccountId,
-    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>
-    {
+    ) -> Result<
+        (
+            ReserveData,
+            UserConfig,
+            UserReserveData,
+            UserConfig,
+            UserReserveData,
+            MarketRule,
+        ),
+        LendingPoolTokenInterfaceError,
+    > {
         let reserve_data = self
             .data::<LendingPoolStorage>()
             .get_reserve_data(&underlying_asset)
@@ -200,12 +228,17 @@ impl<T: Storage<LendingPoolStorage>> ATokenInterfaceInternal for T {
             .data::<LendingPoolStorage>()
             .get_user_config(&to)
             .unwrap_or_default();
+        let from_market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&from_config.market_rule_id)
+            .ok_or(LendingPoolTokenInterfaceError::MarketRule)?;
         Ok((
             reserve_data,
             from_config,
             from_user_reserve_data,
             to_config,
             to_user_reserve_data,
+            from_market_rule,
         ))
     }
 

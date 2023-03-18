@@ -165,8 +165,6 @@ export const getReserveDefaultObj = (): ReserveData => {
       new ReturnNumber(100000000000000),
       new ReturnNumber(300000000000000),
     ],
-    collateralCoefficientE6: null,
-    borrowCoefficientE6: null,
     maximalTotalSupply: null,
     maximalTotalDebt: null,
     penaltyE6: new ReturnNumber(0),

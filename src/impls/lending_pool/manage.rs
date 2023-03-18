@@ -35,6 +35,8 @@ use openbrush::{
     },
 };
 
+use super::storage::structs::asset_rules::AssetRules;
+
 /// pays only 10% of standard flash loan fee
 pub const FLASH_BORROWER: RoleType = ink::selector_id!("FLASH_BORROWER"); // 1_112_475_474_u32
 /// can add new asset to the market
@@ -99,8 +101,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
                 100_000_000_000_000,
                 300_000_000_000_000,
             ],
-            collateral_coefficient_e6,
-            borrow_coefficient_e6,
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
@@ -122,9 +122,19 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             a_token_address,
             v_token_address,
         };
+        let mut market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&0)
+            .unwrap_or_default();
+
+        market_rule.push(Some(AssetRules {
+            collateral_coefficient_e6,
+            borrow_coefficient_e6,
+        }));
 
         self.data::<LendingPoolStorage>().register_asset(&asset);
         self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
+        self.data::<LendingPoolStorage>().insert_market_rule(&0, &market_rule);
         self._emit_asset_registered_event(
             &asset,
             decimals,
@@ -208,8 +218,6 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             .get_reserve_data(&asset)
             .ok_or(LendingPoolError::AssetNotRegistered)?;
         reserve.interest_rate_model = interest_rate_model;
-        reserve.collateral_coefficient_e6 = collateral_coefficient_e6;
-        reserve.borrow_coefficient_e6 = borrow_coefficient_e6;
         reserve.maximal_total_supply = maximal_total_supply;
         reserve.maximal_total_debt = maximal_total_debt;
         reserve.minimal_collateral = minimal_collateral;

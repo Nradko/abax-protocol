@@ -263,8 +263,6 @@ makeSuite('Unit message', (getTestEnv) => {
 
         expect(registerAssets[4]).to.equal(users[2].address);
         expect.soft(reserveData.decimals.toString()).to.equal('100000000');
-        expect.soft(reserveData.collateralCoefficientE6?.toString()).to.equal('111');
-        expect.soft(reserveData.borrowCoefficientE6?.toString()).to.equal('222');
         expect.soft(reserveData.maximalTotalSupply?.toString()).to.equal('99999999');
         expect.soft(reserveData.maximalTotalDebt?.toString()).to.equal('11111111');
         expect.soft(reserveData.penaltyE6.toString()).to.equal('100000');

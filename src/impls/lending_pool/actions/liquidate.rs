@@ -28,7 +28,10 @@ use crate::{
                 *,
             },
             storage::{
-                lending_pool_storage::LendingPoolStorage,
+                lending_pool_storage::{
+                    LendingPoolStorage,
+                    MarketRule,
+                },
                 structs::{
                     reserve_data::ReserveData,
                     user_config::UserConfig,
@@ -59,10 +62,6 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
     ) -> Result<(Balance, Balance), LendingPoolError> {
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(&liquidated_user, block_timestamp);
-        if collaterized {
-            return Err(LendingPoolError::Collaterized)
-        }
         let caller = Self::env().caller();
         let (
             mut reserve_data_to_repay,
@@ -72,6 +71,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             mut user_reserve_data_to_take,
             mut caller_config,
             mut caller_reserve_data_to_take,
+            market_rule,
         ): (
             ReserveData,
             ReserveData,
@@ -80,7 +80,17 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             UserReserveData,
             UserConfig,
             UserReserveData,
+            MarketRule,
         ) = self._pull_data_for_liquidate(&asset_to_repay, &asset_to_take, &liquidated_user, &caller)?;
+        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(
+            &liquidated_user,
+            &user_config,
+            &market_rule,
+            block_timestamp,
+        )?;
+        if collaterized {
+            return Err(LendingPoolError::Collaterized)
+        }
         let asset_to_repay_price_e8 = reserve_data_to_repay.token_price_e8()?;
         let asset_to_take_price_e8 = reserve_data_to_take.token_price_e8()?;
         let penalty_to_repay_e6 = reserve_data_to_repay.penalty_e6;
@@ -269,6 +279,7 @@ pub trait LiquidateInternal {
             UserReserveData,
             UserConfig,
             UserReserveData,
+            MarketRule,
         ),
         LendingPoolError,
     >;
@@ -304,31 +315,52 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
             UserReserveData,
             UserConfig,
             UserReserveData,
+            MarketRule,
         ),
         LendingPoolError,
     > {
+        let reserve_data_to_repay = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset_to_repay)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+        let reserve_data_to_take = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset_to_take)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+        let liquidated_user_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&liquidated_user)
+            .ok_or(LendingPoolError::NothingToRepay)?;
+        let liquidated_user_reserve_data_to_repay = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset_to_repay, &liquidated_user)
+            .ok_or(LendingPoolError::NothingToRepay)?;
+        let liquidated_user_reserve_data_to_take = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset_to_take, &liquidated_user)
+            .ok_or(LendingPoolError::NothingToRepay)?;
+        let caller_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&caller)
+            .unwrap_or_default();
+        let caller_reserve_data_to_take = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&asset_to_take, &caller)
+            .unwrap_or_default();
+        let liquidated_user_market_rules = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&liquidated_user_config.market_rule_id)
+            .ok_or(LendingPoolError::MarketRule)?;
+
         Ok((
-            self.data::<LendingPoolStorage>()
-                .get_reserve_data(&asset_to_repay)
-                .ok_or(LendingPoolError::AssetNotRegistered)?,
-            self.data::<LendingPoolStorage>()
-                .get_reserve_data(&asset_to_take)
-                .ok_or(LendingPoolError::AssetNotRegistered)?,
-            self.data::<LendingPoolStorage>()
-                .get_user_config(&liquidated_user)
-                .ok_or(LendingPoolError::NothingToRepay)?,
-            self.data::<LendingPoolStorage>()
-                .get_user_reserve(&asset_to_repay, &liquidated_user)
-                .ok_or(LendingPoolError::NothingToRepay)?,
-            self.data::<LendingPoolStorage>()
-                .get_user_reserve(&asset_to_take, &liquidated_user)
-                .ok_or(LendingPoolError::NothingToRepay)?,
-            self.data::<LendingPoolStorage>()
-                .get_user_config(&caller)
-                .unwrap_or_default(),
-            self.data::<LendingPoolStorage>()
-                .get_user_reserve(&asset_to_take, &caller)
-                .unwrap_or_default(),
+            reserve_data_to_repay,
+            reserve_data_to_take,
+            liquidated_user_config,
+            liquidated_user_reserve_data_to_repay,
+            liquidated_user_reserve_data_to_take,
+            caller_config,
+            caller_reserve_data_to_take,
+            liquidated_user_market_rules,
         ))
     }
     fn _push_data_for_liquidate(

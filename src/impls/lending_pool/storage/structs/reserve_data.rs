@@ -40,10 +40,6 @@ pub struct ReserveData {
     pub decimals: u128,
     /// delta interest per millisecond for utilizations (50%, 60%, 70%, 80%, 90%, 95%, 100%).
     pub interest_rate_model: [u128; 7],
-    /// used while veryfing loan to debt. If None then can not be used as collateral.
-    pub collateral_coefficient_e6: Option<u128>,
-    /// used while veryfing loan to debt. If None then can not be borrowed.
-    pub borrow_coefficient_e6: Option<u128>,
     /// maximal allowed total supply
     pub maximal_total_supply: Option<Balance>,
     /// maximal allowad total debt
@@ -213,8 +209,6 @@ impl Default for ReserveData {
                 100_000_000_000_000,
                 300_000_000_000_000,
             ],
-            collateral_coefficient_e6: None,
-            borrow_coefficient_e6: None,
             maximal_total_supply: None,
             maximal_total_debt: None,
             minimal_collateral: 0,

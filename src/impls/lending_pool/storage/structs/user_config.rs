@@ -16,4 +16,6 @@ pub struct UserConfig {
     pub collaterals: Bitmap128,
     /// active borrow_variable.
     pub borrows_variable: Bitmap128,
+    /// used market_rule_id
+    pub market_rule_id: u64,
 }
