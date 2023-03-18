@@ -3,7 +3,10 @@ use openbrush::traits::{
     Balance,
 };
 
-use crate::traits::lending_pool::errors::LendingPoolError;
+use crate::{
+    impls::lending_pool::storage::lending_pool_storage::MarketRule,
+    traits::lending_pool::errors::LendingPoolError,
+};
 
 use ink::prelude::vec::Vec;
 
@@ -21,13 +24,15 @@ pub trait LendingPoolManage {
     ///  * `decimals` - a decimal denominator of an asset (number already multiplied by 10^N where N is number of decimals)
     ///  * `collateral_coefficient_e6' - asset's collateral power. 1 = 10^6. If None asset can NOT be a collateral.
     ///  * `borrow_coefficient_e6' - asset's borrow power. 1 = 10^6. If None asset can NOT be borrowed.
-    ///  * `stable_rate_base_e24` - stable base rate per milisecond in E24 notation. 10^24 = 100% Milisecond Percentage Rate. If None asset con not be stable borrowed.
-    ///  * `penalty_e6 - penelty taken when taking part inliquidation as collateral or debt. 10^6 = 100%`.
+    ///  * `penalty_e6 - penalty taken when taking part inliquidation as collateral or debt. 10^6 = 100%`.
+    ///  * `maximal_total_supply` - maximal allowed total supply, If exceeded no more deposits are accepted. None for uncapped total supply.
+    ///  * `maximal_total_debt` - maximal allowed total debt, If exceeded no more borrows are accepted. None for uncapped total debt.
+    ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
+    ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
     ///  * `income_for_suppliers_part_e6` - indicates which part of an income should suppliers be paid - in E6 notation (multiplied by 10^6)
     ///  * `flash_loan_fee_e6` - fee (percentage) to charge for taking a flash loan for this asset - in E6 notation (multiplied by 10^6)
     ///  * `a_token_address` - `AccountId` of the asset's already deployed `AToken`
     ///  * `v_token_address` - `AccountId` of the asset's already deployed `VToken`
-    ///  * `s_token_address` - `AccountId` of the asset's already deployed `SToken`
     #[ink(message)]
     fn register_asset(
         &mut self,
@@ -35,11 +40,11 @@ pub trait LendingPoolManage {
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
+        penalty_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
         a_token_address: AccountId,
@@ -61,10 +66,10 @@ pub trait LendingPoolManage {
     /// modifies reserve in the `LendingPool`'s storage
     ///
     ///  * `asset` - `AccountId` of the registered asset
-    ///  * `collateral_coefficient_e6' - asset's collateral power. 1 = 10^6. If None asset can NOT be a collateral.
-    ///  * `borrow_coefficient_e6' - asset's borrow power. 1 = 10^6. If None asset can NOT be borrowed.
-    ///  * `stable_rate_base_e24` - stable base rate per milisecond in E24 notation. 10^24 = 100% Milisecond Percentage Rate. If None asset con not be stable borrowed.
-    ///  * `penalty_e6 - penelty taken when taking part inliquidation as collateral or debt. 10^6 = 100%`.
+    ///  * `maximal_total_supply` - maximal allowed total supply, If exceeded no more deposits are accepted. None for uncapped total supply.
+    ///  * `maximal_total_debt` - maximal allowed total debt, If exceeded no more borrows are accepted. None for uncapped total debt.
+    ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
+    ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
     ///  * `income_for_suppliers_part_e6` - indicates which part of an income should suppliers be paid - in E6 notation (multiplied by 10^6)
     ///  * `flash_loan_fee_e6` - fee (percentage) to charge for taking a flash loan for this asset - in E6 notation (multiplied by 10^6)
     #[ink(message)]
@@ -72,15 +77,36 @@ pub trait LendingPoolManage {
         &mut self,
         asset: AccountId,
         interest_rate_model: [u128; 7],
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
+    ) -> Result<(), LendingPoolError>;
+
+    /// adds new market rule at unused market_rule_id
+    ///
+    /// * `market_rule_id` - yet unused id for new market rule
+    /// * `market_rule` - list of asset rules for that market rule
+    #[ink(message)]
+    fn add_market_rule(&mut self, market_rule_id: u64, market_rule: MarketRule) -> Result<(), LendingPoolError>;
+
+    /// modifies asset_rules of a given asset in the market rule identified by market_rule_id
+    ///
+    /// * `market_rule_id` - id of market rule which shuuld be modified
+    /// * `asset` - `AccountId` of a asset which rules should be modified
+    ///  * `collateral_coefficient_e6' - asset's collateral power. 1 = 10^6. If None asset can NOT be a collateral.
+    ///  * `borrow_coefficient_e6' - asset's borrow power. 1 = 10^6. If None asset can NOT be borrowed.
+    ///  * `penalty_e6 - penalty taken when taking part inliquidation as collateral or debt. 10^6 = 100%`.
+    #[ink(message)]
+    fn modify_asset_rule(
+        &mut self,
+        market_rule_id: u64,
+        asset: AccountId,
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        penalty_e6: Option<u128>,
     ) -> Result<(), LendingPoolError>;
 
     #[ink(message)]

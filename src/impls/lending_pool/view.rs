@@ -27,7 +27,10 @@ use super::{
         Internal,
         InternalIncome,
     },
-    storage::structs::user_config::UserConfig,
+    storage::{
+        lending_pool_storage::MarketRule,
+        structs::user_config::UserConfig,
+    },
 };
 
 impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
@@ -87,10 +90,24 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
             .unwrap_or_default()
     }
 
+    default fn view_market_rule(&self, market_rule_id: u64) -> Option<MarketRule> {
+        self.data::<LendingPoolStorage>().get_market_rule(&market_rule_id)
+    }
+
     default fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128) {
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        self._get_user_free_collateral_coefficient_e6(&user_address, block_timestamp)
+        let user_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&user_address)
+            .unwrap_or_default();
+        let market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&user_config.market_rule_id)
+            .unwrap_or_default();
+
+        self._get_user_free_collateral_coefficient_e6(&user_address, &user_config, &market_rule, block_timestamp)
+            .unwrap_or_default()
     }
 
     default fn get_block_timestamp_provider_address(&self) -> AccountId {

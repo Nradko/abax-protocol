@@ -15,7 +15,10 @@ use crate::{
             *,
         },
         storage::{
-            lending_pool_storage::LendingPoolStorage,
+            lending_pool_storage::{
+                LendingPoolStorage,
+                MarketRule,
+            },
             structs::{
                 reserve_data::ReserveData,
                 user_config::UserConfig,
@@ -80,14 +83,21 @@ impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVToken
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
         // pull reserve_data
-        let (mut reserve_data, mut from_config, mut from_user_reserve_data, mut to_config, mut to_user_reserve_data) =
-            self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
+        let (
+            mut reserve_data,
+            mut from_config,
+            mut from_user_reserve_data,
+            mut to_config,
+            mut to_user_reserve_data,
+            to_market_rule,
+        ) = self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
         if reserve_data.v_token_address != Self::env().caller() {
             return Err(LendingPoolTokenInterfaceError::WrongCaller)
         }
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        _check_borrowing_enabled(&reserve_data).or(Err(LendingPoolTokenInterfaceError::TransfersDisabled))?;
+        _check_borrowing_enabled(&reserve_data, &to_market_rule)
+            .or(Err(LendingPoolTokenInterfaceError::TransfersDisabled))?;
 
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate reserve
@@ -119,7 +129,7 @@ impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVToken
             &to_user_reserve_data,
         );
         // check if there ie enought collateral
-        self._check_user_free_collateral(&to, block_timestamp)
+        self._check_user_free_collateral(&to, &to_config, &to_market_rule, block_timestamp)
             .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?;
 
         //// ABACUS TOKEN EVENTS
@@ -154,7 +164,17 @@ pub trait VTokenInterfaceInternal {
         underlying_asset: &AccountId,
         from: &AccountId,
         to: &AccountId,
-    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>;
+    ) -> Result<
+        (
+            ReserveData,
+            UserConfig,
+            UserReserveData,
+            UserConfig,
+            UserReserveData,
+            MarketRule,
+        ),
+        LendingPoolTokenInterfaceError,
+    >;
     fn _push_data(
         &mut self,
         underlying_asset: &AccountId,
@@ -174,8 +194,17 @@ impl<T: Storage<LendingPoolStorage>> VTokenInterfaceInternal for T {
         underlying_asset: &AccountId,
         from: &AccountId,
         to: &AccountId,
-    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>
-    {
+    ) -> Result<
+        (
+            ReserveData,
+            UserConfig,
+            UserReserveData,
+            UserConfig,
+            UserReserveData,
+            MarketRule,
+        ),
+        LendingPoolTokenInterfaceError,
+    > {
         let reserve_data = self
             .data::<LendingPoolStorage>()
             .get_reserve_data(&underlying_asset)
@@ -198,12 +227,18 @@ impl<T: Storage<LendingPoolStorage>> VTokenInterfaceInternal for T {
             .data::<LendingPoolStorage>()
             .get_user_reserve(&underlying_asset, &to)
             .unwrap_or_default();
+        // check if rules allow user "to" to take debt
+        let to_market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&to_config.market_rule_id)
+            .ok_or(LendingPoolTokenInterfaceError::MarketRule)?;
         Ok((
             reserve_data,
             from_config,
             from_user_reserve_data,
             to_config,
             to_user_reserve_data,
+            to_market_rule,
         ))
     }
 

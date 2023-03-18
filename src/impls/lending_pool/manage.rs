@@ -35,6 +35,11 @@ use openbrush::{
     },
 };
 
+use super::storage::{
+    lending_pool_storage::MarketRule,
+    structs::asset_rules::AssetRules,
+};
+
 /// pays only 10% of standard flash loan fee
 pub const FLASH_BORROWER: RoleType = ink::selector_id!("FLASH_BORROWER"); // 1_112_475_474_u32
 /// can add new asset to the market
@@ -65,11 +70,11 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         decimals: u128,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
+        penalty_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
         a_token_address: AccountId,
@@ -85,7 +90,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         }
 
         let new_id = self.data::<LendingPoolStorage>().registered_asset_len();
-        let reserve = ReserveData {
+        let reserve_data = ReserveData {
             id: new_id,
             activated: true,
             freezed: false,
@@ -99,13 +104,10 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
                 100_000_000_000_000,
                 300_000_000_000_000,
             ],
-            collateral_coefficient_e6,
-            borrow_coefficient_e6,
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
-            penalty_e6,
             income_for_suppliers_part_e6,
             flash_loan_fee_e6,
             token_price_e8: None,
@@ -122,23 +124,46 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             a_token_address,
             v_token_address,
         };
+        let mut market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&0)
+            .unwrap_or_default();
 
-        self.data::<LendingPoolStorage>().register_asset(&asset);
-        self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
-        self._emit_asset_registered_event(
-            &asset,
-            decimals,
+        market_rule.push(Some(AssetRules {
             collateral_coefficient_e6,
             borrow_coefficient_e6,
+            penalty_e6,
+        }));
+
+        self.data::<LendingPoolStorage>().register_asset(&asset);
+        self.data::<LendingPoolStorage>()
+            .insert_reserve_data(&asset, &reserve_data);
+        self.data::<LendingPoolStorage>().insert_market_rule(&0, &market_rule);
+        self._emit_asset_registered_event(&asset, decimals, &a_token_address, &v_token_address);
+        self._emit_reserve_parameters_changed_event(
+            &asset,
+            &[
+                300_000_000_000,
+                500_000_000_000,
+                2_000_000_000_000,
+                4_000_000_000_000,
+                10_000_000_000_000,
+                100_000_000_000_000,
+                300_000_000_000_000,
+            ],
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
-            penalty_e6,
             income_for_suppliers_part_e6,
             flash_loan_fee_e6,
-            &a_token_address,
-            &v_token_address,
+        );
+        self._emit_asset_rules_changed(
+            &0,
+            &asset,
+            &collateral_coefficient_e6,
+            &borrow_coefficient_e6,
+            &penalty_e6,
         );
         Ok(())
     }
@@ -186,13 +211,10 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         &mut self,
         asset: AccountId,
         interest_rate_model: [u128; 7],
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError> {
@@ -208,29 +230,111 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             .get_reserve_data(&asset)
             .ok_or(LendingPoolError::AssetNotRegistered)?;
         reserve.interest_rate_model = interest_rate_model;
-        reserve.collateral_coefficient_e6 = collateral_coefficient_e6;
-        reserve.borrow_coefficient_e6 = borrow_coefficient_e6;
         reserve.maximal_total_supply = maximal_total_supply;
         reserve.maximal_total_debt = maximal_total_debt;
         reserve.minimal_collateral = minimal_collateral;
         reserve.minimal_debt = minimal_debt;
-        reserve.penalty_e6 = penalty_e6;
         reserve.income_for_suppliers_part_e6 = income_for_suppliers_part_e6;
         reserve.flash_loan_fee_e6 = flash_loan_fee_e6;
         self.data::<LendingPoolStorage>().insert_reserve_data(&asset, &reserve);
         self._emit_reserve_parameters_changed_event(
             &asset,
             &interest_rate_model,
-            collateral_coefficient_e6,
-            borrow_coefficient_e6,
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
-            penalty_e6,
             income_for_suppliers_part_e6,
             flash_loan_fee_e6,
         );
+        Ok(())
+    }
+
+    default fn add_market_rule(
+        &mut self,
+        market_rule_id: u64,
+        market_rule: MarketRule,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        if !(self.data::<access_control::Data>().has_role(PARAMETERS_ADMIN, caller)
+            || self.data::<access_control::Data>().has_role(GLOBAL_ADMIN, caller))
+        {
+            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+        }
+        if self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&market_rule_id)
+            .is_some()
+        {
+            return Err(LendingPoolError::MarketRuleExistance)
+        }
+        let registerd_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
+
+        for asset_id in 0..market_rule.len() {
+            if market_rule[asset_id].is_some() {
+                let asset_rules = market_rule[asset_id].unwrap();
+                self._emit_asset_rules_changed(
+                    &market_rule_id,
+                    &registerd_assets[asset_id],
+                    &asset_rules.collateral_coefficient_e6,
+                    &asset_rules.borrow_coefficient_e6,
+                    &asset_rules.penalty_e6,
+                );
+            }
+        }
+        self.data::<LendingPoolStorage>()
+            .insert_market_rule(&market_rule_id, &market_rule);
+
+        Ok(())
+    }
+
+    default fn modify_asset_rule(
+        &mut self,
+        market_rule_id: u64,
+        asset: AccountId,
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        penalty_e6: Option<u128>,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        if !(self.data::<access_control::Data>().has_role(PARAMETERS_ADMIN, caller)
+            || self.data::<access_control::Data>().has_role(GLOBAL_ADMIN, caller))
+        {
+            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+        }
+        let reserve_data = self
+            .data::<LendingPoolStorage>()
+            .get_reserve_data(&asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+
+        let mut market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&market_rule_id)
+            .ok_or(LendingPoolError::MarketRuleExistance)?;
+
+        let asset_id = reserve_data.id;
+
+        while (market_rule.len() as u64) < (asset_id) {
+            market_rule.push(None);
+        }
+
+        market_rule[asset_id as usize] = Some(AssetRules {
+            collateral_coefficient_e6,
+            borrow_coefficient_e6,
+            penalty_e6,
+        });
+
+        self.data::<LendingPoolStorage>()
+            .insert_market_rule(&market_rule_id, &market_rule);
+
+        self._emit_asset_rules_changed(
+            &market_rule_id,
+            &asset,
+            &collateral_coefficient_e6,
+            &borrow_coefficient_e6,
+            &penalty_e6,
+        );
+
         Ok(())
     }
 
@@ -263,15 +367,6 @@ impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
         &mut self,
         asset: &AccountId,
         decimals: u128,
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
-        maximal_total_supply: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-        penalty_e6: u128,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
         a_token_address: &AccountId,
         v_token_address: &AccountId,
     ) {
@@ -287,15 +382,23 @@ impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
         &mut self,
         asset: &AccountId,
         interest_rate_model: &[u128; 7],
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
+    ) {
+    }
+
+    #[allow(unused_variables)]
+    default fn _emit_asset_rules_changed(
+        &mut self,
+        market_rule_id: &u64,
+        asset: &AccountId,
+        collateral_coefficient_e6: &Option<u128>,
+        borrow_coefficient_e6: &Option<u128>,
+        penalty_e6: &Option<u128>,
     ) {
     }
 

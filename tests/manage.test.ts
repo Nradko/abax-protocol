@@ -66,14 +66,14 @@ makeSuite('Menage tests', (getTestEnv) => {
       const res = (
         await lendingPool
           .withSigner(flashBorrower)
-          .query.registerAsset(asset, '100000', null, null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken)
+          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', '1000', aToken, vToken)
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('assetListingAdmin should succeed and event should be emitted', async () => {
       const tx = lendingPool
         .withSigner(assetListingAdmin)
-        .tx.registerAsset(asset, '100000', null, null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken);
+        .tx.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', '1000', aToken, vToken);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
       const txRes = await tx;
       expect(txRes.events).to.deep.equal([
@@ -82,17 +82,39 @@ makeSuite('Menage tests', (getTestEnv) => {
           args: {
             asset: asset,
             decimals: new ReturnNumber(100000),
-            collateralCoefficientE6: null,
-            borrowCoefficientE6: null,
+            aTokenAddress: aToken,
+            vTokenAddress: vToken,
+          },
+        },
+        {
+          name: 'ParametersChanged',
+          args: {
+            asset: asset,
+            interestRateModel: [
+              new ReturnNumber(300000000000),
+              new ReturnNumber(500000000000),
+              new ReturnNumber(2000000000000),
+              new ReturnNumber(4000000000000),
+              new ReturnNumber(10000000000000),
+              new ReturnNumber(100000000000000),
+              new ReturnNumber(300000000000000),
+            ],
             maximalTotalSupply: null,
             maximalTotalDebt: null,
             minimalCollateral: new ReturnNumber(0),
             minimalDebt: new ReturnNumber(0),
-            penaltyE6: new ReturnNumber(0),
             incomeForSuppliersPartE6: new ReturnNumber(1000000),
             flashLoanFeeE6: new ReturnNumber(1000),
-            aTokenAddress: aToken,
-            vTokenAddress: vToken,
+          },
+        },
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 0,
+            asset: asset,
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: null,
+            penaltyE6: null,
           },
         },
       ]);
@@ -101,7 +123,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       const res = (
         await lendingPool
           .withSigner(parametersAdmin)
-          .query.registerAsset(asset, '100000', null, null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken)
+          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', '1000', aToken, vToken)
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
@@ -109,12 +131,14 @@ makeSuite('Menage tests', (getTestEnv) => {
       const res = (
         await lendingPool
           .withSigner(emergancyAdmin)
-          .query.registerAsset(asset, '100000', null, null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken)
+          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', '1000', aToken, vToken)
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('globalAdmin should succeed and event should be emitted', async () => {
-      const tx = lendingPool.withSigner(globalAdmin).tx.registerAsset(asset, '1', 1, 2, null, null, 4, 5, 6, '7', '8', aToken, vToken);
+      const tx = lendingPool
+        .withSigner(globalAdmin)
+        .tx.registerAsset(asset, '1', 900000, 1100000, 50000, 4000000000, 2000000000, 3000000, 1000000, '900000', '10000', aToken, vToken);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
       const txRes = await tx;
       expect(txRes.events).to.deep.equal([
@@ -123,18 +147,39 @@ makeSuite('Menage tests', (getTestEnv) => {
           args: {
             asset: asset,
             decimals: new ReturnNumber(1),
-            collateralCoefficientE6: 1,
-            borrowCoefficientE6: 2,
-            maximalTotalSupply: null,
-            maximalTotalDebt: null,
-            minimalCollateral: new ReturnNumber(4),
-            minimalDebt: new ReturnNumber(5),
-            penaltyE6: new ReturnNumber(6),
-            incomeForSuppliersPartE6: new ReturnNumber(7),
-            flashLoanFeeE6: new ReturnNumber(8),
             aTokenAddress: aToken,
             vTokenAddress: vToken,
-            sTokenAddress: sToken,
+          },
+        },
+        {
+          name: 'ParametersChanged',
+          args: {
+            asset: asset,
+            interestRateModel: [
+              new ReturnNumber(300000000000),
+              new ReturnNumber(500000000000),
+              new ReturnNumber(2000000000000),
+              new ReturnNumber(4000000000000),
+              new ReturnNumber(10000000000000),
+              new ReturnNumber(100000000000000),
+              new ReturnNumber(300000000000000),
+            ],
+            maximalTotalSupply: 4000000000,
+            maximalTotalDebt: 2000000000,
+            minimalCollateral: new ReturnNumber(3000000),
+            minimalDebt: new ReturnNumber(1000000),
+            incomeForSuppliersPartE6: new ReturnNumber(900000),
+            flashLoanFeeE6: new ReturnNumber(10000),
+          },
+        },
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 0,
+            asset: asset,
+            collateralCoefficientE6: 900000,
+            borrowCoefficientE6: 1100000,
+            penaltyE6: 50000,
           },
         },
       ]);
@@ -144,7 +189,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       const res = (
         await lendingPool
           .withSigner(roleAdmin)
-          .query.registerAsset(asset, '100000', null, null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken)
+          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', '1000', aToken, vToken)
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
@@ -152,7 +197,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       const res = (
         await lendingPool
           .withSigner(treasury)
-          .query.registerAsset(asset, '100000', null, null, null, null, 0, 0, 0, '1000000', '1000', aToken, vToken)
+          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', '1000', aToken, vToken)
       ).value.ok;
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
@@ -297,7 +342,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       const queryResult = (
         await lendingPool
           .withSigner(flashBorrower)
-          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, null, 0, 0, 0, 0, 0)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, 0, 0, 0, 0)
       ).value.ok;
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
@@ -305,14 +350,14 @@ makeSuite('Menage tests', (getTestEnv) => {
       const queryResult = (
         await lendingPool
           .withSigner(assetListingAdmin)
-          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, null, 0, 0, 0, 0, 0)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, 0, 0, 0, 0)
       ).value.ok;
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('parametersAdmin should succed and event should be emitted', async () => {
       const tx = lendingPool
         .withSigner(parametersAdmin)
-        .tx.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, null, 0, 0, 0, 0, 0);
+        .tx.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, 0, 0, 0, 0);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
       const txRes = await tx;
       expect(txRes.events).to.deep.equal([
@@ -329,13 +374,10 @@ makeSuite('Menage tests', (getTestEnv) => {
               new ReturnNumber(6),
               new ReturnNumber(7),
             ],
-            collateralCoefficientE6: null,
-            borrowCoefficientE6: null,
             maximalTotalSupply: null,
             maximalTotalDebt: null,
             minimalCollateral: new ReturnNumber(0),
             minimalDebt: new ReturnNumber(0),
-            penaltyE6: new ReturnNumber(0),
             incomeForSuppliersPartE6: new ReturnNumber(0),
             flashLoanFeeE6: new ReturnNumber(0),
           },
@@ -346,14 +388,14 @@ makeSuite('Menage tests', (getTestEnv) => {
       const queryResult = (
         await lendingPool
           .withSigner(emergancyAdmin)
-          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, null, 0, 0, 0, 0, 0)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, 0, 0, 0, 0)
       ).value.ok;
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('globalAdmin should succeed and event should be emitted', async () => {
       const tx = lendingPool
         .withSigner(globalAdmin)
-        .tx.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], 1, 2, 999999, 111111, 4, 5, 6, 7, 8);
+        .tx.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], 999999, 111111, 4, 5, 7, 8);
       expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
       expect(txRes.events).to.deep.equal([
@@ -370,13 +412,10 @@ makeSuite('Menage tests', (getTestEnv) => {
               new ReturnNumber(6),
               new ReturnNumber(7),
             ],
-            collateralCoefficientE6: 1,
-            borrowCoefficientE6: 2,
             maximalTotalSupply: 999999,
             maximalTotalDebt: 111111,
             minimalCollateral: new ReturnNumber(4),
             minimalDebt: new ReturnNumber(5),
-            penaltyE6: new ReturnNumber(6),
             incomeForSuppliersPartE6: new ReturnNumber(7),
             flashLoanFeeE6: new ReturnNumber(8),
           },
@@ -388,7 +427,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       const queryResult = (
         await lendingPool
           .withSigner(roleAdmin)
-          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, null, 0, 0, 0, 0, 0)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, 0, 0, 0, 0)
       ).value.ok;
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
@@ -396,7 +435,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       const queryResult = (
         await lendingPool
           .withSigner(treasury)
-          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, null, null, 0, 0, 0, 0, 0)
+          .query.setReserveParameters(testEnv.reserves['DAI'].underlying.address, [1, 2, 3, 4, 5, 6, 7], null, null, 0, 0, 0, 0)
       ).value.ok;
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
@@ -434,6 +473,228 @@ makeSuite('Menage tests', (getTestEnv) => {
       const txRes = await tx;
       //no generated income
       expect(txRes.events).to.deep.equal([]);
+    });
+  });
+
+  // parametersAdmin, globalAdmin are allowed to
+  describe('modify asset rules ...', () => {
+    it('flashBorrower should return Err(MissingRole)', async () => {
+      const res = (await lendingPool.withSigner(flashBorrower).query.modifyAssetRule(0, testEnv.reserves['DAI'].underlying.address, null, null, null))
+        .value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('assetListingAdmin should return Err(MissingRole)', async () => {
+      const res = (
+        await lendingPool.withSigner(assetListingAdmin).query.modifyAssetRule(0, testEnv.reserves['DAI'].underlying.address, null, null, null)
+      ).value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('emergencyAdmin should return Err(MissingRole)', async () => {
+      const res = (
+        await lendingPool.withSigner(emergancyAdmin).query.modifyAssetRule(0, testEnv.reserves['DAI'].underlying.address, null, null, null)
+      ).value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('parametersAdmin should succed to modify asset rules and event should be emitted', async () => {
+      const tx = lendingPool.withSigner(parametersAdmin).tx.modifyAssetRule(0, testEnv.reserves['DAI'].underlying.address, null, null, null);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 0,
+            asset: testEnv.reserves['DAI'].underlying.address,
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: null,
+            penalty: null,
+          },
+        },
+      ]);
+    });
+    it('globalAdmin should succeed to modify asset rules and event should be emitted', async () => {
+      const tx = lendingPool.withSigner(globalAdmin).tx.modifyAssetRule(0, testEnv.reserves['DAI'].underlying.address, 999000, 1001000, 500);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 0,
+            asset: testEnv.reserves['DAI'].underlying.address,
+            collateralCoefficientE6: 999000,
+            borrowCoefficientE6: 1001000,
+            penaltyE6: 500,
+          },
+        },
+      ]);
+    });
+    it('roleAdmin should return Err(MissingRole)', async () => {
+      const res = (await lendingPool.withSigner(roleAdmin).query.modifyAssetRule(0, testEnv.reserves['DAI'].underlying.address, null, null, null))
+        .value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('treasury should return Err(MissingRole)', async () => {
+      const res = (await lendingPool.withSigner(treasury).query.modifyAssetRule(0, testEnv.reserves['DAI'].underlying.address, null, null, null))
+        .value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+  });
+
+  // parametersAdmin, globalAdmin are allowed to
+  describe('add market rule ...', () => {
+    it('flashBorrower should return Err(MissingRole)', async () => {
+      const res = (
+        await lendingPool
+          .withSigner(flashBorrower)
+          .query.addMarketRule(1, [
+            { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+            { collateralCoefficientE6: 900000, borrowCoefficientE6: null, penaltyE6: 500000 },
+            null,
+            { collateralCoefficientE6: null, borrowCoefficientE6: 1100000, penaltyE6: 500000 },
+          ])
+      ).value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('assetListingAdmin should return Err(MissingRole)', async () => {
+      const res = (
+        await lendingPool
+          .withSigner(assetListingAdmin)
+          .query.addMarketRule(1, [
+            { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+            { collateralCoefficientE6: 900000, borrowCoefficientE6: null, penaltyE6: 500000 },
+            null,
+            { collateralCoefficientE6: null, borrowCoefficientE6: 1100000, penaltyE6: 500000 },
+          ])
+      ).value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('emergencyAdmin should return Err(MissingRole)', async () => {
+      const res = (
+        await lendingPool
+          .withSigner(emergancyAdmin)
+          .query.addMarketRule(1, [
+            { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+            { collateralCoefficientE6: 900000, borrowCoefficientE6: null, penaltyE6: 500000 },
+            null,
+            { collateralCoefficientE6: null, borrowCoefficientE6: 1100000, penaltyE6: 500000 },
+          ])
+      ).value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('parametersAdmin should succed to modify asset rules and event should be emitted', async () => {
+      const tx = lendingPool
+        .withSigner(parametersAdmin)
+        .tx.addMarketRule(2, [
+          { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+          { collateralCoefficientE6: 900000, borrowCoefficientE6: null, penaltyE6: 500000 },
+          null,
+          { collateralCoefficientE6: null, borrowCoefficientE6: 1100000, penaltyE6: 500000 },
+        ]);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 2,
+            asset: testEnv.reserves['DAI'].underlying.address,
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: null,
+            penaltyE6: null,
+          },
+        },
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 2,
+            asset: testEnv.reserves['USDC'].underlying.address,
+            collateralCoefficientE6: 900000,
+            borrowCoefficientE6: null,
+            penaltyE6: 500000,
+          },
+        },
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 2,
+            asset: testEnv.reserves['LINK'].underlying.address,
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: 1100000,
+            penaltyE6: 500000,
+          },
+        },
+      ]);
+    });
+    it('globalAdmin should succeed to modify asset rules and event should be emitted', async () => {
+      const tx = lendingPool
+        .withSigner(globalAdmin)
+        .tx.addMarketRule(2, [
+          { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+          { collateralCoefficientE6: 900000, borrowCoefficientE6: null, penaltyE6: 500000 },
+          null,
+          { collateralCoefficientE6: null, borrowCoefficientE6: 1100000, penaltyE6: 500000 },
+        ]);
+      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+      const txRes = await tx;
+      expect(txRes.events).to.deep.equal([
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 2,
+            asset: testEnv.reserves['DAI'].underlying.address,
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: null,
+            penaltyE6: null,
+          },
+        },
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 2,
+            asset: testEnv.reserves['USDC'].underlying.address,
+            collateralCoefficientE6: 900000,
+            borrowCoefficientE6: null,
+            penaltyE6: 500000,
+          },
+        },
+        {
+          name: 'AssetRulesChanged',
+          args: {
+            marketRuleId: 2,
+            asset: testEnv.reserves['LINK'].underlying.address,
+            collateralCoefficientE6: null,
+            borrowCoefficientE6: 1100000,
+            penaltyE6: 500000,
+          },
+        },
+      ]);
+    });
+    it('roleAdmin should return Err(MissingRole)', async () => {
+      const res = (
+        await lendingPool
+          .withSigner(roleAdmin)
+          .query.addMarketRule(1, [
+            { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+            { collateralCoefficientE6: 900000, borrowCoefficientE6: null, penaltyE6: 500000 },
+            null,
+            { collateralCoefficientE6: null, borrowCoefficientE6: 1100000, penaltyE6: 500000 },
+          ])
+      ).value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    });
+    it('treasury should return Err(MissingRole)', async () => {
+      const res = (
+        await lendingPool
+          .withSigner(treasury)
+          .query.addMarketRule(1, [
+            { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+            { collateralCoefficientE6: 900000, borrowCoefficientE6: null, penaltyE6: 500000 },
+            null,
+            { collateralCoefficientE6: null, borrowCoefficientE6: 1100000, penaltyE6: 500000 },
+          ])
+      ).value.ok;
+      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
   });
 });
