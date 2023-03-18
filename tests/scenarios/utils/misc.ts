@@ -193,7 +193,6 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
     variableBorrowed: new ReturnNumber(0),
     appliedCumulativeSupplyRateIndexE18: new ReturnNumber(0),
     appliedCumulativeVariableBorrowRateIndexE18: new ReturnNumber(0),
-    updateTimestamp: -1,
   };
 };
 

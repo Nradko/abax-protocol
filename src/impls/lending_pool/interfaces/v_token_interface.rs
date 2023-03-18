@@ -180,23 +180,24 @@ impl<T: Storage<LendingPoolStorage>> VTokenInterfaceInternal for T {
             .data::<LendingPoolStorage>()
             .get_reserve_data(&underlying_asset)
             .ok_or(LendingPoolTokenInterfaceError::AssetNotRegistered)?;
-        let from_user_reserve_data: UserReserveData = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &from)
-            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
-        let to_user_reserve_data: UserReserveData = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &to)
-            .unwrap_or_default();
-        // check if rules allow user "to" to take debt
+        // "from" config and data
         let from_config = self
             .data::<LendingPoolStorage>()
             .get_user_config(&from)
             .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        let from_user_reserve_data: UserReserveData = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&underlying_asset, &from)
+            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
+        // "to" config and data
         let to_config = self
             .data::<LendingPoolStorage>()
             .get_user_config(&to)
             .ok_or(LendingPoolTokenInterfaceError::InsufficientCollateral)?;
+        let to_user_reserve_data: UserReserveData = self
+            .data::<LendingPoolStorage>()
+            .get_user_reserve(&underlying_asset, &to)
+            .unwrap_or_default();
         Ok((
             reserve_data,
             from_config,
