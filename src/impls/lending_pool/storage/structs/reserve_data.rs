@@ -40,10 +40,6 @@ pub struct ReserveData {
     pub decimals: u128,
     /// delta interest per millisecond for utilizations (50%, 60%, 70%, 80%, 90%, 95%, 100%).
     pub interest_rate_model: [u128; 7],
-    /// used while veryfing loan to debt. If None then can not be used as collateral.
-    pub collateral_coefficient_e6: Option<u128>,
-    /// used while veryfing loan to debt. If None then can not be borrowed.
-    pub borrow_coefficient_e6: Option<u128>,
     /// maximal allowed total supply
     pub maximal_total_supply: Option<Balance>,
     /// maximal allowad total debt
@@ -56,8 +52,6 @@ pub struct ReserveData {
     /// At any time user's debt can not bee smaller than minimal debt.
     /// Exception! it may happen during liquidation that users debt will drop below this value.
     pub minimal_debt: Balance,
-    /// penalty when liquidated, 1e6 == 100%.
-    pub penalty_e6: u128,
     /// part of interest paid by borrowers that is redistributed to the suppliers. 10^6 = 100%.
     pub income_for_suppliers_part_e6: u128,
     /// fee that must be paid while taking flash loan. 10^6 = 100%.
@@ -213,13 +207,10 @@ impl Default for ReserveData {
                 100_000_000_000_000,
                 300_000_000_000_000,
             ],
-            collateral_coefficient_e6: None,
-            borrow_coefficient_e6: None,
             maximal_total_supply: None,
             maximal_total_debt: None,
             minimal_collateral: 0,
             minimal_debt: 0,
-            penalty_e6: 0,
             income_for_suppliers_part_e6: E6,
             flash_loan_fee_e6: 0,
             token_price_e8: None,

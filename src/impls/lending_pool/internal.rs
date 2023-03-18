@@ -28,10 +28,7 @@ use crate::{
     },
     traits::{
         abacus_token::traits::abacus_token::*,
-        lending_pool::errors::{
-            LendingPoolError,
-            LendingPoolTokenInterfaceError,
-        },
+        lending_pool::errors::LendingPoolError,
     },
 };
 use ink::prelude::{
@@ -39,7 +36,10 @@ use ink::prelude::{
     *,
 };
 
-use super::storage::structs::user_config::UserConfig;
+use super::storage::{
+    lending_pool_storage::MarketRule,
+    structs::user_config::UserConfig,
+};
 
 pub fn _accumulate_interest(
     reserve_data: &mut ReserveData,
@@ -74,15 +74,21 @@ pub fn _check_activeness(reserve_data: &ReserveData) -> Result<(), LendingPoolEr
     Ok(())
 }
 
-pub fn _check_borrowing_enabled(reserve_data: &ReserveData) -> Result<(), LendingPoolError> {
+pub fn _check_borrowing_enabled(reserve_data: &ReserveData, market_rule: &MarketRule) -> Result<(), LendingPoolError> {
     if !reserve_data.activated {
         return Err(LendingPoolError::Inactive)
     }
     if reserve_data.freezed {
         return Err(LendingPoolError::Freezed)
     }
-    if reserve_data.borrow_coefficient_e6.is_none() {
-        return Err(LendingPoolError::AssetBorrowDisabled)
+    if market_rule
+        .get(reserve_data.id as usize)
+        .ok_or(LendingPoolError::RuleBorrowDisable)?
+        .ok_or(LendingPoolError::RuleBorrowDisable)?
+        .borrow_coefficient_e6
+        .is_none()
+    {
+        return Err(LendingPoolError::RuleBorrowDisable)
     }
     if reserve_data.token_price_e8.is_none() {
         return Err(LendingPoolError::AssetPriceNotInitialized)
@@ -295,10 +301,21 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
 }
 
 pub trait Internal {
-    fn _get_user_free_collateral_coefficient_e6(&self, user: &AccountId, block_timestamp: Timestamp) -> (bool, u128);
+    fn _get_user_free_collateral_coefficient_e6(
+        &self,
+        user: &AccountId,
+        user_config: &UserConfig,
+        market_rule: &MarketRule,
+        block_timestamp: Timestamp,
+    ) -> Result<(bool, u128), LendingPoolError>;
 
-    fn _check_user_free_collateral(&self, user: &AccountId, block_timestamp: Timestamp)
-        -> Result<(), LendingPoolError>;
+    fn _check_user_free_collateral(
+        &self,
+        user: &AccountId,
+        user_config: &UserConfig,
+        market_rule: &MarketRule,
+        block_timestamp: Timestamp,
+    ) -> Result<(), LendingPoolError>;
 }
 
 impl<T: Storage<LendingPoolStorage>> Internal for T {
@@ -306,16 +323,13 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
     default fn _get_user_free_collateral_coefficient_e6(
         &self,
         user: &AccountId,
+        user_config: &UserConfig,
+        market_rule: &MarketRule,
         block_timestamp: Timestamp,
-    ) -> (bool, u128) {
+    ) -> Result<(bool, u128), LendingPoolError> {
         let mut total_collateral_coefficient_e6: u128 = 0;
         let mut total_debt_coefficient_e6: u128 = 0;
         let registered_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
-
-        let user_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(user)
-            .unwrap_or_default();
         let collaterals = user_config.deposits & user_config.collaterals;
         let borrows = user_config.borrows_variable;
         let active_user_assets = collaterals | borrows;
@@ -347,7 +361,12 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                     checked_math!(collateral * collateral_asset_price_e8 / reserve_data.decimals).unwrap(),
                 )
                 .expect(MATH_ERROR_MESSAGE);
-                let collateral_coefficient_e6 = reserve_data.collateral_coefficient_e6.unwrap_or(0);
+                let collateral_coefficient_e6 = market_rule
+                    .get(i)
+                    .ok_or(LendingPoolError::RuleCollateralDisable)?
+                    .ok_or(LendingPoolError::RuleCollateralDisable)?
+                    .collateral_coefficient_e6
+                    .ok_or(LendingPoolError::RuleCollateralDisable)?;
                 let value_to_add =
                     u128::try_from(checked_math!(asset_supplied_value_e8 * collateral_coefficient_e6 / E8).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
@@ -361,7 +380,12 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 let asset_debt_value_e8 =
                     u128::try_from(checked_math!(debt * asset_price_e8 / reserve_data.decimals).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
-                let borrow_coefficient_e6 = reserve_data.borrow_coefficient_e6.unwrap();
+                let borrow_coefficient_e6 = market_rule
+                    .get(i)
+                    .ok_or(LendingPoolError::RuleBorrowDisable)?
+                    .ok_or(LendingPoolError::RuleBorrowDisable)?
+                    .borrow_coefficient_e6
+                    .ok_or(LendingPoolError::RuleBorrowDisable)?;
                 let value_to_add =
                     u128::try_from(checked_math!(asset_debt_value_e8 * borrow_coefficient_e6 / 100_000_000).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
@@ -372,18 +396,21 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         }
 
         if total_collateral_coefficient_e6 >= total_debt_coefficient_e6 {
-            (true, total_collateral_coefficient_e6 - total_debt_coefficient_e6)
+            Ok((true, total_collateral_coefficient_e6 - total_debt_coefficient_e6))
         } else {
-            (false, total_debt_coefficient_e6 - total_collateral_coefficient_e6)
+            Ok((false, total_debt_coefficient_e6 - total_collateral_coefficient_e6))
         }
     }
 
     default fn _check_user_free_collateral(
         &self,
         user: &AccountId,
+        user_config: &UserConfig,
+        market_rule: &MarketRule,
         block_timestamp: Timestamp,
     ) -> Result<(), LendingPoolError> {
-        let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(user, block_timestamp);
+        let (collaterized, _) =
+            self._get_user_free_collateral_coefficient_e6(user, user_config, market_rule, block_timestamp)?;
         if !collaterized {
             return Err(LendingPoolError::InsufficientCollateral)
         }
@@ -415,85 +442,5 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
             result.push((*asset, income));
         }
         result
-    }
-}
-
-pub trait TokenInterfaceInternal {
-    fn _pull_data_for_token_transfer(
-        &mut self,
-        underlying_asset: &AccountId,
-        from: &AccountId,
-        to: &AccountId,
-    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>;
-    fn _push_data(
-        &mut self,
-        underlying_asset: &AccountId,
-        reserve_data: &ReserveData,
-        from: &AccountId,
-        from_config: &UserConfig,
-        from_user_reserve_data: &UserReserveData,
-        to: &AccountId,
-        to_config: &UserConfig,
-        to_user_reserve_data: &UserReserveData,
-    );
-}
-
-impl<T: Storage<LendingPoolStorage>> TokenInterfaceInternal for T {
-    fn _pull_data_for_token_transfer(
-        &mut self,
-        underlying_asset: &AccountId,
-        from: &AccountId,
-        to: &AccountId,
-    ) -> Result<(ReserveData, UserConfig, UserReserveData, UserConfig, UserReserveData), LendingPoolTokenInterfaceError>
-    {
-        let reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_reserve_data(&underlying_asset)
-            .ok_or(LendingPoolTokenInterfaceError::AssetNotRegistered)?;
-        let from_user_reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &from)
-            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
-        let to_user_reserve_data = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve(&underlying_asset, &to)
-            .unwrap_or_default();
-        let from_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&from)
-            .ok_or(LendingPoolTokenInterfaceError::InsufficientBalance)?;
-        let to_config = self
-            .data::<LendingPoolStorage>()
-            .get_user_config(&to)
-            .unwrap_or_default();
-        Ok((
-            reserve_data,
-            from_config,
-            from_user_reserve_data,
-            to_config,
-            to_user_reserve_data,
-        ))
-    }
-
-    fn _push_data(
-        &mut self,
-        underlying_asset: &AccountId,
-        reserve_data: &ReserveData,
-        from: &AccountId,
-        from_config: &UserConfig,
-        from_user_reserve_data: &UserReserveData,
-        to: &AccountId,
-        to_config: &UserConfig,
-        to_user_reserve_data: &UserReserveData,
-    ) {
-        self.data::<LendingPoolStorage>()
-            .insert_reserve_data(&underlying_asset, reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_config(&from, &from_config);
-        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
     }
 }

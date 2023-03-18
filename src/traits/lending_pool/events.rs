@@ -11,6 +11,7 @@ pub trait EmitDepositEvents {
 
 #[openbrush::trait_definition]
 pub trait EmitBorrowEvents {
+    fn _emit_market_rule_chosen(&mut self, user: &AccountId, market_rule_id: &u64);
     fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool);
     fn _emit_borrow_variable_event(
         &mut self,
@@ -71,15 +72,6 @@ pub trait EmitManageEvents {
         &mut self,
         asset: &AccountId,
         decimals: u128,
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
-        maximal_total_supply: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-        penalty_e6: u128,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
         a_token_address: &AccountId,
         v_token_address: &AccountId,
     );
@@ -91,15 +83,21 @@ pub trait EmitManageEvents {
         &mut self,
         asset: &AccountId,
         interest_rate_model: &[u128; 7],
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
+    );
+
+    fn _emit_asset_rules_changed(
+        &mut self,
+        market_rule_id: &u64,
+        asset: &AccountId,
+        collateral_coefficient_e6: &Option<u128>,
+        borrow_coefficient_e6: &Option<u128>,
+        penalty_e6: &Option<u128>,
     );
 
     fn _emit_income_taken(&mut self, asset: &AccountId);

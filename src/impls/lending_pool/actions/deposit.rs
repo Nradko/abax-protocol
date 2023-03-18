@@ -17,7 +17,10 @@ use crate::{
             *,
         },
         storage::{
-            lending_pool_storage::LendingPoolStorage,
+            lending_pool_storage::{
+                LendingPoolStorage,
+                MarketRule,
+            },
             structs::{
                 reserve_data::ReserveData,
                 user_config::UserConfig,
@@ -117,7 +120,7 @@ impl<T: Storage<LendingPoolStorage> + DepositInternal> LendingPoolDeposit for T 
         //// PULL DATA
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
-        let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
+        let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config, market_rule) =
             self._pull_data_for_redeem(&asset, &on_behalf_of)?;
         // MODIFY PULLED STORAGE & AMOUNT CHECK
         // accumulate
@@ -153,7 +156,7 @@ impl<T: Storage<LendingPoolStorage> + DepositInternal> LendingPoolDeposit for T 
             &on_behalf_of_config,
         );
         // check if there ie enought collateral
-        self._check_user_free_collateral(&on_behalf_of, block_timestamp)?;
+        self._check_user_free_collateral(&on_behalf_of, &on_behalf_of_config, &market_rule, block_timestamp)?;
 
         //// TOKEN TRANSFERS
         PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
@@ -192,7 +195,7 @@ pub trait DepositInternal {
         &self,
         asset: &AccountId,
         on_behalf_of: &AccountId,
-    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError>;
+    ) -> Result<(ReserveData, UserReserveData, UserConfig, MarketRule), LendingPoolError>;
     fn _push_data(
         &mut self,
         asset: &AccountId,
@@ -229,7 +232,7 @@ impl<T: Storage<LendingPoolStorage>> DepositInternal for T {
         &self,
         asset: &AccountId,
         on_behalf_of: &AccountId,
-    ) -> Result<(ReserveData, UserReserveData, UserConfig), LendingPoolError> {
+    ) -> Result<(ReserveData, UserReserveData, UserConfig, MarketRule), LendingPoolError> {
         let reserve_data = self
             .data::<LendingPoolStorage>()
             .get_reserve_data(&asset)
@@ -243,7 +246,16 @@ impl<T: Storage<LendingPoolStorage>> DepositInternal for T {
             .data::<LendingPoolStorage>()
             .get_user_config(&on_behalf_of)
             .ok_or(LendingPoolError::InsufficientSupply)?;
-        Ok((reserve_data, on_behalf_of_reserve_data, on_behalf_of_config))
+        let market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&on_behalf_of_config.market_rule_id)
+            .ok_or(LendingPoolError::MarketRule)?;
+        Ok((
+            reserve_data,
+            on_behalf_of_reserve_data,
+            on_behalf_of_config,
+            market_rule,
+        ))
     }
 
     fn _push_data(

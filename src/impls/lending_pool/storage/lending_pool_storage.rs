@@ -10,13 +10,18 @@ use crate::impls::lending_pool::storage::structs::{
     user_reserve_data::UserReserveData,
 };
 
+use super::structs::asset_rules::AssetRules;
+
 pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(LendingPoolStorage);
+
+pub type MarketRule = Vec<Option<AssetRules>>;
 
 #[derive(Debug)]
 #[openbrush::upgradeable_storage(STORAGE_KEY)]
 pub struct LendingPoolStorage {
     pub block_timestamp_provider: AccountId,
     pub registered_assets: Vec<AccountId>,
+    pub market_rule_id_to_market_rule: Mapping<u64, MarketRule>,
     pub asset_to_reserve_data: Mapping<AccountId, ReserveData>,
     pub asset_and_user_to_user_reserve_data: Mapping<(AccountId, AccountId), UserReserveData>,
     pub user_to_user_config: Mapping<AccountId, UserConfig>,
@@ -27,6 +32,7 @@ impl Default for LendingPoolStorage {
         Self {
             block_timestamp_provider: ink::blake2x256!("ZERO_ADRESS").into(),
             registered_assets: Vec::new(),
+            market_rule_id_to_market_rule: Default::default(),
             asset_to_reserve_data: Default::default(),
             asset_and_user_to_user_reserve_data: Default::default(),
             user_to_user_config: Default::default(),
@@ -76,5 +82,12 @@ impl LendingPoolStorage {
     }
     pub fn insert_user_config(&mut self, user: &AccountId, user_config: &UserConfig) {
         self.user_to_user_config.insert(user, user_config);
+    }
+    // market_rule
+    pub fn get_market_rule(&self, market_rule_id: &u64) -> Option<MarketRule> {
+        self.market_rule_id_to_market_rule.get(market_rule_id)
+    }
+    pub fn insert_market_rule(&mut self, market_rule_id: &u64, market_rule: &MarketRule) {
+        self.market_rule_id_to_market_rule.insert(market_rule_id, market_rule);
     }
 }
