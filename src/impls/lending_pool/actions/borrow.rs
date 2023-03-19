@@ -40,6 +40,27 @@ use openbrush::{
 };
 
 impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> LendingPoolBorrow for T {
+    default fn change_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        let market_rule = self
+            .data::<LendingPoolStorage>()
+            .get_market_rule(&market_rule_id)
+            .ok_or(LendingPoolError::MarketRuleExistance)?;
+        let mut user_config = self
+            .data::<LendingPoolStorage>()
+            .get_user_config(&caller)
+            .unwrap_or_default();
+        user_config.market_rule_id = market_rule_id;
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&caller, &user_config);
+
+        let block_timestamp =
+            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        self._check_user_free_collateral(&caller, &user_config, &market_rule, block_timestamp)?;
+
+        self._emit_market_rule_chosen(&caller, &market_rule_id);
+        Ok(())
+    }
     default fn set_as_collateral(
         &mut self,
         asset: AccountId,
@@ -349,6 +370,9 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
 }
 
 impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
+    #[allow(unused_variables)]
+    default fn _emit_market_rule_chosen(&mut self, user: &AccountId, market_rule_id: &u64) {}
+
     #[allow(unused_variables)]
     default fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool) {}
     #[allow(unused_variables)]

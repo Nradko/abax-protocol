@@ -12,4 +12,6 @@ pub struct AssetRules {
     pub collateral_coefficient_e6: Option<u128>,
     /// used while veryfing loan to debt. If None then can not be borrowed.
     pub borrow_coefficient_e6: Option<u128>,
+    /// penalty when liquidated, 1e6 == 100%.
+    pub penalty_e6: Option<u128>,
 }

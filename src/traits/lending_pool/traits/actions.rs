@@ -64,6 +64,13 @@ pub trait LendingPoolDeposit {
 /// contains `set_as_collateral`, `borow` and `repay` functions
 #[openbrush::trait_definition]
 pub trait LendingPoolBorrow {
+    /// is used by user to chose a market rule user want to use.
+    /// After changing the chosen market rule users position should be collaterized
+    ///
+    /// * `market_rule_id` - the id of the market_rule to use.
+    #[ink(message)]
+    fn change_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError>;
+
     /// is used by a user to choose to use or not a given asset as a collateral
     /// i.e. if the user's deposit of this concrete asset should back his debt and be vulnerable to liquidation.
     ///

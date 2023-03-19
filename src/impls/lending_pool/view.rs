@@ -27,7 +27,10 @@ use super::{
         Internal,
         InternalIncome,
     },
-    storage::structs::user_config::UserConfig,
+    storage::{
+        lending_pool_storage::MarketRule,
+        structs::user_config::UserConfig,
+    },
 };
 
 impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
@@ -85,6 +88,10 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
         self.data::<LendingPoolStorage>()
             .get_user_config(&user)
             .unwrap_or_default()
+    }
+
+    default fn view_market_rule(&self, market_rule_id: u64) -> Option<MarketRule> {
+        self.data::<LendingPoolStorage>().get_market_rule(&market_rule_id)
     }
 
     default fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128) {

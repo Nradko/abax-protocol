@@ -58,6 +58,7 @@ pub enum LendingPoolError {
     MaxSupplyReached,
     MaxDebtReached,
     MarketRule,
+    MarketRuleExistance,
 }
 
 impl From<LangError> for LendingPoolError {

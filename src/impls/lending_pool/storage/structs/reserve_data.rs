@@ -52,8 +52,6 @@ pub struct ReserveData {
     /// At any time user's debt can not bee smaller than minimal debt.
     /// Exception! it may happen during liquidation that users debt will drop below this value.
     pub minimal_debt: Balance,
-    /// penalty when liquidated, 1e6 == 100%.
-    pub penalty_e6: u128,
     /// part of interest paid by borrowers that is redistributed to the suppliers. 10^6 = 100%.
     pub income_for_suppliers_part_e6: u128,
     /// fee that must be paid while taking flash loan. 10^6 = 100%.
@@ -213,7 +211,6 @@ impl Default for ReserveData {
             maximal_total_debt: None,
             minimal_collateral: 0,
             minimal_debt: 0,
-            penalty_e6: 0,
             income_for_suppliers_part_e6: E6,
             flash_loan_fee_e6: 0,
             token_price_e8: None,

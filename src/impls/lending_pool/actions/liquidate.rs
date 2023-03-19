@@ -93,8 +93,19 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         }
         let asset_to_repay_price_e8 = reserve_data_to_repay.token_price_e8()?;
         let asset_to_take_price_e8 = reserve_data_to_take.token_price_e8()?;
-        let penalty_to_repay_e6 = reserve_data_to_repay.penalty_e6;
-        let penalty_to_take_e6 = reserve_data_to_take.penalty_e6;
+        let penalty_to_repay_e6 = market_rule
+            .get(reserve_data_to_repay.id as usize)
+            .ok_or(LendingPoolError::MarketRule)?
+            .ok_or(LendingPoolError::MarketRule)?
+            .penalty_e6
+            .ok_or(LendingPoolError::MarketRule)?;
+
+        let penalty_to_take_e6 = market_rule
+            .get(reserve_data_to_take.id as usize)
+            .ok_or(LendingPoolError::MarketRule)?
+            .ok_or(LendingPoolError::MarketRule)?
+            .penalty_e6
+            .ok_or(LendingPoolError::MarketRule)?;
         // Check if asset_to_take is marked as collateral
         if (user_config.collaterals >> reserve_data_to_take.id) & 1_u128 != 1 {
             return Err(LendingPoolError::TakingNotACollateral)

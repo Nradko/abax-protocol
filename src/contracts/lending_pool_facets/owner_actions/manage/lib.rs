@@ -60,13 +60,10 @@ pub mod lending_pool_v0_manage_facet {
         #[ink(topic)]
         asset: AccountId,
         decimals: u128,
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
         a_token_address: AccountId,
@@ -92,15 +89,23 @@ pub mod lending_pool_v0_manage_facet {
         #[ink(topic)]
         asset: AccountId,
         interest_rate_model: [u128; 7],
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        penalty_e6: u128,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
+    }
+
+    #[ink(event)]
+    pub struct AssetRulesChanged {
+        #[ink(topic)]
+        market_rule_id: u64,
+        #[ink(topic)]
+        asset: AccountId,
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        penalty_e6: Option<u128>,
     }
 
     #[ink(event)]
@@ -114,13 +119,10 @@ pub mod lending_pool_v0_manage_facet {
             &mut self,
             asset: &AccountId,
             decimals: u128,
-            collateral_coefficient_e6: Option<u128>,
-            borrow_coefficient_e6: Option<u128>,
             maximal_total_supply: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
             minimal_debt: Balance,
-            penalty_e6: u128,
             income_for_suppliers_part_e6: u128,
             flash_loan_fee_e6: u128,
             a_token_address: &AccountId,
@@ -129,13 +131,10 @@ pub mod lending_pool_v0_manage_facet {
             self.env().emit_event(AssetRegistered {
                 asset: *asset,
                 decimals,
-                collateral_coefficient_e6,
-                borrow_coefficient_e6,
                 maximal_total_supply,
                 maximal_total_debt,
                 minimal_collateral,
                 minimal_debt,
-                penalty_e6,
                 income_for_suppliers_part_e6,
                 flash_loan_fee_e6,
                 a_token_address: *a_token_address,
@@ -154,28 +153,39 @@ pub mod lending_pool_v0_manage_facet {
             &mut self,
             asset: &AccountId,
             interest_rate_model: &[u128; 7],
-            collateral_coefficient_e6: Option<u128>,
-            borrow_coefficient_e6: Option<u128>,
             maximal_total_supply: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
             minimal_debt: Balance,
-            penalty_e6: u128,
             income_for_suppliers_part_e6: u128,
             flash_loan_fee_e6: u128,
         ) {
             self.env().emit_event(ParametersChanged {
                 asset: *asset,
                 interest_rate_model: *interest_rate_model,
-                collateral_coefficient_e6,
-                borrow_coefficient_e6,
                 maximal_total_supply,
                 maximal_total_debt,
                 minimal_collateral,
                 minimal_debt,
-                penalty_e6,
                 income_for_suppliers_part_e6,
                 flash_loan_fee_e6,
+            })
+        }
+
+        fn _emit_asset_rules_changed(
+            &mut self,
+            market_rule_id: &u64,
+            asset: &AccountId,
+            collateral_coefficient_e6: &Option<u128>,
+            borrow_coefficient_e6: &Option<u128>,
+            penalty_e6: &Option<u128>,
+        ) {
+            self.env().emit_event(AssetRulesChanged {
+                market_rule_id: *market_rule_id,
+                asset: *asset,
+                collateral_coefficient_e6: *collateral_coefficient_e6,
+                borrow_coefficient_e6: *borrow_coefficient_e6,
+                penalty_e6: *penalty_e6,
             })
         }
 

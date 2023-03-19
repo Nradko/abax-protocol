@@ -363,10 +363,10 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 .expect(MATH_ERROR_MESSAGE);
                 let collateral_coefficient_e6 = market_rule
                     .get(i)
-                    .ok_or(LendingPoolError::MarketRule)?
-                    .ok_or(LendingPoolError::MarketRule)?
+                    .ok_or(LendingPoolError::RuleCollateralDisable)?
+                    .ok_or(LendingPoolError::RuleCollateralDisable)?
                     .collateral_coefficient_e6
-                    .unwrap_or(0);
+                    .ok_or(LendingPoolError::RuleCollateralDisable)?;
                 let value_to_add =
                     u128::try_from(checked_math!(asset_supplied_value_e8 * collateral_coefficient_e6 / E8).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
@@ -382,10 +382,10 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                         .expect(MATH_ERROR_MESSAGE);
                 let borrow_coefficient_e6 = market_rule
                     .get(i)
-                    .ok_or(LendingPoolError::MarketRule)?
-                    .ok_or(LendingPoolError::MarketRule)?
+                    .ok_or(LendingPoolError::RuleBorrowDisable)?
+                    .ok_or(LendingPoolError::RuleBorrowDisable)?
                     .borrow_coefficient_e6
-                    .unwrap();
+                    .ok_or(LendingPoolError::RuleBorrowDisable)?;
                 let value_to_add =
                     u128::try_from(checked_math!(asset_debt_value_e8 * borrow_coefficient_e6 / 100_000_000).unwrap())
                         .expect(MATH_ERROR_MESSAGE);

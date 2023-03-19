@@ -18,7 +18,7 @@ import { ValidateEventParameters } from './scenarios/utils/validateEvents';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 
-makeSuite('Unit message', (getTestEnv) => {
+makeSuite('Message', (getTestEnv) => {
   let testEnv: TestEnv;
   let users: KeyringPair[];
   let lendingPool: LendingPoolContract;
@@ -231,7 +231,7 @@ makeSuite('Unit message', (getTestEnv) => {
         const queryRes = (
           await lendingPool
             .withSigner(users[1])
-            .query.registerAsset(users[1].address, '1000000', null, null, null, null, 0, 0, '0', '12', '1000', users[1].address, users[1].address)
+            .query.registerAsset(users[1].address, '1000000', null, null, null, null, null, 0, 0, '0', '12', users[1].address, users[1].address)
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       });
@@ -245,11 +245,11 @@ makeSuite('Unit message', (getTestEnv) => {
             '100000000',
             '111',
             '222',
+            '100000',
             '99999999',
             '11111111',
             0,
             0,
-            '100000',
             '900000',
             '1000',
             users[3].address,
@@ -265,7 +265,6 @@ makeSuite('Unit message', (getTestEnv) => {
         expect.soft(reserveData.decimals.toString()).to.equal('100000000');
         expect.soft(reserveData.maximalTotalSupply?.toString()).to.equal('99999999');
         expect.soft(reserveData.maximalTotalDebt?.toString()).to.equal('11111111');
-        expect.soft(reserveData.penaltyE6.toString()).to.equal('100000');
         expect.soft(reserveData.incomeForSuppliersPartE6.toString()).to.equal('900000');
         expect.soft(reserveData.flashLoanFeeE6.toString()).to.equal('1000');
         expect.soft(reserveData.aTokenAddress).to.equal(users[3].address);
@@ -315,7 +314,7 @@ makeSuite('Unit message', (getTestEnv) => {
         PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
       );
     });
-    it('An owner of Lending Pool should not be able call emit_transfer_event_and_decrease_allowance', async () => {
+    it('An admin of Lending Pool should not be able call emit_transfer_event_and_decrease_allowance', async () => {
       const queryRes = (
         await reserve.aToken
           .withSigner(testEnv.owner)
