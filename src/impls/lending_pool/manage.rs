@@ -139,17 +139,24 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
         self.data::<LendingPoolStorage>().insert_market_rule(&0, &market_rule);
-        self._emit_asset_registered_event(
+        self._emit_asset_registered_event(&asset, decimals, &a_token_address, &v_token_address);
+        self._emit_reserve_parameters_changed_event(
             &asset,
-            decimals,
+            &[
+                300_000_000_000,
+                500_000_000_000,
+                2_000_000_000_000,
+                4_000_000_000_000,
+                10_000_000_000_000,
+                100_000_000_000_000,
+                300_000_000_000_000,
+            ],
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
             income_for_suppliers_part_e6,
             flash_loan_fee_e6,
-            &a_token_address,
-            &v_token_address,
         );
         self._emit_asset_rules_changed(
             &0,
@@ -360,12 +367,6 @@ impl<T: Storage<LendingPoolStorage>> EmitManageEvents for T {
         &mut self,
         asset: &AccountId,
         decimals: u128,
-        maximal_total_supply: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
         a_token_address: &AccountId,
         v_token_address: &AccountId,
     ) {

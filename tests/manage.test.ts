@@ -82,23 +82,36 @@ makeSuite('Menage tests', (getTestEnv) => {
           args: {
             asset: asset,
             decimals: new ReturnNumber(100000),
-            collateralCoefficientE6: null,
-            borrowCoefficientE6: null,
+            aTokenAddress: aToken,
+            vTokenAddress: vToken,
+          },
+        },
+        {
+          name: 'ParametersChanged',
+          args: {
+            asset: asset,
+            interestRateModel: [
+              new ReturnNumber(300000000000),
+              new ReturnNumber(500000000000),
+              new ReturnNumber(2000000000000),
+              new ReturnNumber(4000000000000),
+              new ReturnNumber(10000000000000),
+              new ReturnNumber(100000000000000),
+              new ReturnNumber(300000000000000),
+            ],
             maximalTotalSupply: null,
             maximalTotalDebt: null,
             minimalCollateral: new ReturnNumber(0),
             minimalDebt: new ReturnNumber(0),
             incomeForSuppliersPartE6: new ReturnNumber(1000000),
             flashLoanFeeE6: new ReturnNumber(1000),
-            aTokenAddress: aToken,
-            vTokenAddress: vToken,
           },
         },
         {
           name: 'AssetRulesChanged',
           args: {
             marketRuleId: 0,
-            asset: asset.address,
+            asset: asset,
             collateralCoefficientE6: null,
             borrowCoefficientE6: null,
             penaltyE6: null,
@@ -123,7 +136,9 @@ makeSuite('Menage tests', (getTestEnv) => {
       expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('globalAdmin should succeed and event should be emitted', async () => {
-      const tx = lendingPool.withSigner(globalAdmin).tx.registerAsset(asset, '1', 1, 2, null, null, 4, 5, 6, '7', '8', aToken, vToken);
+      const tx = lendingPool
+        .withSigner(globalAdmin)
+        .tx.registerAsset(asset, '1', 900000, 1100000, 50000, 4000000000, 2000000000, 3000000, 1000000, '900000', '10000', aToken, vToken);
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
       const txRes = await tx;
       expect(txRes.events).to.deep.equal([
@@ -132,26 +147,39 @@ makeSuite('Menage tests', (getTestEnv) => {
           args: {
             asset: asset,
             decimals: new ReturnNumber(1),
-            collateralCoefficientE6: 1,
-            borrowCoefficientE6: 2,
-            maximalTotalSupply: null,
-            maximalTotalDebt: null,
-            minimalCollateral: new ReturnNumber(4),
-            minimalDebt: new ReturnNumber(5),
-            incomeForSuppliersPartE6: new ReturnNumber(7),
-            flashLoanFeeE6: new ReturnNumber(8),
             aTokenAddress: aToken,
             vTokenAddress: vToken,
+          },
+        },
+        {
+          name: 'ParametersChanged',
+          args: {
+            asset: asset,
+            interestRateModel: [
+              new ReturnNumber(300000000000),
+              new ReturnNumber(500000000000),
+              new ReturnNumber(2000000000000),
+              new ReturnNumber(4000000000000),
+              new ReturnNumber(10000000000000),
+              new ReturnNumber(100000000000000),
+              new ReturnNumber(300000000000000),
+            ],
+            maximalTotalSupply: 4000000000,
+            maximalTotalDebt: 2000000000,
+            minimalCollateral: new ReturnNumber(3000000),
+            minimalDebt: new ReturnNumber(1000000),
+            incomeForSuppliersPartE6: new ReturnNumber(900000),
+            flashLoanFeeE6: new ReturnNumber(10000),
           },
         },
         {
           name: 'AssetRulesChanged',
           args: {
             marketRuleId: 0,
-            asset: asset.address,
-            collateralCoefficientE6: null,
-            borrowCoefficientE6: null,
-            penaltyE6: null,
+            asset: asset,
+            collateralCoefficientE6: 900000,
+            borrowCoefficientE6: 1100000,
+            penaltyE6: 50000,
           },
         },
       ]);

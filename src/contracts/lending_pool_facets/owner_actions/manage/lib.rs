@@ -60,12 +60,6 @@ pub mod lending_pool_v0_manage_facet {
         #[ink(topic)]
         asset: AccountId,
         decimals: u128,
-        maximal_total_supply: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
         a_token_address: AccountId,
         v_token_address: AccountId,
     }
@@ -119,24 +113,12 @@ pub mod lending_pool_v0_manage_facet {
             &mut self,
             asset: &AccountId,
             decimals: u128,
-            maximal_total_supply: Option<Balance>,
-            maximal_total_debt: Option<Balance>,
-            minimal_collateral: Balance,
-            minimal_debt: Balance,
-            income_for_suppliers_part_e6: u128,
-            flash_loan_fee_e6: u128,
             a_token_address: &AccountId,
             v_token_address: &AccountId,
         ) {
             self.env().emit_event(AssetRegistered {
                 asset: *asset,
                 decimals,
-                maximal_total_supply,
-                maximal_total_debt,
-                minimal_collateral,
-                minimal_debt,
-                income_for_suppliers_part_e6,
-                flash_loan_fee_e6,
                 a_token_address: *a_token_address,
                 v_token_address: *v_token_address,
             })

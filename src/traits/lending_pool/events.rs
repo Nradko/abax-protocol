@@ -72,12 +72,6 @@ pub trait EmitManageEvents {
         &mut self,
         asset: &AccountId,
         decimals: u128,
-        maximal_total_supply: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
         a_token_address: &AccountId,
         v_token_address: &AccountId,
     );
