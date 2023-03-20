@@ -38,8 +38,9 @@ pub enum LendingPoolError {
     FlashLoanAmountsAssetsInconsistentLengths,
     MaxSupplyReached,
     MaxDebtReached,
-    MarketRule,
-    MarketRuleExistance,
+    MarketRuleInvalidAssetId,
+    MarketRulePenaltyNotSet,
+    MarketRuleInvalidId,
 }
 
 impl From<LangError> for LendingPoolError {

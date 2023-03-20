@@ -266,7 +266,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             .get_market_rule(&market_rule_id)
             .is_some()
         {
-            return Err(LendingPoolError::MarketRuleExistance)
+            return Err(LendingPoolError::MarketRuleInvalidId)
         }
         let registerd_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
 
@@ -310,7 +310,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         let mut market_rule = self
             .data::<LendingPoolStorage>()
             .get_market_rule(&market_rule_id)
-            .ok_or(LendingPoolError::MarketRuleExistance)?;
+            .ok_or(LendingPoolError::MarketRuleInvalidId)?;
 
         let asset_id = reserve_data.id;
 

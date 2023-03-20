@@ -45,7 +45,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         let market_rule = self
             .data::<LendingPoolStorage>()
             .get_market_rule(&market_rule_id)
-            .ok_or(LendingPoolError::MarketRuleExistance)?;
+            .ok_or(LendingPoolError::MarketRuleInvalidId)?;
         let mut user_config = self
             .data::<LendingPoolStorage>()
             .get_user_config(&caller)
@@ -300,7 +300,7 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
         let market_rule = self
             .data::<LendingPoolStorage>()
             .get_market_rule(&user_config.market_rule_id)
-            .ok_or(LendingPoolError::MarketRule)?;
+            .ok_or(LendingPoolError::MarketRuleInvalidAssetId)?;
         Ok((reserve_data, user_reserve_data, user_config, market_rule))
     }
     fn _pull_data_for_borrow(
@@ -323,7 +323,7 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
         let market_rule = self
             .data::<LendingPoolStorage>()
             .get_market_rule(&on_behalf_of_config.market_rule_id)
-            .ok_or(LendingPoolError::MarketRule)?;
+            .ok_or(LendingPoolError::MarketRuleInvalidAssetId)?;
         Ok((
             reserve_data,
             on_behalf_of_reserve_data,
