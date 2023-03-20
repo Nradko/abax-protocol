@@ -6,6 +6,12 @@
 This repository contains source code for Abax Protocol smart contracts as well as set of test suites and utilities scripts.
 </div>
 
+## Project structure
+
+- `src` - contains sources of Abax Protocol's core contracts
+- `tests` - contains e2e tests as well as utilities used for writing/running tests
+- `scripts` - contains code for benchmarking contracts and initial deployment scripts
+
 ## Contracts build and deployment
 
 ### Prerequisites
