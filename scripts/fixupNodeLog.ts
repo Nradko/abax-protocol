@@ -24,7 +24,7 @@ const printHelp = () => {
   const outputData = inputData.replace(/\[(.*)\]/g, (_, p1: string) => {
     const dataArray = p1.split(', ');
     if (dataArray.length === 32) {
-      return encodeAddress(decodeAddress(Uint8Array.from(dataArray.map((s) => parseInt(s, 16)))));
+      return encodeAddress(Uint8Array.from(dataArray.map((s) => parseInt(s, 16))), 42).toString();
     }
     return dataArray.join('');
   });
