@@ -83,12 +83,12 @@ pub fn _check_borrowing_enabled(reserve_data: &ReserveData, market_rule: &Market
     }
     if market_rule
         .get(reserve_data.id as usize)
-        .ok_or(LendingPoolError::MarketRule)?
-        .ok_or(LendingPoolError::MarketRule)?
+        .ok_or(LendingPoolError::RuleBorrowDisable)?
+        .ok_or(LendingPoolError::RuleBorrowDisable)?
         .borrow_coefficient_e6
         .is_none()
     {
-        return Err(LendingPoolError::AssetBorrowDisabled)
+        return Err(LendingPoolError::RuleBorrowDisable)
     }
     if reserve_data.token_price_e8.is_none() {
         return Err(LendingPoolError::AssetPriceNotInitialized)

@@ -112,23 +112,35 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
           expect(userCollateral[0]).to.be.equal(true);
         });
 
-        it(`After user chooses stablecoin market ParametersAdmin decreases collateralCoefficient of USDC to 0. User gets undercollateralized`, async () => {
-          await lendingPool.withSigner(user).tx.changeMarketRule(1);
-          const txRes = await lendingPool.withSigner(parametersAdmin).tx.modifyAssetRule(1, usdcContract.address, 0, 1030000, 15000);
-          expect(txRes.events).to.deep.equal([
-            {
-              name: 'AssetRulesChanged',
-              args: {
-                marketRuleId: 1,
-                asset: testEnv.reserves['USDC'].underlying.address,
-                collateralCoefficientE6: 0,
-                borrowCoefficientE6: 1030000,
-                penaltyE6: 15000,
+        describe(`User changes market rule to stablecoins only. Then...`, () => {
+          beforeEach('changing market rule', async () => {
+            await lendingPool.withSigner(user).tx.changeMarketRule(1);
+          });
+          it(`After user chooses stablecoin market ParametersAdmin decreases collateralCoefficient of USDC to 0. User gets undercollateralized`, async () => {
+            const txRes = await lendingPool.withSigner(parametersAdmin).tx.modifyAssetRule(1, usdcContract.address, 0, 1030000, 15000);
+            expect(txRes.events).to.deep.equal([
+              {
+                name: 'AssetRulesChanged',
+                args: {
+                  marketRuleId: 1,
+                  asset: testEnv.reserves['USDC'].underlying.address,
+                  collateralCoefficientE6: 0,
+                  borrowCoefficientE6: 1030000,
+                  penaltyE6: 15000,
+                },
               },
-            },
-          ]);
-          const userCollateral = (await lendingPool.query.getUserFreeCollateralCoefficient(user.address)).value.ok!;
-          expect(userCollateral[0]).to.be.equal(false);
+            ]);
+            const userCollateral = (await lendingPool.query.getUserFreeCollateralCoefficient(user.address)).value.ok!;
+            expect(userCollateral[0]).to.be.equal(false);
+          });
+          it('Users tries to set WETH as collateral and fails with Err(LendingPoolError::RuleCollateralDisable))', async () => {
+            const res = (await lendingPool.withSigner(user).query.setAsCollateral(wethContract.address, true)).value.ok;
+            expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.RuleCollateralDisable());
+          });
+          it('Users tries to borrow WETH  fails with Err(LendingPoolError::RuleBorrowDisable))', async () => {
+            const res = (await lendingPool.withSigner(user).query.borrow(wethContract.address, user.address, 1, [])).value.ok;
+            expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.RuleBorrowDisable());
+          });
         });
       });
     });
