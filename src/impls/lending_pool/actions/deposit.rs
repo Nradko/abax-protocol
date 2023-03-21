@@ -249,7 +249,7 @@ impl<T: Storage<LendingPoolStorage>> DepositInternal for T {
         let market_rule = self
             .data::<LendingPoolStorage>()
             .get_market_rule(&on_behalf_of_config.market_rule_id)
-            .ok_or(LendingPoolError::MarketRule)?;
+            .ok_or(LendingPoolError::MarketRuleInvalidId)?;
         Ok((
             reserve_data,
             on_behalf_of_reserve_data,
