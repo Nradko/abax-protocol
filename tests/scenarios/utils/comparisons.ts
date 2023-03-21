@@ -377,20 +377,20 @@ export const checkBorrowVariable = (
   );
 
   // ReserveData Checks
-  // total_variable_borrowed <- increases on borrow
-  let before = parBefore.reserveData.totalVariableBorrowed.rawNumber;
+  // total_debt <- increases on borrow
+  let before = parBefore.reserveData.totalDebt.rawNumber;
   let expected = before.add(reserveInterests.variableBorrow).add(amount);
-  let actual = parAfter.reserveData.totalVariableBorrowed.rawNumber;
+  let actual = parAfter.reserveData.totalDebt.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
-      `BorrowVariable | ReserveData | total_variable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `BorrowVariable | ReserveData | total_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     );
   }
   expect
     .soft(
       actual.toString(),
-      `BorrowVariable | ReserveData | total_variable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `BorrowVariable | ReserveData | total_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
@@ -398,19 +398,17 @@ export const checkBorrowVariable = (
   // timestamp should be set to reserve data timestamp
 
   // variable_borroved <- increases on BorrowVariable
-  before = parBefore.userReserveData.variableBorrowed.rawNumber;
+  before = parBefore.userReserveData.debt.rawNumber;
   expected = before.add(userInterests.variableBorrow).add(amount);
-  actual = parAfter.userReserveData.variableBorrowed.rawNumber;
+  actual = parAfter.userReserveData.debt.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(
-      `BorrowVariable | UserReserveData | variable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
+    console.log(`BorrowVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `BorrowVariable | UserReserveData | variable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `BorrowVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
@@ -499,7 +497,7 @@ export const checkRepayVariable = (
 
   const userInterests = getUserInterests(parBefore.userReserveData, parBefore.reserveData, parAfter.reserveData);
   const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
-  amount = amount !== null ? amount : parBefore.userReserveData.variableBorrowed.rawNumber.add(userInterests.variableBorrow);
+  amount = amount !== null ? amount : parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow);
 
   // get event and check what can be checked
   const repayVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvents.RepayVariable);
@@ -534,43 +532,41 @@ export const checkRepayVariable = (
   );
 
   // ReserveData Checks
-  // total_variable_borrowed <- decreases on repayVariable
-  let before = parBefore.reserveData.totalVariableBorrowed.rawNumber;
+  // total_debt <- decreases on repayVariable
+  let before = parBefore.reserveData.totalDebt.rawNumber;
   if (before.sub(amount).lten(0))
     console.log(
-      'RepayVariable | ReserveData | total_variable_borrowed - repay of the amount would cause an underflow. No loss happens. Expecting total_variable_borrowed to equal 0',
+      'RepayVariable | ReserveData | total_debt - repay of the amount would cause an underflow. No loss happens. Expecting total_debt to equal 0',
     );
 
   let expected = before.add(reserveInterests.variableBorrow).sub(amount).lten(0) ? 0 : before.add(reserveInterests.variableBorrow).sub(amount);
-  let actual = parAfter.reserveData.totalVariableBorrowed.rawNumber;
+  let actual = parAfter.reserveData.totalDebt.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
-      `RepayVariable | ReserveData | total_variable_borrowed | \n before: ${before} \n amount: ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     );
   }
   expect
     .soft(
       actual.toString(),
-      `RepayVariable | ReserveData | total_variable_borrowed | \n before: ${before} \n amount: ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.almostEqualOrEqualNumberE12(expected.toString());
 
   // UserReserveData Checks
   // variable_borroved <- decreases on RepayVariable
-  before = parBefore.userReserveData.variableBorrowed.rawNumber;
+  before = parBefore.userReserveData.debt.rawNumber;
   expected = before.add(userInterests.variableBorrow).sub(amount);
-  actual = parAfter.userReserveData.variableBorrowed.rawNumber;
+  actual = parAfter.userReserveData.debt.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(
-      `RepayVariable | UserReserveData | variable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
+    console.log(`RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `RepayVariable | UserReserveData | variable_borrowed | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
@@ -633,10 +629,10 @@ const getUserInterests = (userReserveData: UserReserveData, reserveDataBefore: R
 
   const variableBorrowInterest = userReserveData.appliedCumulativeSupplyRateIndexE18.rawNumber.eqn(0)
     ? new BN(0)
-    : userReserveData.variableBorrowed.rawNumber
-        .mul(reserveDataAfter.cumulativeVariableBorrowRateIndexE18.rawNumber)
-        .div(userReserveData.appliedCumulativeVariableBorrowRateIndexE18.rawNumber)
-        .sub(userReserveData.variableBorrowed.rawNumber);
+    : userReserveData.debt.rawNumber
+        .mul(reserveDataAfter.cumulativeDebtRateIndexE18.rawNumber)
+        .div(userReserveData.appliedCumulativeDebtRateIndexE18.rawNumber)
+        .sub(userReserveData.debt.rawNumber);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
   }
@@ -656,12 +652,12 @@ const getReserveInterests = (reserveDataBefore: ReserveData, reserveDataAfter: R
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = reserveDataBefore.cumulativeVariableBorrowRateIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = reserveDataBefore.cumulativeDebtRateIndexE18.rawNumber.eqn(0)
     ? new BN(0)
-    : reserveDataBefore.totalVariableBorrowed.rawNumber
-        .mul(reserveDataAfter.cumulativeVariableBorrowRateIndexE18.rawNumber)
-        .div(reserveDataBefore.cumulativeVariableBorrowRateIndexE18.rawNumber)
-        .sub(reserveDataBefore.totalVariableBorrowed.rawNumber);
+    : reserveDataBefore.totalDebt.rawNumber
+        .mul(reserveDataAfter.cumulativeDebtRateIndexE18.rawNumber)
+        .div(reserveDataBefore.cumulativeDebtRateIndexE18.rawNumber)
+        .sub(reserveDataBefore.totalDebt.rawNumber);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
   }

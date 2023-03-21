@@ -81,7 +81,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
     });
 
     it('User tries to switch market mode to stablecoin only mode. Fails with Err(LendingPoolError::RuleCollateralDisable)', async () => {
-      const queryRes = (await lendingPool.withSigner(user).query.changeMarketRule(1)).value.ok;
+      const queryRes = (await lendingPool.withSigner(user).query.chooseMarketRule(1)).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.RuleCollateralDisable());
     });
 
@@ -90,7 +90,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
         await lendingPool.withSigner(user).tx.setAsCollateral(wethContract.address, false);
       });
       it('User tries to switch market mode to stablecoin only mode. Fails with Err(LendingPoolError::RuleBorrowDisable)', async () => {
-        const queryRes = (await lendingPool.withSigner(user).query.changeMarketRule(1)).value.ok;
+        const queryRes = (await lendingPool.withSigner(user).query.chooseMarketRule(1)).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.RuleBorrowDisable());
       });
       describe(`User repays WETH debt. Then`, () => {
@@ -98,7 +98,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
           await lendingPool.withSigner(user).tx.repay(wethContract.address, user.address, null, []);
         });
         it('User tries to switch market mode and succeeds as user has enough collateral. Event should be emitted.', async () => {
-          const txRes = await lendingPool.withSigner(user).tx.changeMarketRule(1);
+          const txRes = await lendingPool.withSigner(user).tx.chooseMarketRule(1);
           expect(txRes.events).to.deep.equal([
             {
               name: 'MarketRuleChosen',
@@ -114,7 +114,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
 
         describe(`User changes market rule to stablecoins only. Then...`, () => {
           beforeEach('changing market rule', async () => {
-            await lendingPool.withSigner(user).tx.changeMarketRule(1);
+            await lendingPool.withSigner(user).tx.chooseMarketRule(1);
           });
           it(`After user chooses stablecoin market ParametersAdmin decreases collateralCoefficient of USDC to 0. User gets undercollateralized`, async () => {
             const txRes = await lendingPool.withSigner(parametersAdmin).tx.modifyAssetRule(1, usdcContract.address, 0, 1030000, 15000);

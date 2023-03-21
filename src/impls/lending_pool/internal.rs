@@ -110,7 +110,7 @@ pub fn _check_enough_variable_debt(
     reserve_data: &ReserveData,
     user_reserve_data: &UserReserveData,
 ) -> Result<(), LendingPoolError> {
-    if user_reserve_data.variable_borrowed <= reserve_data.minimal_debt && user_reserve_data.variable_borrowed != 0 {
+    if user_reserve_data.debt <= reserve_data.minimal_debt && user_reserve_data.debt != 0 {
         return Err(LendingPoolError::InsufficientDebt)
     }
     Ok(())
@@ -127,7 +127,7 @@ pub fn _check_max_supply(reserve_data: ReserveData) -> Result<(), LendingPoolErr
 
 pub fn _check_max_debt(reserve_data: ReserveData) -> Result<(), LendingPoolError> {
     if reserve_data.maximal_total_debt.is_some() {
-        if reserve_data.total_variable_borrowed > reserve_data.maximal_total_debt.unwrap() {
+        if reserve_data.total_debt > reserve_data.maximal_total_debt.unwrap() {
             return Err(LendingPoolError::MaxDebtReached)
         }
     }
@@ -179,19 +179,13 @@ pub fn _increase_user_variable_debt(
     amount: u128,
 ) {
     // add variable debt
-    user_config.borrows_variable |= 1_u128 << reserve_data.id;
+    user_config.borrows |= 1_u128 << reserve_data.id;
 
-    user_reserve_data.variable_borrowed = user_reserve_data
-        .variable_borrowed
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
+    user_reserve_data.debt = user_reserve_data.debt.checked_add(amount).expect(MATH_ERROR_MESSAGE);
 }
 
 pub fn _increase_total_variable_debt(reserve_data: &mut ReserveData, amount: u128) {
-    reserve_data.total_variable_borrowed = reserve_data
-        .total_variable_borrowed
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
+    reserve_data.total_debt = reserve_data.total_debt.checked_add(amount).expect(MATH_ERROR_MESSAGE);
 }
 
 pub fn _decrease_user_variable_debt(
@@ -200,14 +194,14 @@ pub fn _decrease_user_variable_debt(
     user_config: &mut UserConfig,
     amount: u128,
 ) {
-    if amount >= user_reserve_data.variable_borrowed {
-        user_config.borrows_variable &= !(1_u128 << reserve_data.id);
+    if amount >= user_reserve_data.debt {
+        user_config.borrows &= !(1_u128 << reserve_data.id);
     }
-    user_reserve_data.variable_borrowed = user_reserve_data.variable_borrowed.saturating_sub(amount);
+    user_reserve_data.debt = user_reserve_data.debt.saturating_sub(amount);
 }
 
 pub fn _decrease_total_variable_debt(reserve_data: &mut ReserveData, amount: u128) {
-    reserve_data.total_variable_borrowed = reserve_data.total_variable_borrowed.saturating_sub(amount);
+    reserve_data.total_debt = reserve_data.total_debt.saturating_sub(amount);
 }
 
 pub fn _emit_abacus_token_transfer_event(
@@ -331,7 +325,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         let mut total_debt_coefficient_e6: u128 = 0;
         let registered_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
         let collaterals = user_config.deposits & user_config.collaterals;
-        let borrows = user_config.borrows_variable;
+        let borrows = user_config.borrows;
         let active_user_assets = collaterals | borrows;
         for i in 0..registered_assets.len() {
             if ((active_user_assets >> i) & 1) == 0 {
@@ -376,7 +370,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             }
 
             if ((borrows >> i) & 1) == 1 {
-                let debt = user_reserve.variable_borrowed;
+                let debt = user_reserve.debt;
                 let asset_debt_value_e8 =
                     u128::try_from(checked_math!(debt * asset_price_e8 / reserve_data.decimals).unwrap())
                         .expect(MATH_ERROR_MESSAGE);
@@ -431,13 +425,8 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
                 .get_reserve_data(asset)
                 .unwrap_or_default();
             let balance = PSP22Ref::balance_of(asset, Self::env().account_id());
-            let income = i128::try_from(
-                reserve_data
-                    .total_variable_borrowed
-                    .checked_add(balance)
-                    .expect(MATH_ERROR_MESSAGE),
-            )
-            .expect(MATH_ERROR_MESSAGE)
+            let income = i128::try_from(reserve_data.total_debt.checked_add(balance).expect(MATH_ERROR_MESSAGE))
+                .expect(MATH_ERROR_MESSAGE)
                 - reserve_data.total_supplied as i128;
             result.push((*asset, income));
         }

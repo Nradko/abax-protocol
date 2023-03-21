@@ -175,9 +175,9 @@ export const getReserveDefaultObj = (): ReserveData => {
     totalSupplied: new ReturnNumber(0),
     cumulativeSupplyRateIndexE18: new ReturnNumber(E18),
     currentSupplyRateE24: new ReturnNumber(0),
-    totalVariableBorrowed: new ReturnNumber(0),
-    cumulativeVariableBorrowRateIndexE18: new ReturnNumber(E18),
-    currentVariableBorrowRateE24: new ReturnNumber(0),
+    totalDebt: new ReturnNumber(0),
+    cumulativeDebtRateIndexE18: new ReturnNumber(E18),
+    currentDebtRateE24: new ReturnNumber(0),
     indexesUpdateTimestamp: 0,
     aTokenAddress: '',
     vTokenAddress: '',
@@ -187,9 +187,9 @@ export const getReserveDefaultObj = (): ReserveData => {
 export const getUserReserveDataDefaultObj = (): UserReserveData => {
   return {
     supplied: new ReturnNumber(0),
-    variableBorrowed: new ReturnNumber(0),
+    debt: new ReturnNumber(0),
     appliedCumulativeSupplyRateIndexE18: new ReturnNumber(0),
-    appliedCumulativeVariableBorrowRateIndexE18: new ReturnNumber(0),
+    appliedCumulativeDebtRateIndexE18: new ReturnNumber(0),
   };
 };
 

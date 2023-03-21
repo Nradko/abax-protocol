@@ -115,9 +115,9 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
             total_supplied: 0,
             cumulative_supply_rate_index_e18: E18,
             current_supply_rate_e24: 0,
-            total_variable_borrowed: 0,
-            cumulative_variable_borrow_rate_index_e18: E18,
-            current_variable_borrow_rate_e24: 0,
+            total_debt: 0,
+            cumulative_debt_rate_index_e18: E18,
+            current_debt_rate_e24: 0,
             indexes_update_timestamp: BlockTimestampProviderRef::get_block_timestamp(
                 &self.data::<LendingPoolStorage>().block_timestamp_provider,
             ),

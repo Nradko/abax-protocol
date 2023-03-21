@@ -85,12 +85,11 @@ pub mod user_reserve_data_tests {
             let mut init_reserve_data = ReserveData::default();
             init_reserve_data.indexes_update_timestamp = case.update_timestamp;
             init_reserve_data.cumulative_supply_rate_index_e18 = case.cumulative_supply_rate_index_e12;
-            init_reserve_data.cumulative_variable_borrow_rate_index_e18 =
-                case.cumulative_variable_borrow_rate_index_e12;
+            init_reserve_data.cumulative_debt_rate_index_e18 = case.cumulative_variable_borrow_rate_index_e12;
 
             let mut init_user_reserve_data = UserReserveData::my_default();
             init_user_reserve_data.supplied = case.init_user_supplied;
-            init_user_reserve_data.variable_borrowed = case.init_user_variable_borrowed;
+            init_user_reserve_data.debt = case.init_user_variable_borrowed;
 
             let mut final_reserve_data = init_reserve_data.clone();
             let mut final_user_reserve_data = init_user_reserve_data.clone();
@@ -99,11 +98,9 @@ pub mod user_reserve_data_tests {
 
             let user_reserve_difference = UserReserveDataDifference {
                 supplied: case.expected_supplied_difference as i128,
-                variable_borrowed: case.expected_variable_borrowed_difference as i128,
+                debt: case.expected_variable_borrowed_difference as i128,
                 applied_cumulative_supply_rate_index_e18: final_reserve_data.cumulative_supply_rate_index_e18 - E12,
-                applied_cumulative_variable_borrow_rate_index_e18: final_reserve_data
-                    .cumulative_variable_borrow_rate_index_e18
-                    - E12,
+                applied_cumulative_debt_rate_index_e18: final_reserve_data.cumulative_debt_rate_index_e18 - E12,
             };
 
             assert_user_reserve_data_difference(
@@ -117,9 +114,9 @@ pub mod user_reserve_data_tests {
     #[derive(Debug, Default)]
     pub struct UserReserveDataDifference {
         supplied: i128,
-        variable_borrowed: i128,
+        debt: i128,
         applied_cumulative_supply_rate_index_e18: u128,
-        applied_cumulative_variable_borrow_rate_index_e18: u128,
+        applied_cumulative_debt_rate_index_e18: u128,
     }
 
     pub fn assert_user_reserve_data_difference(
@@ -134,10 +131,10 @@ pub mod user_reserve_data_tests {
             "supplied".to_string(),
         );
         assert(
-            initital_user_reserve_data.variable_borrowed,
-            final_user_reserve_data.variable_borrowed,
-            differences.variable_borrowed,
-            "variable_borrowed".to_string(),
+            initital_user_reserve_data.debt,
+            final_user_reserve_data.debt,
+            differences.debt,
+            "debt".to_string(),
         );
 
         assert(
@@ -147,10 +144,10 @@ pub mod user_reserve_data_tests {
             "applied_cumulative_supply_rate_index_e18".to_string(),
         );
         assert(
-            initital_user_reserve_data.applied_cumulative_variable_borrow_rate_index_e18,
-            final_user_reserve_data.applied_cumulative_variable_borrow_rate_index_e18,
-            differences.applied_cumulative_variable_borrow_rate_index_e18,
-            "applied_cumulative_variable_borrow_rate_index_e18".to_string(),
+            initital_user_reserve_data.applied_cumulative_debt_rate_index_e18,
+            final_user_reserve_data.applied_cumulative_debt_rate_index_e18,
+            differences.applied_cumulative_debt_rate_index_e18,
+            "applied_cumulative_debt_rate_index_e18".to_string(),
         );
     }
 }

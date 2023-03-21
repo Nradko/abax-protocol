@@ -6,7 +6,7 @@ import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_po
 import chroma from 'chroma-js';
 import { isNil } from 'lodash';
 
-export const seriesToMoveToSecondPlot: (keyof UserReserveData | keyof ReserveData)[] = ['currentSupplyRateE24', 'currentVariableBorrowRateE24'];
+export const seriesToMoveToSecondPlot: (keyof UserReserveData | keyof ReserveData)[] = ['currentSupplyRateE24', 'currentDebtRateE24'];
 export type AnyReserveDataValueMutator = (val: any, reserveData: ReserveData) => number;
 export const geUserReserveDataValueMutator = <TData extends UserReserveData, K extends Extract<keyof TData, string>>(
   seriesName: K,
@@ -14,15 +14,14 @@ export const geUserReserveDataValueMutator = <TData extends UserReserveData, K e
   switch (seriesName) {
     case 'supplied':
       return (val: UserReserveData['supplied'], reserveData: ReserveData) => val.rawNumber.div(reserveData.decimals.rawNumber).toNumber() / 10_000;
-    case 'variableBorrowed':
-      return (val: UserReserveData['variableBorrowed'], reserveData: ReserveData) =>
-        val.rawNumber.div(reserveData.decimals.rawNumber).toNumber() / 10_000;
+    case 'debt':
+      return (val: UserReserveData['debt'], reserveData: ReserveData) => val.rawNumber.div(reserveData.decimals.rawNumber).toNumber() / 10_000;
     case 'stableBorrowed':
       return (val: UserReserveData['stableBorrowed']) => fromE12(val.rawNumber);
     case 'appliedCumulativeSupplyRateIndexE18':
       return (val: UserReserveData['appliedCumulativeSupplyRateIndexE18']) => fromE12(val.rawNumber);
-    case 'appliedCumulativeVariableBorrowRateIndexE18':
-      return (val: UserReserveData['appliedCumulativeVariableBorrowRateIndexE18']) => fromE12(val.rawNumber);
+    case 'appliedCumulativeDebtRateIndexE18':
+      return (val: UserReserveData['appliedCumulativeDebtRateIndexE18']) => fromE12(val.rawNumber);
     case 'stableBorrowRateE24':
       return (val: UserReserveData['stableBorrowRateE24']) => fromE18(val.rawNumber);
     case 'updateTimestamp':
@@ -45,12 +44,12 @@ export const getReserveDataValueMutator = <K extends keyof ReserveData>(seriesNa
       return (val: ReserveData['cumulativeSupplyRateIndexE18']) => fromE12(val.rawNumber);
     case 'currentSupplyRateE24':
       return (val: ReserveData['currentSupplyRateE24']) => fromE18(val.rawNumber);
-    case 'totalVariableBorrowed':
-      return (val: ReserveData['totalVariableBorrowed']) => fromE12(val.rawNumber);
-    case 'cumulativeVariableBorrowRateIndexE18':
-      return (val: ReserveData['cumulativeVariableBorrowRateIndexE18']) => fromE12(val.rawNumber);
-    case 'currentVariableBorrowRateE24':
-      return (val: ReserveData['currentVariableBorrowRateE24']) => fromE18(val.rawNumber);
+    case 'totalDebt':
+      return (val: ReserveData['totalDebt']) => fromE12(val.rawNumber);
+    case 'cumulativeDebtRateIndexE18':
+      return (val: ReserveData['cumulativeDebtRateIndexE18']) => fromE12(val.rawNumber);
+    case 'currentDebtRateE24':
+      return (val: ReserveData['currentDebtRateE24']) => fromE18(val.rawNumber);
     case 'sumStableDebt':
       return (val: ReserveData['sumStableDebt']) => fromE12(val.rawNumber);
     case 'accumulatedStableBorrow':

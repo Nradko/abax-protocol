@@ -69,7 +69,7 @@ pub trait LendingPoolBorrow {
     ///
     /// * `market_rule_id` - the id of the market_rule to use.
     #[ink(message)]
-    fn change_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError>;
+    fn choose_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError>;
 
     /// is used by a user to choose to use or not a given asset as a collateral
     /// i.e. if the user's deposit of this concrete asset should back his debt and be vulnerable to liquidation.

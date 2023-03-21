@@ -1,4 +1,4 @@
-"utilizationRate","appliedCumulativeSupplyRateIndexE12","cumulativeSupplyRateIndexE12","currentSupplyRateE18","variableBorrowed","currentVariableBorrowRateE18","cumulativeVariableBorrowRateIndexE12","timestamp"
+"utilizationRate","appliedCumulativeSupplyRateIndexE12","cumulativeSupplyRateIndexE12","currentSupplyRateE18","debt","currentVariableBorrowRateE18","cumulativeVariableBorrowRateIndexE12","timestamp"
 0.699336,1,1.00012095879,1.391694e-12,0.6994,1.990041e-12,1.000172800087,1668017281069
 0.698672,1,1.000241215695,1.383414e-12,0.6988,1.980081e-12,1.000344769341,1668103681069
 0.698008,1,1.000360771495,1.375148e-12,0.6982,1.970121e-12,1.000515907322,1668190081069

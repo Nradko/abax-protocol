@@ -40,7 +40,7 @@ use openbrush::{
 };
 
 impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> LendingPoolBorrow for T {
-    default fn change_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError> {
+    default fn choose_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         let market_rule = self
             .data::<LendingPoolStorage>()
@@ -192,12 +192,12 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
 
         let amount_val = match amount {
             Some(v) => {
-                if v > on_behalf_of_reserve_data.variable_borrowed {
+                if v > on_behalf_of_reserve_data.debt {
                     return Err(LendingPoolError::AmountExceedsUserDebt)
                 };
                 v
             }
-            None => on_behalf_of_reserve_data.variable_borrowed,
+            None => on_behalf_of_reserve_data.debt,
         };
         _check_amount_not_zero(amount_val)?;
 
@@ -208,7 +208,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             amount_val,
         );
 
-        if (on_behalf_of_config.borrows_variable >> reserve_data.id) & 1 == 1 {
+        if (on_behalf_of_config.borrows >> reserve_data.id) & 1 == 1 {
             _check_enough_variable_debt(&reserve_data, &on_behalf_of_reserve_data)?;
         }
         // recalculate
