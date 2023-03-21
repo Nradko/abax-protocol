@@ -50,7 +50,40 @@ Assuming you've build all contracts here are the steps to have contracts deploye
 Initially tests were using [Redspot](https://github.com/patractlabs/redspot) however due to compatibility issues, terrible performance and dependencies mismatch (including `polkadot.js` core packages actively developed or foreshadowed ink! 4) we've abandoned the library.
 Instead we've used raw `mocha` library alongside some scripts to abstract logic required for e2e tests to work properly and that turned out to be a fast and reliable solution.
 
+Tests consist of regular test suites (created via `describe`/`makeSuite`) and a scenario-based tests. Scenarios are stored in the folder `tests/scenarios/stories` and each contains a set of lists of interactions with Abax Protocol with expected outcomes.T
+
 ### Test execution
+
+_TL;DR; To run tests it is sufficient to run `yarn build` and `yarn test`._
+
+**Note** Contract event testing is unstable at the moment and some tests may fail because of that. In order to rerun failed tests apply `mocha`'s `only` to selected test suites (eg `describe.only` instead of `describe`/ `makeSuite.only` instead of `makeSuite`, `it.only` instead of `it`).
+**Note2** In order to narrow down test execution of scenario tests use hardcoded settings from `scenariosRunner.test.ts`.
+
+Example 1: Apply `only` to scenario file `deposit.json`
+
+```
+const selectedFiles: string[] = ['deposit'];
+const selectedScenarios: string[] = [];
+const skipScenarios = false;
+```
+
+Example 2: Apply `only` to scenario titled `User 1 deposits 200 DAI on behalf of user 2, user 2 tries to borrow 0.1 WETH`
+
+```
+const selectedFiles: string[] = [];
+const selectedScenarios: string[] = ['User 1 deposits 200 DAI on behalf of user 2, user 2 tries to borrow 0.1 WETH'];
+const skipScenarios = false;
+```
+
+Example 3: Skip scenario execution
+
+```
+const selectedFiles: string[] = [];
+const selectedScenarios: string[] = [];
+const skipScenarios = true;
+```
+
+### `yarn test` explanation:
 
 Test execution consists of a set of simple steps:
 
@@ -59,7 +92,19 @@ Test execution consists of a set of simple steps:
 1. run `mocha`
 1. For every set of tests that require a "clean setup", instead of reruning deployment, use the database state saved previously. The caveat of doing that is that we have to restart the node (details in `nodePersistence.ts`). That being said thanks to doing that tests perform couple of times better than using `redspot`. This operation happens in `before` hooks, notably most used in the `makeSuite` test suite wrapper from `make-suite.ts`.
 
-- `yarn test` is another "convenience script" that will perform all of the steps mentioned previously and on top of that store logs of node in the `substrate-contracts-node.testrun.log` file (note that with the given approach the node is being restarted so keeping track of logs in the console is rather annoying). The `substrate-contracts-node.testrun.retouched.log` log file contains the same data with the exception of UInt8 arrays being swapped with proper addresses. In the future, we plan to add removal of duplicate logs (happening because of the node itself ).
+- `yarn test` is what that will perform all of the steps mentioned previously and on top of that store logs of node in the `substrate-contracts-node.testrun.log` file (note that with the given approach the node is being restarted so keeping track of logs in the console is rather annoying). The `substrate-contracts-node.testrun.retouched.log` log file contains the same data with the exception of UInt8 arrays being swapped with proper addresses. In the future, we plan to add removal of duplicate logs (happening because of the node itself ).
+
+## Benchmarking
+
+**Disclaimer** Due to frequent code updates and the migration to ink!4 the code for benchmarking/creating graphs is not up to date and its execution will fail.
+
+- `scripts/benchmarking` folder contains a set of benchmarks. Each of them is runnable via `npx ts-node <path_to_the_benchmark>`. After its execution a set of output files will be produced:
+
+  - plot(s) (created using `chart.js`)
+  - results in csv format
+  - results in json format
+
+- `scripts/benchmarking/utils.ts` contains a `measureTime` function used in `queryVsNonQuery.ts` file that may be used for performance testing.
 
 ## Other useful commands
 
