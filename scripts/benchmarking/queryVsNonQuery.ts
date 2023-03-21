@@ -1,6 +1,6 @@
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import chalk from 'chalk';
-import { measureTime2 } from './utils';
+import { measureTime } from './utils';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 
 (async () => {
@@ -26,11 +26,11 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
   await reserve.withSigner(sender).methods.approve(lendingPool.address, '1000000000000000000000000000000', {});
 
   console.log('Starting benchmark...');
-  const withQueryResult = await measureTime2(SAMPLE_SIZE, withQueryMarkId, async () => {
+  const withQueryResult = await measureTime(SAMPLE_SIZE, withQueryMarkId, async () => {
     await lendingPoolAsSender.query.deposit(...args);
     await lendingPoolAsSender.tx.deposit(...args);
   });
-  const withoutQueryResult = await measureTime2(SAMPLE_SIZE, withoutQueryMarkId, async () => {
+  const withoutQueryResult = await measureTime(SAMPLE_SIZE, withoutQueryMarkId, async () => {
     await lendingPoolAsSender.tx.deposit(...args);
   });
 

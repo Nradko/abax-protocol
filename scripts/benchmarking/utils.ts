@@ -128,18 +128,6 @@ export const measureTime = async <T>(sampleSize: number, markId: string, benchma
   return { name: markId, start, end, duration: end - start };
 };
 
-export const measureTime2 = async <T>(sampleSize: number, markId: string, benchmarkFunc: () => Promise<T>) => {
-  console.log('Starting benchmarking func...');
-  const start = Date.now();
-  for (let i = 0; i <= sampleSize; i++) {
-    await benchmarkFunc();
-    // logProgress(i, sampleSize);
-  }
-  const end = Date.now();
-
-  return { name: markId, start, end, duration: end - start };
-};
-
 const colorsWithUsedNames = chroma
   .scale(['aqua', 'black', 'blue', 'fuchsia', 'gray', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'red', 'silver', 'teal', 'yellow'])
   .mode('lch')
