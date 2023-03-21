@@ -45,14 +45,14 @@ impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVToken
             .data::<LendingPoolStorage>()
             .get_reserve_data(&underlying_asset)
             .unwrap_or_default();
-        if reserve_data.total_variable_borrowed == 0 {
+        if reserve_data.total_debt == 0 {
             return 0
         }
 
         let block_timestamp =
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         reserve_data._accumulate_interest(block_timestamp);
-        reserve_data.total_variable_borrowed
+        reserve_data.total_debt
     }
 
     fn user_variable_debt_of(&self, underlying_asset: AccountId, user: AccountId) -> Balance {
@@ -60,7 +60,7 @@ impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVToken
             .data::<LendingPoolStorage>()
             .get_user_reserve(&underlying_asset, &user)
             .unwrap_or_default();
-        if user_reserve_data.variable_borrowed == 0 {
+        if user_reserve_data.debt == 0 {
             return 0
         }
         let mut reserve_data = self
@@ -72,7 +72,7 @@ impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVToken
             BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
         reserve_data._accumulate_interest(block_timestamp);
         user_reserve_data._accumulate_user_interest(&mut reserve_data);
-        user_reserve_data.variable_borrowed
+        user_reserve_data.debt
     }
 
     fn transfer_variable_debt_from_to(
@@ -107,7 +107,7 @@ impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVToken
         let (interest_to_supply, interest_to_variable_borrow): (Balance, Balance) =
             to_user_reserve_data._accumulate_user_interest(&mut reserve_data);
 
-        if from_user_reserve_data.variable_borrowed < amount {
+        if from_user_reserve_data.debt < amount {
             return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
         _decrease_user_variable_debt(&reserve_data, &mut from_user_reserve_data, &mut from_config, amount);

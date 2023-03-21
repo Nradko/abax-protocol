@@ -67,7 +67,7 @@ pub mod reserve_data_tests {
 
     pub struct DvxR {
         total_supplied: Balance,
-        total_variable_borrowed: Balance,
+        total_debt: Balance,
         expected_current_variable_rate_difference_e18: u128,
         expected_current_supply_rate_difference_e18: u128,
     }
@@ -151,7 +151,7 @@ pub mod reserve_data_tests {
         for t in tv {
             test_cases.push(DvxR {
                 total_supplied: SUPPLY,
-                total_variable_borrowed: t.ur * SUPPLY / 100,
+                total_debt: t.ur * SUPPLY / 100,
                 expected_current_variable_rate_difference_e18: t.evr_e18,
                 expected_current_supply_rate_difference_e18: t.ur * t.evr_e18 / 100,
             });
@@ -160,21 +160,21 @@ pub mod reserve_data_tests {
         for case in test_cases {
             let mut init_reserve_data = ReserveData::default();
             init_reserve_data.total_supplied = case.total_supplied;
-            init_reserve_data.total_variable_borrowed = case.total_variable_borrowed;
+            init_reserve_data.total_debt = case.total_debt;
             let mut final_reserve_data = init_reserve_data.clone();
 
             final_reserve_data._recalculate_current_rates();
 
             let mut differences = ReserveDataDifference::default();
             differences.current_supply_rate_e24 = case.expected_current_supply_rate_difference_e18;
-            differences.current_variable_borrow_rate_e24 = case.expected_current_variable_rate_difference_e18;
+            differences.current_debt_rate_e24 = case.expected_current_variable_rate_difference_e18;
             assert_reserve_data_difference(init_reserve_data, final_reserve_data, differences);
         }
     }
 
     pub struct DvxA {
         init_total_supplied: Balance,
-        init_total_variable_borrowed: Balance,
+        init_total_debt: Balance,
 
         time_travel: Timestamp,
 
@@ -183,7 +183,7 @@ pub mod reserve_data_tests {
         expected_cummulative_suply_rate_index_difference_e12: u128,
         expected_cummulative_variable_borrow_rate_index_difference_e12: u128,
         expected_total_supplied_difference: Balance,
-        expected_total_variable_borrowed_difference: Balance,
+        expected_total_debt_difference: Balance,
     }
     #[ink::test]
     fn dvx_accumulate() {
@@ -265,21 +265,21 @@ pub mod reserve_data_tests {
         for t in tv {
             test_cases.push(DvxA {
                 init_total_supplied: SUPPLY,
-                init_total_variable_borrowed: t.ur * SUPPLY / 100,
+                init_total_debt: t.ur * SUPPLY / 100,
 
                 time_travel: DAY as Timestamp,
                 expected_current_variable_rate_difference_e18: t.evr_e18,
                 expected_current_supply_rate_difference_e18: t.ur * t.evr_e18 / 100,
                 expected_cummulative_variable_borrow_rate_index_difference_e12: t.evr_e18 * DAY / E6,
                 expected_cummulative_suply_rate_index_difference_e12: t.ur * t.evr_e18 / 100 * DAY / E6,
-                expected_total_variable_borrowed_difference: SUPPLY * t.ur / 100 * (t.evr_e18 * DAY / E6) / E12,
+                expected_total_debt_difference: SUPPLY * t.ur / 100 * (t.evr_e18 * DAY / E6) / E12,
                 expected_total_supplied_difference: SUPPLY * (t.ur * t.evr_e18 / 100 * DAY / E6) / E12,
             });
         }
         for case in test_cases {
             let mut init_reserve_data = ReserveData::default();
             init_reserve_data.total_supplied = case.init_total_supplied;
-            init_reserve_data.total_variable_borrowed = case.init_total_variable_borrowed;
+            init_reserve_data.total_debt = case.init_total_debt;
 
             let mut final_reserve_data = init_reserve_data.clone();
 
@@ -288,12 +288,12 @@ pub mod reserve_data_tests {
 
             let mut differences = ReserveDataDifference::default();
             differences.current_supply_rate_e24 = case.expected_current_supply_rate_difference_e18;
-            differences.current_variable_borrow_rate_e24 = case.expected_current_variable_rate_difference_e18;
+            differences.current_debt_rate_e24 = case.expected_current_variable_rate_difference_e18;
             differences.cumulative_supply_rate_index_e12 = case.expected_cummulative_suply_rate_index_difference_e12;
             differences.cumulative_variable_borrow_rate_index_e12 =
                 case.expected_cummulative_variable_borrow_rate_index_difference_e12;
             differences.total_supplied = case.expected_total_supplied_difference as i128;
-            differences.total_variable_borrowed = case.expected_total_variable_borrowed_difference as i128;
+            differences.total_debt = case.expected_total_debt_difference as i128;
             differences.indexes_update_timestamp = case.time_travel;
             assert_reserve_data_difference(init_reserve_data, final_reserve_data, differences);
         }
@@ -304,9 +304,9 @@ pub mod reserve_data_tests {
         total_supplied: i128,
         cumulative_supply_rate_index_e12: u128,
         current_supply_rate_e24: u128,
-        total_variable_borrowed: i128,
+        total_debt: i128,
         cumulative_variable_borrow_rate_index_e12: u128,
-        current_variable_borrow_rate_e24: u128,
+        current_debt_rate_e24: u128,
         indexes_update_timestamp: Timestamp,
     }
 
@@ -322,10 +322,10 @@ pub mod reserve_data_tests {
             "indexes_update_timestamp".to_string(),
         );
         assert(
-            initital_reserve_data.current_variable_borrow_rate_e24,
-            final_reserve_data.current_variable_borrow_rate_e24,
-            differences.current_variable_borrow_rate_e24,
-            "current_variable_borrow_rate_e24".to_string(),
+            initital_reserve_data.current_debt_rate_e24,
+            final_reserve_data.current_debt_rate_e24,
+            differences.current_debt_rate_e24,
+            "current_debt_rate_e24".to_string(),
         );
         assert(
             initital_reserve_data.current_supply_rate_e24,
@@ -334,8 +334,8 @@ pub mod reserve_data_tests {
             "current_supply_rate_e24".to_string(),
         );
         assert(
-            initital_reserve_data.cumulative_variable_borrow_rate_index_e18,
-            final_reserve_data.cumulative_variable_borrow_rate_index_e18,
+            initital_reserve_data.cumulative_debt_rate_index_e18,
+            final_reserve_data.cumulative_debt_rate_index_e18,
             differences.cumulative_variable_borrow_rate_index_e12,
             "cumulative_variable_borrow_rate_index_e12".to_string(),
         );
@@ -346,10 +346,10 @@ pub mod reserve_data_tests {
             "cumulative_supply_rate_index_e12".to_string(),
         );
         assert(
-            initital_reserve_data.total_variable_borrowed,
-            final_reserve_data.total_variable_borrowed,
-            differences.total_variable_borrowed,
-            "total_variable_borrowed".to_string(),
+            initital_reserve_data.total_debt,
+            final_reserve_data.total_debt,
+            differences.total_debt,
+            "total_debt".to_string(),
         );
         assert(
             initital_reserve_data.total_supplied,

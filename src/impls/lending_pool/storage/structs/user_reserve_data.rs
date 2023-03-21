@@ -20,19 +20,18 @@ pub struct UserReserveData {
     /// underlying asset amount of supplied plus accumulated interest.
     pub supplied: Balance,
     /// underlying asset amount of borrowed (variable rate) plus accumulates interest.
-    pub variable_borrowed: Balance,
+    pub debt: Balance,
     /// applied cumulative rate index that is used to accumulate supply interest.
     pub applied_cumulative_supply_rate_index_e18: u128,
     /// applied cumulative rate index that is used to accumulate debt (variable) interest.
-    pub applied_cumulative_variable_borrow_rate_index_e18: u128,
+    pub applied_cumulative_debt_rate_index_e18: u128,
 }
 
 impl UserReserveData {
     // TODO:: make it easier to read!!!
     pub fn _accumulate_user_interest(&mut self, reserve: &mut ReserveData) -> (Balance, Balance) {
         if self.applied_cumulative_supply_rate_index_e18 >= reserve.cumulative_supply_rate_index_e18
-            && self.applied_cumulative_variable_borrow_rate_index_e18
-                >= reserve.cumulative_variable_borrow_rate_index_e18
+            && self.applied_cumulative_debt_rate_index_e18 >= reserve.cumulative_debt_rate_index_e18
         {
             return (0, 0)
         }
@@ -56,26 +55,25 @@ impl UserReserveData {
         }
         self.applied_cumulative_supply_rate_index_e18 = reserve.cumulative_supply_rate_index_e18;
 
-        if self.variable_borrowed != 0
-            && self.applied_cumulative_variable_borrow_rate_index_e18 != 0
-            && self.applied_cumulative_variable_borrow_rate_index_e18
-                < reserve.cumulative_variable_borrow_rate_index_e18
+        if self.debt != 0
+            && self.applied_cumulative_debt_rate_index_e18 != 0
+            && self.applied_cumulative_debt_rate_index_e18 < reserve.cumulative_debt_rate_index_e18
         {
             let updated_borrow = {
                 let updated_borrow_rounded_down = u128::try_from(
                     checked_math!(
-                        self.variable_borrowed * reserve.cumulative_variable_borrow_rate_index_e18
-                            / self.applied_cumulative_variable_borrow_rate_index_e18
+                        self.debt * reserve.cumulative_debt_rate_index_e18
+                            / self.applied_cumulative_debt_rate_index_e18
                     )
                     .unwrap(),
                 )
                 .expect(MATH_ERROR_MESSAGE);
                 updated_borrow_rounded_down.checked_add(1).expect(MATH_ERROR_MESSAGE)
             };
-            delta_user_varaible_borrow = updated_borrow - self.variable_borrowed;
-            self.variable_borrowed = updated_borrow;
+            delta_user_varaible_borrow = updated_borrow - self.debt;
+            self.debt = updated_borrow;
         }
-        self.applied_cumulative_variable_borrow_rate_index_e18 = reserve.cumulative_variable_borrow_rate_index_e18;
+        self.applied_cumulative_debt_rate_index_e18 = reserve.cumulative_debt_rate_index_e18;
 
         return (delta_user_supply, delta_user_varaible_borrow)
     }
@@ -85,9 +83,9 @@ impl UserReserveData {
     pub fn my_default() -> Self {
         Self {
             supplied: 0,
-            variable_borrowed: 0,
+            debt: 0,
             applied_cumulative_supply_rate_index_e18: E18,
-            applied_cumulative_variable_borrow_rate_index_e18: E18,
+            applied_cumulative_debt_rate_index_e18: E18,
         }
     }
 }

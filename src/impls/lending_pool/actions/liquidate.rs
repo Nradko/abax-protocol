@@ -111,7 +111,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             return Err(LendingPoolError::TakingNotACollateral)
         }
         // Check if there is any debt to repay
-        let user_debt = user_reserve_data_to_repay.variable_borrowed;
+        let user_debt = user_reserve_data_to_repay.debt;
 
         if user_debt == 0 {
             return Err(LendingPoolError::NothingToRepay)

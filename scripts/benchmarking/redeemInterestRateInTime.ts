@@ -72,13 +72,11 @@ import { createPushDataPoint, getBasicChartConfig, getColorFromName, logProgress
     normalizeAndPushPoint(userData, 'appliedCumulativeSupplyRateIndexE18');
     normalizeAndPushPoint(reserveData, 'cumulativeSupplyRateIndexE18');
     normalizeAndPushPoint(reserveData, 'currentSupplyRateE24');
-    normalizeAndPushPoint(borrowerUserData, 'variableBorrowed');
-    normalizeAndPushPoint(reserveData, 'currentVariableBorrowRateE24');
-    normalizeAndPushPoint(reserveData, 'cumulativeVariableBorrowRateIndexE18');
+    normalizeAndPushPoint(borrowerUserData, 'debt');
+    normalizeAndPushPoint(reserveData, 'currentDebtRateE24');
+    normalizeAndPushPoint(reserveData, 'cumulativeDebtRateIndexE18');
 
-    const totalDebt = reserveData.sumStableDebt.rawNumber
-      .add(reserveData.accumulatedStableBorrow.rawNumber)
-      .add(reserveData.totalVariableBorrowed.rawNumber);
+    const totalDebt = reserveData.sumStableDebt.rawNumber.add(reserveData.accumulatedStableBorrow.rawNumber).add(reserveData.totalDebt.rawNumber);
     const utilizationRate = totalDebt.muln(E6).div(reserveData.totalSupplied.rawNumber).toNumber() / E6;
     dataSets.utilizationRate.data.push({ x: timestampNum, y: utilizationRate });
     logProgress(SAMPLE_SIZE, i);

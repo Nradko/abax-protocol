@@ -68,11 +68,11 @@ pub struct ReserveData {
     pub current_supply_rate_e24: u128,
     //// variable_borrow
     /// total supply of variable borrows. It is sum of debts with accumulated interests. Total supply of vToken.
-    pub total_variable_borrowed: Balance,
+    pub total_debt: Balance,
     // index used to calculate borrow accumulated interest
-    pub cumulative_variable_borrow_rate_index_e18: u128,
+    pub cumulative_debt_rate_index_e18: u128,
     // current interest rate for variable debt per millisecond. 10^24 = 100%  millisecond Percentage Rate.
-    pub current_variable_borrow_rate_e24: u128,
+    pub current_debt_rate_e24: u128,
     ////
     /// timestamp of last borrow index update
     pub indexes_update_timestamp: Timestamp,
@@ -89,7 +89,7 @@ impl ReserveData {
         if self.total_supplied == 0 {
             return E6
         }
-        let total_debt = self.total_variable_borrowed;
+        let total_debt = self.total_debt;
         u128::try_from(checked_math!(total_debt * E6 / self.total_supplied).unwrap()).expect(MATH_ERROR_MESSAGE)
     }
 
@@ -133,24 +133,21 @@ impl ReserveData {
             .expect(MATH_ERROR_MESSAGE);
         }
 
-        if self.current_variable_borrow_rate_e24 != 0 {
+        if self.current_debt_rate_e24 != 0 {
             let index_multiplier_e18 = {
-                let delta_index_multiplier_e18 = u128::try_from(
-                    checked_math!((self.current_variable_borrow_rate_e24 * delta_timestamp / E6)).unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
+                let delta_index_multiplier_e18 =
+                    u128::try_from(checked_math!((self.current_debt_rate_e24 * delta_timestamp / E6)).unwrap())
+                        .expect(MATH_ERROR_MESSAGE);
                 delta_index_multiplier_e18.checked_add(E18).expect(MATH_ERROR_MESSAGE)
             };
-            self.total_variable_borrowed =
-                u128::try_from(checked_math!((self.total_variable_borrowed * index_multiplier_e18) / E18).unwrap())
-                    .expect(MATH_ERROR_MESSAGE);
-            self.cumulative_variable_borrow_rate_index_e18 = {
-                let cumulative_variable_borrow_rate_index_e18_rounded_down = u128::try_from(
-                    checked_math!((self.cumulative_variable_borrow_rate_index_e18 * index_multiplier_e18) / E18)
-                        .unwrap(),
+            self.total_debt = u128::try_from(checked_math!((self.total_debt * index_multiplier_e18) / E18).unwrap())
+                .expect(MATH_ERROR_MESSAGE);
+            self.cumulative_debt_rate_index_e18 = {
+                let cumulative_debt_rate_index_e18_rounded_down = u128::try_from(
+                    checked_math!((self.cumulative_debt_rate_index_e18 * index_multiplier_e18) / E18).unwrap(),
                 )
                 .expect(MATH_ERROR_MESSAGE);
-                cumulative_variable_borrow_rate_index_e18_rounded_down
+                cumulative_debt_rate_index_e18_rounded_down
                     .checked_add(1)
                     .expect(MATH_ERROR_MESSAGE)
             };
@@ -159,18 +156,17 @@ impl ReserveData {
     }
 
     pub fn _recalculate_current_rates(&mut self) {
-        if self.total_variable_borrowed == 0 {
-            self.current_variable_borrow_rate_e24 = 0;
+        if self.total_debt == 0 {
+            self.current_debt_rate_e24 = 0;
             self.current_supply_rate_e24 = 0;
             return
         }
         let utilization_rate_e6 = self._current_utilization_rate_e6();
-        self.current_variable_borrow_rate_e24 = self._utilization_rate_to_interest_rate_e24(utilization_rate_e6);
+        self.current_debt_rate_e24 = self._utilization_rate_to_interest_rate_e24(utilization_rate_e6);
 
         if self.total_supplied != 0 {
             let current_income_per_milisecond_e24: U256 =
-                checked_math!(self.total_variable_borrowed * self.current_variable_borrow_rate_e24)
-                    .expect(MATH_ERROR_MESSAGE);
+                checked_math!(self.total_debt * self.current_debt_rate_e24).expect(MATH_ERROR_MESSAGE);
             self.current_supply_rate_e24 = u128::try_from(
                 checked_math!(
                     current_income_per_milisecond_e24 * self.income_for_suppliers_part_e6 / (self.total_supplied * E6)
@@ -217,9 +213,9 @@ impl Default for ReserveData {
             total_supplied: 0,
             cumulative_supply_rate_index_e18: E18,
             current_supply_rate_e24: 0,
-            total_variable_borrowed: 0,
-            cumulative_variable_borrow_rate_index_e18: E18,
-            current_variable_borrow_rate_e24: 0,
+            total_debt: 0,
+            cumulative_debt_rate_index_e18: E18,
+            current_debt_rate_e24: 0,
             indexes_update_timestamp: 0,
             a_token_address: ink::blake2x256!("ZERO_ADRESS").into(),
             v_token_address: ink::blake2x256!("ZERO_ADRESS").into(),

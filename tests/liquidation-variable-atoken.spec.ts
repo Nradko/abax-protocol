@@ -160,14 +160,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
-        expect
-          .soft(borrowersDAIDataAfter.variableBorrowed.toString())
-          .to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
+        expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
         expect.soft(liquidatorsWETHDataAfter.supplied.rawNumber.gt(new BN((0.8 * E18).toString()))).to.be.true;
         expect.soft(borrowersWETHDataAfter.supplied.rawNumber.lt(new BN((0.2 * E18).toString()))).to.be.true;
-        expect
-          .soft(daiReserveDataAfter.totalVariableBorrowed.toString())
-          .to.equal('0', 'all borrows got repaid therefore totalVariableBorrowed should be zero');
+        expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');
         expect.soft(daiReserveDataAfter.totalSupplied.toString()).to.equal(daiReserveDataBefore.totalSupplied.toString());
         expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
         expect.flushSoft();
@@ -305,9 +301,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
-        expect
-          .soft(borrowersDAIDataAfter.variableBorrowed.toString())
-          .to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
+        expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
         expect
           .soft(
             liquidatorsWETHDataAfter.supplied.rawNumber.toString(),
@@ -317,9 +311,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         expect
           .soft(borrowersWETHDataAfter.supplied.rawNumber.toString(), 'liquidated user supply is decreased by what the liquidator have received')
           .to.equal(((1 - 0.87109375) * E18).toString());
-        expect
-          .soft(daiReserveDataAfter.totalVariableBorrowed.toString())
-          .to.equal('0', 'all borrows got repaid therefore totalVariableBorrowed should be zero');
+        expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');
         expect.soft(daiReserveDataAfter.totalSupplied.toString()).to.equal(daiReserveDataBefore.totalSupplied.toString());
         expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
 
