@@ -39,7 +39,9 @@ use crate::{
     },
 };
 
-impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVTokenInterface for T {
+impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Data> + VTokenInterfaceInternal>
+    LendingPoolVTokenInterface for T
+{
     default fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
@@ -75,6 +77,7 @@ impl<T: Storage<LendingPoolStorage> + VTokenInterfaceInternal> LendingPoolVToken
         user_reserve_data.debt
     }
 
+    #[openbrush::modifiers(openbrush::contracts::pausable::when_not_paused)]
     fn transfer_variable_debt_from_to(
         &mut self,
         underlying_asset: AccountId,

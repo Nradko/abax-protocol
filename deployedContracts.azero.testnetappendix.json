@@ -1,0 +1,18 @@
+[
+  { "name": "psp22_ownable", "address": "5CRb6tuhBnpGQhJwtA2ut5mevNHUg7mWzSyDiyn4vwtqrBwX", "reserveName": "DAI_2" },
+  { "name": "a_token", "address": "5HP9DjVvQCyaNbiBGdznAb6CRfu5JwbVxJjvHMVJ8bH2t5yM", "reserveName": "DAI_2" },
+  { "name": "v_token", "address": "5HDgf1FadexKS5EdFCbsopgF3F57gNoMSjAnGQXA4dNatFcd", "reserveName": "DAI_2" },
+  { "name": "psp22_ownable", "address": "5GVcXZUuwW4v1nivgPMN66qXEp13m9gCabA8WzpPXVNbcKmN", "reserveName": "USDC_2" },
+  { "name": "a_token", "address": "5CeNWdFvpWnGJRN2hnuDPSm5J5W9frjutar1DFPeDrq6MYoV", "reserveName": "USDC_2" },
+  { "name": "v_token", "address": "5DUrFgkKHiGj1F4XB6i3jgBfCHxSwoiaA3SxJTznJZ1HHJo2", "reserveName": "USDC_2" },
+  { "name": "psp22_ownable", "address": "5HhnWzLpGqunJy6u44MQqgM6GpfFQAD3TYkA1FH3u7YcLKJP", "reserveName": "WETH_2" },
+  { "name": "a_token", "address": "5HJJdNrVn2oh4iZ7ohuCBqtZYGjudcF9FwZdv96snazvhhRN", "reserveName": "WETH_2" },
+  { "name": "v_token", "address": "5Fyy7wLWH4KwSteqRj3kTdDC1NizgwpXB2KyzZazDA4aUSLq", "reserveName": "WETH_2" },
+  { "name": "psp22_ownable", "address": "5HMTSMRzBWtujs4MBS6zZfj7vAc8VAMzWifhNsWJuz3cAh58", "reserveName": "AZERO_2" },
+  { "name": "a_token", "address": "5GS1imAEZ8VLWay8GLxHj5jjfd9SU2rB5BeGySNAbWLdwsXY", "reserveName": "AZERO_2" },
+  { "name": "v_token", "address": "5Eo9JHGxPsqseVZ5k224JUkvU6BQLf8RBuYo4swjzrx4dEBm", "reserveName": "AZERO_2" },
+  { "name": "psp22_ownable", "address": "5DRXcvAppUZSd4ocZK4h5D6sTv9otjtTP6C3VvY7eE7pArWe", "reserveName": "LINK_2" },
+  { "name": "a_token", "address": "5EvZFpiMpaezkDspAAfz75kTVXbP1rhD25EUsGdnTW2sS1Mu", "reserveName": "LINK_2" },
+  { "name": "v_token", "address": "5FMPKkazL2qyAWVQDECkiPYM4WAmHAj1s6RG87C4Uq1TaD8w", "reserveName": "LINK_2" },
+  { "name": "test_reserves_minter", "address": "5FabGwrDBVtZ6dG5FeQy9HBzxC9xAsX7MStffVJzSr4U3L1Z" }
+]

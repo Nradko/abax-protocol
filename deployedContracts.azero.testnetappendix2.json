@@ -1,0 +1,21 @@
+[
+  { "name": "psp22_ownable", "address": "5CRTAHVoub9SZDQXvaaHH8xT1ScYyUvKGPoEo8vTnzv6KWAs", "reserveName": "DAI_3" },
+  { "name": "a_token", "address": "5FQQn6zDSHc6mqRjr8dkypMtA3JewNMGLfWoVxVs3AUX1L2H", "reserveName": "DAI_3" },
+  { "name": "v_token", "address": "5CfEY5XrZuEEUzhfQJVYiU5UkoHfqpb6zeEPZx7zgBtqRbq5", "reserveName": "DAI_3" },
+  { "name": "psp22_ownable", "address": "5FPNwLhzWhtvYas7gsrFpJmngUwJfFdLrsaMRVeRADkF4iGW", "reserveName": "USDC_3" },
+  { "name": "a_token", "address": "5D9fwUJhSFJHByTiUisxb8E8kPyaGjf4jUFFPJGWLY646vKV", "reserveName": "USDC_3" },
+  { "name": "v_token", "address": "5H1uq8BEUJdKTks72GdnswVDb1SzXm13JtcqJ7fEvx5GdH8S", "reserveName": "USDC_3" },
+  { "name": "psp22_ownable", "address": "5HTShVvCNNn3o5fiArPdkng9sjQRY7zb2JDaSU9Fq45GBQk5", "reserveName": "WETH_3" },
+  { "name": "a_token", "address": "5FuUfDMznV2G3ARmCx7r1ThKZWWhbp1HQppwPEg9WTJT2eDD", "reserveName": "WETH_3" },
+  { "name": "v_token", "address": "5FSMPwKdkw2LbXksrzTe6p7Gf5zVad83sjQXT4tkxT9cHGwG", "reserveName": "WETH_3" },
+  { "name": "psp22_ownable", "address": "5DjYsoPAXYG9mAa3qDT99NFgZYndVyHYukencgkwgspDDsvs", "reserveName": "BTC_3" },
+  { "name": "a_token", "address": "5EdAxpZSe12vMhqSasFd2i9sufcXCxAVrP1PstNvx5qx8uwH", "reserveName": "BTC_3" },
+  { "name": "v_token", "address": "5DbKwKKAivsEk1d6qZZibKdbx73YuCS4kQ6EPnbPeWtoYFWt", "reserveName": "BTC_3" },
+  { "name": "psp22_ownable", "address": "5CiAgrWH51LEUWELLhk5aLFRRTrafjJyRapBphK1iudqGLg8", "reserveName": "AZERO_3" },
+  { "name": "a_token", "address": "5DVCNP18sesiit5EbYtuWAqitoZMpqbgyzYupKGAMwKLGALs", "reserveName": "AZERO_3" },
+  { "name": "v_token", "address": "5FrKRQWEmtinj3hgSkKRP2ysyKC4VWwBbhBNqHWhd77pdPGd", "reserveName": "AZERO_3" },
+  { "name": "psp22_ownable", "address": "5FjNGvc9kABveFNrXgG2mNYyZAmJxxDpMNt5x2mJim2RsL7v", "reserveName": "DOT_3" },
+  { "name": "a_token", "address": "5HrBdstt5Kx4mWSPFAVzE9kgco6qyZmU2xJ82GDuuYKaBwGx", "reserveName": "DOT_3" },
+  { "name": "v_token", "address": "5Fm5d5aBr8UtLzRL7EHGgZgg7dEdkamaxvK9wWST8oJFdHy5", "reserveName": "DOT_3" },
+  { "name": "test_reserves_minter", "address": "5DYdtf328rU8z8zigU9jRdGcf9H7xms2gy1Cu6W6u5oV1CeL" }
+]

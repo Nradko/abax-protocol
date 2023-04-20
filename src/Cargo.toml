@@ -4,6 +4,8 @@ members = [
     "contracts/v_token",
     "contracts/lending_pool",
     "contracts/psp22_emitable",
+    "contracts/psp22_ownable",
+    "contracts/test_reserves_minter",
     "contracts/block_timestamp_provider",
     "contracts/diamond",
     "contracts/flash_loan_receiver_mock",

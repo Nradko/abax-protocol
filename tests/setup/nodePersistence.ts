@@ -16,7 +16,7 @@ import { apiProviderWrapper, getSigners } from './helpers';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
 
-interface StoredContractInfo {
+export interface StoredContractInfo {
   name: string;
   address: string;
   reserveName?: string;

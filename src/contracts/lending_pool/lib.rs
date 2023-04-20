@@ -20,21 +20,27 @@ pub mod lending_pool {
             manage::GLOBAL_ADMIN,
             storage::lending_pool_storage::LendingPoolStorage,
         },
-        traits::lending_pool::traits::{
-            a_token_interface::*,
-            actions::*,
-            manage::*,
-            v_token_interface::*,
-            view::*,
+        traits::lending_pool::{
+            errors::LendingPoolError,
+            traits::{
+                a_token_interface::*,
+                actions::*,
+                manage::*,
+                v_token_interface::*,
+                view::*,
+            },
         },
     };
     // use openbrush::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
     use openbrush::{
-        contracts::access_control::{
-            self,
-            members::MembersManager,
-            *,
+        contracts::{
+            access_control::{
+                self,
+                members::MembersManager,
+                *,
+            },
+            pausable::*,
         },
         traits::Storage,
     };
@@ -42,6 +48,8 @@ pub mod lending_pool {
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct LendingPool {
+        #[storage_field]
+        pause: pausable::Data,
         #[storage_field]
         /// storage used by openbrush's `AccesControl` trait
         access: access_control::Data,
@@ -72,6 +80,8 @@ pub mod lending_pool {
     /// Implements interface for Abacus Stable Debt token - SToken
     impl LendingPoolVTokenInterface for LendingPool {}
 
+    impl Pausable for LendingPool {}
+
     impl LendingPool {
         #[ink(constructor)]
         pub fn new() -> Self {
@@ -80,6 +90,18 @@ pub mod lending_pool {
             instance._init_with_admin(caller);
             instance.access.members.add(GLOBAL_ADMIN, &caller);
             instance
+        }
+
+        #[ink(message)]
+        #[openbrush::modifiers(openbrush::contracts::access_control::only_role(GLOBAL_ADMIN))]
+        pub fn pause(&mut self) -> Result<(), LendingPoolError> {
+            self._pause()
+        }
+
+        #[ink(message)]
+        #[openbrush::modifiers(openbrush::contracts::access_control::only_role(GLOBAL_ADMIN))]
+        pub fn unpause(&mut self) -> Result<(), LendingPoolError> {
+            self._unpause()
         }
     }
 
