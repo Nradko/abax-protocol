@@ -15,9 +15,9 @@ import { argvObj } from './compile/common';
 
 const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = [
   {
-    name: 'DAI_3',
+    name: 'DAI_TEST',
     decimals: 6,
-    feeD6: 10,
+    feeD6: 100_000,
     flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.97,
@@ -29,9 +29,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     penalty: 0.015,
   },
   {
-    name: 'USDC_3',
+    name: 'USDC_TEST',
     decimals: 6,
-    feeD6: 10,
+    feeD6: 100_000,
     flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.98,
@@ -43,9 +43,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     penalty: 0.01,
   },
   {
-    name: 'WETH_3',
+    name: 'WETH_TEST',
     decimals: 18,
-    feeD6: 10,
+    feeD6: 100_000,
     flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
@@ -57,9 +57,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     penalty: 0.1,
   },
   {
-    name: 'BTC_3',
+    name: 'BTC_TEST',
     decimals: 8,
-    feeD6: 10,
+    feeD6: 100_000,
     flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
@@ -71,9 +71,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     penalty: 0.1,
   },
   {
-    name: 'AZERO_3',
+    name: 'AZERO_TEST',
     decimals: 12,
-    feeD6: 10,
+    feeD6: 100_000,
     flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
@@ -85,9 +85,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     penalty: 0.1,
   },
   {
-    name: 'DOT_3',
+    name: 'DOT_TEST',
     decimals: 12,
-    feeD6: 10,
+    feeD6: 100_000,
     flashLoanFeeE6: 1000,
     stableBaseRate: null,
     collateralCoefficient: 0.7,
@@ -100,14 +100,16 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
   },
 ];
 
-const PRICES = {
+const LENDING_POOL_ADDRESS = '5C9MoPeD8rEATyW77U6fmUcnzGpvoLvqQ9QTMiA9oByGwffx';
+
+const PRICES_E8 = {
   // Update to USD-based price feeds
-  DAI_3: E8,
-  AZERO_3: E8 * 1.5,
-  USDC_3: E8,
-  WETH_3: 270 * E8,
-  DOT_3: 6 * E8,
-  BTC_3: 29_000 * E8,
+  DAI_TEST: E8,
+  AZERO_TEST: E8 * 1.5,
+  USDC_TEST: E8,
+  WETH_TEST: 270 * E8,
+  DOT_TEST: 6 * E8,
+  BTC_TEST: 29_000 * E8,
 };
 
 type TokenReserve = {
@@ -134,10 +136,7 @@ type TokenReserve = {
   const signer = keyring.createFromUri(seed, {}, 'sr25519');
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.azero.testnet.json');
 
-  const contracts = JSON.parse(await fs.readFile(deployPath, 'utf8')) as StoredContractInfo[];
-  const lendingPoolContractInfo = contracts.find((c) => c.name === 'lending_pool');
-  if (!lendingPoolContractInfo) throw 'lendingPool ContractInfo not found';
-  const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address, signer);
+  const lendingPool = await getContractObject(LendingPool, LENDING_POOL_ADDRESS, signer);
 
   console.log(`signer: ${signer.address}`);
   console.log(`lendingPool: ${lendingPool.address}`);
@@ -164,7 +163,7 @@ type TokenReserve = {
       reserveData.feeD6,
       reserveData.flashLoanFeeE6,
     );
-    await lendingPool.tx.insertReserveTokenPriceE8(reserve.address, PRICES[reserveData.name]);
+    await lendingPool.tx.insertReserveTokenPriceE8(reserve.address, PRICES_E8[reserveData.name]);
     reservesWithLendingTokens[reserveData.name] = {
       underlying: reserve,
       aToken,
@@ -187,7 +186,7 @@ type TokenReserve = {
         address: testReservesMinter.address,
       },
     ],
-    deployPath.replace('.json', 'appendix2.json'),
+    deployPath.replace('.json', 'appendix3.json'),
   );
 
   await api.disconnect();

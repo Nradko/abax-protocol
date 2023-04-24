@@ -9,15 +9,12 @@ import LendingPool from 'typechain/contracts/lending_pool';
 import { argvObj } from './compile/common';
 
 const RESERVE_TOKEN_ADDRESSES: string[] = [
-  '5E4XZJ6LDQm8NjGtBVorFTfmCi6T6sycaFBfNTAkEoiNd8sw',
-  '5EVmrS2fFsouVWh4GRTeMzzBL8VbXjEdaQEzG8iDvAtRkGzT',
-  '5FertWWoJeLK6zNfotiBBUsPPU1K43PUXAuW51C2gypCcsWZ',
-  '5GNoxcfTKH21aqmtdst8X2QQsT9SR8GUdsY8d2PN9VMkkawM',
-  '5CRb6tuhBnpGQhJwtA2ut5mevNHUg7mWzSyDiyn4vwtqrBwX',
-  '5GVcXZUuwW4v1nivgPMN66qXEp13m9gCabA8WzpPXVNbcKmN',
-  '5HhnWzLpGqunJy6u44MQqgM6GpfFQAD3TYkA1FH3u7YcLKJP',
-  '5HMTSMRzBWtujs4MBS6zZfj7vAc8VAMzWifhNsWJuz3cAh58',
-  '5DRXcvAppUZSd4ocZK4h5D6sTv9otjtTP6C3VvY7eE7pArWe',
+  '5CRTAHVoub9SZDQXvaaHH8xT1ScYyUvKGPoEo8vTnzv6KWAs',
+  '5FPNwLhzWhtvYas7gsrFpJmngUwJfFdLrsaMRVeRADkF4iGW',
+  '5HTShVvCNNn3o5fiArPdkng9sjQRY7zb2JDaSU9Fq45GBQk5',
+  '5DjYsoPAXYG9mAa3qDT99NFgZYndVyHYukencgkwgspDDsvs',
+  '5CiAgrWH51LEUWELLhk5aLFRRTrafjJyRapBphK1iudqGLg8',
+  '5FjNGvc9kABveFNrXgG2mNYyZAmJxxDpMNt5x2mJim2RsL7v',
 ];
 
 const SET_RESERVES_IS_ACTIVE = false;
