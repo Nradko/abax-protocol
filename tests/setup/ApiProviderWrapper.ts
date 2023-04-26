@@ -18,9 +18,9 @@ export class ApiProviderWrapper {
 
     return this.api;
   };
-  getAndWaitForReady = async () => {
-    if (!this.wsProvider) this.wsProvider = new WsProvider(this.webSocketEndpoint);
-    if (!this.api) {
+  getAndWaitForReady = async (useCache: boolean = true) => {
+    if (!useCache || !this.wsProvider) this.wsProvider = new WsProvider(this.webSocketEndpoint);
+    if (!useCache || !this.api) {
       this.api = await ApiPromise.create({ provider: this.wsProvider });
     }
     await this.api.isReady;
