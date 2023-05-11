@@ -1,17 +1,18 @@
+import { E6 } from '@abaxfinance/utils';
 import chalk from 'chalk';
-import { ChartConfiguration, ChartDataset, ScatterDataPoint } from 'chart.js';
+import { ChartDataset, ScatterDataPoint } from 'chart.js';
 import { saveBenchamrkData } from 'scripts/chartUtils/utils';
 import { convertToCurrencyDecimals, getUserReserveDataWithTimestamp, mint } from 'tests/scenarios/utils/actions';
-import { advanceBlockTimestamp, E6 } from 'tests/scenarios/utils/misc';
+import { advanceBlockTimestamp } from 'tests/scenarios/utils/misc';
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
-import { createPushDataPoint, getBasicChartConfig, getColorFromName, logProgress } from './utils';
 import LendingPool from 'typechain/contracts/lending_pool';
 import { AccountId } from 'typechain/types-arguments/lending_pool';
+import { createPushDataPoint, getBasicChartConfig, getColorFromName, logProgress } from './utils';
 
 const getAmountToRepay = async (desiredUtilizationRate: number, reserveAddress: AccountId, lendingPool: LendingPool) => {
-  const { value: reserveData } = await lendingPool.query.viewReserveData(reserveAddress);
-  const totalDebt = reserveData.sumStableDebt.rawNumber.add(reserveData.accumulatedStableBorrow.rawNumber).add(reserveData.totalDebt.rawNumber);
+  const reserveData = (await lendingPool.query.viewReserveData(reserveAddress)).value.unwrap()!;
+  const totalDebt = reserveData.totalDebt.rawNumber;
 
   return totalDebt.sub(reserveData.totalSupplied.rawNumber.muln(desiredUtilizationRate));
 };
@@ -101,24 +102,29 @@ const getAmountToRepay = async (desiredUtilizationRate: number, reserveAddress: 
       // await lendingPool.query.accumulateInterest(reserveDAI.address);
       await lendingPool.tx.accumulateInterest(reserveDAI.address);
       // await lendingPool.query.accumulateUserInterest(reserveDAI.address, supplier.address);
-      await lendingPool.tx.accumulateUserInterest(reserveDAI.address, supplier.address);
+      // await lendingPool.tx.accumulateUserInterest(reserveDAI.address, supplier.address);
       // await lendingPool.query.accumulateUserInterest(reserveDAI.address, borrower.address);
-      await lendingPool.tx.accumulateUserInterest(reserveDAI.address, borrower.address);
+      // await lendingPool.tx.accumulateUserInterest(reserveDAI.address, borrower.address);
     }
 
     //Data retrieval
-    const { timestamp, reserveData, userData } = await getUserReserveDataWithTimestamp(reserveDAI, supplier, lendingPool, blockTimestampProvider);
+    const { timestamp, reserveData, userReserveData } = await getUserReserveDataWithTimestamp(
+      reserveDAI,
+      supplier,
+      lendingPool,
+      blockTimestampProvider,
+    );
     const { userReserveData: borrowerUserData } = await getUserReserveDataWithTimestamp(reserveDAI, borrower, lendingPool, blockTimestampProvider);
     const timestampNum = timestamp.toNumber();
     const normalizeAndPushPoint = dataSetsPointStorageCreator(reserveData, timestamp);
-    normalizeAndPushPoint(userData, 'appliedCumulativeSupplyRateIndexE18');
+    normalizeAndPushPoint(userReserveData, 'appliedCumulativeSupplyRateIndexE18');
     normalizeAndPushPoint(reserveData, 'cumulativeSupplyRateIndexE18');
     normalizeAndPushPoint(reserveData, 'currentSupplyRateE24');
     normalizeAndPushPoint(borrowerUserData, 'debt');
     normalizeAndPushPoint(reserveData, 'currentDebtRateE24');
     normalizeAndPushPoint(reserveData, 'cumulativeDebtRateIndexE18');
 
-    const totalDebt = reserveData.sumStableDebt.rawNumber.add(reserveData.accumulatedStableBorrow.rawNumber).add(reserveData.totalDebt.rawNumber);
+    const totalDebt = reserveData.totalDebt.rawNumber;
     const utilizationRate = totalDebt.muln(E6).div(reserveData.totalSupplied.rawNumber).toNumber() / E6;
     dataSets.utilizationRate.data.push({ x: timestampNum, y: utilizationRate });
     logProgress(SAMPLE_SIZE, i);

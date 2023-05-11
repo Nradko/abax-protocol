@@ -1,5 +1,5 @@
+import { E8, parseAmountToBN } from '@abaxfinance/utils';
 import BN from 'bn.js';
-import { E8, parseAmountToBN } from 'tests/scenarios/utils/misc';
 
 export const oneEther = new BN(Math.pow(10, 18).toString());
 

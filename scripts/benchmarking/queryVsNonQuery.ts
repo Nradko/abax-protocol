@@ -1,7 +1,7 @@
-import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import chalk from 'chalk';
-import { measureTime } from './utils';
+import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
+import { measureTime } from './utils';
 
 (async () => {
   if (require.main !== module) return;
@@ -21,7 +21,7 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
   const withoutQueryMarkId = 'WITHOUT_QUERY';
 
   const lendingPoolAsSender = lendingPool.withSigner(sender);
-  const args: Parameters<typeof lendingPool.tx.deposit> = [reserve.address, sender.address, amountToDeposit];
+  const args: Parameters<typeof lendingPool.tx.deposit> = [reserve.address, sender.address, amountToDeposit, []];
   await reserve.tx.mint(sender.address, '1000000000000000000000000000000');
   await reserve.withSigner(sender).methods.approve(lendingPool.address, '1000000000000000000000000000000', {});
 

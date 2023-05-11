@@ -6,7 +6,7 @@ import { getContractObject } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { StoredContractInfo } from 'tests/setup/nodePersistence';
 import LendingPool from 'typechain/contracts/lending_pool';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 
 const RESERVE_TOKEN_ADDRESSES: string[] = [
   '5CRTAHVoub9SZDQXvaaHH8xT1ScYyUvKGPoEo8vTnzv6KWAs',
@@ -55,7 +55,7 @@ const SET_RESERVES_IS_ACTIVE = false;
 
   await api.disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

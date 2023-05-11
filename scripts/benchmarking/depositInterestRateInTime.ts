@@ -1,10 +1,11 @@
+import { E6, convertToCurrencyDecimals } from '@abaxfinance/utils';
 import chalk from 'chalk';
-import { ChartConfiguration, ChartDataset, ScatterDataPoint } from 'chart.js';
-import { saveBenchamrkData } from 'scripts/chartUtils/utils';
-import { convertToCurrencyDecimals, getUserReserveDataWithTimestamp, mint } from 'tests/scenarios/utils/actions';
-import { advanceBlockTimestamp, E6 } from 'tests/scenarios/utils/misc';
+import { ChartDataset, ScatterDataPoint } from 'chart.js';
+import { getUserReserveDataWithTimestamp, mint } from 'tests/scenarios/utils/actions';
+import { advanceBlockTimestamp } from 'tests/scenarios/utils/misc';
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
+import { saveBenchamrkData } from '../chartUtils/utils';
 import { createPushDataPoint, getBasicChartConfig, getColorFromName, logProgress } from './utils';
 
 (async () => {
@@ -61,18 +62,23 @@ import { createPushDataPoint, getBasicChartConfig, getColorFromName, logProgress
     await lendingPool.withSigner(borrower).tx.repay(reserveDAI.address, borrower.address, 1000, [1]);
 
     //Data retrieval
-    const { timestamp, reserveData, userData } = await getUserReserveDataWithTimestamp(reserveDAI, supplier, lendingPool, blockTimestampProvider);
+    const { timestamp, reserveData, userReserveData } = await getUserReserveDataWithTimestamp(
+      reserveDAI,
+      supplier,
+      lendingPool,
+      blockTimestampProvider,
+    );
     const { userReserveData: borrowerUserData } = await getUserReserveDataWithTimestamp(reserveDAI, borrower, lendingPool, blockTimestampProvider);
     const timestampNum = timestamp.toNumber();
     const normalizeAndPushPoint = dataSetsPointStorageCreator(reserveData, timestamp);
-    normalizeAndPushPoint(userData, 'appliedCumulativeSupplyRateIndexE18');
+    normalizeAndPushPoint(userReserveData, 'appliedCumulativeSupplyRateIndexE18');
     normalizeAndPushPoint(reserveData, 'cumulativeSupplyRateIndexE18');
     normalizeAndPushPoint(reserveData, 'currentSupplyRateE24');
     normalizeAndPushPoint(borrowerUserData, 'debt');
     normalizeAndPushPoint(reserveData, 'currentDebtRateE24');
     normalizeAndPushPoint(reserveData, 'cumulativeDebtRateIndexE18');
 
-    const totalDebt = reserveData.sumStableDebt.rawNumber.add(reserveData.accumulatedStableBorrow.rawNumber).add(reserveData.totalDebt.rawNumber);
+    const totalDebt = reserveData.totalDebt.rawNumber;
     const utilizationRate = totalDebt.muln(E6).div(reserveData.totalSupplied.rawNumber).toNumber() / E6;
     dataSets.utilizationRate.data.push({ x: timestampNum, y: utilizationRate });
     logProgress(SAMPLE_SIZE, i);

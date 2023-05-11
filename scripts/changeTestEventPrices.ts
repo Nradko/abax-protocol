@@ -6,8 +6,8 @@ import { getContractObject } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { StoredContractInfo } from 'tests/setup/nodePersistence';
 import LendingPool from 'typechain/contracts/lending_pool';
-import { argvObj } from './compile/common';
-import { E8 } from 'tests/scenarios/utils/misc';
+import { getArgvObj } from '@abaxfinance/utils';
+import { E8 } from '@abaxfinance/utils';
 
 const RESERVE_TOKENS_INFO: StoredContractInfo[] = [
   { name: 'psp22_ownable', address: '5DDyvXWoxRKX1PpwHcFkUnZX9MwPmHbWU17SPZ2AKFgAVjya', reserveName: 'DAI_TEST' },
@@ -78,7 +78,7 @@ const LENDING_POOL_ADDRESS = '5C9MoPeD8rEATyW77U6fmUcnzGpvoLvqQ9QTMiA9oByGwffx';
 
   await api.disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

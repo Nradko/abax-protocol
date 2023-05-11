@@ -2,7 +2,7 @@ import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
-import { E8 } from 'tests/scenarios/utils/misc';
+import { E8 } from '@abaxfinance/utils';
 import { deployOwnableToken, deployTestReservesMinter, getContractObject, registerNewAsset } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { StoredContractInfo, saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
@@ -11,7 +11,7 @@ import ATokenContract from 'typechain/contracts/a_token';
 import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import VTokenContract from 'typechain/contracts/v_token';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 
 const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = [
   {
@@ -191,7 +191,7 @@ type TokenReserve = {
 
   await api.disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

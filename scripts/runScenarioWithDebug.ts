@@ -3,7 +3,7 @@ import { TestEnv } from 'tests/scenarios/utils/make-suite';
 import { executeStory, Scenario } from 'tests/scenarios/utils/scenario-engine';
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;
@@ -26,7 +26,7 @@ import { argvObj } from './compile/common';
   }
   await (await apiProviderWrapper.getAndWaitForReady()).disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

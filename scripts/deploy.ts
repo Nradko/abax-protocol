@@ -1,5 +1,5 @@
 import path from 'path';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import Keyring from '@polkadot/keyring';
@@ -30,7 +30,7 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
 
   await api.disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

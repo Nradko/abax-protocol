@@ -1,13 +1,13 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { makeSuite, TestEnv, TokenReserve } from './scenarios/utils/make-suite';
-import { E18, E6 } from './scenarios/utils/misc';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import { deployFlashLoanReceiverMock } from './setup/deploymentHelpers';
 import { expect } from './setup/chai';
 import { FlashLoanReceiverErrorBuilder, PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool_v0_flash_facet';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
-import { FLASH_BORROWER } from './manage.test';
+import { E18, E6 } from '@abaxfinance/utils';
+import { FLASH_BORROWER } from './consts';
 
 makeSuite('Flash Loan', (getTestEnv) => {
   const amountWETHToDeposit = new BN((10 * E18).toString());

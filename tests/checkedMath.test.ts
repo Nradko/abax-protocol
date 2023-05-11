@@ -3,7 +3,7 @@ import { ChildProcess } from 'child_process';
 import { ONE_YEAR } from './consts';
 import { approve } from './scenarios/utils/actions';
 import { TestEnv } from './scenarios/utils/make-suite';
-import { E12, E6 } from './scenarios/utils/misc';
+import { E12, E6 } from '@abaxfinance/utils';
 import { expect } from './setup/chai';
 import { apiProviderWrapper } from './setup/helpers';
 import { readContractsFromFile, restartAndRestoreNodeState } from './setup/nodePersistence';

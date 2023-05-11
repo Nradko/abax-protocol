@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import glob from 'glob';
-import { argvObj } from '../compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 
 const replaceQueryCalls = (contractsRootPath: string, isDebug = false) => {
@@ -29,7 +29,7 @@ const replaceQueryCalls = (contractsRootPath: string, isDebug = false) => {
   const filesChanged = replaceQueryCalls(typechainOutputPath, isDebug);
   console.log('Finished!\n Changed files:', filesChanged);
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(0);

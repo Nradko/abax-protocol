@@ -1,4 +1,4 @@
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import glob from 'glob';
 import fs from 'fs-extra';
@@ -33,7 +33,7 @@ import fs from 'fs-extra';
   }
   console.log(filesChanged);
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

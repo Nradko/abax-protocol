@@ -7,7 +7,6 @@ import BN from 'bn.js';
 import fs, { readFileSync } from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
-import { LINE_SEPARATOR, toE6, toNullableNumArg } from 'tests/scenarios/utils/misc';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import { FacetCut } from 'typechain/types-arguments/diamond';
 import ATokenContract from '../../typechain/contracts/a_token';
@@ -23,6 +22,8 @@ import BalanceViewer from '../../typechain/contracts/balance_viewer';
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './helpers';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
+import { toE6 } from '@abaxfinance/utils';
+import { LINE_SEPARATOR } from 'tests/scenarios/utils/misc';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());

@@ -1,11 +1,6 @@
+import { getArgvObj } from '@abaxfinance/utils';
 import { compileContractByNameAndCopyArtifacts } from './common';
 import chalk from 'chalk';
-
-const argvObj = process.argv.reduce((acc, val, index) => {
-  if (val.substring(0, 2) !== '--') return acc;
-  acc[val.substring(2)] = process.argv[index + 1];
-  return acc;
-}, {} as Record<string, unknown>);
 
 const printHelp = () => {
   console.log(
@@ -33,7 +28,7 @@ const printHelp = () => {
 
   console.log('Success!');
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(0);
