@@ -5,6 +5,7 @@
   "scripts": {
     "ansiToHtml": "npx ts-node ./scripts/ansiToHtml.ts",
     "cs": "npx ts-node ./scripts/compile/compileSingleContract.ts",
+    "ts": "tsc --noEmit --incremental --preserveWatchOutput --pretty",
     "build": "./build.sh $*",
     "deploy": "npx ts-node runWithoutWarnings.ts env DEBUG=1 npx ts-node scripts/deploy.ts $*",
     "deployTest": "npx ts-node runWithoutWarnings.ts env DEBUG=1 npx ts-node scripts/deployTest.ts",
