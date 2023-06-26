@@ -56,3 +56,10 @@ std = [
     "primitive-types/std",
     "primitive-types/scale-info"
 ]
+
+[profile.dev]
+codegen-units = 16            # Use slightly better optimizations.
+overflow-checks = false 
+
+[profile.release]
+overflow-checks = false
