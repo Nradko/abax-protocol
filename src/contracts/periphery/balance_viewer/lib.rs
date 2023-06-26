@@ -1,19 +1,13 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod balance_viewer {
 
     // use lending_project::traits::managing::*;
-    use openbrush::{
-        contracts::psp22::*,
-        traits::Storage,
-    };
+    use openbrush::{contracts::psp22::*, traits::Storage};
 
-    use ink::prelude::{
-        vec::Vec,
-        *,
-    };
+    use ink::prelude::{vec::Vec, *};
     use lending_project::traits::lending_pool::traits::view::LendingPoolViewRef;
 
     #[ink(storage)]

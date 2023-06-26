@@ -1,19 +1,13 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod block_timestamp_provider {
     use lending_project::traits::block_timestamp_provider::*;
     use openbrush::{
-        contracts::ownable::{
-            OwnableError,
-            *,
-        },
+        contracts::ownable::{OwnableError, *},
         modifiers,
-        traits::{
-            DefaultEnv,
-            Storage,
-        },
+        traits::{DefaultEnv, Storage},
     };
 
     #[ink(storage)]
@@ -42,9 +36,9 @@ pub mod block_timestamp_provider {
         #[ink(message)]
         fn get_block_timestamp(&self) -> u64 {
             if self.should_return_mock_value {
-                return self.mock_timestamp
+                return self.mock_timestamp;
             }
-            return Self::env().block_timestamp()
+            return Self::env().block_timestamp();
         }
         #[ink(message)]
         #[modifiers(only_owner)]

@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -8,10 +8,7 @@ pub mod psp22_emitable {
         contracts::{
             ownable::*,
             psp22::{
-                extensions::{
-                    metadata::PSP22MetadataRef,
-                    mintable::PSP22MintableRef,
-                },
+                extensions::{metadata::PSP22MetadataRef, mintable::PSP22MintableRef},
                 PSP22Error,
             },
         },
@@ -52,7 +49,7 @@ pub mod psp22_emitable {
                 }
                 self.already_minted.insert(&to, &true);
             } else {
-                return Err(TestReservesMinterError::AlreadyMinted)
+                return Err(TestReservesMinterError::AlreadyMinted);
             }
             Ok(())
         }

@@ -1,27 +1,15 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod flash_loan_receiver_mock {
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
-        prelude::{
-            format,
-            vec::Vec,
-        },
+        codegen::{EmitEvent, Env},
+        prelude::{format, vec::Vec},
     };
-    use lending_project::traits::flash_loan_receiver::{
-        FlashLoanReceiverError,
-        *,
-    };
+    use lending_project::traits::flash_loan_receiver::{FlashLoanReceiverError, *};
     use openbrush::{
-        contracts::traits::psp22::{
-            extensions::mintable::PSP22MintableRef,
-            *,
-        },
+        contracts::traits::psp22::{extensions::mintable::PSP22MintableRef, *},
         traits::Storage,
     };
 
@@ -63,7 +51,7 @@ pub mod flash_loan_receiver_mock {
         ) -> Result<(), FlashLoanReceiverError> {
             if self.fail_execute_operation {
                 self.env().emit_event(ExecutedWithFail { assets, amounts, fees });
-                return Err(FlashLoanReceiverError::ExecuteOperationFailed)
+                return Err(FlashLoanReceiverError::ExecuteOperationFailed);
             }
             for i in 0..assets.len() {
                 let balance = PSP22Ref::balance_of(&assets[i], self.env().account_id());
@@ -71,7 +59,7 @@ pub mod flash_loan_receiver_mock {
                     return Err(FlashLoanReceiverError::Custom(format!(
                         "Insufficient balance for the contract for asset {:X?}",
                         assets[i],
-                    )))
+                    )));
                 }
 
                 if self.simulate_balance_to_cover_fee {
@@ -79,13 +67,13 @@ pub mod flash_loan_receiver_mock {
                         return Err(FlashLoanReceiverError::Custom(format!(
                             "Asset {:X?} is not mintable",
                             assets[i]
-                        )))
+                        )));
                     }
                 }
 
                 let amount_to_return = self.custom_amount_to_approve.unwrap_or(amounts[i] + fees[i]);
                 if PSP22Ref::approve(&assets[i], self.env().caller(), amount_to_return).is_err() {
-                    return Err(FlashLoanReceiverError::Custom(format!("Can't approve")))
+                    return Err(FlashLoanReceiverError::Custom(format!("Can't approve")));
                 }
             }
 

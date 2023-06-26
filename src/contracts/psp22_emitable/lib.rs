@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -6,11 +6,7 @@ pub mod psp22_emitable {
 
     // use lending_project::traits::managing::*;
     use openbrush::{
-        contracts::psp22::extensions::{
-            burnable::*,
-            metadata::*,
-            mintable::*,
-        },
+        contracts::psp22::extensions::{burnable::*, metadata::*, mintable::*},
         traits::Storage,
     };
 

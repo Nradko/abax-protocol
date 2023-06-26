@@ -1,20 +1,12 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod a_token {
     // imports from ink!
-    use ink::codegen::{
-        EmitEvent,
-        Env,
-    };
+    use ink::codegen::{EmitEvent, Env};
 
-    use ink::prelude::{
-        string::String,
-        vec::Vec,
-    };
-
-    use ink::env::CallFlags;
+    use ink::prelude::{string::String, vec::Vec};
     use lending_project::{
         impls::abacus_token::data as abacus_token,
         traits::{
@@ -23,16 +15,8 @@ pub mod a_token {
         },
     };
     use openbrush::{
-        contracts::psp22::{
-            extensions::metadata::*,
-            PSP22Error,
-        },
-        traits::{
-            AccountIdExt,
-            DefaultEnv,
-            Flush,
-            Storage,
-        },
+        contracts::psp22::{extensions::metadata::*, PSP22Error},
+        traits::{AccountIdExt, DefaultEnv, Storage},
     };
 
     #[ink(storage)]
@@ -48,10 +32,7 @@ pub mod a_token {
     impl PSP22 for AToken {
         #[ink(message)]
         fn total_supply(&self) -> Balance {
-            LendingPoolATokenInterfaceRef::total_supply_of(
-                &self.abacus_token.lending_pool,
-                self.abacus_token.underlying_asset,
-            )
+            self._total_supply()
         }
         #[ink(message)]
         fn balance_of(&self, owner: AccountId) -> Balance {
@@ -117,7 +98,7 @@ pub mod a_token {
             let allowance = self._allowance(&from, &caller);
 
             if allowance < value {
-                return Err(PSP22Error::InsufficientAllowance)
+                return Err(PSP22Error::InsufficientAllowance);
             }
 
             self._approve_from_to(from, caller, allowance - value)?;
@@ -177,7 +158,7 @@ pub mod a_token {
             let allowance = self._allowance(&owner, &spender);
 
             if allowance < delta_value {
-                return Err(PSP22Error::InsufficientAllowance)
+                return Err(PSP22Error::InsufficientAllowance);
             }
 
             self._approve_from_to(owner, spender, allowance - delta_value)
@@ -228,39 +209,11 @@ pub mod a_token {
         fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
             self.abacus_token.allowances.get(&(*owner, *spender)).unwrap_or(0)
         }
-        fn _do_safe_transfer_check(
-            &mut self,
-            from: &AccountId,
-            to: &AccountId,
-            value: &Balance,
-            data: &Vec<u8>,
-        ) -> Result<(), PSP22Error> {
-            self.flush();
-            // TODO:: possible vurnerability. Reentrancy attack????
-            let builder = PSP22ReceiverRef::before_received_builder(
-                to,
-                Self::env().caller(),
-                from.clone(),
-                value.clone(),
-                data.clone(),
+        fn _total_supply(&self) -> Balance {
+            LendingPoolATokenInterfaceRef::total_supply_of(
+                &self.abacus_token.lending_pool,
+                self.abacus_token.underlying_asset,
             )
-            .call_flags(CallFlags::default().set_allow_reentry(true));
-            let result = match builder.try_invoke() {
-                Ok(Ok(Ok(_))) => Ok(()),
-                Ok(Ok(Err(e))) => Err(e.into()),
-                // Means unknown method
-                Ok(Err(ink::LangError::CouldNotReadInput)) => Ok(()),
-                // `NotCallable` means that the receiver is not a contract.
-                Err(ink::env::Error::NotCallable) => Ok(()),
-                _ => {
-                    Err(PSP22Error::SafeTransferCheckFailed(
-                        String::from("Error during call to receiver").into(),
-                    ))
-                }
-            };
-            self.load();
-            result?;
-            Ok(())
         }
 
         fn _transfer_from_to(
@@ -271,14 +224,12 @@ pub mod a_token {
             data: Vec<u8>,
         ) -> Result<(), PSP22Error> {
             if from.is_zero() {
-                return Err(PSP22Error::ZeroSenderAddress)
+                return Err(PSP22Error::ZeroSenderAddress);
             }
             if to.is_zero() {
-                return Err(PSP22Error::ZeroRecipientAddress)
+                return Err(PSP22Error::ZeroRecipientAddress);
             }
             // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
-
-            self._do_safe_transfer_check(&from, &to, &amount, &data)?;
 
             ink::env::debug_println!("Transfer_from_to before LPRef");
             let (mint_from_amount, mint_to_amount): (Balance, Balance) =
@@ -312,10 +263,10 @@ pub mod a_token {
             amount: Balance,
         ) -> Result<(), PSP22Error> {
             if owner.is_zero() {
-                return Err(PSP22Error::ZeroSenderAddress)
+                return Err(PSP22Error::ZeroSenderAddress);
             }
             if spender.is_zero() {
-                return Err(PSP22Error::ZeroRecipientAddress)
+                return Err(PSP22Error::ZeroRecipientAddress);
             }
 
             self.abacus_token.allowances.insert(&(owner, spender), &amount);

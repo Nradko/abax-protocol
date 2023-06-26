@@ -23,6 +23,18 @@ This repository contains source code for Abax Protocol smart contracts as well a
 
 - To run tests and use convenience scripts you have to run `yarn`/`yarn install` command to install required npm packages.
 
+### Required versions to compile
+
+Since newest releases of rustc nigthly and cargo-contract may introduce issues with building contracts here are the latest versions contracts were confirmed to compile correctly.
+
+Cargo contract:
+
+- cargo-contract-contract 3.0.1-unknown-x86_64-unknown-linux-gnu
+
+Rust:
+
+- nightly-2023-03-21-x86_64-unknown-linux-gnu
+
 **Note**: Most of the node scripts will display much more information if you set an environment variable `DEBUG` (eg. `env DEBUG=1 yarn test`).
 
 ### Build
