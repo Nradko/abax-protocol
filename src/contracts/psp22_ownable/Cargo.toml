@@ -17,7 +17,6 @@ lending_project = { path = "../..", default-features = false }
 name = "psp22_ownable"
 path = "lib.rs"
 
-
 [features]
 default = ["std"]
 std = [

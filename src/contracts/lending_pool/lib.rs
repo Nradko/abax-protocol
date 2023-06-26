@@ -10,20 +10,36 @@
 
 #[openbrush::contract]
 pub mod lending_pool {
-    use ink::codegen::{EmitEvent, Env};
+    use ink::codegen::{
+        EmitEvent,
+        Env,
+    };
 
     use lending_project::{
-        impls::lending_pool::{manage::GLOBAL_ADMIN, storage::lending_pool_storage::LendingPoolStorage},
+        impls::lending_pool::{
+            manage::GLOBAL_ADMIN,
+            storage::lending_pool_storage::LendingPoolStorage,
+        },
         traits::lending_pool::{
             errors::LendingPoolError,
-            traits::{a_token_interface::*, actions::*, manage::*, v_token_interface::*, view::*},
+            traits::{
+                a_token_interface::*,
+                actions::*,
+                manage::*,
+                v_token_interface::*,
+                view::*,
+            },
         },
     };
     // use openbrush::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
     use openbrush::{
         contracts::{
-            access_control::{self, members::MembersManager, *},
+            access_control::{
+                self,
+                members::MembersManager,
+                *,
+            },
             pausable::*,
         },
         traits::Storage,

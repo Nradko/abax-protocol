@@ -17,7 +17,11 @@ pub mod lending_pool_v0_v_token_interface_facet {
     };
     // use openbrush::storage::Mapping;
     use openbrush::{
-        contracts::{access_control::*, ownable::*, pausable},
+        contracts::{
+            access_control::*,
+            ownable::*,
+            pausable,
+        },
         traits::Storage,
     };
 
