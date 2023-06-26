@@ -3,7 +3,7 @@ import chaiAsPromised from 'chai-as-promised';
 import type { AccountId } from '@polkadot/types/interfaces';
 import BN from 'bn.js';
 import { flush, proxy } from 'tests/soft-assert';
-import { E12, parseAmountToBN } from 'tests/scenarios/utils/misc';
+import { E12, parseAmountToBN } from '@abaxfinance/utils';
 const softExpect = proxy(chai.expect);
 
 export interface ExpectStaticWithSoft extends Chai.ExpectStatic {

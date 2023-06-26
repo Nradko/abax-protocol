@@ -20,6 +20,7 @@ pub mod lending_pool_v0_a_token_interface_facet {
         contracts::{
             access_control::*,
             ownable,
+            pausable,
         },
         traits::Storage,
     };
@@ -28,6 +29,8 @@ pub mod lending_pool_v0_a_token_interface_facet {
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct LendingPoolV0ATokenInterfaceFacet {
+        #[storage_field]
+        pause: pausable::Data,
         #[storage_field]
         /// storage used by openbrush's `Ownable` trait
         ownable: ownable::Data,

@@ -12,7 +12,7 @@ export const createFileWithDirectoriesSync = (filePath: string, data: string) =>
 
 export const compileContract = async (contractPath: string) => {
   const command = 'cargo';
-  const args = ['+nightly', 'contract', 'build'];
+  const args = ['+nightly', 'contract', 'build', ...(process.env.BUILD_PROD ? ['--release'] : [])];
   console.log(`running ${command} ${args.join(' ')}...`);
 
   return new Promise<number>((resolve, reject) => {
@@ -66,17 +66,3 @@ export const compileContractByNameAndCopyArtifacts = async (contractsRootPath: s
   }
   copyArtifacts(contractName);
 };
-
-export const argvObj = process.argv.reduce((acc, val, index) => {
-  const isSingleHyphenArg = val[0] === '-' && val[1] !== '-';
-  const isDoubleHyphenArg = val.substring(0, 2) !== '--' && val[2] !== '-';
-  const equalsPosition = val.indexOf('=');
-  const isEqualsArg = equalsPosition !== -1;
-  if (!isSingleHyphenArg && !isDoubleHyphenArg && !isEqualsArg) return acc;
-  if (isEqualsArg) {
-    acc[val.substring(0, equalsPosition)] = val.substring(equalsPosition + 1);
-    return acc;
-  }
-  acc[isSingleHyphenArg ? val.substring(1) : val.substring(2)] = process.argv[index + 1];
-  return acc;
-}, {} as Record<string, string>);

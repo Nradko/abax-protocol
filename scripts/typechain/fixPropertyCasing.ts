@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import glob from 'glob';
-import { argvObj } from '../compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 export const snakeToCamel = (str: string) =>
   str.toLowerCase().replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
@@ -34,7 +34,7 @@ const fixPropertiesCasing = (contractsRootPath: string, isDebug = false) => {
   const filesChanged = fixPropertiesCasing(typechainOutputPath, isDebug);
   console.log('Finished!\n Changed files:', filesChanged);
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(0);

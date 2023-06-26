@@ -1,7 +1,7 @@
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 import chalk from 'chalk';
 import fs from 'fs-extra';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 
 const printHelp = () => {
   console.log(chalk.yellow('Supply input file via') + chalk.green('--input <path> ') + chalk.yellow('or as a first argument of the script'));
@@ -31,7 +31,7 @@ const printHelp = () => {
   fs.writeFileSync(`${inputFile.replace('.log', '')}.retouched.log`, outputData, 'utf-8');
 
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

@@ -1,9 +1,9 @@
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import path from 'path';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
-import { toE12, toE6 } from 'tests/scenarios/utils/misc';
+import { toE12, toE6 } from '@abaxfinance/utils';
 import { readContractsFromFile } from 'tests/setup/nodePersistence';
 import { approve, convertToCurrencyDecimals } from 'tests/scenarios/utils/actions';
 
@@ -29,7 +29,7 @@ import { approve, convertToCurrencyDecimals } from 'tests/scenarios/utils/action
 
   api.disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

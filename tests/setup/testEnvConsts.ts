@@ -1,5 +1,5 @@
+import { E8, parseAmountToBN } from '@abaxfinance/utils';
 import BN from 'bn.js';
-import { E8, parseAmountToBN } from 'tests/scenarios/utils/misc';
 
 export const oneEther = new BN(Math.pow(10, 18).toString());
 
@@ -22,11 +22,11 @@ export interface ReserveTokenDeploymentData {
   feeD6: number;
   collateralCoefficient: null | number;
   borrowCoefficient: null | number;
-  maximalTotalSupply: null | BN;
-  maximalTotalDebt: null | BN;
+  maximalTotalSupply: null | BN | string;
+  maximalTotalDebt: null | BN | string;
   minimalCollateral: number | BN;
   minimalDebt: number | BN;
   penalty: number;
   flashLoanFeeE6: number;
-  stableBaseRate: number;
+  stableBaseRate: number | null;
 }

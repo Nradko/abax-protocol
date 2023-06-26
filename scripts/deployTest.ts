@@ -1,6 +1,6 @@
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import path from 'path';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 
@@ -15,7 +15,7 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
   await deployAndConfigureSystem({ shouldUseMockTimestamp }, deployPath);
   api.disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

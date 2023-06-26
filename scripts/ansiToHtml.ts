@@ -1,4 +1,4 @@
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import Convert from 'ansi-to-html';
@@ -29,7 +29,7 @@ const printHelp = () => {
   fs.writeFileSync(outputFile, outputData, 'utf-8');
 
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

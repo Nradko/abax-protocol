@@ -4,14 +4,13 @@ import ATokenContract from '../../../typechain/contracts/a_token';
 import BalanceViewer from '../../../typechain/contracts/balance_viewer';
 import LendingPoolContract from '../../../typechain/contracts/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
-import EmittedTokenContract from '../../../typechain/contracts/psp22_emitable';
-import STokenContract from '../../../typechain/contracts/s_token';
+import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
 import VTokenContract from '../../../typechain/contracts/v_token';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 
 export type TokenReserve = {
-  underlying: EmittedTokenContract;
+  underlying: PSP22Emitable;
   aToken: ATokenContract;
   vToken: VTokenContract;
   decimals: number;

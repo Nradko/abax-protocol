@@ -1,53 +1,21 @@
-import BN from 'bn.js';
-import chalk from 'chalk';
-import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
-import { apiProviderWrapper } from 'tests/setup/helpers';
 import { handleEventReturn, ReturnNumber } from '@727-ventures/typechain-types';
-import { getEventTypeDescription } from 'typechain/shared/utils';
-import { AnyAbacusContractEvent, ATokenEvents, ContractsEvents } from 'typechain/events/enum';
-import { TestEnv } from './make-suite';
-import { UnsubscribePromise, VoidFn } from '@polkadot/api/types';
+import { E18, E6 } from '@abaxfinance/utils';
+import { AbiEvent } from '@polkadot/api-contract/types';
+import { VoidFn } from '@polkadot/api/types';
+import { apiProviderWrapper } from 'tests/setup/helpers';
 import AToken from 'typechain/contracts/a_token';
 import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import SToken from 'typechain/contracts/s_token';
 import VToken from 'typechain/contracts/v_token';
-import { AbiEvent } from '@polkadot/api-contract/types';
+import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
+import { getEventTypeDescription } from 'typechain/shared/utils';
 import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
+import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
+import { TestEnv } from './make-suite';
+import { Psp22Ownable } from '@abaxfinance/contract-helpers';
 
-type NumericArg = number | string | BN;
 export const LINE_SEPARATOR = '='.repeat(process.stdout.columns);
-export const E6 = Math.pow(10, 6);
-export const E8 = Math.pow(10, 8);
-export const E12 = Math.pow(10, 12);
-export const E18 = Math.pow(10, 18);
-export const toE6 = (num: NumericArg) => (typeof num === 'number' ? num : BN.isBN(num) ? num.toNumber() : parseInt(num)) * E6;
-export const toNullableNumArg = <T>(num: NumericArg | null, convert: (num: NumericArg) => T) => (num ? convert(num) : num);
-export const toE12 = (num: NumericArg) => (typeof num === 'number' ? num : BN.isBN(num) ? num.toNumber() : parseInt(num)) * E12;
-export const fromE6 = (num: BN | string): number => {
-  if (typeof num === 'string') return parseFloat(num) / E6;
-  try {
-    return num.toNumber() / E6;
-  } catch (e) {
-    return num.divn(E6).toNumber();
-  }
-};
-export const fromE12 = (num: BN | string): number => {
-  if (typeof num === 'string') return parseFloat(num) / E12;
-  try {
-    return num.toNumber() / E12;
-  } catch (e) {
-    return num.div(new BN(E12)).toNumber();
-  }
-};
-export const fromE18 = (num: BN | string): number => {
-  if (typeof num === 'string') return parseFloat(num) / E18;
-  try {
-    return num.toNumber() / E18;
-  } catch (e) {
-    return num.div(new BN(E18)).toNumber();
-  }
-};
 
 async function printTimestamp() {
   const timestamp = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
@@ -60,28 +28,15 @@ export const advanceBlockTimestamp = async function (timestampProvider: BlockTim
   await timestampProvider.tx.setBlockTimestamp(value.unwrap() + forwardTime);
 };
 
-export function parseAmountToBN(amount: number | string) {
-  const countDecimals = function (value: number | string) {
-    const MAX_AMOUNT_OF_DECIMALS_JS_HANDLES = 17;
-    if (!value.toString().includes('.')) return 0;
-    const decimals = value.toString().split('.')[1].length || 0;
-    if (decimals > MAX_AMOUNT_OF_DECIMALS_JS_HANDLES) throw 'number of decimals exceed the number that JS parseFloat can handle';
-    return decimals;
-  };
-  const amountParsedFloat = parseFloat(amount.toString());
-  const amountParsedDecimals = countDecimals(amountParsedFloat);
-  const amountParsed = new BN(amountParsedFloat * Math.pow(10, amountParsedDecimals));
-  return { amountParsed, amountParsedDecimals };
-}
 export const createEnumChecker = <T extends string, TEnumValue extends string>(enumVariable: { [key in T]: TEnumValue }) => {
   const enumValues = Object.values(enumVariable);
   return (value: string): value is TEnumValue => enumValues.includes(value);
 };
-export type AnyAbacusContractEventEnumLiteral<T extends AnyAbacusContractEvent> = `${T}`;
-export type AnyAbacusContract = LendingPool | VToken | AToken | SToken | PSP22Emitable;
+export type AnyAbaxContractEventEnumLiteral<T extends AnyAbaxContractEvent> = `${T}`;
+export type AnyAbaxContract = LendingPool | VToken | AToken | SToken | PSP22Emitable;
 
-export const subscribeOnEvent = async <TEvent extends AnyAbacusContractEventEnumLiteral<AnyAbacusContractEvent>>(
-  contract: AnyAbacusContract,
+export const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<AnyAbaxContractEvent>>(
+  contract: AnyAbaxContract,
   eventName: TEvent,
   callback: (event: TEvent, timestamp: number) => void,
 ) => {
@@ -98,7 +53,7 @@ export const subscribeOnEvent = async <TEvent extends AnyAbacusContractEventEnum
 };
 
 const __subscribeOnEvent = async (
-  contract: AnyAbacusContract,
+  contract: AnyAbaxContract,
   callback: (args: any[], event: AbiEvent, timestamp: number) => void,
   filter: (eventName: string) => boolean = () => true,
 ) => {
@@ -128,22 +83,22 @@ const __subscribeOnEvent = async (
 export const subscribeOnEvents = (
   testEnv: TestEnv,
   reserveName: string,
-  callback: (eventName: string, event: AnyAbacusContractEvent, emitingContract: AnyAbacusContract, timestamp: number) => void,
+  callback: (eventName: string, event: AnyAbaxContractEvent, emitingContract: AnyAbaxContract, timestamp: number) => void,
 ): Promise<VoidFn[]> => {
   const { lendingPool, reserves } = testEnv;
   const reserve = reserves[reserveName];
 
   const subscribePromises: Promise<any>[] = [];
-  const callbackDecorator = (eventName: string, emitingContract: AnyAbacusContract) => (event: AnyAbacusContractEvent, timestamp: number) =>
+  const callbackDecorator = (eventName: string, emitingContract: AnyAbaxContract) => (event: AnyAbaxContractEvent, timestamp: number) =>
     callback(eventName, event, emitingContract, timestamp);
 
-  for (const event of Object.values(ContractsEvents.LendingPoolEvents)) {
+  for (const event of Object.values(ContractsEvents.LendingPoolEvent)) {
     subscribePromises.push(subscribeOnEvent(lendingPool, event, callbackDecorator(event, lendingPool)));
   }
-  for (const event of Object.values(ContractsEvents.VTokenEvents)) {
+  for (const event of Object.values(ContractsEvents.VTokenEvent)) {
     subscribePromises.push(subscribeOnEvent(reserve.vToken, event, callbackDecorator(event, reserve.vToken)));
   }
-  for (const event of Object.values(ContractsEvents.ATokenEvents)) {
+  for (const event of Object.values(ContractsEvents.ATokenEvent)) {
     subscribePromises.push(subscribeOnEvent(reserve.aToken, event, callbackDecorator(event, reserve.aToken)));
   }
 
@@ -191,17 +146,4 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
     appliedCumulativeSupplyRateIndexE18: new ReturnNumber(0),
     appliedCumulativeDebtRateIndexE18: new ReturnNumber(0),
   };
-};
-
-export const replaceRNPropsWithStrings = function (obj) {
-  if (typeof obj === 'object') {
-    for (const key in obj) {
-      if (obj[key]?.rawNumber) {
-        obj[key] = obj[key].rawNumber.toString();
-      } else if (typeof obj[key] === 'object') {
-        replaceRNPropsWithStrings(obj[key]);
-      }
-    }
-  }
-  return obj;
 };

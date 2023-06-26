@@ -1,10 +1,10 @@
 import { ReturnNumber } from '@727-ventures/typechain-types';
+import { fromE12, fromE18 } from '@abaxfinance/utils';
 import BN from 'bn.js';
 import { ChartConfiguration, ChartDataset, ScatterDataPoint } from 'chart.js';
-import { fromE12, fromE18 } from 'tests/scenarios/utils/misc';
-import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
 import chroma from 'chroma-js';
 import { isNil } from 'lodash';
+import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
 
 export const seriesToMoveToSecondPlot: (keyof UserReserveData | keyof ReserveData)[] = ['currentSupplyRateE24', 'currentDebtRateE24'];
 export type AnyReserveDataValueMutator = (val: any, reserveData: ReserveData) => number;
@@ -16,18 +16,10 @@ export const geUserReserveDataValueMutator = <TData extends UserReserveData, K e
       return (val: UserReserveData['supplied'], reserveData: ReserveData) => val.rawNumber.div(reserveData.decimals.rawNumber).toNumber() / 10_000;
     case 'debt':
       return (val: UserReserveData['debt'], reserveData: ReserveData) => val.rawNumber.div(reserveData.decimals.rawNumber).toNumber() / 10_000;
-    case 'stableBorrowed':
-      return (val: UserReserveData['stableBorrowed']) => fromE12(val.rawNumber);
     case 'appliedCumulativeSupplyRateIndexE18':
       return (val: UserReserveData['appliedCumulativeSupplyRateIndexE18']) => fromE12(val.rawNumber);
     case 'appliedCumulativeDebtRateIndexE18':
       return (val: UserReserveData['appliedCumulativeDebtRateIndexE18']) => fromE12(val.rawNumber);
-    case 'stableBorrowRateE24':
-      return (val: UserReserveData['stableBorrowRateE24']) => fromE18(val.rawNumber);
-    case 'updateTimestamp':
-      return (val: UserReserveData['updateTimestamp']) => val;
-    case 'useAsCollateral':
-      return (val: UserReserveData['useAsCollateral']) => (val ? 1 : 0);
     default:
       return (val: any) => parseFloat(val.toString());
   }
@@ -50,26 +42,14 @@ export const getReserveDataValueMutator = <K extends keyof ReserveData>(seriesNa
       return (val: ReserveData['cumulativeDebtRateIndexE18']) => fromE12(val.rawNumber);
     case 'currentDebtRateE24':
       return (val: ReserveData['currentDebtRateE24']) => fromE18(val.rawNumber);
-    case 'sumStableDebt':
-      return (val: ReserveData['sumStableDebt']) => fromE12(val.rawNumber);
-    case 'accumulatedStableBorrow':
-      return (val: ReserveData['accumulatedStableBorrow']) => fromE12(val.rawNumber);
-    case 'avarageStableRateE24':
-      return (val: ReserveData['avarageStableRateE24']) => fromE18(val.rawNumber);
     case 'indexesUpdateTimestamp':
       return (val: ReserveData['indexesUpdateTimestamp']) => val;
-    case 'stableRateBaseE24':
-      return (val: ReserveData['stableRateBaseE24']) => fromE18(val.rawNumber);
     case 'incomeForSuppliersPartE6':
       return (val: ReserveData['incomeForSuppliersPartE6']) => fromE12(val.rawNumber);
     // case 'interestRateModel':
     //   return (val: ReserveData['interestRateModel']) => val;
     case 'decimals':
       return (val: ReserveData['decimals']) => fromE12(val.rawNumber);
-    case 'maximumSupply':
-      return (val: ReserveData['maximumSupply']) => fromE12(val.rawNumber);
-    case 'maximumBorrowPowerPriceE8':
-      return (val: ReserveData['maximumBorrowPowerPriceE8']) => fromE12(val.rawNumber);
     default:
       throw new Error('Unsupported chart value!');
   }
@@ -106,7 +86,7 @@ export const isReserveData = (data: ReserveData | UserReserveData): data is Rese
 };
 
 export const isUserReserveData = (data: ReserveData | UserReserveData): data is UserReserveData => {
-  return (data as UserReserveData).useAsCollateral !== undefined;
+  return (data as UserReserveData).appliedCumulativeDebtRateIndexE18 !== undefined;
 };
 
 export const logProgress = (total: number, current: number) => {

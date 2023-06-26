@@ -6,14 +6,7 @@ import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 import { ReturnNumber } from '@727-ventures/typechain-types';
-
-export const FLASH_BORROWER = 1112475474;
-export const ASSET_LISTING_ADMIN = 1094072439;
-export const PARAMETERS_ADMIN = 368001360;
-export const EMERGENCY_ADMIN = 297099943;
-export const GLOBAL_ADMIN = 2459877095;
-export const ROLE_ADMIN = 0;
-export const TREASURY = 2434241257;
+import { ASSET_LISTING_ADMIN, EMERGENCY_ADMIN, FLASH_BORROWER, GLOBAL_ADMIN, PARAMETERS_ADMIN, ROLE_ADMIN, TREASURY } from './consts';
 
 makeSuite('Menage tests', (getTestEnv) => {
   let testEnv: TestEnv;

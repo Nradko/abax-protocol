@@ -8,7 +8,7 @@ import { PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
-import { replaceRNPropsWithStrings } from './scenarios/utils/misc';
+import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { expect } from './setup/chai';
 
 makeSuite('AbacusToken transfers', (getTestEnv) => {
@@ -90,7 +90,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       const tx = aTokenDaiContract.withSigner(alice).tx.transfer(bob.address, initialDaiBalance, []);
       await expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
-      expect.soft(replaceRNPropsWithStrings(txRes.events)).to.deep.equal([
+      expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Transfer',
           args: {
@@ -133,7 +133,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
 
       expect.soft(bobBalanceAfter.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.soft(bobSupplyAfter.supplied.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
-      expect.soft(replaceRNPropsWithStrings(txRes.events)).to.deep.equal([
+      expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Approval',
           args: {
@@ -214,7 +214,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
             await expect(tx).to.eventually.be.fulfilled;
             const txRes = await tx;
             const RN = ReturnNumber;
-            expect(replaceRNPropsWithStrings(txRes.events)).to.deep.equal([
+            expect(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
               {
                 name: 'Approval',
                 args: {

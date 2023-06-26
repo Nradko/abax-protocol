@@ -1,20 +1,13 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 
+import BN from 'bn.js';
+import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
+import { PARAMETERS_ADMIN } from './consts';
+import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
-import BN from 'bn.js';
-import { convertToCurrencyDecimals } from './scenarios/utils/actions';
-
-export const FLASH_BORROWER = 1112475474;
-export const ASSET_LISTING_ADMIN = 1094072439;
-export const PARAMETERS_ADMIN = 368001360;
-export const EMERGENCY_ADMIN = 297099943;
-export const GLOBAL_ADMIN = 2459877095;
-export const ROLE_ADMIN = 0;
-export const TREASURY = 2434241257;
 
 makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1', (getTestEnv) => {
   let testEnv: TestEnv;

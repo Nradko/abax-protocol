@@ -7,20 +7,23 @@ import BN from 'bn.js';
 import fs, { readFileSync } from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
-import { LINE_SEPARATOR, toE6, toNullableNumArg } from 'tests/scenarios/utils/misc';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import { FacetCut } from 'typechain/types-arguments/diamond';
 import ATokenContract from '../../typechain/contracts/a_token';
 import BlockTimestampProvider from '../../typechain/contracts/block_timestamp_provider';
 import DiamondContract from '../../typechain/contracts/diamond';
 import LendingPool from '../../typechain/contracts/lending_pool';
-import EmittedTokenContract from '../../typechain/contracts/psp22_emitable';
+import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
+import PSP22Ownable from '../../typechain/contracts/psp22_ownable';
+import TestReservesMinter from '../../typechain/contracts/test_reserves_minter';
 import STokenContract from '../../typechain/contracts/s_token';
 import VTokenContract from '../../typechain/contracts/v_token';
 import BalanceViewer from '../../typechain/contracts/balance_viewer';
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './helpers';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
+import { toE6 } from '@abaxfinance/utils';
+import { LINE_SEPARATOR } from 'tests/scenarios/utils/misc';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());
@@ -28,24 +31,31 @@ const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
 
   return new CodePromise(api, abi, wasm);
 };
-export const setupContract = async (owner: KeyringPair, contractName: string, constructorName: string, ...constructorArgs: any[]) => {
+export const setupContract = async (signer: KeyringPair, contractName: string, constructorName: string, ...constructorArgs: any[]) => {
   const api = await apiProviderWrapper.getAndWaitForReady();
   const codePromise = getCodePromise(api, contractName);
   // maximum gas to be consumed for the instantiation. if limit is too small the instantiation will fail.
-  const milion = 1000000n;
-  const gasLimit = milion * milion;
+  const MAX_CALL_WEIGHT = new BN(5_000_000_000).isubn(1);
+  const PROOFSIZE = new BN(3_000_000);
+  const gasLimit = api?.registry.createType('WeightV2', {
+    refTime: MAX_CALL_WEIGHT,
+    proofSize: PROOFSIZE,
+  }) as WeightV2;
+
+  // const milion = 1000000n;
+  // const gasLimit = milion * milion;
+  // const gasLimit = 3000n * 1000000n;
   // const gasLimitFromNetwork = api.consts.system.blockWeights
   //   ? (api.consts.system.blockWeights as unknown as { maxBlock: WeightV1 }).maxBlock
   //   : (api.consts.system.maximumBlockWeight as unknown as WeightV1);
   // // a limit to how much Balance to be used to pay for the storage created by the instantiation
   // if null is passed, unlimited balance can be used
+
   const storageDepositLimit = null;
+
   // used to derive contract address,
   // use null to prevent duplicate contracts
   const salt = new Uint8Array();
-  // balance to transfer to the contract account, formerly know as "endowment".
-  // use only with payable constructors, will fail otherwise.
-  const value = (await apiProviderWrapper.getAndWaitForReady()).registry.createType('Balance', 1000);
 
   const deployedContract = await new Promise<ContractPromise>((resolve, reject) => {
     let unsub: () => void;
@@ -53,13 +63,13 @@ export const setupContract = async (owner: KeyringPair, contractName: string, co
       {
         storageDepositLimit: null,
         // gasLimit: new BN(gasLimitFromNetwork.toString()).divn(2),
-        gasLimit: gasLimit,
+        gasLimit,
         salt: undefined,
         value: undefined,
       },
       ...constructorArgs,
     );
-    tx.signAndSend(owner, (result: CodeSubmittableResult<'promise'>) => {
+    tx.signAndSend(signer, (result: CodeSubmittableResult<'promise'>) => {
       const { status, dispatchError, contract } = result;
       if (status.isInBlock) {
         if (dispatchError || !contract) {
@@ -77,18 +87,18 @@ export const setupContract = async (owner: KeyringPair, contractName: string, co
       .catch(reject);
   });
 
-  return { owner, deployedContract };
+  return { signer, deployedContract };
 };
 
 const deployWithLog = async <T>(
-  owner: KeyringPair,
-  constructor: new (address: string, signer: KeyringPair, nativeAPI: ApiPromise) => T,
+  signer: KeyringPair,
+  constructor: new (address: string, contractSigner: KeyringPair, nativeAPI: ApiPromise) => T,
   contractName: string,
   ...deployArgs
 ) => {
-  const ret = await setupContract(owner, contractName, 'new', ...deployArgs);
+  const ret = await setupContract(signer, contractName, 'new', ...deployArgs);
   if (process.env.DEBUG) console.log(`Deployed ${contractName}: ${ret.deployedContract.address.toString()}`);
-  return getContractObject<T>(constructor, ret.deployedContract.address.toString(), ret.owner);
+  return getContractObject<T>(constructor, ret.deployedContract.address.toString(), ret.signer);
 };
 
 export const deployLendingPool = async (owner: KeyringPair) => await deployWithLog(owner, LendingPool, 'lending_pool');
@@ -105,8 +115,16 @@ export const deployVToken = async (owner: KeyringPair, symbol: string, decimal: 
 export const deploySToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
   deployWithLog(owner, STokenContract, 's_token', 'SToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
 
-export const deployReserveToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
-  return deployWithLog(owner, EmittedTokenContract, 'psp22_emitable', name, `Reserve ${name} token `, decimals);
+export const deployEmitableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
+  return deployWithLog(owner, PSP22Emitable, 'psp22_emitable', name, `Reserve ${name} token `, decimals);
+};
+
+export const deployOwnableToken = async (signer: KeyringPair, name: string, decimals: number = 6, tokenOwnerAddress: string) => {
+  return deployWithLog(signer, PSP22Ownable, 'psp22_ownable', name, `Reserve ${name} token `, decimals, tokenOwnerAddress);
+};
+
+export const deployTestReservesMinter = async (owner: KeyringPair) => {
+  return deployWithLog(owner, TestReservesMinter, 'test_reserves_minter');
 };
 
 export const deployFlashLoanReceiverMock = async (owner: KeyringPair) => {
@@ -267,7 +285,7 @@ export const deployAndConfigureSystem = async (
 
   const reservesWithLendingTokens = {} as TestEnv['reserves'];
   for (const reserveData of testReserveTokensToDeploy) {
-    const reserve = await deployReserveToken(owner, reserveData.name, reserveData.decimals);
+    const reserve = await deployEmitableToken(owner, reserveData.name, reserveData.decimals);
     if (process.env.DEBUG) console.log(`${reserveData.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
     const { aToken, vToken } = await registerNewAsset(
       owner,
@@ -346,8 +364,8 @@ export async function registerNewAsset(
   collateralCoefficient: null | number,
   borrowCoefficient: null | number,
   penalty: null | number,
-  maximalTotalSupply: null | BN,
-  maximalDebt: null | BN,
+  maximalTotalSupply: null | BN | string,
+  maximalDebt: null | BN | string,
   minimalCollatral: number | BN,
   minimalDebt: number | BN,
   decimals: number,

@@ -258,7 +258,7 @@ makeSuite('Message', (getTestEnv) => {
 
         const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value.ok!;
         const reserveData = (await lendingPool.query.viewReserveData(users[2].address)).value.ok!;
-        const AssetRegisteredEvent = Object.values(txResult.events!).find((e) => e.name === ContractsEvents.LendingPoolEvents.AssetRegistered)
+        const AssetRegisteredEvent = Object.values(txResult.events!).find((e) => e.name === ContractsEvents.LendingPoolEvent.AssetRegistered)
           ?.args as AssetRegistered;
 
         expect(registerAssets[4]).to.equal(users[2].address);

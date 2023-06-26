@@ -1,5 +1,4 @@
-import BN from 'bn.js';
-import { AnyAbacusContractEvent } from 'typechain/events/enum';
-import { AnyAbacusContract } from './misc';
+import { AnyAbaxContractEvent } from 'typechain/events/enum';
+import { AnyAbaxContract } from './misc';
 
-export type ValidateEventParameters = { eventName: string; event: AnyAbacusContractEvent; sourceContract: AnyAbacusContract; timestamp: number };
+export type ValidateEventParameters = { eventName: string; event: AnyAbaxContractEvent; sourceContract: AnyAbaxContract; timestamp: number };

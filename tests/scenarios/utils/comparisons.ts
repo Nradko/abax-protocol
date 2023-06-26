@@ -71,7 +71,7 @@ export const checkDeposit = (
   const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
 
   // get event and check what can be checked
-  const depositEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvents.Deposit);
+  const depositEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.Deposit);
   expect(depositEventParameters, 'Deposit | Event | not emitted').not.to.be.undefined;
   expect.soft(depositEventParameters?.sourceContract.address, 'Deposit | Event | source contract').to.equal(lendingPoolAddress);
   const depositEvent = depositEventParameters?.event as any as Deposit;
@@ -197,7 +197,7 @@ export const checkRedeem = (
   const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
   amount = amount !== null ? amount : parBefore.userReserveData.supplied.rawNumber.add(userInterests.supply);
 
-  const redeemEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvents.Redeem);
+  const redeemEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.Redeem);
   expect(redeemEventParameters, 'Redeem | Event | not emitted').not.to.be.undefined;
   expect.soft(redeemEventParameters?.sourceContract.address, 'Redeem | Event | source contract').to.equal(lendingPoolAddress);
   const RedeemEvent = redeemEventParameters?.event as any as Redeem;
@@ -345,7 +345,7 @@ export const checkBorrowVariable = (
   const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
 
   // get event and check what can be checked
-  const borrowVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvents.BorrowVariable);
+  const borrowVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.BorrowVariable);
   expect(borrowVariableEventParameters, 'BorrowVariable | Event | not emitted').not.to.be.undefined;
   expect.soft(borrowVariableEventParameters?.sourceContract.address, 'BorrowVariable | Event | source contract').to.equal(lendingPoolAddress);
   const BorrowVariableEvent = borrowVariableEventParameters?.event as any as BorrowVariable;
@@ -500,7 +500,7 @@ export const checkRepayVariable = (
   amount = amount !== null ? amount : parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow);
 
   // get event and check what can be checked
-  const repayVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvents.RepayVariable);
+  const repayVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.RepayVariable);
   expect(repayVariableEventParameters, 'RepayVariable | Event | not emitted').not.to.be.undefined;
   expect.soft(repayVariableEventParameters?.sourceContract.address, 'RepayVariable | Event | source contract').to.equal(lendingPoolAddress);
   const RepayVariableEvent = repayVariableEventParameters?.event as any as RepayVariable;
@@ -676,7 +676,7 @@ const checkAbacusTokenTransferEvent = (
 ) => {
   const amountTransferred: BN = add ? new BN(amount).add(new BN(interest)) : new BN(amount).sub(new BN(interest));
   const abacusTokenTransferEventParameters = capturedEventsParameters.find(
-    (e) => e.eventName === ContractsEvents.ATokenEvents.Transfer && e.sourceContract.address === abacusTokenAddress,
+    (e) => e.eventName === ContractsEvents.ATokenEvent.Transfer && e.sourceContract.address === abacusTokenAddress,
   );
 
   if (process.env.DEBUG) {

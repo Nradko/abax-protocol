@@ -1,42 +1,35 @@
 import { SignAndSendSuccessResponse } from '@727-ventures/typechain-types';
+import { parseAmountToBN } from '@abaxfinance/utils';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import chalk from 'chalk';
 import { isNil, maxBy } from 'lodash';
 import { LendingToken, ONE_YEAR, RateMode } from 'tests/consts';
-import { assertExists, expect } from 'tests/setup/chai';
+import { expect } from 'tests/setup/chai';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { PSP22Metadata } from 'tests/types/PSP22Metadata';
-import {
-  LendingPoolErrorBuilder,
-  AccessControlError,
-  PSP22ErrorBuilder,
-  ReserveData,
-  UserReserveData,
-  StorageErrorBuilder,
-} from 'typechain/types-returns/lending_pool';
+import { LendingPoolErrorBuilder, PSP22ErrorBuilder, StorageErrorBuilder } from 'typechain/types-returns/lending_pool';
 import AToken from '../../../typechain/contracts/a_token';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import LendingPool from '../../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
-import SToken from '../../../typechain/contracts/s_token';
 import VToken from '../../../typechain/contracts/v_token';
 import {
-  checkBorrowVariable,
   CheckBorrowVariableParameters,
-  checkDeposit,
   CheckDepositParameters,
-  checkRedeem,
   CheckRedeemParameters,
-  checkRepayVariable,
   CheckRepayVariableParameters,
+  checkBorrowVariable,
+  checkDeposit,
+  checkRedeem,
+  checkRepayVariable,
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
-import { advanceBlockTimestamp, createEnumChecker, parseAmountToBN, subscribeOnEvents } from './misc';
 import { ValidateEventParameters } from './validateEvents';
+import { advanceBlockTimestamp, subscribeOnEvents } from './misc';
 
 export const convertToCurrencyDecimals = async (token: any, amount: BN | number | string) => {
-  const decimals = (await token.methods.tokenDecimals({})).value.ok!;
+  const decimals = (await token.query.tokenDecimals()).value.ok!;
   const { amountParsed, amountParsedDecimals } = BN.isBN(amount) ? { amountParsed: amount, amountParsedDecimals: 0 } : parseAmountToBN(amount);
   return amountParsed.mul(new BN(Math.pow(10, decimals - amountParsedDecimals).toString()));
 };

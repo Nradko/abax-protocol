@@ -4,6 +4,7 @@ use ink::{
 };
 use openbrush::contracts::{
     access_control::AccessControlError,
+    pausable::PausableError,
     psp22::PSP22Error,
 };
 
@@ -17,6 +18,7 @@ pub enum LendingPoolError {
     FlashLoanReceiverError(FlashLoanReceiverError),
 
     AccessControlError(AccessControlError),
+    PausableError(PausableError),
     LangError(LangError),
     Inactive,
     Freezed,
@@ -53,6 +55,7 @@ impl From<LangError> for LendingPoolError {
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum LendingPoolTokenInterfaceError {
     PSP22Error(PSP22Error),
+    PausableError(PausableError),
     StorageError(StorageError),
     InsufficientBalance,
     WrongCaller,
@@ -76,6 +79,18 @@ impl From<AccessControlError> for LendingPoolError {
     }
 }
 
+impl From<PausableError> for LendingPoolError {
+    fn from(error: PausableError) -> Self {
+        LendingPoolError::PausableError(error)
+    }
+}
+
+impl From<PausableError> for LendingPoolTokenInterfaceError {
+    fn from(error: PausableError) -> Self {
+        LendingPoolTokenInterfaceError::PausableError(error)
+    }
+}
+
 impl From<PSP22Error> for LendingPoolTokenInterfaceError {
     fn from(error: PSP22Error) -> Self {
         LendingPoolTokenInterfaceError::PSP22Error(error)
@@ -85,6 +100,7 @@ impl From<PSP22Error> for LendingPoolTokenInterfaceError {
 impl From<LendingPoolTokenInterfaceError> for PSP22Error {
     fn from(error: LendingPoolTokenInterfaceError) -> Self {
         match error {
+            LendingPoolTokenInterfaceError::PausableError(_) => PSP22Error::Custom(String::from("Paused").into()),
             LendingPoolTokenInterfaceError::InsufficientBalance => PSP22Error::InsufficientBalance,
             LendingPoolTokenInterfaceError::AssetNotRegistered => {
                 PSP22Error::Custom(String::from("AssetNotRegistered").into())

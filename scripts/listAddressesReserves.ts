@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { readContractsFromFile } from 'tests/setup/nodePersistence';
-import { argvObj } from './compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;
@@ -17,7 +17,7 @@ import { argvObj } from './compile/common';
       await testEnv.lendingPool.query.deposit(reserve.underlying.address, address, depositAmount, []);
       await testEnv.lendingPool.tx.deposit(reserve.underlying.address, address, depositAmount, []);
     }
-    const { value: reserveV } = await testEnv.lendingPool.query.viewReserveData(reserve.underlying.address);
+    const reserveV = (await testEnv.lendingPool.query.viewReserveData(reserve.underlying.address)).value.unwrap();
     const { value } = await testEnv.lendingPool.query.viewUserReserveData(reserve.underlying.address, address);
 
     console.log(value, reserveV?.totalSupplied.toString(), reserve.underlying.address, address);
@@ -25,7 +25,7 @@ import { argvObj } from './compile/common';
 
   api.disconnect();
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

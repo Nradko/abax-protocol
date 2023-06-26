@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import glob from 'glob';
-import { argvObj } from '../compile/common';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import { snakeToCamel } from './fixPropertyCasing';
 function capitalizeFirstLetter(string) {
@@ -30,7 +30,7 @@ const replaceQueryCalls = (contractsRootPath: string, isDebug = false) => {
 ${foundEvents
   .map(
     ({ contractName, events }) => `
-export enum ${contractName}Events {
+export enum ${contractName}Event {
   ${events
     .map(
       (e, index) => `  ${e} = '${e}'${index === events.length - 1 ? '' : ','}
@@ -40,13 +40,13 @@ export enum ${contractName}Events {
 }`,
   )
   .join('\n')}
-export type AnyAbacusContractEvent = ${foundEvents
-    .map(({ contractName }, index) => `${contractName}Events${index === foundEvents.length - 1 ? ';' : ' | '}`)
+export type AnyAbaxContractEvent = ${foundEvents
+    .map(({ contractName }, index) => `${contractName}Event${index === foundEvents.length - 1 ? ';' : ' | '}`)
     .join('')}
 export const ContractsEvents = {
   ${foundEvents
     .map(
-      ({ contractName }, index) => `${contractName}Events${index === foundEvents.length - 1 ? '' : ','}
+      ({ contractName }, index) => `${contractName}Event${index === foundEvents.length - 1 ? '' : ','}
   `,
     )
     .join('')}
@@ -55,7 +55,7 @@ export const ContractsEvents = {
   fs.writeFileSync(resultFileOutputPath, enumString, 'utf8');
   console.log('Finished!');
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.log(e);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(0);

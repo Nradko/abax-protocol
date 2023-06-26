@@ -1,7 +1,7 @@
 import { ChildProcess } from 'child_process';
 import { deployAndConfigureSystem, DeploymentConfig } from 'tests/setup/deploymentHelpers';
 import { TestEnv } from './scenarios/utils/make-suite';
-import { E6 } from './scenarios/utils/misc';
+import { E6 } from '@abaxfinance/utils';
 import { expect } from './setup/chai';
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './setup/helpers';
 import { restartAndRestoreNodeState } from './setup/nodePersistence';

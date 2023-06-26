@@ -1,7 +1,8 @@
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import glob from 'glob';
-import { argvObj, compileContractByNameAndCopyArtifacts } from './common';
+import { compileContractByNameAndCopyArtifacts } from './common';
+import { getArgvObj } from '@abaxfinance/utils';
 
 const getAllContractNames = (contractsRootPath: string, regexFilter?: string | undefined) => {
   const names: string[] = [];
@@ -36,7 +37,7 @@ const getAllContractNames = (contractsRootPath: string, regexFilter?: string | u
   }
   console.log('All contracts compiled successfuly!');
   process.exit(0);
-})(argvObj).catch((e) => {
+})(getArgvObj()).catch((e) => {
   console.error(`Aborting...`);
   console.error(chalk.red(JSON.stringify(e, null, 2)));
   process.exit(1);

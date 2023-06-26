@@ -39,7 +39,9 @@ use openbrush::traits::{
     Storage,
 };
 
-impl<T: Storage<LendingPoolStorage> + ATokenInterfaceInternal> LendingPoolATokenInterface for T {
+impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Data> + ATokenInterfaceInternal>
+    LendingPoolATokenInterface for T
+{
     default fn total_supply_of(&self, underlying_asset: AccountId) -> Balance {
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
@@ -74,6 +76,7 @@ impl<T: Storage<LendingPoolStorage> + ATokenInterfaceInternal> LendingPoolAToken
         user_reserve_data.supplied
     }
 
+    #[openbrush::modifiers(openbrush::contracts::pausable::when_not_paused)]
     fn transfer_supply_from_to(
         &mut self,
         underlying_asset: AccountId,
