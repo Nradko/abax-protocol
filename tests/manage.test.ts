@@ -500,7 +500,7 @@ makeSuite('Menage tests', (getTestEnv) => {
             asset: testEnv.reserves['DAI'].underlying.address,
             collateralCoefficientE6: null,
             borrowCoefficientE6: null,
-            penalty: null,
+            penaltyE6: null,
           },
         },
       ]);

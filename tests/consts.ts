@@ -17,7 +17,7 @@ export enum LendingToken {
   VToken = 'VToken',
   SToken = 'SToken',
 }
-export const ONE_YEAR = new BN('31536000');
+export const ONE_YEAR = new BN(365 * 24 * 60 * 60 * 1000);
 
 export const FLASH_BORROWER = 1112475474;
 export const ASSET_LISTING_ADMIN = 1094072439;

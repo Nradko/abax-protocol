@@ -26,6 +26,7 @@ use crate::{
         block_timestamp_provider::BlockTimestampProviderRef,
         lending_pool::{
             errors::LendingPoolTokenInterfaceError,
+            events::EmitDepositEvents,
             traits::a_token_interface::LendingPoolATokenInterface,
         },
     },
@@ -120,6 +121,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Da
             _check_enough_supply_to_be_collateral(&reserve_data, &from_user_reserve_data)
                 .or(Err(LendingPoolTokenInterfaceError::MinimalSupply))?;
         }
+        reserve_data._recalculate_current_rates();
 
         //// PUSH STORAGE & FINAL CONDITION CHECK
         self._push_data(
@@ -137,6 +139,8 @@ impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Da
             .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?;
 
         //// ABACUS TOKEN EVENTS
+        // AToken interests are returned.
+        // VToken intersts
         if interest_from_variable_borrow != 0 || interest_to_variable_borrow != 0 {
             AbacusTokenRef::emit_transfer_events(
                 &reserve_data.v_token_address,
@@ -156,7 +160,8 @@ impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Da
         }
 
         //// EVENT
-        // TODO add transfer emit event
+        self._emit_deposit_event(underlying_asset, Self::env().caller(), to, amount);
+        self._emit_redeem_event(underlying_asset, Self::env().caller(), from, amount);
 
         Ok((interest_from_supply, interest_to_supply))
     }

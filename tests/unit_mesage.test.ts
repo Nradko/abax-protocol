@@ -284,19 +284,13 @@ makeSuite('Message', (getTestEnv) => {
       const queryRes = (
         await reserve.aToken.withSigner(testEnv.users[0]).query.emitTransferEvents([{ from: null, to: testEnv.users[0].address, amount: 1_000_000 }])
       ).value.ok;
-      expect(queryRes).to.have.deep.property(
-        'err',
-        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
-      );
+      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('NotLendingPool'));
     });
     it('An owner/admin of Lending Pool should not be able to emit transfer events', async () => {
       const queryRes = (
         await reserve.aToken.withSigner(testEnv.owner).query.emitTransferEvents([{ from: null, to: testEnv.users[0].address, amount: 1_000_000 }])
       ).value.ok;
-      expect(queryRes).to.have.deep.property(
-        'err',
-        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
-      );
+      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('NotLendingPool'));
     });
     it('A regular user should not be able to call emit_transfer_event_and_decrease_allowance', async () => {
       const queryRes = (
@@ -309,10 +303,7 @@ makeSuite('Message', (getTestEnv) => {
             1_000_000,
           )
       ).value.ok;
-      expect(queryRes).to.have.deep.property(
-        'err',
-        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
-      );
+      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('NotLendingPool'));
     });
     it('An admin of Lending Pool should not be able call emit_transfer_event_and_decrease_allowance', async () => {
       const queryRes = (
@@ -325,10 +316,7 @@ makeSuite('Message', (getTestEnv) => {
             1_000_000,
           )
       ).value.ok;
-      expect(queryRes).to.have.deep.property(
-        'err',
-        PSP22ErrorBuilder.Custom(('0x' + Buffer.from('NotLendingPool', 'utf8').toString('hex')) as any as number[]),
-      );
+      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('NotLendingPool'));
     });
   });
   describe('Abacus A/V/S Token caller check', () => {

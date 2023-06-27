@@ -8,8 +8,9 @@ import { PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
-import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { BlockTimestampProvider, replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { expect } from './setup/chai';
+import { ONE_YEAR } from './consts';
 
 makeSuite('AbacusToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -189,20 +190,14 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
           expect(aliceToBobAllowace.rawNumber.toString()).to.equal(aliceDebt.toString());
         });
 
-        it('Alice should not be able to transfer vWETH to Dave because dave does not userConfig', async () => {
+        it('Alice should not be able to transfer vWETH to Dave because Dave does not have collateral', async () => {
           const queryResult = (await vTokenWETHContract.withSigner(alice).query.transfer(dave.address, aliceDebt, [])).value.ok;
-          expect(queryResult).to.have.deep.property(
-            'err',
-            PSP22ErrorBuilder.Custom(('0x' + Buffer.from('InsufficientCollateral', 'utf8').toString('hex')) as any as number[]),
-          );
+          expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.Custom('InsufficientCollateral'));
         });
 
         it('Alice should not be able to transfer vWETH to Bob because Bob doesnt have collateral', async () => {
           const queryResult = (await vTokenWETHContract.withSigner(alice).query.transfer(bob.address, aliceDebt, [])).value.ok!;
-          expect(queryResult).to.have.deep.property(
-            'err',
-            PSP22ErrorBuilder.Custom(('0x' + Buffer.from('InsufficientCollateral', 'utf8').toString('hex')) as any as number[]),
-          );
+          expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.Custom('InsufficientCollateral'));
         });
         describe('bob sets his collaterals. Then...', () => {
           beforeEach('a', async () => {
