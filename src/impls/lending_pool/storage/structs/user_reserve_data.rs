@@ -28,7 +28,6 @@ pub struct UserReserveData {
 }
 
 impl UserReserveData {
-    // TODO:: make it easier to read!!!
     pub fn _accumulate_user_interest(&mut self, reserve: &mut ReserveData) -> (Balance, Balance) {
         if self.applied_cumulative_supply_rate_index_e18 >= reserve.cumulative_supply_rate_index_e18
             && self.applied_cumulative_debt_rate_index_e18 >= reserve.cumulative_debt_rate_index_e18
@@ -36,7 +35,7 @@ impl UserReserveData {
             return (0, 0)
         }
 
-        let (mut delta_user_supply, mut delta_user_varaible_borrow): (Balance, Balance) = (0, 0);
+        let (mut delta_user_supply, mut delta_user_varaible_debt): (Balance, Balance) = (0, 0);
 
         if self.supplied != 0
             && self.applied_cumulative_supply_rate_index_e18 != 0
@@ -70,12 +69,12 @@ impl UserReserveData {
                 .expect(MATH_ERROR_MESSAGE);
                 updated_borrow_rounded_down.checked_add(1).expect(MATH_ERROR_MESSAGE)
             };
-            delta_user_varaible_borrow = updated_borrow - self.debt;
+            delta_user_varaible_debt = updated_borrow - self.debt;
             self.debt = updated_borrow;
         }
         self.applied_cumulative_debt_rate_index_e18 = reserve.cumulative_debt_rate_index_e18;
 
-        return (delta_user_supply, delta_user_varaible_borrow)
+        return (delta_user_supply, delta_user_varaible_debt)
     }
 }
 

@@ -46,7 +46,6 @@ pub fn _accumulate_interest(
     user_reserve_data: &mut UserReserveData,
     block_timestamp: Timestamp,
 ) -> (Balance, Balance) {
-    // TODO:: should this line be here?  reserve_data._recalculate_current_rates();
     reserve_data._accumulate_interest(block_timestamp);
     user_reserve_data._accumulate_user_interest(reserve_data)
 }

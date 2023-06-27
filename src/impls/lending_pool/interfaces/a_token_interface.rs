@@ -1,5 +1,3 @@
-// TODO::tothink should transfer emit event inside lendingpool?
-
 use crate::{
     impls::lending_pool::{
         internal::{
