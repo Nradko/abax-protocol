@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -8,14 +8,10 @@ pub mod psp22_emitable {
         contracts::{
             ownable::*,
             psp22::{
-                extensions::{
-                    metadata::PSP22MetadataRef,
-                    mintable::PSP22MintableRef,
-                },
+                extensions::mintable::PSP22MintableRef,
                 PSP22Error,
             },
         },
-        modifiers,
         storage::Mapping,
         traits::Storage,
     };

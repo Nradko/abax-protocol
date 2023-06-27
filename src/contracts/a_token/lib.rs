@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
@@ -13,8 +13,6 @@ pub mod a_token {
         string::String,
         vec::Vec,
     };
-
-    use ink::env::CallFlags;
     use lending_project::{
         impls::abacus_token::data as abacus_token,
         traits::{
@@ -30,7 +28,6 @@ pub mod a_token {
         traits::{
             AccountIdExt,
             DefaultEnv,
-            Flush,
             Storage,
         },
     };
@@ -48,10 +45,7 @@ pub mod a_token {
     impl PSP22 for AToken {
         #[ink(message)]
         fn total_supply(&self) -> Balance {
-            LendingPoolATokenInterfaceRef::total_supply_of(
-                &self.abacus_token.lending_pool,
-                self.abacus_token.underlying_asset,
-            )
+            self._total_supply()
         }
         #[ink(message)]
         fn balance_of(&self, owner: AccountId) -> Balance {
@@ -228,41 +222,14 @@ pub mod a_token {
         fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
             self.abacus_token.allowances.get(&(*owner, *spender)).unwrap_or(0)
         }
-        fn _do_safe_transfer_check(
-            &mut self,
-            from: &AccountId,
-            to: &AccountId,
-            value: &Balance,
-            data: &Vec<u8>,
-        ) -> Result<(), PSP22Error> {
-            self.flush();
-            // TODO:: possible vurnerability. Reentrancy attack????
-            let builder = PSP22ReceiverRef::before_received_builder(
-                to,
-                Self::env().caller(),
-                from.clone(),
-                value.clone(),
-                data.clone(),
+        fn _total_supply(&self) -> Balance {
+            LendingPoolATokenInterfaceRef::total_supply_of(
+                &self.abacus_token.lending_pool,
+                self.abacus_token.underlying_asset,
             )
-            .call_flags(CallFlags::default().set_allow_reentry(true));
-            let result = match builder.try_invoke() {
-                Ok(Ok(Ok(_))) => Ok(()),
-                Ok(Ok(Err(e))) => Err(e.into()),
-                // Means unknown method
-                Ok(Err(ink::LangError::CouldNotReadInput)) => Ok(()),
-                // `NotCallable` means that the receiver is not a contract.
-                Err(ink::env::Error::NotCallable) => Ok(()),
-                _ => {
-                    Err(PSP22Error::SafeTransferCheckFailed(
-                        String::from("Error during call to receiver").into(),
-                    ))
-                }
-            };
-            self.load();
-            result?;
-            Ok(())
         }
 
+        #[allow(unused_variables)]
         fn _transfer_from_to(
             &mut self,
             from: AccountId,
@@ -277,8 +244,6 @@ pub mod a_token {
                 return Err(PSP22Error::ZeroRecipientAddress)
             }
             // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
-
-            self._do_safe_transfer_check(&from, &to, &amount, &data)?;
 
             ink::env::debug_println!("Transfer_from_to before LPRef");
             let (mint_from_amount, mint_to_amount): (Balance, Balance) =

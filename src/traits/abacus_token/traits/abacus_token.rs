@@ -1,15 +1,9 @@
 use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::psp22::PSP22Error,
-    traits::{
-        AccountId,
-        Balance,
-    },
+    traits::{AccountId, Balance},
 };
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::{Decode, Encode};
 
 #[openbrush::wrapper]
 pub type AbacusTokenRef = dyn AbacusToken;
@@ -47,14 +41,6 @@ pub trait Internal {
     fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance);
 
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance;
-
-    fn _do_safe_transfer_check(
-        &mut self,
-        from: &AccountId,
-        to: &AccountId,
-        value: &Balance,
-        data: &Vec<u8>,
-    ) -> Result<(), PSP22Error>;
 
     fn _transfer_from_to(
         &mut self,

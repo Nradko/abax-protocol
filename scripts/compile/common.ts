@@ -12,7 +12,7 @@ export const createFileWithDirectoriesSync = (filePath: string, data: string) =>
 
 export const compileContract = async (contractPath: string) => {
   const command = 'cargo';
-  const args = ['+nightly', 'contract', 'build', ...(process.env.BUILD_PROD ? ['--release'] : [])];
+  const args = ['contract', 'build', ...(process.env.BUILD_PROD ? ['--release'] : [])];
   console.log(`running ${command} ${args.join(' ')}...`);
 
   return new Promise<number>((resolve, reject) => {

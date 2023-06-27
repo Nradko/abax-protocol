@@ -5,7 +5,7 @@
 //!
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std, no_main)]
 #![feature(min_specialization)]
 
 #[openbrush::contract]
