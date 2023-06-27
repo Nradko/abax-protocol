@@ -4,9 +4,15 @@
 #[openbrush::contract]
 pub mod a_token {
     // imports from ink!
-    use ink::codegen::{EmitEvent, Env};
+    use ink::codegen::{
+        EmitEvent,
+        Env,
+    };
 
-    use ink::prelude::{string::String, vec::Vec};
+    use ink::prelude::{
+        string::String,
+        vec::Vec,
+    };
     use lending_project::{
         impls::abacus_token::data as abacus_token,
         traits::{
@@ -15,8 +21,15 @@ pub mod a_token {
         },
     };
     use openbrush::{
-        contracts::psp22::{extensions::metadata::*, PSP22Error},
-        traits::{AccountIdExt, DefaultEnv, Storage},
+        contracts::psp22::{
+            extensions::metadata::*,
+            PSP22Error,
+        },
+        traits::{
+            AccountIdExt,
+            DefaultEnv,
+            Storage,
+        },
     };
 
     #[ink(storage)]
@@ -98,7 +111,7 @@ pub mod a_token {
             let allowance = self._allowance(&from, &caller);
 
             if allowance < value {
-                return Err(PSP22Error::InsufficientAllowance);
+                return Err(PSP22Error::InsufficientAllowance)
             }
 
             self._approve_from_to(from, caller, allowance - value)?;
@@ -158,7 +171,7 @@ pub mod a_token {
             let allowance = self._allowance(&owner, &spender);
 
             if allowance < delta_value {
-                return Err(PSP22Error::InsufficientAllowance);
+                return Err(PSP22Error::InsufficientAllowance)
             }
 
             self._approve_from_to(owner, spender, allowance - delta_value)
@@ -216,6 +229,7 @@ pub mod a_token {
             )
         }
 
+        #[allow(unused_variables)]
         fn _transfer_from_to(
             &mut self,
             from: AccountId,
@@ -224,10 +238,10 @@ pub mod a_token {
             data: Vec<u8>,
         ) -> Result<(), PSP22Error> {
             if from.is_zero() {
-                return Err(PSP22Error::ZeroSenderAddress);
+                return Err(PSP22Error::ZeroSenderAddress)
             }
             if to.is_zero() {
-                return Err(PSP22Error::ZeroRecipientAddress);
+                return Err(PSP22Error::ZeroRecipientAddress)
             }
             // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
 
@@ -263,10 +277,10 @@ pub mod a_token {
             amount: Balance,
         ) -> Result<(), PSP22Error> {
             if owner.is_zero() {
-                return Err(PSP22Error::ZeroSenderAddress);
+                return Err(PSP22Error::ZeroSenderAddress)
             }
             if spender.is_zero() {
-                return Err(PSP22Error::ZeroRecipientAddress);
+                return Err(PSP22Error::ZeroRecipientAddress)
             }
 
             self.abacus_token.allowances.insert(&(owner, spender), &amount);

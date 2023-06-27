@@ -8,14 +8,10 @@ pub mod psp22_emitable {
         contracts::{
             ownable::*,
             psp22::{
-                extensions::{
-                    metadata::PSP22MetadataRef,
-                    mintable::PSP22MintableRef,
-                },
+                extensions::mintable::PSP22MintableRef,
                 PSP22Error,
             },
         },
-        modifiers,
         storage::Mapping,
         traits::Storage,
     };

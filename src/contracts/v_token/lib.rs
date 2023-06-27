@@ -14,7 +14,6 @@ pub mod v_token {
         vec::Vec,
     };
 
-    use ink::env::CallFlags;
     use lending_project::{
         impls::abacus_token::data::AbacusTokenData,
         traits::{
@@ -30,7 +29,6 @@ pub mod v_token {
         traits::{
             AccountIdExt,
             DefaultEnv,
-            Flush,
             Storage,
         },
     };
@@ -246,6 +244,7 @@ pub mod v_token {
             )
         }
 
+        #[allow(unused_variables)]
         fn _transfer_from_to(
             &mut self,
             from: AccountId,
