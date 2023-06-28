@@ -147,7 +147,7 @@ pub trait LendingPoolMaintain {
     ///  * `asset` - AccountId (aka address) of asset of which interests should be accumulated
     #[ink(message)]
     fn accumulate_interest(&mut self, asset: AccountId) -> Result<(), LendingPoolError>;
-    /// is used by anyone to update reserve's asset price //TODO
+    /// is used by anyone to update reserve's asset price //TODO: we need to get oracle API first!
     ///
     ///  * `reserve_token_address` - AccountId (aka address) of an asset to update price for
     ///  * `price_e8` - price of the token in E8 notation (multiplied by 10^8)

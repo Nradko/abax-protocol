@@ -58,7 +58,6 @@ export const getExpectedError = (errorName: string) => {
     return StorageErrorBuilder[errorName]();
   }
   if (Object.getOwnPropertyNames(PSP22ErrorBuilder).includes(errorName)) {
-    //TODO handle "Custom" and "SafeTransferCheckFailed"
     return LendingPoolErrorBuilder.PSP22Error(PSP22ErrorBuilder[errorName]());
   }
 

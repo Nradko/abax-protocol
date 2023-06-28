@@ -1,7 +1,6 @@
 import { AssertionError } from 'assert';
 import path from 'path';
 function stackTraceFilter() {
-  // TODO: Replace with `process.browser`
   const is = typeof document === 'undefined' ? { node: true } : { browser: true };
   let slash = path.sep;
   let cwd;
