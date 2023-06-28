@@ -116,19 +116,25 @@ pub fn _check_enough_variable_debt(
 }
 
 pub fn _check_max_supply(reserve_data: ReserveData) -> Result<(), LendingPoolError> {
-    if reserve_data.maximal_total_supply.is_some() {
-        if reserve_data.total_supplied > reserve_data.maximal_total_supply.unwrap() {
-            return Err(LendingPoolError::MaxSupplyReached)
+    match reserve_data.maximal_total_supply {
+        Some(maximal_total_supply) => {
+            if reserve_data.total_supplied > maximal_total_supply {
+                return Err(LendingPoolError::MaxSupplyReached)
+            }
         }
+        None => (),
     }
     Ok(())
 }
 
 pub fn _check_max_debt(reserve_data: ReserveData) -> Result<(), LendingPoolError> {
-    if reserve_data.maximal_total_debt.is_some() {
-        if reserve_data.total_debt > reserve_data.maximal_total_debt.unwrap() {
-            return Err(LendingPoolError::MaxDebtReached)
+    match reserve_data.maximal_total_debt {
+        Some(maximal_total_debt) => {
+            if reserve_data.total_debt > maximal_total_debt {
+                return Err(LendingPoolError::MaxDebtReached)
+            }
         }
+        None => (),
     }
     Ok(())
 }
@@ -340,7 +346,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 .data::<LendingPoolStorage>()
                 .get_user_reserve(&asset, user)
                 .unwrap_or_default();
-            let asset_price_e8 = reserve_data.token_price_e8.unwrap();
+            let asset_price_e8 = reserve_data.token_price_e8.ok_or(LendingPoolError::PriceMissing)?;
             reserve_data._accumulate_interest(block_timestamp);
             user_reserve._accumulate_user_interest(&mut reserve_data);
             if ((collaterals >> i) & 1) == 1 {
