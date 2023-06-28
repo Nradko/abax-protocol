@@ -487,7 +487,6 @@ export const setUseAsCollateral = async (
         },
       ]);
     }
-    //TODO check that nothing else changed?
     expect.toBeDefined(userConfigAfter);
     expect((userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id) % 2, 'setUseAsCollateral didnt work').to.equal(
       useAsCollateralToSet ? 1 : 0,
