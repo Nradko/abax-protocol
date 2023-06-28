@@ -1,4 +1,3 @@
-import { ReturnNumber } from '@727-ventures/typechain-types';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import AToken from 'typechain/contracts/a_token';
@@ -8,9 +7,14 @@ import { PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
-import { BlockTimestampProvider, replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
+import { ValidateEventParameters } from './scenarios/utils/validateEvents';
+import { subscribeOnEvents } from './scenarios/utils/misc';
+import { maxBy } from 'lodash';
+import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
+import { Transfer } from 'typechain/event-types/a_token';
 
 makeSuite('AbacusToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -26,6 +30,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
   let wethContract: PSP22Emitable;
   let aTokenDaiContract: AToken;
   let aTokenUsdcContract: AToken;
+  let aTokenWETHContract: AToken;
 
   beforeEach('setup Env', async () => {
     testEnv = getTestEnv();
@@ -41,6 +46,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
     wethContract = reserves['WETH'].underlying;
     aTokenDaiContract = reserves['DAI'].aToken;
     aTokenUsdcContract = reserves['USDC'].aToken;
+    aTokenWETHContract = reserves['WETH'].aToken;
   });
 
   describe('Alice and Bob have 10000$ of both DAI and USDC supplied to the leningPool. Then ...', () => {
@@ -158,8 +164,9 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
     describe('Alice takes 1WETH loan after Charlie has supplied 10 WETH. Then...', () => {
       let vTokenWETHContract: VToken;
       let aliceDebt: BN;
+      let charliesDeposit: BN;
       beforeEach('Alice SetAsCollateral USDC and DAI and she takes loan', async () => {
-        const charliesDeposit = await convertToCurrencyDecimals(wethContract, 10);
+        charliesDeposit = await convertToCurrencyDecimals(wethContract, 10);
         await wethContract.tx.mint(charlie.address, charliesDeposit);
         await wethContract.withSigner(charlie).tx.approve(lendingPool.address, charliesDeposit);
         await lendingPool.withSigner(charlie).tx.deposit(wethContract.address, charlie.address, charliesDeposit, []);
@@ -205,10 +212,17 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
             await lendingPool.withSigner(bob).tx.setAsCollateral(reserves['USDC'].underlying.address, true);
           });
           it('Alice should be able to transfer vWETH to Bob and Transfer event should be emitted', async () => {
+            const capturedRepayEvents: RepayVariable[] = [];
+            lendingPool.events.subscribeOnRepayVariableEvent((event) => {
+              capturedRepayEvents.push(event);
+            });
+            const capturedBorrowEvents: BorrowVariable[] = [];
+            lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
+              capturedBorrowEvents.push(event);
+            });
             const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
             await expect(tx).to.eventually.be.fulfilled;
             const txRes = await tx;
-            const RN = ReturnNumber;
             expect(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
               {
                 name: 'Approval',
@@ -227,6 +241,237 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
                 },
               },
             ]);
+            expect(replaceRNBNPropsWithStrings(capturedRepayEvents)).to.deep.equal([
+              {
+                asset: wethContract.address,
+                caller: vTokenWETHContract.address,
+                onBehalfOf: alice.address,
+                amount: aliceDebt.toString(),
+              },
+            ]);
+
+            expect(replaceRNBNPropsWithStrings(capturedBorrowEvents)).to.deep.equal([
+              {
+                asset: wethContract.address,
+                caller: vTokenWETHContract.address,
+                onBehalfOf: bob.address,
+                amount: aliceDebt.toString(),
+              },
+            ]);
+          });
+          describe(` Bob takes 0.01 Weth loan. One year passes and interests accumulate. Then...`, () => {
+            let bobDebt: BN;
+            beforeEach('time passes', async () => {
+              bobDebt = await convertToCurrencyDecimals(wethContract, 0.01);
+              await lendingPool.withSigner(bob).tx.borrow(wethContract.address, bob.address, bobDebt, []);
+              await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR);
+            });
+            it('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+              const capturedRepayEvents: RepayVariable[] = [];
+              lendingPool.events.subscribeOnRepayVariableEvent((event) => {
+                capturedRepayEvents.push(event);
+              });
+              const capturedBorrowEvents: BorrowVariable[] = [];
+              lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
+                capturedBorrowEvents.push(event);
+              });
+              const capturedTransferEvents: Transfer[] = [];
+              aTokenWETHContract.events.subscribeOnTransferEvent((event) => {
+                capturedTransferEvents.push(event);
+              });
+              const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
+              await expect(tx).to.eventually.be.fulfilled;
+              const txRes = await tx;
+              expect(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+                {
+                  name: 'Approval',
+                  args: {
+                    owner: bob.address,
+                    spender: alice.address,
+                    value: '0',
+                  },
+                },
+                {
+                  name: 'Transfer',
+                  args: {
+                    from: null,
+                    to: alice.address,
+                    value: `1911081600031538`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                  },
+                },
+                {
+                  name: 'Transfer',
+                  args: {
+                    from: null,
+                    to: bob.address,
+                    value: `19110816000316`, // 1/100 of the above
+                  },
+                },
+                {
+                  name: 'Transfer',
+                  args: {
+                    from: alice.address,
+                    to: bob.address,
+                    value: aliceDebt.toString(),
+                  },
+                },
+              ]);
+              expect(replaceRNBNPropsWithStrings(capturedRepayEvents)).to.deep.equal([
+                {
+                  asset: wethContract.address,
+                  caller: vTokenWETHContract.address,
+                  onBehalfOf: alice.address,
+                  amount: aliceDebt.toString(),
+                },
+              ]);
+
+              expect(replaceRNBNPropsWithStrings(capturedBorrowEvents)).to.deep.equal([
+                {
+                  asset: wethContract.address,
+                  caller: vTokenWETHContract.address,
+                  onBehalfOf: bob.address,
+                  amount: aliceDebt.toString(),
+                },
+              ]);
+
+              expect(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([]);
+            });
+
+            it('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+              const capturedDepositEvents: Deposit[] = [];
+              lendingPool.events.subscribeOnDepositEvent((event) => {
+                capturedDepositEvents.push(event);
+              });
+              const capturedRedeemEvents: Redeem[] = [];
+              lendingPool.events.subscribeOnRedeemEvent((event) => {
+                capturedRedeemEvents.push(event);
+              });
+              const capturedTransferEvents: Transfer[] = [];
+              vTokenWETHContract.events.subscribeOnTransferEvent((event) => {
+                capturedTransferEvents.push(event);
+              });
+              const tx = aTokenWETHContract.withSigner(charlie).tx.transfer(alice.address, charliesDeposit, []);
+              await expect(tx).to.eventually.be.fulfilled;
+              const txRes = await tx;
+              expect(replaceRNBNPropsWithStrings(txRes.events), 'AWeth events').to.deep.equal([
+                {
+                  name: 'Transfer',
+                  args: {
+                    from: null,
+                    to: charlie.address,
+                    value: '1930173114075840', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                  },
+                },
+                {
+                  name: 'Transfer',
+                  args: {
+                    from: charlie.address,
+                    to: alice.address,
+                    value: charliesDeposit.toString(),
+                  },
+                },
+              ]);
+              expect(replaceRNBNPropsWithStrings(capturedDepositEvents), 'LendingPool Deposit event').to.deep.equal([
+                {
+                  asset: wethContract.address,
+                  caller: aTokenWETHContract.address,
+                  onBehalfOf: alice.address,
+                  amount: charliesDeposit.toString(),
+                },
+              ]);
+
+              expect(replaceRNBNPropsWithStrings(capturedRedeemEvents), 'LendingPool Redeem event').to.deep.equal([
+                {
+                  asset: wethContract.address,
+                  caller: aTokenWETHContract.address,
+                  onBehalfOf: charlie.address,
+                  amount: charliesDeposit.toString(),
+                },
+              ]);
+
+              expect(replaceRNBNPropsWithStrings(capturedTransferEvents), 'VWeth Transfer event').to.deep.equal([
+                {
+                  from: null,
+                  to: alice.address,
+                  value: `1911081600031538`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                },
+              ]);
+            });
+
+            describe('Charlie sets Weth as a collateral and gives Alice allowance to trasnfer vWETH', () => {
+              beforeEach('set collateral and igive allowance', async () => {
+                await lendingPool.withSigner(charlie).tx.setAsCollateral(wethContract.address, true);
+                await vTokenWETHContract.withSigner(charlie).tx.increaseAllowance(alice.address, aliceDebt);
+              });
+              it('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+                const capturedRepayEvents: RepayVariable[] = [];
+                lendingPool.events.subscribeOnRepayVariableEvent((event) => {
+                  capturedRepayEvents.push(event);
+                });
+                const capturedBorrowEvents: RepayVariable[] = [];
+                lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
+                  capturedBorrowEvents.push(event);
+                });
+                const capturedTransferEvents: Transfer[] = [];
+                aTokenWETHContract.events.subscribeOnTransferEvent((event) => {
+                  capturedTransferEvents.push(event);
+                });
+                const tx = vTokenWETHContract.withSigner(alice).tx.transfer(charlie.address, aliceDebt, []);
+                await expect(tx).to.eventually.be.fulfilled;
+                const txRes = await tx;
+                expect(replaceRNBNPropsWithStrings(txRes.events), 'VWeth events').to.deep.equal([
+                  {
+                    name: 'Approval',
+                    args: {
+                      owner: charlie.address,
+                      spender: alice.address,
+                      value: '0',
+                    },
+                  },
+                  {
+                    name: 'Transfer',
+                    args: {
+                      from: null,
+                      to: alice.address,
+                      value: `1911081600031538`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                    },
+                  },
+                  {
+                    name: 'Transfer',
+                    args: {
+                      from: alice.address,
+                      to: charlie.address,
+                      value: aliceDebt.toString(),
+                    },
+                  },
+                ]);
+                expect(replaceRNBNPropsWithStrings(capturedRepayEvents), 'LendingPool Repay event').to.deep.equal([
+                  {
+                    asset: wethContract.address,
+                    caller: vTokenWETHContract.address,
+                    onBehalfOf: alice.address,
+                    amount: aliceDebt.toString(),
+                  },
+                ]);
+
+                expect(replaceRNBNPropsWithStrings(capturedBorrowEvents), 'LendingPool Borrow event').to.deep.equal([
+                  {
+                    asset: wethContract.address,
+                    caller: vTokenWETHContract.address,
+                    onBehalfOf: charlie.address,
+                    amount: aliceDebt.toString(),
+                  },
+                ]);
+
+                expect(replaceRNBNPropsWithStrings(capturedTransferEvents), 'AWeth Transfer event').to.deep.equal([
+                  {
+                    from: null,
+                    to: charlie.address,
+                    value: '1930173114075840', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                  },
+                ]);
+              });
+            });
           });
         });
       });
