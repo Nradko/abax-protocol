@@ -11,7 +11,7 @@ import { AccountId } from 'typechain/types-arguments/lending_pool';
 import { createPushDataPoint, getBasicChartConfig, getColorFromName, logProgress } from './utils';
 
 const getAmountToRepay = async (desiredUtilizationRate: number, reserveAddress: AccountId, lendingPool: LendingPool) => {
-  const reserveData = (await lendingPool.query.viewReserveData(reserveAddress)).value.unwrap()!;
+  const reserveData = (await lendingPool.query.viewUnupdatedReserveData(reserveAddress)).value.unwrap()!;
   const totalDebt = reserveData.totalDebt.rawNumber;
 
   return totalDebt.sub(reserveData.totalSupplied.rawNumber.muln(desiredUtilizationRate));

@@ -130,9 +130,9 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidation succeeds', async () => {
-        const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const daiReserveDataBefore = (await lendingPool.query.viewUnupdatedReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
-        // const borrowerData = await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address);
+        // const borrowerData = await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address);
 
         await lendingPool
           .withSigner(liquidator)
@@ -148,10 +148,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         //Assert
         const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value
           .ok!;
-        const borrowersDAIDataAfter = (await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address)).value.ok!;
-        const borrowersWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, borrower.address)).value.ok!;
-        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, liquidator.address)).value.ok!;
-        const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const borrowersDAIDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address)).value.ok!;
+        const borrowersWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, borrower.address)).value.ok!;
+        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, liquidator.address)).value.ok!;
+        const daiReserveDataAfter = (await lendingPool.query.viewUnupdatedReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
         expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
@@ -273,7 +273,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         // in total for one absDAI liquidator should receive 7.8125 * 10^8 * 1.115 = 8,7109375 * 10^8
         // the parameter is _e18 so maximal accepted parameter is 8,7109375 * 10^26
         // liquidator is repaying 10^9 absDAI thus should return 8,7109375 * 10^17 ansWETH ~ 0,87... WETH
-        const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const daiReserveDataBefore = (await lendingPool.query.viewUnupdatedReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         await lendingPool
           .withSigner(liquidator)
@@ -287,10 +287,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         //Assert
         const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value
           .ok!;
-        const borrowersDAIDataAfter = (await lendingPool.query.viewUserReserveData(daiContract.address, borrower.address)).value.ok!;
-        const borrowersWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, borrower.address)).value.ok!;
-        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUserReserveData(wethContract.address, liquidator.address)).value.ok!;
-        const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
+        const borrowersDAIDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address)).value.ok!;
+        const borrowersWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, borrower.address)).value.ok!;
+        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, liquidator.address)).value.ok!;
+        const daiReserveDataAfter = (await lendingPool.query.viewUnupdatedReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
         expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');

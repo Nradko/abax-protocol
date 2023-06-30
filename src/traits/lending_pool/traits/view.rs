@@ -19,11 +19,23 @@ pub trait LendingPoolView {
     #[ink(message)]
     fn view_registered_assets(&self) -> Vec<AccountId>;
     #[ink(message)]
+    fn view_unupdated_reserve_data(&self, asset: AccountId) -> Option<ReserveData>;
+    #[ink(message)]
     fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData>;
+    #[ink(message)]
+    fn view_unupdated_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)>;
     #[ink(message)]
     fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)>;
     #[ink(message)]
+    fn view_unupdated_user_reserve_data(&self, asset: AccountId, account: AccountId) -> UserReserveData;
+    #[ink(message)]
     fn view_user_reserve_data(&self, asset: AccountId, account: AccountId) -> UserReserveData;
+    #[ink(message)]
+    fn view_unupdated_user_reserve_datas(
+        &self,
+        assets: Option<Vec<AccountId>>,
+        account: AccountId,
+    ) -> Vec<(AccountId, UserReserveData)>;
     #[ink(message)]
     fn view_user_reserve_datas(
         &self,
