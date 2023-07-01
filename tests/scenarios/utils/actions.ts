@@ -58,7 +58,6 @@ export const getExpectedError = (errorName: string) => {
     return StorageErrorBuilder[errorName]();
   }
   if (Object.getOwnPropertyNames(PSP22ErrorBuilder).includes(errorName)) {
-    //TODO handle "Custom" and "SafeTransferCheckFailed"
     return LendingPoolErrorBuilder.PSP22Error(PSP22ErrorBuilder[errorName]());
   }
 
@@ -487,7 +486,6 @@ export const setUseAsCollateral = async (
         },
       ]);
     }
-    //TODO check that nothing else changed?
     expect.toBeDefined(userConfigAfter);
     expect((userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id) % 2, 'setUseAsCollateral didnt work').to.equal(
       useAsCollateralToSet ? 1 : 0,

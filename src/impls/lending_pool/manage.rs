@@ -271,15 +271,17 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + InternalIn
         let registerd_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
 
         for asset_id in 0..market_rule.len() {
-            if market_rule[asset_id].is_some() {
-                let asset_rules = market_rule[asset_id].unwrap();
-                self._emit_asset_rules_changed(
-                    &market_rule_id,
-                    &registerd_assets[asset_id],
-                    &asset_rules.collateral_coefficient_e6,
-                    &asset_rules.borrow_coefficient_e6,
-                    &asset_rules.penalty_e6,
-                );
+            match market_rule[asset_id] {
+                Some(asset_rules) => {
+                    self._emit_asset_rules_changed(
+                        &market_rule_id,
+                        &registerd_assets[asset_id],
+                        &asset_rules.collateral_coefficient_e6,
+                        &asset_rules.borrow_coefficient_e6,
+                        &asset_rules.penalty_e6,
+                    );
+                }
+                None => (),
             }
         }
         self.data::<LendingPoolStorage>()

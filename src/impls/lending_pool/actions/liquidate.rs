@@ -1,5 +1,3 @@
-// TODO::think should we emit events on set_as_collateral
-
 use checked_math::checked_math;
 use ink::prelude::{
     vec::Vec,

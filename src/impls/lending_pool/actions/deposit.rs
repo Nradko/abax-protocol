@@ -166,7 +166,7 @@ impl<T: Storage<LendingPoolStorage> + DepositInternal> LendingPoolDeposit for T 
         _emit_abacus_token_transfer_event_and_decrease_allowance(
             &reserve_data.a_token_address,
             &on_behalf_of,
-            (interest_on_behalf_of_supply - amount) as i128,
+            interest_on_behalf_of_supply as i128 - amount as i128,
             &(Self::env().caller()),
             amount,
         )?;

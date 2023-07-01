@@ -66,7 +66,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await linkContract.withSigner(borrower).tx.approve(lendingPool.address, suppliedLinkAmount);
       await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, suppliedLinkAmount, []);
       //
-      debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000); //TODO;
+      debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000);
       await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
       await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
       // mint DAI for liquidator
@@ -161,8 +161,6 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         expect.soft(daiReserveDataAfter.totalSupplied.toString()).to.equal(daiReserveDataBefore.totalSupplied.toString());
         expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
         expect.flushSoft();
-
-        // TODO: check rates
       });
     });
   });
@@ -205,7 +203,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await linkContract.withSigner(borrower).tx.approve(lendingPool.address, suppliedLinkAmount);
       await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, suppliedLinkAmount, []);
       //
-      debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000); //TODO;
+      debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000);
       await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
       await lendingPool.withSigner(borrower).tx.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
       // mint DAI for liquidator

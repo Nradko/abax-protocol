@@ -42,11 +42,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
     }
 
     default fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)> {
-        let assets_to_view = if assets.is_some() {
-            assets.unwrap()
-        } else {
-            self.data::<LendingPoolStorage>().registered_assets.to_vec()
-        };
+        let assets_to_view = assets.unwrap_or_else(|| self.data::<LendingPoolStorage>().registered_assets.to_vec());
 
         let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
         for asset in assets_to_view {
@@ -66,11 +62,7 @@ impl<T: Storage<LendingPoolStorage>> LendingPoolView for T {
         assets: Option<Vec<AccountId>>,
         user: AccountId,
     ) -> Vec<(AccountId, UserReserveData)> {
-        let assets_to_view = if assets.is_some() {
-            assets.unwrap()
-        } else {
-            self.data::<LendingPoolStorage>().registered_assets.to_vec()
-        };
+        let assets_to_view = assets.unwrap_or_else(|| self.data::<LendingPoolStorage>().registered_assets.to_vec());
 
         let mut ret: Vec<(AccountId, UserReserveData)> = vec![];
         for asset in assets_to_view {

@@ -43,6 +43,7 @@ pub enum LendingPoolError {
     MarketRuleInvalidAssetId,
     MarketRuleInvalidId,
     MarketRulePenaltyNotSet,
+    PriceMissing,
 }
 
 impl From<LangError> for LendingPoolError {
