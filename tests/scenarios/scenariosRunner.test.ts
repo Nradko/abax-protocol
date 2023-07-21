@@ -8,10 +8,11 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
 const scenarioFolder = path.join(__dirname, 'stories');
 
 const selectedFiles: string[] = []; //['deposit'];
-const selectedScenarios: string[] = ['User 0 Deposits 1000 DAI in an empty reserve'];
+const selectedScenarios: string[] = []; //['User 0 Deposits 1000 DAI in an empty reserve'];
 const skipScenarios = false;
+const forceOnlyScenarios = false;
 
-const forceItOnly = selectedFiles.length > 0 || selectedScenarios.length > 0;
+const forceItOnly = forceOnlyScenarios || selectedFiles.length > 0 || selectedScenarios.length > 0;
 fs.readdirSync(scenarioFolder).forEach((file) => {
   if (selectedFiles.length > 0 && !selectedFiles.map((n) => n.replace('.json', '')).includes(file.replace('.json', ''))) return;
 

@@ -57,16 +57,18 @@ const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<A
             if (eventDecoded.event.identifier.toString() === eventName) {
               api.query.timestamp.now().then((timestamp) => {
                 try {
-                  // const timestamp = 0;
-                  console.table({ eventName: eventDecoded.event.identifier.toString(), timestamp: timestamp.toString() });
+                  // console.table({ eventName: eventDecoded.event.identifier.toString(), timestamp: timestamp.toString() });
 
                   const _event: Record<string, any> = {};
                   for (let i = 0; i < eventDecoded.args.length; i++) {
                     _event[eventDecoded.event.args[i].name] = eventDecoded.args[i].toJSON();
                   }
 
-                  // const eventParsed = customHandleReturnType(_event, getEventTypeDescription(eventName, contract.name)) as TEvent; // TODO contract.name => EVENT_DATA_TYPE_DESCRIPTIONS
-                  const eventParsed = customHandleReturnType(_event, getEventTypeDescription(eventName, contract.name)) as TEvent;
+                  const eventParsed = handleEventReturn(
+                    _event,
+                    // eslint-disable-next-line @typescript-eslint/no-var-requires
+                    getEventTypeDescription(eventName, require(`typechain/event-data/${contract.name}.json`)),
+                  ) as TEvent;
                   const timestampParsed = parseInt(timestamp.toString());
                   cb(eventParsed, timestampParsed);
                 } catch (e) {
