@@ -55,21 +55,24 @@ const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<A
             const eventDecoded = contract.abi.decodeEvent(data);
 
             if (eventDecoded.event.identifier.toString() === eventName) {
-              // api.query.timestamp.now().then((timestamp) => {
+              api.query.timestamp.now().then((timestamp) => {
+                try {
+                  // const timestamp = 0;
+                  console.table({ eventName: eventDecoded.event.identifier.toString(), timestamp: timestamp.toString() });
 
-              // });
-              const timestamp = 0;
-              console.table({ eventName: eventDecoded.event.identifier.toString(), timestamp: timestamp.toString() });
+                  const _event: Record<string, any> = {};
+                  for (let i = 0; i < eventDecoded.args.length; i++) {
+                    _event[eventDecoded.event.args[i].name] = eventDecoded.args[i].toJSON();
+                  }
 
-              const _event: Record<string, any> = {};
-              for (let i = 0; i < eventDecoded.args.length; i++) {
-                _event[eventDecoded.event.args[i].name] = eventDecoded.args[i].toJSON();
-              }
-
-              // const eventParsed = customHandleReturnType(_event, getEventTypeDescription(eventName, contract.name)) as TEvent; // TODO contract.name => EVENT_DATA_TYPE_DESCRIPTIONS
-              const eventParsed = customHandleReturnType(_event, getEventTypeDescription(eventName, contract.name)) as TEvent;
-              const timestampParsed = parseInt(timestamp.toString());
-              cb(eventParsed, timestampParsed);
+                  // const eventParsed = customHandleReturnType(_event, getEventTypeDescription(eventName, contract.name)) as TEvent; // TODO contract.name => EVENT_DATA_TYPE_DESCRIPTIONS
+                  const eventParsed = customHandleReturnType(_event, getEventTypeDescription(eventName, contract.name)) as TEvent;
+                  const timestampParsed = parseInt(timestamp.toString());
+                  cb(eventParsed, timestampParsed);
+                } catch (e) {
+                  console.error('Fatal error during processing events from api.query.system.events', 'api.query.timestamp.now', e);
+                }
+              });
             }
           }
         }
