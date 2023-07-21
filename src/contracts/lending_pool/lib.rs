@@ -103,6 +103,15 @@ pub mod lending_pool {
         pub fn unpause(&mut self) -> Result<(), LendingPoolError> {
             self._unpause()
         }
+
+        #[ink(message)]
+        #[openbrush::modifiers(openbrush::contracts::access_control::only_role(GLOBAL_ADMIN))]
+        pub fn set_code(&mut self, code_hash: [u8; 32]) -> Result<(), LendingPoolError> {
+            ink::env::set_code_hash(&code_hash)
+                .unwrap_or_else(|err| panic!("Failed to `set_code_hash` to {:?} due to {:?}", code_hash, err));
+            ink::env::debug_println!("Switched code hash to {:?}.", code_hash);
+            Ok(())
+        }
     }
 
     #[ink(event)]

@@ -17,8 +17,8 @@ import { getArgvObj } from '@abaxfinance/utils';
       await testEnv.lendingPool.query.deposit(reserve.underlying.address, address, depositAmount, []);
       await testEnv.lendingPool.tx.deposit(reserve.underlying.address, address, depositAmount, []);
     }
-    const reserveV = (await testEnv.lendingPool.query.viewReserveData(reserve.underlying.address)).value.unwrap();
-    const { value } = await testEnv.lendingPool.query.viewUserReserveData(reserve.underlying.address, address);
+    const reserveV = (await testEnv.lendingPool.query.viewUnupdatedReserveData(reserve.underlying.address)).value.unwrap();
+    const { value } = await testEnv.lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, address);
 
     console.log(value, reserveV?.totalSupplied.toString(), reserve.underlying.address, address);
   }

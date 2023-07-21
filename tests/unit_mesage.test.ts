@@ -82,7 +82,7 @@ makeSuite('Message', (getTestEnv) => {
         await testEnv.lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
-        const userReserveDataAfter = (await lendingPool.query.viewUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
+        const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
         const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
         expect(userReserveDataAfter.supplied.rawNumber.toString()).to.be.equal('0');
         expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
@@ -99,7 +99,7 @@ makeSuite('Message', (getTestEnv) => {
         await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
-        const userReserveDataAfter = (await lendingPool.query.viewUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
+        const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
         const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
         expect(userReserveDataAfter.supplied.rawNumber.toNumber()).to.be.greaterThan(0);
         expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
@@ -257,7 +257,7 @@ makeSuite('Message', (getTestEnv) => {
           );
 
         const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value.ok!;
-        const reserveData = (await lendingPool.query.viewReserveData(users[2].address)).value.ok!;
+        const reserveData = (await lendingPool.query.viewUnupdatedReserveData(users[2].address)).value.ok!;
         const AssetRegisteredEvent = Object.values(txResult.events!).find((e) => e.name === ContractsEvents.LendingPoolEvent.AssetRegistered)
           ?.args as AssetRegistered;
 
