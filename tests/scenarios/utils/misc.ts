@@ -93,7 +93,7 @@ export const subscribeOnEvents = async (
 
   const subscribePromises: Promise<any>[] = [];
   const callbackDecorator = (eventName: string, emitingContract: AnyAbaxContract) => (event: AnyAbaxContractEvent, timestamp: number) => {
-    console.log('callbackDecorator', { eventName, event, emitingContract, timestamp });
+    // console.log('callbackDecorator', { eventName, event, emitingContract, timestamp });
     return callback(eventName, event, emitingContract, timestamp);
   };
 
