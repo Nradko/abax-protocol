@@ -9,7 +9,6 @@ export enum RateMode {
 export enum LendingToken {
   AToken = 'AToken',
   VToken = 'VToken',
-  SToken = 'SToken',
 }
 export const ONE_YEAR = new BN(365 * 24 * 60 * 60 * 1000);
 

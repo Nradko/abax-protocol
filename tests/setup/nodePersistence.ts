@@ -1,17 +1,16 @@
-import { ChildProcess, spawn } from 'child_process';
-import fs, { write } from 'fs-extra';
 import chalk from 'chalk';
+import { ChildProcess, spawn } from 'child_process';
+import findProcess from 'find-process';
+import fs from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
 import AToken from '../../typechain/contracts/a_token';
-import LendingPool from '../../typechain/contracts/lending_pool';
-import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
-import SToken from '../../typechain/contracts/s_token';
-import VToken from '../../typechain/contracts/v_token';
 import BalanceViewer from '../../typechain/contracts/balance_viewer';
 import BlockTimestampProvider from '../../typechain/contracts/block_timestamp_provider';
+import LendingPool from '../../typechain/contracts/lending_pool';
+import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
+import VToken from '../../typechain/contracts/v_token';
 import { getContractObject } from './deploymentHelpers';
-import findProcess from 'find-process';
 import { apiProviderWrapper, getSigners } from './helpers';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
@@ -46,11 +45,11 @@ const spawnContractsNode = async (testChainStateLocation: string) => {
     '--dev',
     '--base-path',
     `${testChainStateLocation}`,
-    '--ws-max-connections',
+    '--rpc-max-connections',
     '1000',
     '--max-runtime-instances',
     '256',
-    '--ws-port',
+    '--rpc-port',
     '9944',
   ];
   const contractsNodeProcess = spawn(command, cliArgs, { cwd: process.env.PWD, stdio: 'overlapped' });
@@ -64,7 +63,7 @@ const spawnContractsNode = async (testChainStateLocation: string) => {
   });
 
   const waitForStartupFinish = new Promise<ChildProcess>((resolve) => {
-    const endOfBootSequenceStr = `Running JSON-RPC WS server: addr=127.0.0.1:9944`;
+    const endOfBootSequenceStr = `Running JSON-RPC server: addr=127.0.0.1:9944`;
 
     contractsNodeProcess.stderr?.on('data', (data: string) => {
       logToFile(data);

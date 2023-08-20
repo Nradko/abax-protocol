@@ -10,9 +10,6 @@ import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suit
 import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
-import { ValidateEventParameters } from './scenarios/utils/validateEvents';
-import { subscribeOnEvents } from './scenarios/utils/misc';
-import { maxBy } from 'lodash';
 import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 
@@ -49,7 +46,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
     aTokenWETHContract = reserves['WETH'].aToken;
   });
 
-  describe('Alice and Bob have 10000$ of both DAI and USDC supplied to the leningPool. Then ...', () => {
+  describe('Alice and Bob have 10000$ of both DAI and USDC supplied to the Lending Pool. Then ...', () => {
     let initialDaiBalance: BN;
     let initialUsdcBalance: BN;
 
@@ -93,7 +90,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       await expect(aTokenDaiContract.withSigner(bob).tx.transfer(alice.address, initialDaiBalance.muln(2), [])).to.eventually.be.fulfilled;
     });
 
-    it('Alice should be able to transfer all her balance of aDAI to Bob, event should be emitted and supply should be transferred inside lendingPool contract', async () => {
+    it('Alice should be able to transfer all her balance of aDAI to Bob, event should be emitted and supply should be transferred inside Lending Pool contract', async () => {
       const tx = aTokenDaiContract.withSigner(alice).tx.transfer(bob.address, initialDaiBalance, []);
       await expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
@@ -189,7 +186,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       });
       describe('Bob and Dave gives Alice allowance to transfer vWETH to them', () => {
         beforeEach('giving allowance', async () => {
-          const tx1 = await vTokenWETHContract.withSigner(bob).tx.increaseAllowance(alice.address, aliceDebt);
+          await vTokenWETHContract.withSigner(bob).tx.increaseAllowance(alice.address, aliceDebt);
           await vTokenWETHContract.withSigner(dave).tx.increaseAllowance(alice.address, aliceDebt);
         });
         it('Alice should have apropariate allowance', async () => {
@@ -266,7 +263,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
               await lendingPool.withSigner(bob).tx.borrow(wethContract.address, bob.address, bobDebt, []);
               await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR);
             });
-            it('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+            it.only('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedRepayEvents: RepayVariable[] = [];
               lendingPool.events.subscribeOnRepayVariableEvent((event) => {
                 capturedRepayEvents.push(event);
@@ -337,7 +334,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
               expect(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([]);
             });
 
-            it('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+            it.only('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedDepositEvents: Deposit[] = [];
               lendingPool.events.subscribeOnDepositEvent((event) => {
                 capturedDepositEvents.push(event);
@@ -403,7 +400,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
                 await lendingPool.withSigner(charlie).tx.setAsCollateral(wethContract.address, true);
                 await vTokenWETHContract.withSigner(charlie).tx.increaseAllowance(alice.address, aliceDebt);
               });
-              it('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+              it.only('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
                 const capturedRepayEvents: RepayVariable[] = [];
                 lendingPool.events.subscribeOnRepayVariableEvent((event) => {
                   capturedRepayEvents.push(event);

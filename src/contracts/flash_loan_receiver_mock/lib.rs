@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod flash_loan_receiver_mock {
@@ -50,7 +49,11 @@ pub mod flash_loan_receiver_mock {
             receiver_params: Vec<u8>,
         ) -> Result<(), FlashLoanReceiverError> {
             if self.fail_execute_operation {
-                self.env().emit_event(ExecutedWithFail { assets, amounts, fees });
+                self.env().emit_event(ExecutedWithFail {
+                    assets,
+                    amounts,
+                    fees,
+                });
                 return Err(FlashLoanReceiverError::ExecuteOperationFailed);
             }
             for i in 0..assets.len() {
@@ -63,7 +66,8 @@ pub mod flash_loan_receiver_mock {
                 }
 
                 if self.simulate_balance_to_cover_fee {
-                    if PSP22MintableRef::mint(&assets[i], self.env().account_id(), fees[i]).is_err() {
+                    if PSP22MintableRef::mint(&assets[i], self.env().account_id(), fees[i]).is_err()
+                    {
                         return Err(FlashLoanReceiverError::Custom(format!(
                             "Asset {:X?} is not mintable",
                             assets[i]
@@ -71,13 +75,19 @@ pub mod flash_loan_receiver_mock {
                     }
                 }
 
-                let amount_to_return = self.custom_amount_to_approve.unwrap_or(amounts[i] + fees[i]);
+                let amount_to_return = self
+                    .custom_amount_to_approve
+                    .unwrap_or(amounts[i] + fees[i]);
                 if PSP22Ref::approve(&assets[i], self.env().caller(), amount_to_return).is_err() {
                     return Err(FlashLoanReceiverError::Custom(format!("Can't approve")));
                 }
             }
 
-            self.env().emit_event(ExecutedWithSuccess { assets, amounts, fees });
+            self.env().emit_event(ExecutedWithSuccess {
+                assets,
+                amounts,
+                fees,
+            });
             Ok(())
         }
     }

@@ -6,15 +6,20 @@
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
+#[openbrush::implementation(AccessControl)]
 #[openbrush::contract]
 pub mod lending_pool_v0_flash_facet {
     use ink::codegen::{EmitEvent, Env};
+    use ink::prelude::vec::Vec;
 
     use lending_project::{
-        impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
-        traits::lending_pool::{events::EmitFlashEvents, traits::actions::*},
+        impls::lending_pool::{
+            actions::flash::LendingPoolFlashImpl, storage::lending_pool_storage::LendingPoolStorage,
+        },
+        traits::lending_pool::{
+            errors::LendingPoolError, events::EmitFlashEvents, traits::actions::*,
+        },
     };
 
     use openbrush::{
@@ -37,8 +42,25 @@ pub mod lending_pool_v0_flash_facet {
         lending_pool: LendingPoolStorage,
     }
 
-    /// Implements core lending methods
-    impl LendingPoolFlash for LendingPoolV0FlashFacet {}
+    impl LendingPoolFlashImpl for LendingPoolV0FlashFacet {}
+    impl LendingPoolFlash for LendingPoolV0FlashFacet {
+        #[ink(message)]
+        fn flash_loan(
+            &mut self,
+            receiver_address: AccountId,
+            assets: Vec<AccountId>,
+            amounts: Vec<Balance>,
+            receiver_params: Vec<u8>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolFlashImpl::flash_loan(
+                self,
+                receiver_address,
+                assets,
+                amounts,
+                receiver_params,
+            )
+        }
+    }
 
     impl LendingPoolV0FlashFacet {
         #[ink(constructor)]

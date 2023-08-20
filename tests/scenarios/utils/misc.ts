@@ -1,22 +1,18 @@
 import { handleEventReturn, ReturnNumber } from '@727-ventures/typechain-types';
 import { E18, E6 } from '@abaxfinance/utils';
-import { AbiEvent } from '@polkadot/api-contract/types';
 import { VoidFn } from '@polkadot/api/types';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import AToken from 'typechain/contracts/a_token';
 import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
-import SToken from 'typechain/contracts/s_token';
 import VToken from 'typechain/contracts/v_token';
 import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
 import { getEventTypeDescription } from 'typechain/shared/utils';
 import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import { TestEnv } from './make-suite';
-import { Psp22Ownable } from '@abaxfinance/contract-helpers';
-import { customHandleReturnType } from 'scripts/typechain/query';
 
-export const LINE_SEPARATOR = '='.repeat(process.stdout.columns);
+export const getLineSeparator = () => '='.repeat(process.stdout.columns ?? 60);
 
 async function printTimestamp() {
   const timestamp = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
@@ -34,7 +30,7 @@ export const createEnumChecker = <T extends string, TEnumValue extends string>(e
   return (value: string): value is TEnumValue => enumValues.includes(value);
 };
 export type AnyAbaxContractEventEnumLiteral<T extends AnyAbaxContractEvent> = `${T}`;
-export type AnyAbaxContract = LendingPool | VToken | AToken | SToken | PSP22Emitable;
+export type AnyAbaxContract = LendingPool | VToken | AToken | PSP22Emitable;
 
 const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<AnyAbaxContractEvent>>(
   contract: AnyAbaxContract,

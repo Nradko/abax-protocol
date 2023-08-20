@@ -1,16 +1,13 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
+#[openbrush::implementation(Ownable)]
 #[openbrush::contract]
 pub mod psp22_emitable {
 
     use openbrush::{
         contracts::{
             ownable::*,
-            psp22::{
-                extensions::mintable::PSP22MintableRef,
-                PSP22Error,
-            },
+            psp22::{extensions::mintable::PSP22MintableRef, PSP22Error},
         },
         storage::Mapping,
         traits::Storage,
@@ -32,7 +29,7 @@ pub mod psp22_emitable {
         pub fn new() -> Self {
             let mut instance = Self::default();
             let caller = instance.env().caller();
-            instance._init_with_owner(caller);
+            ownable::Internal::_init_with_owner(&mut instance, caller);
             instance
         }
 
@@ -48,7 +45,7 @@ pub mod psp22_emitable {
                 }
                 self.already_minted.insert(&to, &true);
             } else {
-                return Err(TestReservesMinterError::AlreadyMinted)
+                return Err(TestReservesMinterError::AlreadyMinted);
             }
             Ok(())
         }
