@@ -1,7 +1,4 @@
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 use crate::traits::lending_pool::errors::LendingPoolError;
 use ink::prelude::vec::Vec;
@@ -77,14 +74,18 @@ pub trait LendingPoolBorrow {
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be collateral.
     /// * `use_as_collateral` - true if the user wants to use the asset as collateral, false in the opposite case.
     #[ink(message)]
-    fn set_as_collateral(&mut self, asset: AccountId, use_as_collateral: bool) -> Result<(), LendingPoolError>;
+    fn set_as_collateral(
+        &mut self,
+        asset: AccountId,
+        use_as_collateral: bool,
+    ) -> Result<(), LendingPoolError>;
     /// is used by a user0, once he made a deposit and chosen users collaterals, to borrow an asset from LendingPool.
     /// user0 can specify a Variable or Stable borrow rate by passing 0 or 1 in data\[0\].
     ///
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
-    ///     user1 is making borrow. In case user0 != user1 the allowance on appropriate VToken or SToken will be decreased.
+    ///     user1 is making borrow. In case user0 != user1 the allowance on appropriate VToken will be decreased.
     /// * `amount` - the number of tokens to be borrowed in absolute value (1 USDT = 1_000_000, 1 AZERO = 1_000_000_000_000).
     /// * `data` - additional data to specify borrow options. Right now it is only used to specify Variable or Stable borrow rates.
     #[ink(message)]
@@ -101,7 +102,7 @@ pub trait LendingPoolBorrow {
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
-    ///     user1 is making borrow. In case user0 != user1 the allowance on appropriate VToken or SToken will be decreased.
+    ///     user1 is making borrow. In case user0 != user1 the allowance on appropriate VToken will be decreased.
     /// * `amount_arg` - the number of tokens to be repaid. Pass None to repay all debt or Some in absolute value (1USDT = 1_000_000, 1AZERO = 1_000_000_000_000).
     /// * `data` - additional data to specify repayment options. Right now it is only used to specify Variable or Stable borrow rates.
     #[ink(message)]
@@ -152,7 +153,11 @@ pub trait LendingPoolMaintain {
     ///  * `reserve_token_address` - AccountId (aka address) of an asset to update price for
     ///  * `price_e8` - price of the token in E8 notation (multiplied by 10^8)
     #[ink(message)]
-    fn insert_reserve_token_price_e8(&mut self, asset: AccountId, price_e8: u128) -> Result<(), LendingPoolError>;
+    fn insert_reserve_token_price_e8(
+        &mut self,
+        asset: AccountId,
+        price_e8: u128,
+    ) -> Result<(), LendingPoolError>;
 }
 
 /// contains `flash_looan` function

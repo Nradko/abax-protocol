@@ -1,8 +1,10 @@
 import util from 'node:util';
 import fs from 'fs-extra';
+import chalk from 'chalk';
 import { exec, spawn } from 'child_process';
 import path from 'path';
 import glob from 'glob';
+import { getLineSeparator } from 'tests/scenarios/utils/misc';
 export const execPromise = util.promisify(exec);
 
 export const createFileWithDirectoriesSync = (filePath: string, data: string) => {
@@ -13,7 +15,9 @@ export const createFileWithDirectoriesSync = (filePath: string, data: string) =>
 export const compileContract = async (contractPath: string) => {
   const command = 'cargo';
   const args = ['contract', 'build', ...(process.env.BUILD_PROD ? ['--release'] : [])];
-  console.log(`running ${command} ${args.join(' ')}...`);
+  console.log(getLineSeparator());
+  console.log(chalk.bgGreen(`running ${command} ${args.join(' ')}...`));
+  console.log(getLineSeparator());
 
   return new Promise<number>((resolve, reject) => {
     const process = spawn(command, args, { cwd: contractPath, stdio: 'inherit' });
@@ -57,7 +61,9 @@ const getContractsFolderPath = (contractsRootPath: string, contractName: string)
 
 export const compileContractByNameAndCopyArtifacts = async (contractsRootPath: string, contractName: string) => {
   const contractFolderPath = getContractsFolderPath(contractsRootPath, contractName);
-  console.log(`compiling contract ${contractName} from ${contractFolderPath}...`);
+  console.log(getLineSeparator());
+  console.log(chalk.bgGreen(`compiling contract ${contractName} from ${contractFolderPath}...`));
+  console.log(getLineSeparator());
   try {
     await compileContract(contractFolderPath);
   } catch (e) {

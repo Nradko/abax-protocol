@@ -1,10 +1,8 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
+#[openbrush::implementation(PSP22, PSP22Metadata, PSP22Mintable)]
 #[openbrush::contract]
 pub mod psp22_emitable {
-
-    // use lending_project::traits::managing::*;
     use openbrush::{
         contracts::psp22::extensions::{burnable::*, metadata::*, mintable::*},
         traits::Storage,
@@ -21,23 +19,14 @@ pub mod psp22_emitable {
         metadata: metadata::Data,
     }
 
-    impl PSP22 for PSP22EmitableContract {}
-
-    impl PSP22Metadata for PSP22EmitableContract {}
-
-    // impl Managing for PSP22EmitableContract {}
-
     impl PSP22EmitableContract {
         #[ink(constructor)]
         pub fn new(name: String, symbol: String, decimal: u8) -> Self {
             let mut instance = Self::default();
-            instance.metadata.name = Some(name.into());
-            instance.metadata.symbol = Some(symbol.into());
-            instance.metadata.decimals = decimal;
-
+            instance.metadata.name.set(&name.into());
+            instance.metadata.symbol.set(&symbol.into());
+            instance.metadata.decimals.set(&decimal);
             instance
         }
     }
-
-    impl PSP22Mintable for PSP22EmitableContract {}
 }

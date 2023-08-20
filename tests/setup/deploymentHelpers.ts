@@ -7,23 +7,38 @@ import BN from 'bn.js';
 import fs, { readFileSync } from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
-import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import { FacetCut } from 'typechain/types-arguments/diamond';
-import ATokenContract from '../../typechain/contracts/a_token';
-import BlockTimestampProvider from '../../typechain/contracts/block_timestamp_provider';
-import DiamondContract from '../../typechain/contracts/diamond';
-import LendingPool from '../../typechain/contracts/lending_pool';
-import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
-import PSP22Ownable from '../../typechain/contracts/psp22_ownable';
-import TestReservesMinter from '../../typechain/contracts/test_reserves_minter';
-import STokenContract from '../../typechain/contracts/s_token';
-import VTokenContract from '../../typechain/contracts/v_token';
-import BalanceViewer from '../../typechain/contracts/balance_viewer';
+import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
+import ATokenContract from 'typechain/contracts/a_token';
+import BlockTimestampProvider from 'typechain/contracts/block_timestamp_provider';
+import DiamondContract from 'typechain/contracts/diamond';
+import LendingPool from 'typechain/contracts/lending_pool';
+import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Ownable from 'typechain/contracts/psp22_ownable';
+import TestReservesMinter from 'typechain/contracts/test_reserves_minter';
+import VTokenContract from 'typechain/contracts/v_token';
+import BalanceViewer from 'typechain/contracts/balance_viewer';
+// import TestPSP22FacetV1 from 'typechain/contracts/test_psp22_facet_v1';
+
+import FlashLoanReceiverMockConstructor from 'typechain/constructors/flash_loan_receiver_mock';
+import ATokenContractConstructor from 'typechain/constructors/a_token';
+import BlockTimestampProviderConstructor from 'typechain/constructors/block_timestamp_provider';
+import DiamondContractConstructor from 'typechain/constructors/diamond';
+import LendingPoolConstructor from 'typechain/constructors/lending_pool';
+// import TestPSP22FacetV1Constructor from 'typechain/constructors/test_psp22_facet_v1';
+import PSP22EmitableConstructor from 'typechain/constructors/psp22_emitable';
+import PSP22OwnableConstructor from 'typechain/constructors/psp22_ownable';
+import TestReservesMinterConstructor from 'typechain/constructors/test_reserves_minter';
+import VTokenContractConstructor from 'typechain/constructors/v_token';
+import BalanceViewerConstructor from 'typechain/constructors/balance_viewer';
+
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './helpers';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
 import { toE6 } from '@abaxfinance/utils';
-import { LINE_SEPARATOR } from 'tests/scenarios/utils/misc';
+import { getLineSeparator } from 'tests/scenarios/utils/misc';
+import { AbiMessage } from '@polkadot/api-contract/types';
+import { SignAndSendSuccessResponse, _genValidGasLimitAndValue, _signAndSend } from '@727-ventures/typechain-types';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());
@@ -31,6 +46,12 @@ const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
 
   return new CodePromise(api, abi, wasm);
 };
+
+// export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldReturnMockValue = false) => {
+//   const blockTimestampProviderRet = await new BlockTimestampProviderConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(false, owner.address);
+//   const blockTimestampProvider = await getContractObject(BlockTimestampProvider, blockTimestampProviderRet.address, owner);
+//   return blockTimestampProvider;
+// };
 export const setupContract = async (signer: KeyringPair, contractName: string, constructorName: string, ...constructorArgs: any[]) => {
   const api = await apiProviderWrapper.getAndWaitForReady();
   const codePromise = getCodePromise(api, contractName);
@@ -102,54 +123,124 @@ const deployWithLog = async <T>(
 };
 
 export const deployLendingPool = async (owner: KeyringPair) => await deployWithLog(owner, LendingPool, 'lending_pool');
+//TODO currently deployment using typechain fails
+// export const deployLendingPool = async (owner: KeyringPair) => {
+//   const deployRet = await new LendingPoolConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
+//   return getContractObject(LendingPool, deployRet.address, owner);
+// };
 
-export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldReturnMockValue = false) =>
-  await deployWithLog(owner, BlockTimestampProvider, 'block_timestamp_provider', shouldReturnMockValue, owner.address);
-
-export const deployAToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
-  deployWithLog(owner, ATokenContract, 'a_token', 'AToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
-
-export const deployVToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
-  deployWithLog(owner, VTokenContract, 'v_token', 'VToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
-
-export const deploySToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
-  deployWithLog(owner, STokenContract, 's_token', 'SToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
-
-export const deployEmitableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
-  return deployWithLog(owner, PSP22Emitable, 'psp22_emitable', name, `Reserve ${name} token `, decimals);
+export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldReturnMockValue = false, speedMultiplier = 1) => {
+  const deployRet = await new BlockTimestampProviderConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    shouldReturnMockValue,
+    owner.address,
+    speedMultiplier,
+  );
+  return getContractObject(BlockTimestampProvider, deployRet.address, owner);
 };
 
-export const deployOwnableToken = async (signer: KeyringPair, name: string, decimals: number = 6, tokenOwnerAddress: string) => {
-  return deployWithLog(signer, PSP22Ownable, 'psp22_ownable', name, `Reserve ${name} token `, decimals, tokenOwnerAddress);
+export const deployAToken = async (
+  owner: KeyringPair,
+  symbol: string,
+  decimal: number,
+  lendingPoolAddress: string,
+  underlyingAssetAddress: string,
+) => {
+  const deployRet = await new ATokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    'AToken',
+    symbol,
+    decimal,
+    lendingPoolAddress,
+    underlyingAssetAddress,
+  );
+  return getContractObject(ATokenContract, deployRet.address, owner);
+};
+
+export const deployVToken = async (
+  owner: KeyringPair,
+  symbol: string,
+  decimal: number,
+  lendingPoolAddress: string,
+  underlyingAssetAddress: string,
+) => {
+  const deployRet = await new VTokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    'VToken',
+    symbol,
+    decimal,
+    lendingPoolAddress,
+    underlyingAssetAddress,
+  );
+  return getContractObject(VTokenContract, deployRet.address, owner);
+};
+
+export const deployEmitableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
+  const deployRet = await new PSP22EmitableConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    name,
+    `Reserve ${name} token `,
+    decimals,
+  );
+  return getContractObject(PSP22Emitable, deployRet.address, owner);
+};
+
+export const deployOwnableToken = async (owner: KeyringPair, name: string, decimals: number = 6, tokenOwnerAddress: string) => {
+  const deployRet = await new PSP22OwnableConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    name,
+    `Reserve ${name} token `,
+    decimals,
+    tokenOwnerAddress,
+  );
+  return getContractObject(PSP22Ownable, deployRet.address, owner);
 };
 
 export const deployTestReservesMinter = async (owner: KeyringPair) => {
-  return deployWithLog(owner, TestReservesMinter, 'test_reserves_minter');
+  const deployRet = await new TestReservesMinterConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
+  return getContractObject(TestReservesMinter, deployRet.address, owner);
 };
 
 export const deployFlashLoanReceiverMock = async (owner: KeyringPair) => {
-  return deployWithLog(owner, FlashLoanReceiverMock, 'flash_loan_receiver_mock');
+  const deployRet = await new FlashLoanReceiverMockConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
+  return getContractObject(FlashLoanReceiverMock, deployRet.address, owner);
 };
 
 export const deployBalanceViewer = async (owner: KeyringPair, lendingPoolAddress: string) => {
-  return deployWithLog(owner, BalanceViewer, 'balance_viewer', lendingPoolAddress);
+  const deployRet = await new BalanceViewerConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(lendingPoolAddress);
+  return getContractObject(BalanceViewer, deployRet.address, owner);
 };
 
-export const deployDiamond = async (owner: KeyringPair) => deployWithLog(owner, DiamondContract, 'diamond', owner.address);
-
-const getSelectorsFromMessages = (messages) => {
-  return messages.map((message) => {
-    return message.selector;
-  });
+export const deployDiamond = async (owner: KeyringPair) => {
+  const deployRet = await new DiamondContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(owner.address);
+  return getContractObject(DiamondContract, deployRet.address, owner);
 };
 
-const getSelectorByName = (messages, name) => {
-  return messages.filter((message) => {
-    return message.label === name;
-  })[0].selector;
-};
+const getSelectorsFromMessages = (messages: AbiMessage[]) => messages.map((message) => message.selector.toU8a() as unknown as number[]);
 
-export const setupUpgradableContract = async <T>(
+const getSelectorByName = (messages: AbiMessage[], name: string) =>
+  messages.filter((message) => message.identifier === name)[0].selector.toU8a() as unknown as number[];
+// async function setupPSP22Facet(signer: KeyringPair) {
+//   const api = await ApiPromise.create();
+
+//   const signers = getSigners();
+//   const alice = signers[0];
+//   const bob = signers[1];
+
+//   const contractFactory = new TestPSP22FacetV1Constructor(api, signer);
+//   const contractAddress = (await contractFactory.new()).address;
+//   const contract = new TestPSP22FacetV1(contractAddress, signer, api);
+
+//   return {
+//     api,
+//     signer,
+//     alice,
+//     bob,
+//     contract,
+//     query: contract.query,
+//     tx: contract.tx,
+//     abi: contract.abi,
+//     close: async () => {
+//       await api.disconnect();
+//     },
+//   };
+// }
+export const setupDiamondContract = async <T>(
   constructor: new (address: string, signer: KeyringPair, nativeAPI: ApiPromise) => T,
   defaultSigner: KeyringPair,
   owner: KeyringPair,
@@ -157,43 +248,60 @@ export const setupUpgradableContract = async <T>(
   facets: string[],
 ) => {
   const api = await apiProviderWrapper.getAndWaitForReady();
-  const diamondContract = await deployWithLog(defaultSigner, DiamondContract, 'diamond', owner.address);
-  const initCodePromise = getCodePromise(api, facetWithInitializeMethod);
 
-  //await api.tx.contracts.uploadCode(initCodePromise.code, null);
-  await deployWithLog(defaultSigner, constructor, facetWithInitializeMethod);
+  const initFacetCodePromise = getCodePromise(api, facetWithInitializeMethod);
+  const gasLimit = (await _genValidGasLimitAndValue(api)).gasLimit as WeightV2;
+  const tx = initFacetCodePromise.tx['new']!({ gasLimit });
+  const response = await _signAndSend(api.registry, tx, owner, (event: any) => event);
+  //@ts-ignore
+  const initFacetAddress = (response as SignAndSendSuccessResponse)!.result!.contract.address.toString();
 
-  const initCodeHash = (initCodePromise.abi.json.source as any).hash as string;
-  const initMessages = (initCodePromise.abi.json as any).spec.messages;
-  const initSelector = getSelectorByName(initMessages, 'initialize_contract');
-  const initSelectors = getSelectorsFromMessages(initMessages);
-  const initCut: FacetCut[] = [{ hash: initCodeHash, selectors: initSelectors }];
+  const initFacetWasmHash = initFacetCodePromise.abi.info.source.wasmHash.toString();
+  const initFacetMessages = initFacetCodePromise.abi.messages;
+  const initSelector = getSelectorByName(initFacetMessages, 'initialize_contract');
+  const initFacetSelectors = getSelectorsFromMessages(initFacetMessages);
+  const initCut: FacetCut[] = [{ hash: initFacetWasmHash, selectors: initFacetSelectors }];
+  // const { contract: psp22Facet, abi, signer } = await setupPSP22Facet(defaultSigner);
 
+  // const initFacetWasmHash = abi.info.source.wasmHash.toString();
+  // const psp22Messages = abi.messages;
+
+  // const initSelector = getSelectorByName(psp22Messages, 'init_psp22');
+  // const psp22Selectors = getSelectorsFromMessages(psp22Messages);
+  // const initCut = [{ hash: initFacetWasmHash, selectors: psp22Selectors }];
+
+  const diamondContract = await deployDiamond(owner);
   await diamondContract.query.diamondCut(initCut, {
-    hash: initCodeHash,
-    selector: initSelector,
-    input: [],
-  });
-  await diamondContract.tx.diamondCut(initCut, {
-    hash: initCodeHash,
+    hash: initFacetWasmHash,
     selector: initSelector,
     input: [],
   });
 
-  const initCutRemove = [{ hash: initCodeHash, selectors: [] }];
+  await diamondContract.tx.diamondCut(initCut, {
+    hash: initFacetWasmHash,
+    selector: initSelector,
+    input: [],
+  });
+
+  const initCutRemove = [{ hash: initFacetWasmHash, selectors: [] }];
   await diamondContract.tx.diamondCut(initCutRemove, null);
 
   const cuts: FacetCut[] = [];
   for (const facet of facets) {
     const facetCodePromise = getCodePromise(api, facet);
-    //await api.tx.contracts.uploadCode(facetCodePromise.code, null);
     await deployWithLog(defaultSigner, LendingPool, facet);
-    const facetCodeHash = (facetCodePromise.abi.json.source as any).hash as string;
-    const facetMessages = (facetCodePromise.abi.json.V3 as any).spec.messages;
+    const facetCodeHash = facetCodePromise.abi.info.source.wasmHash.toString();
+    const facetMessages = facetCodePromise.abi.messages;
     const facetSelectors = getSelectorsFromMessages(facetMessages);
-    cuts.push({ hash: facetCodeHash, selectors: facetSelectors });
+    const facetCut = { hash: facetCodeHash, selectors: facetSelectors };
+    cuts.push(facetCut);
+    const res = await diamondContract.query.diamondCut([facetCut], null);
+    try {
+      await diamondContract.tx.diamondCut([facetCut], null);
+    } catch (e) {
+      console.log(res.value.err);
+    }
   }
-  await diamondContract.tx.diamondCut(cuts, null);
 
   return new constructor(diamondContract.address, defaultSigner, api);
 };
@@ -208,14 +316,19 @@ export const getContractObject = async <T>(
 //reserveDatas: ReserveTokenDeploymentData
 export async function deployCoreContracts(owner: KeyringPair) {
   if (process.env.DEBUG) {
-    console.log(LINE_SEPARATOR);
+    console.log(getLineSeparator());
     console.log('Deploying contracts');
-    console.log(LINE_SEPARATOR);
+    console.log(getLineSeparator());
     console.log(`Deployer: ${owner.address}`);
   }
   const blockTimestampProvider = await deployBlockTimestampProvider(owner);
+
+  // fallback:
   const lendingPool = await deployLendingPool(owner);
-  // const lendingPool = await setupUpgradableContract(LendingPool, owner, owner, 'lending_pool_v0_initialize_facet', [
+
+  // const initFacet = 'lending_pool_v0_initialize_facet';
+  // const functionalFacets = [
+  //   'lending_pool_v0_manage_facet',
   //   'lending_pool_v0_borrow_facet',
   //   'lending_pool_v0_deposit_facet',
   //   'lending_pool_v0_flash_facet',
@@ -223,10 +336,9 @@ export async function deployCoreContracts(owner: KeyringPair) {
   //   'lending_pool_v0_maintain_facet',
   //   'lending_pool_v0_a_token_interface_facet',
   //   'lending_pool_v0_v_token_interface_facet',
-  //   'lending_pool_v0_s_token_interface_facet',
-  //   'lending_pool_v0_manage_facet',
   //   'lending_pool_v0_view_facet',
-  // ]);
+  // ];
+  // const lendingPool = await setupDiamondContract(LendingPool, owner, owner, initFacet, functionalFacets);
   return { blockTimestampProvider, lendingPool };
 }
 

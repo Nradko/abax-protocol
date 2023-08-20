@@ -6,11 +6,13 @@
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod lending_pool_v0_liquidate_facet {
     use ink::codegen::{EmitEvent, Env};
+    use ink::prelude::vec::Vec;
+    use lending_project::impls::lending_pool::actions::liquidate::LendingPoolLiquidateImpl;
+    use lending_project::traits::lending_pool::errors::LendingPoolError;
     use lending_project::{
         impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
         traits::lending_pool::traits::actions::*,
@@ -38,7 +40,29 @@ pub mod lending_pool_v0_liquidate_facet {
     }
 
     /// Implements core lending methods
-    impl LendingPoolLiquidate for LendingPoolV0LiquidateFacet {}
+    impl LendingPoolLiquidateImpl for LendingPoolV0LiquidateFacet {}
+    impl LendingPoolLiquidate for LendingPoolV0LiquidateFacet {
+        #[ink(message)]
+        fn liquidate(
+            &mut self,
+            liquidated_user: AccountId,
+            asset_to_repay: AccountId,
+            asset_to_take: AccountId,
+            amount_to_repay: Option<Balance>,
+            minimum_recieved_for_one_repaid_token_e18: u128,
+            #[allow(unused_variables)] data: Vec<u8>,
+        ) -> Result<(Balance, Balance), LendingPoolError> {
+            LendingPoolLiquidateImpl::liquidate(
+                self,
+                liquidated_user,
+                asset_to_repay,
+                asset_to_take,
+                amount_to_repay,
+                minimum_recieved_for_one_repaid_token_e18,
+                data,
+            )
+        }
+    }
 
     impl LendingPoolV0LiquidateFacet {
         #[ink(constructor)]
@@ -48,7 +72,7 @@ pub mod lending_pool_v0_liquidate_facet {
     }
 
     #[ink(event)]
-    pub struct LiquidationVariableEvent {
+    pub struct LiquidationVariable {
         liquidator: AccountId,
         user: AccountId,
         asset_to_rapay: AccountId,
@@ -58,7 +82,7 @@ pub mod lending_pool_v0_liquidate_facet {
     }
 
     impl EmitLiquidateEvents for LendingPoolV0LiquidateFacet {
-        default fn _emit_liquidation_variable_event(
+        fn _emit_liquidation_variable_event(
             &mut self,
             liquidator: AccountId,
             user: AccountId,
@@ -67,7 +91,7 @@ pub mod lending_pool_v0_liquidate_facet {
             amount_repaid: Balance,
             amount_taken: Balance,
         ) {
-            self.env().emit_event(LiquidationVariableEvent {
+            self.env().emit_event(LiquidationVariable {
                 liquidator,
                 user,
                 asset_to_rapay,

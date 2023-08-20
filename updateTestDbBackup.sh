@@ -8,7 +8,8 @@ fi
 TMP_DIR_NAME="test-chain-state-tmp"
 TEST_BP_DIR="test-chain-state-bp"
 rm -rf test-chain-state*
-($SCRIPT_DIR/substrate-contracts-node --dev --base-path $SCRIPT_DIR/$TMP_DIR_NAME --ws-port 9944)&
+mkdir $TMP_DIR_NAME
+($SCRIPT_DIR/substrate-contracts-node --dev --base-path $SCRIPT_DIR/$TMP_DIR_NAME --rpc-port 9944)&
 NODE_PID=$!
 sleep 1 #precautiously wait for node to finish start up
 npx ts-node $SCRIPT_DIR/runWithoutWarnings.ts npx ts-node $SCRIPT_DIR/scripts/deployTest.ts path=$SCRIPT_DIR/tests/setup shouldUseMockTimestamp=true
