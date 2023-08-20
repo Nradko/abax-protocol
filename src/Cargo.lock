@@ -982,8 +982,8 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "openbrush"
-version = "3.1.1"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=3.1.1#13e82f3f02e8ea65a95ea02c381106ea738e1fb8"
+version = "4.0.0-beta"
+source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "ink",
  "openbrush_contracts",
@@ -994,8 +994,8 @@ dependencies = [
 
 [[package]]
 name = "openbrush_contracts"
-version = "3.1.1"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=3.1.1#13e82f3f02e8ea65a95ea02c381106ea738e1fb8"
+version = "4.0.0-beta"
+source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "ink",
  "openbrush_lang",
@@ -1006,8 +1006,8 @@ dependencies = [
 
 [[package]]
 name = "openbrush_lang"
-version = "3.1.1"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=3.1.1#13e82f3f02e8ea65a95ea02c381106ea738e1fb8"
+version = "4.0.0-beta"
+source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "const_format",
  "ink",
@@ -1019,8 +1019,8 @@ dependencies = [
 
 [[package]]
 name = "openbrush_lang_codegen"
-version = "3.1.1"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=3.1.1#13e82f3f02e8ea65a95ea02c381106ea738e1fb8"
+version = "4.0.0-beta"
+source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "blake2 0.9.2",
  "cargo_metadata",
@@ -1039,8 +1039,8 @@ dependencies = [
 
 [[package]]
 name = "openbrush_lang_macro"
-version = "3.1.1"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=3.1.1#13e82f3f02e8ea65a95ea02c381106ea738e1fb8"
+version = "4.0.0-beta"
+source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "openbrush_lang_codegen",
  "proc-macro2",
@@ -1051,7 +1051,7 @@ dependencies = [
 [[package]]
 name = "pallet-assets-chain-extension"
 version = "0.1.1"
-source = "git+https://github.com/727-ventures/pallet-assets-chain-extension?branch=polkadot-v0.9.37#f8ea374186df2a3fc139c8d585719e58d83df582"
+source = "git+https://github.com/Brushfam/pallet-assets-chain-extension?branch=polkadot-v0.9.37#f8ea374186df2a3fc139c8d585719e58d83df582"
 dependencies = [
  "ink",
  "obce",
