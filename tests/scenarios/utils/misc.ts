@@ -14,6 +14,7 @@ import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_po
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import { TestEnv } from './make-suite';
 import { Psp22Ownable } from '@abaxfinance/contract-helpers';
+import { customHandleReturnType } from 'scripts/typechain/query';
 
 export const LINE_SEPARATOR = '='.repeat(process.stdout.columns);
 
@@ -35,52 +36,56 @@ export const createEnumChecker = <T extends string, TEnumValue extends string>(e
 export type AnyAbaxContractEventEnumLiteral<T extends AnyAbaxContractEvent> = `${T}`;
 export type AnyAbaxContract = LendingPool | VToken | AToken | SToken | PSP22Emitable;
 
-export const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<AnyAbaxContractEvent>>(
+const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<AnyAbaxContractEvent>>(
   contract: AnyAbaxContract,
-  eventName: TEvent,
-  callback: (event: TEvent, timestamp: number) => void,
-) => {
-  const callbackWrapper = (args: any[], event: AbiEvent, timestamp: number) => {
-    const _event: Record<string, any> = {};
-
-    for (let i = 0; i < args.length; i++) {
-      _event[event.args[i].name] = args[i].toJSON();
-    }
-
-    callback(handleEventReturn(_event, getEventTypeDescription(eventName, contract.name)) as TEvent, timestamp);
-  };
-  return __subscribeOnEvent(contract, callbackWrapper, (name: string) => name === eventName);
-};
-
-const __subscribeOnEvent = async (
-  contract: AnyAbaxContract,
-  callback: (args: any[], event: AbiEvent, timestamp: number) => void,
-  filter: (eventName: string) => boolean = () => true,
+  eventName: string,
+  cb: (event: TEvent, timestamp: number) => void,
 ) => {
   const api = await apiProviderWrapper.getAndWaitForReady();
   // @ts-ignore
-  return api.query.system.events(async (events) => {
-    for (const record of events) {
-      const { event } = record;
+  return api.query.system.events((events) => {
+    try {
+      for (const record of events) {
+        const { event } = record;
 
-      if (event.method === 'ContractEmitted') {
-        const [address, data] = record.event.data;
+        if (event.method === 'ContractEmitted') {
+          const [address, data] = record.event.data;
 
-        if (address.toString() === contract.address.toString()) {
-          const { args, event: ev } = contract.abi.decodeEvent(data);
+          if (address.toString() === contract.address.toString()) {
+            const eventDecoded = contract.abi.decodeEvent(data);
 
-          if (filter(ev.identifier.toString())) {
-            const timestamp = await api.query.timestamp.now();
-            // console.table({ eventName: ev.identifier.toString(), timestamp: timestamp.toString() });
-            callback(args, ev, parseInt(timestamp.toString()));
+            if (eventDecoded.event.identifier.toString() === eventName) {
+              api.query.timestamp.now().then((timestamp) => {
+                try {
+                  // console.table({ eventName: eventDecoded.event.identifier.toString(), timestamp: timestamp.toString() });
+
+                  const _event: Record<string, any> = {};
+                  for (let i = 0; i < eventDecoded.args.length; i++) {
+                    _event[eventDecoded.event.args[i].name] = eventDecoded.args[i].toJSON();
+                  }
+
+                  const eventParsed = handleEventReturn(
+                    _event,
+                    // eslint-disable-next-line @typescript-eslint/no-var-requires
+                    getEventTypeDescription(eventName, require(`typechain/event-data/${contract.name}.json`)),
+                  ) as TEvent;
+                  const timestampParsed = parseInt(timestamp.toString());
+                  cb(eventParsed, timestampParsed);
+                } catch (e) {
+                  console.error('Fatal error during processing events from api.query.system.events', 'api.query.timestamp.now', e);
+                }
+              });
+            }
           }
         }
       }
+    } catch (e) {
+      console.error('Fatal error during processing events from api.query.system.events', e);
     }
   });
 };
 
-export const subscribeOnEvents = (
+export const subscribeOnEvents = async (
   testEnv: TestEnv,
   reserveName: string,
   callback: (eventName: string, event: AnyAbaxContractEvent, emitingContract: AnyAbaxContract, timestamp: number) => void,
@@ -89,8 +94,10 @@ export const subscribeOnEvents = (
   const reserve = reserves[reserveName];
 
   const subscribePromises: Promise<any>[] = [];
-  const callbackDecorator = (eventName: string, emitingContract: AnyAbaxContract) => (event: AnyAbaxContractEvent, timestamp: number) =>
-    callback(eventName, event, emitingContract, timestamp);
+  const callbackDecorator = (eventName: string, emitingContract: AnyAbaxContract) => (event: AnyAbaxContractEvent, timestamp: number) => {
+    // console.log('callbackDecorator', { eventName, event, emitingContract, timestamp });
+    return callback(eventName, event, emitingContract, timestamp);
+  };
 
   for (const event of Object.values(ContractsEvents.LendingPoolEvent)) {
     subscribePromises.push(subscribeOnEvent(lendingPool, event, callbackDecorator(event, lendingPool)));
