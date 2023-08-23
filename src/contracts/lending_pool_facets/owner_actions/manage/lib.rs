@@ -6,13 +6,18 @@
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
+#[openbrush::implementation(AccessControl)]
 #[openbrush::contract]
 pub mod lending_pool_v0_manage_facet {
     use ink::codegen::{EmitEvent, Env};
+    use ink::prelude::vec::Vec;
+    use lending_project::impls::lending_pool::manage::LendingPoolManageImpl;
+    use lending_project::impls::lending_pool::storage::lending_pool_storage::MarketRule;
+    use lending_project::traits::lending_pool::errors::LendingPoolError;
     use lending_project::{
-        impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage, traits::lending_pool::traits::manage::*,
+        impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
+        traits::lending_pool::traits::manage::*,
     };
     // use openbrush::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
@@ -37,9 +42,131 @@ pub mod lending_pool_v0_manage_facet {
     }
 
     /// Implements core lending methods
-    impl LendingPoolManage for LendingPoolV0ManageFacet {}
-    impl Ownable for LendingPoolV0ManageFacet {}
-    impl AccessControl for LendingPoolV0ManageFacet {}
+    impl LendingPoolManageImpl for LendingPoolV0ManageFacet {}
+    impl LendingPoolManage for LendingPoolV0ManageFacet {
+        #[ink(message)]
+        fn set_block_timestamp_provider(
+            &mut self,
+            provider_address: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_block_timestamp_provider(self, provider_address)
+        }
+
+        #[ink(message)]
+        fn register_asset(
+            &mut self,
+            asset: AccountId,
+            decimals: u128,
+            collateral_coefficient_e6: Option<u128>,
+            borrow_coefficient_e6: Option<u128>,
+            penalty_e6: Option<u128>,
+            maximal_total_supply: Option<Balance>,
+            maximal_total_debt: Option<Balance>,
+            minimal_collateral: Balance,
+            minimal_debt: Balance,
+            income_for_suppliers_part_e6: u128,
+            flash_loan_fee_e6: u128,
+            a_token_address: AccountId,
+            v_token_address: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::register_asset(
+                self,
+                asset,
+                decimals,
+                collateral_coefficient_e6,
+                borrow_coefficient_e6,
+                penalty_e6,
+                maximal_total_supply,
+                maximal_total_debt,
+                minimal_collateral,
+                minimal_debt,
+                income_for_suppliers_part_e6,
+                flash_loan_fee_e6,
+                a_token_address,
+                v_token_address,
+            )
+        }
+
+        #[ink(message)]
+        fn set_reserve_is_active(
+            &mut self,
+            asset: AccountId,
+            active: bool,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_reserve_is_active(self, asset, active)
+        }
+
+        #[ink(message)]
+        fn set_reserve_is_freezed(
+            &mut self,
+            asset: AccountId,
+            freeze: bool,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_reserve_is_freezed(self, asset, freeze)
+        }
+
+        #[ink(message)]
+        fn set_reserve_parameters(
+            &mut self,
+            asset: AccountId,
+            interest_rate_model: [u128; 7],
+            maximal_total_supply: Option<Balance>,
+            maximal_total_debt: Option<Balance>,
+            minimal_collateral: Balance,
+            minimal_debt: Balance,
+            income_for_suppliers_part_e6: u128,
+            flash_loan_fee_e6: u128,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_reserve_parameters(
+                self,
+                asset,
+                interest_rate_model,
+                maximal_total_supply,
+                maximal_total_debt,
+                minimal_collateral,
+                minimal_debt,
+                income_for_suppliers_part_e6,
+                flash_loan_fee_e6,
+            )
+        }
+
+        #[ink(message)]
+        fn add_market_rule(
+            &mut self,
+            market_rule_id: u64,
+            market_rule: MarketRule,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::add_market_rule(self, market_rule_id, market_rule)
+        }
+
+        #[ink(message)]
+        fn modify_asset_rule(
+            &mut self,
+            market_rule_id: u64,
+            asset: AccountId,
+            collateral_coefficient_e6: Option<u128>,
+            borrow_coefficient_e6: Option<u128>,
+            penalty_e6: Option<u128>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::modify_asset_rule(
+                self,
+                market_rule_id,
+                asset,
+                collateral_coefficient_e6,
+                borrow_coefficient_e6,
+                penalty_e6,
+            )
+        }
+
+        #[ink(message)]
+        fn take_protocol_income(
+            &mut self,
+            assets: Option<Vec<AccountId>>,
+            to: AccountId,
+        ) -> Result<Vec<(AccountId, i128)>, LendingPoolError> {
+            LendingPoolManageImpl::take_protocol_income(self, assets, to)
+        }
+    }
 
     impl LendingPoolV0ManageFacet {
         #[ink(constructor)]
@@ -118,10 +245,16 @@ pub mod lending_pool_v0_manage_facet {
         }
 
         fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool) {
-            self.env().emit_event(ReserveActivated { asset: *asset, active });
+            self.env().emit_event(ReserveActivated {
+                asset: *asset,
+                active,
+            });
         }
         fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, freezed: bool) {
-            self.env().emit_event(ReserveFreezed { asset: *asset, freezed })
+            self.env().emit_event(ReserveFreezed {
+                asset: *asset,
+                freezed,
+            })
         }
 
         fn _emit_reserve_parameters_changed_event(

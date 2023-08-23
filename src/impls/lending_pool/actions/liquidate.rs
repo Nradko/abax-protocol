@@ -1,38 +1,20 @@
 use checked_math::checked_math;
-use ink::prelude::{
-    vec::Vec,
-    *,
-};
+use ink::prelude::{vec::Vec, *};
 
 use openbrush::{
     contracts::traits::psp22::*,
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
+    traits::{AccountId, Balance, Storage},
 };
 
 use crate::{
     impls::{
-        constants::{
-            E18,
-            E6,
-            MATH_ERROR_MESSAGE,
-        },
+        constants::{E18, E6, MATH_ERROR_MESSAGE},
         lending_pool::{
-            internal::{
-                _accumulate_interest,
-                *,
-            },
+            internal::{_accumulate_interest, *},
             storage::{
-                lending_pool_storage::{
-                    LendingPoolStorage,
-                    MarketRule,
-                },
+                lending_pool_storage::{LendingPoolStorage, MarketRule},
                 structs::{
-                    reserve_data::ReserveData,
-                    user_config::UserConfig,
+                    reserve_data::ReserveData, user_config::UserConfig,
                     user_reserve_data::UserReserveData,
                 },
             },
@@ -40,16 +22,14 @@ use crate::{
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{
-            errors::LendingPoolError,
-            events::*,
-            traits::actions::LendingPoolLiquidate,
-        },
+        lending_pool::{errors::LendingPoolError, events::EmitLiquidateEvents},
     },
 };
 
-impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate for T {
-    default fn liquidate(
+pub trait LendingPoolLiquidateImpl:
+    Storage<LendingPoolStorage> + LiquidateInternal + EmitLiquidateEvents
+{
+    fn liquidate(
         &mut self,
         liquidated_user: AccountId,
         asset_to_repay: AccountId,
@@ -58,8 +38,13 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
         minimum_recieved_for_one_repaid_token_e18: u128,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
         let caller = Self::env().caller();
         let (
             mut reserve_data_to_repay,
@@ -79,7 +64,12 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             UserConfig,
             UserReserveData,
             MarketRule,
-        ) = self._pull_data_for_liquidate(&asset_to_repay, &asset_to_take, &liquidated_user, &caller)?;
+        ) = self._pull_data_for_liquidate(
+            &asset_to_repay,
+            &asset_to_take,
+            &liquidated_user,
+            &caller,
+        )?;
         let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(
             &liquidated_user,
             &user_config,
@@ -87,7 +77,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             block_timestamp,
         )?;
         if collaterized {
-            return Err(LendingPoolError::Collaterized)
+            return Err(LendingPoolError::Collaterized);
         }
         let asset_to_repay_price_e8 = reserve_data_to_repay.token_price_e8()?;
         let asset_to_take_price_e8 = reserve_data_to_take.token_price_e8()?;
@@ -106,43 +96,49 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             .ok_or(LendingPoolError::MarketRulePenaltyNotSet)?;
         // Check if asset_to_take is marked as collateral
         if (user_config.collaterals >> reserve_data_to_take.id) & 1_u128 != 1 {
-            return Err(LendingPoolError::TakingNotACollateral)
+            return Err(LendingPoolError::TakingNotACollateral);
         }
         // Check if there is any debt to repay
         let user_debt = user_reserve_data_to_repay.debt;
 
         if user_debt == 0 {
-            return Err(LendingPoolError::NothingToRepay)
+            return Err(LendingPoolError::NothingToRepay);
         }
         // Check if there is any supply to take
         if user_reserve_data_to_take.supplied == 0 {
-            return Err(LendingPoolError::NothingToCompensateWith)
+            return Err(LendingPoolError::NothingToCompensateWith);
         }
         // MODIFY PULLED STORAGE
         // accumulate to repay
-        let (interest_user_supply_to_repay, interest_user_variable_borrow_to_repay): (Balance, Balance) =
-            _accumulate_interest(
-                &mut reserve_data_to_repay,
-                &mut user_reserve_data_to_repay,
-                block_timestamp,
-            );
+        let (interest_user_supply_to_repay, interest_user_variable_borrow_to_repay): (
+            Balance,
+            Balance,
+        ) = _accumulate_interest(
+            &mut reserve_data_to_repay,
+            &mut user_reserve_data_to_repay,
+            block_timestamp,
+        );
         // accumulate to take
         // user's
-        let (interest_user_supply_to_take, interest_user_variable_borrow_to_take): (Balance, Balance) =
-            _accumulate_interest(
-                &mut reserve_data_to_take,
-                &mut user_reserve_data_to_take,
-                block_timestamp,
-            );
+        let (interest_user_supply_to_take, interest_user_variable_borrow_to_take): (
+            Balance,
+            Balance,
+        ) = _accumulate_interest(
+            &mut reserve_data_to_take,
+            &mut user_reserve_data_to_take,
+            block_timestamp,
+        );
         // caller's
-        let (interest_caller_supply_to_take, interest_caller_variable_borrow_to_take): (Balance, Balance) =
-            caller_reserve_data_to_take._accumulate_user_interest(&mut reserve_data_to_take);
+        let (interest_caller_supply_to_take, interest_caller_variable_borrow_to_take): (
+            Balance,
+            Balance,
+        ) = caller_reserve_data_to_take._accumulate_user_interest(&mut reserve_data_to_take);
 
         // calculate and check amount to be taken by caller
         let amount_to_repay_value = match amount_to_repay {
             Some(v) => {
                 if v > user_debt {
-                    return Err(LendingPoolError::AmountExceedsUserDebt)
+                    return Err(LendingPoolError::AmountExceedsUserDebt);
                 } else {
                     v
                 }
@@ -150,7 +146,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
             None => user_debt,
         };
         if amount_to_repay_value == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero)
+            return Err(LendingPoolError::AmountNotGreaterThanZero);
         }
         let mut amount_to_take = calculate_amount_to_take(
             amount_to_repay_value,
@@ -170,7 +166,7 @@ impl<T: Storage<LendingPoolStorage> + LiquidateInternal> LendingPoolLiquidate fo
                 .expect(MATH_ERROR_MESSAGE);
 
         if recieved_for_one_repaid_token_e18 < minimum_recieved_for_one_repaid_token_e18 {
-            return Err(LendingPoolError::MinimumRecieved)
+            return Err(LendingPoolError::MinimumRecieved);
         }
         // modify configs
         if amount_to_take >= user_reserve_data_to_take.supplied {
@@ -406,8 +402,11 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
             &liquidated_user,
             &user_reserve_data_to_take,
         );
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&asset_to_take, &caller, &caller_reserve_data_to_take);
+        self.data::<LendingPoolStorage>().insert_user_reserve(
+            &asset_to_take,
+            &caller,
+            &caller_reserve_data_to_take,
+        );
         // configs
         self.data::<LendingPoolStorage>()
             .insert_user_config(liquidated_user, liquidated_user_config);
@@ -470,18 +469,4 @@ fn _change_state_liquidate_variable(
         caller_config,
         amount_to_take,
     )
-}
-
-impl<T: Storage<LendingPoolStorage>> EmitLiquidateEvents for T {
-    #[allow(unused_variables)]
-    default fn _emit_liquidation_variable_event(
-        &mut self,
-        liquidator: AccountId,
-        user: AccountId,
-        asset_to_rapay: AccountId,
-        asset_to_take: AccountId,
-        amount_repaid: Balance,
-        amount_taken: Balance,
-    ) {
-    }
 }

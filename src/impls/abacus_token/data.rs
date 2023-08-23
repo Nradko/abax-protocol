@@ -1,16 +1,11 @@
 use openbrush::{
     storage::Mapping,
-    traits::{
-        AccountId,
-        Balance,
-    },
+    traits::{AccountId, Balance},
 };
-
-pub const STORAGE_KEY: u32 = openbrush::storage_unique_key!(Data);
 
 // here all the prices of reserves underlaying asssets are stored.
 #[derive(Debug)]
-#[openbrush::upgradeable_storage(STORAGE_KEY)]
+#[openbrush::storage_item]
 pub struct AbacusTokenData {
     pub lending_pool: openbrush::traits::AccountId,
     pub underlying_asset: openbrush::traits::AccountId,

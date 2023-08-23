@@ -1,19 +1,11 @@
 use crate::{
     impls::{
         lending_pool::{
-            internal::{
-                Internal,
-                *,
-            },
+            internal::{Internal, *},
             storage::{
-                lending_pool_storage::{
-                    LendingPoolStorage,
-                    MarketRule,
-                },
+                lending_pool_storage::{LendingPoolStorage, MarketRule},
                 structs::{
-                    reserve_data::ReserveData,
-                    user_config::UserConfig,
-                    user_reserve_data::*,
+                    reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::*,
                 },
             },
         },
@@ -21,25 +13,19 @@ use crate::{
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{
-            errors::LendingPoolError,
-            events::*,
-            traits::actions::LendingPoolBorrow,
-        },
+        lending_pool::{errors::LendingPoolError, events::*},
     },
 };
 use ink::prelude::vec::Vec;
 use openbrush::{
     contracts::traits::psp22::*,
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
+    traits::{AccountId, Balance, Storage},
 };
 
-impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> LendingPoolBorrow for T {
-    default fn choose_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError> {
+pub trait LendingPoolBorrowImpl:
+    Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents
+{
+    fn choose_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         let market_rule = self
             .data::<LendingPoolStorage>()
@@ -53,14 +39,19 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         self.data::<LendingPoolStorage>()
             .insert_user_config(&caller, &user_config);
 
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
         self._check_user_free_collateral(&caller, &user_config, &market_rule, block_timestamp)?;
 
         self._emit_market_rule_chosen(&caller, &market_rule_id);
         Ok(())
     }
-    default fn set_as_collateral(
+    fn set_as_collateral(
         &mut self,
         asset: AccountId,
         use_as_collateral_to_set: bool,
@@ -78,10 +69,15 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             .ok_or(LendingPoolError::RuleCollateralDisable)?
             .collateral_coefficient_e6;
         if use_as_collateral_to_set && collateral_coefficient_e6.is_none() {
-            return Err(LendingPoolError::RuleCollateralDisable)
+            return Err(LendingPoolError::RuleCollateralDisable);
         }
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
 
         //// MODIFY PULLED STORAGE
         let user_config_before: Bitmap128 = user_config.collaterals;
@@ -97,7 +93,12 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
                 .insert_user_config(&caller, &user_config);
 
             if use_as_collateral_to_set == false {
-                self._check_user_free_collateral(&caller, &user_config, &market_rule, block_timestamp)?;
+                self._check_user_free_collateral(
+                    &caller,
+                    &user_config,
+                    &market_rule,
+                    block_timestamp,
+                )?;
             }
 
             self._emit_collateral_set_event(asset, caller, use_as_collateral_to_set);
@@ -106,7 +107,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         Ok(())
     }
 
-    default fn borrow(
+    fn borrow(
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
@@ -118,13 +119,24 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config, market_rule) =
             self._pull_data_for_borrow(&asset, &on_behalf_of)?;
 
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
 
         //// MODIFY PULLED STORAGE
         // accumulate
-        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
-            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (
+            Balance,
+            Balance,
+        ) = _accumulate_interest(
+            &mut reserve_data,
+            &mut on_behalf_of_reserve_data,
+            block_timestamp,
+        );
         // modify state
         _check_borrowing_enabled(&reserve_data, &market_rule)?;
         _change_state_borrow_variable(
@@ -147,7 +159,12 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
             &on_behalf_of_config,
         );
         // check if there ie enought collateral
-        self._check_user_free_collateral(&on_behalf_of, &on_behalf_of_config, &market_rule, block_timestamp)?;
+        self._check_user_free_collateral(
+            &on_behalf_of,
+            &on_behalf_of_config,
+            &market_rule,
+            block_timestamp,
+        )?;
         //// TOKEN TRANSFER
         PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
 
@@ -171,7 +188,7 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         Ok(())
     }
 
-    default fn repay(
+    fn repay(
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
@@ -182,17 +199,28 @@ impl<T: Storage<LendingPoolStorage> + BorrowInternal + EmitBorrowEvents> Lending
         let (mut reserve_data, mut on_behalf_of_reserve_data, mut on_behalf_of_config) =
             self._pull_data_for_repay(&asset, &on_behalf_of)?;
         _check_activeness(&reserve_data)?;
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate
-        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
-            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (
+            Balance,
+            Balance,
+        ) = _accumulate_interest(
+            &mut reserve_data,
+            &mut on_behalf_of_reserve_data,
+            block_timestamp,
+        );
 
         let amount_val = match amount {
             Some(v) => {
                 if v > on_behalf_of_reserve_data.debt {
-                    return Err(LendingPoolError::AmountExceedsUserDebt)
+                    return Err(LendingPoolError::AmountExceedsUserDebt);
                 };
                 v
             }
@@ -361,36 +389,13 @@ impl<T: Storage<LendingPoolStorage>> BorrowInternal for T {
     ) {
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(asset, reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(asset, on_behalf_of, on_behalf_of_reserve_data);
+        self.data::<LendingPoolStorage>().insert_user_reserve(
+            asset,
+            on_behalf_of,
+            on_behalf_of_reserve_data,
+        );
         self.data::<LendingPoolStorage>()
             .insert_user_config(on_behalf_of, on_behalf_of_config);
-    }
-}
-
-impl<T: Storage<LendingPoolStorage>> EmitBorrowEvents for T {
-    #[allow(unused_variables)]
-    default fn _emit_market_rule_chosen(&mut self, user: &AccountId, market_rule_id: &u64) {}
-
-    #[allow(unused_variables)]
-    default fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool) {}
-    #[allow(unused_variables)]
-    default fn _emit_borrow_variable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    ) {
-    }
-    #[allow(unused_variables)]
-    default fn _emit_repay_variable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    ) {
     }
 }
 
@@ -400,7 +405,12 @@ fn _change_state_borrow_variable(
     on_behalf_of_config: &mut UserConfig,
     amount: Balance,
 ) {
-    _increase_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
+    _increase_user_variable_debt(
+        reserve_data,
+        on_behalf_of_reserve_data,
+        on_behalf_of_config,
+        amount,
+    );
     _increase_total_variable_debt(reserve_data, amount);
 }
 
@@ -410,6 +420,11 @@ fn _change_state_repay_variable(
     on_behalf_of_config: &mut UserConfig,
     amount: Balance,
 ) {
-    _decrease_user_variable_debt(reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
+    _decrease_user_variable_debt(
+        reserve_data,
+        on_behalf_of_reserve_data,
+        on_behalf_of_config,
+        amount,
+    );
     _decrease_total_variable_debt(reserve_data, amount);
 }

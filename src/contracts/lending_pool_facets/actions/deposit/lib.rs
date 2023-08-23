@@ -6,11 +6,13 @@
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod lending_pool_v0_deposit_facet {
     use ink::codegen::{EmitEvent, Env};
+    use ink::prelude::vec::Vec;
+    use lending_project::impls::lending_pool::actions::deposit::LendingPoolDepositImpl;
+    use lending_project::traits::lending_pool::errors::LendingPoolError;
     use lending_project::{
         impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
         traits::lending_pool::traits::actions::*,
@@ -39,7 +41,29 @@ pub mod lending_pool_v0_deposit_facet {
     }
 
     /// Implements core lending methods
-    impl LendingPoolDeposit for LendingPoolV0DepositFacet {}
+    impl LendingPoolDepositImpl for LendingPoolV0DepositFacet {}
+    impl LendingPoolDeposit for LendingPoolV0DepositFacet {
+        #[ink(message)]
+        fn deposit(
+            &mut self,
+            asset: AccountId,
+            on_behalf_of: AccountId,
+            amount: Balance,
+            data: Vec<u8>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolDepositImpl::deposit(self, asset, on_behalf_of, amount, data)
+        }
+        #[ink(message)]
+        fn redeem(
+            &mut self,
+            asset: AccountId,
+            on_behalf_of: AccountId,
+            amount: Option<Balance>,
+            data: Vec<u8>,
+        ) -> Result<Balance, LendingPoolError> {
+            LendingPoolDepositImpl::redeem(self, asset, on_behalf_of, amount, data)
+        }
+    }
 
     impl LendingPoolV0DepositFacet {
         #[ink(constructor)]

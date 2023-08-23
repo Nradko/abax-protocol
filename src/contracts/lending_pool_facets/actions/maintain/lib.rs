@@ -6,11 +6,12 @@
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
 #[openbrush::contract]
 pub mod lending_pool_v0_maintain_facet {
     use ink::codegen::{EmitEvent, Env};
+    use lending_project::impls::lending_pool::actions::maintain::LendingPoolMaintainImpl;
+    use lending_project::traits::lending_pool::errors::LendingPoolError;
     use lending_project::{
         impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
         traits::lending_pool::traits::actions::*,
@@ -38,7 +39,21 @@ pub mod lending_pool_v0_maintain_facet {
     }
 
     /// Implements core lending methods
-    impl LendingPoolMaintain for LendingPoolV0MaintainFacet {}
+    impl LendingPoolMaintainImpl for LendingPoolV0MaintainFacet {}
+    impl LendingPoolMaintain for LendingPoolV0MaintainFacet {
+        #[ink(message)]
+        fn accumulate_interest(&mut self, asset: AccountId) -> Result<(), LendingPoolError> {
+            LendingPoolMaintainImpl::accumulate_interest(self, asset)
+        }
+        #[ink(message)]
+        fn insert_reserve_token_price_e8(
+            &mut self,
+            asset: AccountId,
+            price_e8: u128,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolMaintainImpl::insert_reserve_token_price_e8(self, asset, price_e8)
+        }
+    }
 
     impl LendingPoolV0MaintainFacet {
         #[ink(constructor)]
@@ -71,7 +86,8 @@ pub mod lending_pool_v0_maintain_facet {
 
     impl EmitMaintainEvents for LendingPoolV0MaintainFacet {
         fn _emit_accumulate_interest_event(&mut self, asset: &AccountId) {
-            self.env().emit_event(InterestsAccumulated { asset: *asset });
+            self.env()
+                .emit_event(InterestsAccumulated { asset: *asset });
         }
         fn _emit_accumulate_user_interest_event(&mut self, asset: &AccountId, user: &AccountId) {
             self.env().emit_event(UserInterestsAccumulated {

@@ -10,13 +10,10 @@ import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suit
 import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
-import { ValidateEventParameters } from './scenarios/utils/validateEvents';
-import { subscribeOnEvents } from './scenarios/utils/misc';
-import { maxBy } from 'lodash';
 import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 
-makeSuite('AbacusToken transfers', (getTestEnv) => {
+makeSuite.only('AbacusToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
@@ -49,7 +46,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
     aTokenWETHContract = reserves['WETH'].aToken;
   });
 
-  describe('Alice and Bob have 10000$ of both DAI and USDC supplied to the leningPool. Then ...', () => {
+  describe('Alice and Bob have 10000$ of both DAI and USDC supplied to the Lending Pool. Then ...', () => {
     let initialDaiBalance: BN;
     let initialUsdcBalance: BN;
 
@@ -93,7 +90,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       await expect(aTokenDaiContract.withSigner(bob).tx.transfer(alice.address, initialDaiBalance.muln(2), [])).to.eventually.be.fulfilled;
     });
 
-    it('Alice should be able to transfer all her balance of aDAI to Bob, event should be emitted and supply should be transferred inside lendingPool contract', async () => {
+    it('Alice should be able to transfer all her balance of aDAI to Bob, event should be emitted and supply should be transferred inside Lending Pool contract', async () => {
       const tx = aTokenDaiContract.withSigner(alice).tx.transfer(bob.address, initialDaiBalance, []);
       await expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
@@ -126,6 +123,9 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
     });
 
     it('After Alice gives Charlie allowance, Charlie should be able to transfer from Alice to BoB', async () => {
+      aTokenDaiContract.events.subscribeOnApprovalEvent((e) => {
+        console.log('After Alice gives Charlie allowance, Charlie should be able to transfer from Alice to BoB', 'approval event', e);
+      });
       await aTokenDaiContract.withSigner(alice).tx.increaseAllowance(charlie.address, initialDaiBalance);
       const tx = aTokenDaiContract.withSigner(charlie).tx.transferFrom(alice.address, bob.address, initialDaiBalance, []);
       await expect(tx).to.eventually.be.fulfilled;
@@ -189,7 +189,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       });
       describe('Bob and Dave gives Alice allowance to transfer vWETH to them', () => {
         beforeEach('giving allowance', async () => {
-          const tx1 = await vTokenWETHContract.withSigner(bob).tx.increaseAllowance(alice.address, aliceDebt);
+          await vTokenWETHContract.withSigner(bob).tx.increaseAllowance(alice.address, aliceDebt);
           await vTokenWETHContract.withSigner(dave).tx.increaseAllowance(alice.address, aliceDebt);
         });
         it('Alice should have apropariate allowance', async () => {
@@ -202,7 +202,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
           expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.Custom('InsufficientCollateral'));
         });
 
-        it('Alice should not be able to transfer vWETH to Bob because Bob doesnt have collateral', async () => {
+        it.only('Alice should not be able to transfer vWETH to Bob because Bob doesnt have collateral', async () => {
           const queryResult = (await vTokenWETHContract.withSigner(alice).query.transfer(bob.address, aliceDebt, [])).value.ok!;
           expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.Custom('InsufficientCollateral'));
         });

@@ -1,49 +1,34 @@
 use crate::{
     impls::{
-        constants::{
-            E6,
-            MATH_ERROR_MESSAGE,
-        },
+        constants::{E6, MATH_ERROR_MESSAGE},
         lending_pool::{
             manage::FLASH_BORROWER,
             storage::{
-                lending_pool_storage::LendingPoolStorage,
-                structs::reserve_data::ReserveData,
+                lending_pool_storage::LendingPoolStorage, structs::reserve_data::ReserveData,
             },
         },
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
         flash_loan_receiver::FlashLoanReceiverRef,
-        lending_pool::{
-            errors::LendingPoolError,
-            events::*,
-            traits::actions::LendingPoolFlash,
-        },
+        lending_pool::{errors::LendingPoolError, events::EmitFlashEvents},
     },
 };
 use checked_math::checked_math;
 use ink::{
     env::CallFlags,
-    prelude::{
-        vec,
-        vec::Vec,
-    },
+    prelude::{vec, vec::Vec},
 };
 
 use openbrush::{
-    contracts::{
-        access_control::*,
-        traits::psp22::PSP22Ref,
-    },
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
+    contracts::{access_control::*, traits::psp22::PSP22Ref},
+    traits::{AccountId, Balance, Storage},
 };
-impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashEvents> LendingPoolFlash for T {
-    default fn flash_loan(
+
+pub trait LendingPoolFlashImpl:
+    Storage<LendingPoolStorage> + EmitFlashEvents + AccessControlImpl
+{
+    fn flash_loan(
         &mut self,
         receiver_address: AccountId,
         assets: Vec<AccountId>,
@@ -51,7 +36,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
         receiver_params: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         if !(assets.len() == amounts.len()) {
-            return Err(LendingPoolError::FlashLoanAmountsAssetsInconsistentLengths)
+            return Err(LendingPoolError::FlashLoanAmountsAssetsInconsistentLengths);
         }
 
         let mut reserve_data_vec: Vec<ReserveData> = vec![];
@@ -63,10 +48,7 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
                     .get_reserve_data(&assets[i])
                     .ok_or(LendingPoolError::AssetNotRegistered)?,
             );
-            let fee = match self
-                .data::<access_control::Data>()
-                .has_role(FLASH_BORROWER, Self::env().caller())
-            {
+            let fee = match self.has_role(FLASH_BORROWER, Self::env().caller().into()) {
                 false => amounts[i] * reserve_data_vec[i].flash_loan_fee_e6 / E6,
                 true => amounts[i] * reserve_data_vec[i].flash_loan_fee_e6 / E6 / 10,
             };
@@ -88,12 +70,18 @@ impl<T: Storage<LendingPoolStorage> + Storage<access_control::Data> + EmitFlashE
         .try_invoke()
         .unwrap()??;
 
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
 
         for i in 0..assets.len() {
             reserve_data_vec[i]._accumulate_interest(block_timestamp);
-            let income_for_suppliers = fees[i] * reserve_data_vec[i].income_for_suppliers_part_e6 / E6;
+            let income_for_suppliers =
+                fees[i] * reserve_data_vec[i].income_for_suppliers_part_e6 / E6;
             reserve_data_vec[i].cumulative_supply_rate_index_e18 = u128::try_from(
                 checked_math!(
                     reserve_data_vec[i].cumulative_supply_rate_index_e18

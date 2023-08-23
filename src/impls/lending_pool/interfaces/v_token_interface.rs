@@ -1,57 +1,47 @@
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-};
+use openbrush::traits::{AccountId, Balance, Storage};
 
 use ink::prelude::*;
 
 use crate::{
     impls::lending_pool::{
-        internal::{
-            _check_borrowing_enabled,
-            *,
-        },
+        internal::{_check_borrowing_enabled, *},
         storage::{
-            lending_pool_storage::{
-                LendingPoolStorage,
-                MarketRule,
-            },
+            lending_pool_storage::{LendingPoolStorage, MarketRule},
             structs::{
-                reserve_data::ReserveData,
-                user_config::UserConfig,
+                reserve_data::ReserveData, user_config::UserConfig,
                 user_reserve_data::UserReserveData,
             },
         },
     },
     traits::{
-        abacus_token::traits::abacus_token::{
-            AbacusTokenRef,
-            TransferEventData,
-        },
+        abacus_token::traits::abacus_token::{AbacusTokenRef, TransferEventData},
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{
-            errors::LendingPoolTokenInterfaceError,
-            events::EmitBorrowEvents,
-            traits::v_token_interface::LendingPoolVTokenInterface,
-        },
+        lending_pool::{errors::LendingPoolTokenInterfaceError, events::EmitBorrowEvents},
     },
 };
 
-impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Data> + VTokenInterfaceInternal>
-    LendingPoolVTokenInterface for T
+pub trait LendingPoolVTokenInterfaceImpl:
+    Storage<LendingPoolStorage>
+    + Storage<openbrush::contracts::pausable::Data>
+    + VTokenInterfaceInternal
+    + EmitBorrowEvents
 {
-    default fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
+    fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
             .get_reserve_data(&underlying_asset)
             .unwrap_or_default();
         if reserve_data.total_debt == 0 {
-            return 0
+            return 0;
         }
 
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
         reserve_data._accumulate_interest(block_timestamp);
         reserve_data.total_debt
     }
@@ -62,15 +52,20 @@ impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Da
             .get_user_reserve(&underlying_asset, &user)
             .unwrap_or_default();
         if user_reserve_data.debt == 0 {
-            return 0
+            return 0;
         }
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
             .get_reserve_data(&underlying_asset)
             .unwrap_or_default();
 
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
         reserve_data._accumulate_interest(block_timestamp);
         user_reserve_data._accumulate_user_interest(&mut reserve_data);
         user_reserve_data.debt
@@ -94,10 +89,15 @@ impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Da
             to_market_rule,
         ) = self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
         if reserve_data.v_token_address != Self::env().caller() {
-            return Err(LendingPoolTokenInterfaceError::WrongCaller)
+            return Err(LendingPoolTokenInterfaceError::WrongCaller);
         }
-        let block_timestamp =
-            BlockTimestampProviderRef::get_block_timestamp(&self.data::<LendingPoolStorage>().block_timestamp_provider);
+        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+            &self
+                .data::<LendingPoolStorage>()
+                .block_timestamp_provider
+                .get()
+                .unwrap(),
+        );
         _check_borrowing_enabled(&reserve_data, &to_market_rule)
             .or(Err(LendingPoolTokenInterfaceError::TransfersDisabled))?;
 
@@ -110,10 +110,20 @@ impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Da
             to_user_reserve_data._accumulate_user_interest(&mut reserve_data);
 
         if from_user_reserve_data.debt < amount {
-            return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
+            return Err(LendingPoolTokenInterfaceError::InsufficientBalance);
         }
-        _decrease_user_variable_debt(&reserve_data, &mut from_user_reserve_data, &mut from_config, amount);
-        _increase_user_variable_debt(&reserve_data, &mut to_user_reserve_data, &mut to_config, amount);
+        _decrease_user_variable_debt(
+            &reserve_data,
+            &mut from_user_reserve_data,
+            &mut from_config,
+            amount,
+        );
+        _increase_user_variable_debt(
+            &reserve_data,
+            &mut to_user_reserve_data,
+            &mut to_config,
+            amount,
+        );
         reserve_data._recalculate_current_rates();
 
         _check_enough_variable_debt(&reserve_data, &from_user_reserve_data)
@@ -132,8 +142,10 @@ impl<T: Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Da
             &to_user_reserve_data,
         );
         // check if there ie enought collateral
+        ink::env::debug_println!("before self._check_user_free_collateral");
         self._check_user_free_collateral(&to, &to_config, &to_market_rule, block_timestamp)
             .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?;
+        ink::env::debug_println!("after self._check_user_free_collateral");
 
         //// ABACUS TOKEN EVENTS
         // AToken interests
@@ -261,12 +273,19 @@ impl<T: Storage<LendingPoolStorage>> VTokenInterfaceInternal for T {
     ) {
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&underlying_asset, reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
-        self.data::<LendingPoolStorage>()
-            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
+        self.data::<LendingPoolStorage>().insert_user_reserve(
+            &underlying_asset,
+            &from,
+            &from_user_reserve_data,
+        );
+        self.data::<LendingPoolStorage>().insert_user_reserve(
+            &underlying_asset,
+            &to,
+            &to_user_reserve_data,
+        );
         self.data::<LendingPoolStorage>()
             .insert_user_config(&from, &from_config);
-        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
+        self.data::<LendingPoolStorage>()
+            .insert_user_config(&to, &to_config);
     }
 }

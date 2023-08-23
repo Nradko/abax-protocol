@@ -6,18 +6,20 @@
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
-#![feature(min_specialization)]
 
+#[openbrush::implementation(AccessControl)]
 #[openbrush::contract]
 pub mod lending_pool_v0_facet_initialize {
     use lending_project::{
         self,
-        impls::lending_pool::{manage::GLOBAL_ADMIN, storage::lending_pool_storage::LendingPoolStorage},
+        impls::lending_pool::{
+            manage::GLOBAL_ADMIN, storage::lending_pool_storage::LendingPoolStorage,
+        },
     };
     // use openbrush::storage::Mapping;
     use openbrush::{
         contracts::{
-            access_control::{members::MembersManager, *},
+            access_control::*,
             ownable::{OwnableError, *},
         },
         modifiers,
@@ -47,12 +49,30 @@ pub mod lending_pool_v0_facet_initialize {
 
         #[ink(message)]
         #[modifiers(only_owner)]
-        pub fn initialize_contract(&mut self) -> Result<(), OwnableError> {
+        pub fn initialize_contract(&mut self) -> Result<(), LendingPoolV0InitializeFacetError> {
             let caller = self.env().caller();
-            self._init_with_admin(caller);
-            self.access.members.add(GLOBAL_ADMIN, &caller);
+            access_control::Internal::_init_with_admin(self, caller.into());
+            access_control::AccessControl::grant_role(self, GLOBAL_ADMIN, caller.into())?;
 
             Ok(())
+        }
+    }
+
+    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum LendingPoolV0InitializeFacetError {
+        OwnableError(OwnableError),
+        AccessControlError(AccessControlError),
+    }
+
+    impl From<OwnableError> for LendingPoolV0InitializeFacetError {
+        fn from(error: OwnableError) -> Self {
+            LendingPoolV0InitializeFacetError::OwnableError(error)
+        }
+    }
+    impl From<AccessControlError> for LendingPoolV0InitializeFacetError {
+        fn from(error: AccessControlError) -> Self {
+            LendingPoolV0InitializeFacetError::AccessControlError(error)
         }
     }
 }

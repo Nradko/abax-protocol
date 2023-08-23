@@ -17,6 +17,7 @@ declare global {
     interface Assertion {
       output(value: AccountId | string | number | boolean | string[] | number[] | unknown, msg?: string): void;
       almostEqualOrEqualNumberE12<TData extends BN | number | string>(expected: TData): void;
+      almostEqualOrEqualNumber<TData extends number | string>(expected: TData, epsilon?: number): void;
       equalUpTo1Digit<TData extends BN | number | string>(expected: TData): void;
     }
   }
@@ -24,6 +25,25 @@ declare global {
 
 chai.use(chaiAsPromised);
 
+const almostEqualOrEqualNumber = function <TData extends number | string>(
+  this: Chai.AssertionPrototype,
+  actual: TData,
+  expected: TData,
+  epsilon = 0.000001,
+) {
+  const actualValue = typeof actual === 'number' ? actual : parseFloat(actual);
+  const expectedValue = typeof expected === 'number' ? expected : parseFloat(expected);
+
+  const diff = Math.abs(actualValue - expectedValue);
+  this.assert(
+    diff <= epsilon,
+    `expected #{act} to be almost equal or equal #{exp} | diff: ${diff} | epsilon: ${epsilon}`,
+    `expected #{act} not to be almost equal or equal #{exp} | diff: ${diff} | epsilon: ${epsilon}`,
+    expectedValue.toString(),
+    actualValue.toString(),
+    true,
+  );
+};
 const almostEqualOrEqualNumberE12 = function <TData extends BN | number | string>(
   this: Chai.AssertionPrototype,
   actual: TData,
@@ -70,6 +90,10 @@ chai.use((c, utils) => {
   c.Assertion.addMethod('almostEqualOrEqualNumberE12', function (this: Chai.AssertionPrototype, expected: BN | number | string) {
     const actual = (expected as BN) ? <BN>this._obj : (expected as string) ? <string>this._obj : <number>this._obj;
     almostEqualOrEqualNumberE12.apply(this, [expected, actual]);
+  });
+  c.Assertion.addMethod('almostEqualOrEqualNumber', function (this: Chai.AssertionPrototype, expected: number | string, epsilon = 0.000001) {
+    const actual = (expected as string) ? <string>this._obj : <number>this._obj;
+    almostEqualOrEqualNumber.apply(this, [expected, actual, epsilon]);
   });
   c.Assertion.addMethod('equalUpTo1Digit', function (this: Chai.AssertionPrototype, expected: BN | number | string) {
     const actual = (expected as BN) ? <BN>this._obj : (expected as string) ? <string>this._obj : <number>this._obj;
