@@ -25,10 +25,12 @@ pub struct LendingPoolStorage {
 impl LendingPoolStorage {
     // registered_asset
     pub fn register_asset(&mut self, asset: &AccountId) {
-        self.registered_assets.get_or_default().push(*asset)
+        let mut assets = self.registered_assets.get_or_default();
+        assets.push(*asset);
+        self.registered_assets.set(&assets)
     }
     pub fn get_all_registered_assets(&self) -> Vec<AccountId> {
-        self.registered_assets.get_or_default().clone()
+        self.registered_assets.get_or_default()
     }
 
     pub fn is_registered(&self, asset: &AccountId) -> bool {

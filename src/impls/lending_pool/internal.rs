@@ -322,9 +322,11 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         let collaterals = user_config.deposits & user_config.collaterals;
         let borrows = user_config.borrows;
         ink::env::debug_println!("user_config.borrows {}", borrows); //PR-->OB this produces 1
+        ink::env::debug_println!("registered_assets.len() {}", registered_assets.len());
         let active_user_assets = collaterals | borrows;
         for i in 0..registered_assets.len() {
             if ((active_user_assets >> i) & 1) == 0 {
+                ink::env::debug_println!("skipping asset {:X?}", registered_assets[i]);
                 continue;
             }
             let asset = registered_assets[i];

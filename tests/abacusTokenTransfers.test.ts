@@ -123,9 +123,6 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
     });
 
     it('After Alice gives Charlie allowance, Charlie should be able to transfer from Alice to BoB', async () => {
-      aTokenDaiContract.events.subscribeOnApprovalEvent((e) => {
-        console.log('After Alice gives Charlie allowance, Charlie should be able to transfer from Alice to BoB', 'approval event', e);
-      });
       await aTokenDaiContract.withSigner(alice).tx.increaseAllowance(charlie.address, initialDaiBalance);
       const tx = aTokenDaiContract.withSigner(charlie).tx.transferFrom(alice.address, bob.address, initialDaiBalance, []);
       await expect(tx).to.eventually.be.fulfilled;
@@ -202,7 +199,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
           expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.Custom('InsufficientCollateral'));
         });
 
-        it.only('Alice should not be able to transfer vWETH to Bob because Bob doesnt have collateral', async () => {
+        it('Alice should not be able to transfer vWETH to Bob because Bob doesnt have collateral', async () => {
           const queryResult = (await vTokenWETHContract.withSigner(alice).query.transfer(bob.address, aliceDebt, [])).value.ok!;
           expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.Custom('InsufficientCollateral'));
         });
@@ -266,7 +263,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
               await lendingPool.withSigner(bob).tx.borrow(wethContract.address, bob.address, bobDebt, []);
               await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR);
             });
-            it('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+            it.only('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedRepayEvents: RepayVariable[] = [];
               lendingPool.events.subscribeOnRepayVariableEvent((event) => {
                 capturedRepayEvents.push(event);
@@ -337,7 +334,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
               expect(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([]);
             });
 
-            it('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+            it.only('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedDepositEvents: Deposit[] = [];
               lendingPool.events.subscribeOnDepositEvent((event) => {
                 capturedDepositEvents.push(event);
@@ -403,7 +400,7 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
                 await lendingPool.withSigner(charlie).tx.setAsCollateral(wethContract.address, true);
                 await vTokenWETHContract.withSigner(charlie).tx.increaseAllowance(alice.address, aliceDebt);
               });
-              it('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+              it.only('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
                 const capturedRepayEvents: RepayVariable[] = [];
                 lendingPool.events.subscribeOnRepayVariableEvent((event) => {
                   capturedRepayEvents.push(event);
