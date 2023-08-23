@@ -318,14 +318,17 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         let registered_assets = self
             .data::<LendingPoolStorage>()
             .get_all_registered_assets();
+
         let collaterals = user_config.deposits & user_config.collaterals;
         let borrows = user_config.borrows;
+        ink::env::debug_println!("user_config.borrows {}", borrows); //PR-->OB this produces 1
         let active_user_assets = collaterals | borrows;
         for i in 0..registered_assets.len() {
             if ((active_user_assets >> i) & 1) == 0 {
                 continue;
             }
             let asset = registered_assets[i];
+            ink::env::debug_println!("asset active {:X?}", asset);
             // below errors should never occure. we use unwrap in last case as default would be very dangerous...
             let mut reserve_data = self
                 .data::<LendingPoolStorage>()
@@ -370,6 +373,8 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
 
             if ((borrows >> i) & 1) == 1 {
                 let debt = user_reserve.debt;
+
+                ink::env::debug_println!("debt enabled for {:X?} | debt {}", asset, debt); //PR-->OB this code is unreachable
                 let asset_debt_value_e8 = u128::try_from(
                     checked_math!(debt * asset_price_e8 / reserve_data.decimals).unwrap(),
                 )
@@ -391,7 +396,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             }
         }
         ink::env::debug_println!(
-            "total_collateral_coefficient_e6 {} | total_debt_coefficient_e6 {}",
+            "total_collateral_coefficient_e6 {} | total_debt_coefficient_e6 {}", //PR-->OB this prints 0, 0 when it should print 0 and 1000000000000000000
             total_collateral_coefficient_e6,
             total_debt_coefficient_e6
         );

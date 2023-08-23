@@ -141,11 +141,22 @@ pub trait LendingPoolVTokenInterfaceImpl:
             &to_config,
             &to_user_reserve_data,
         );
-        // check if there ie enought collateral
-        ink::env::debug_println!("before self._check_user_free_collateral");
+        // check if there is enough collateral
+        ink::env::debug_println!(
+            "transfer_variable_debt_from_to | asset {:X?}",
+            underlying_asset,
+        );
+        ink::env::debug_println!(
+            "before self._check_user_free_collateral | to_user debt {} | to_config borrows {}", //PR-->OB this prints data correctly (1000000000000000000) config non 0
+            to_user_reserve_data.debt,
+            to_config.borrows
+        );
         self._check_user_free_collateral(&to, &to_config, &to_market_rule, block_timestamp)
-            .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?;
-        ink::env::debug_println!("after self._check_user_free_collateral");
+            .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?; //PR-->OB self does not carry over storage changes to the function inside
+        ink::env::debug_println!(
+            "after self._check_user_free_collateral | user debt {}", //PR-->OB this prints data correctly (1000000000000000000) config non 0
+            to_user_reserve_data.debt
+        );
 
         //// ABACUS TOKEN EVENTS
         // AToken interests
