@@ -18,14 +18,14 @@ import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import TestReservesMinter from 'typechain/contracts/test_reserves_minter';
 import VTokenContract from 'typechain/contracts/v_token';
 import BalanceViewer from 'typechain/contracts/balance_viewer';
-import TestPSP22FacetV1 from 'typechain/contracts/test_psp22_facet_v1';
+// import TestPSP22FacetV1 from 'typechain/contracts/test_psp22_facet_v1';
 
 import FlashLoanReceiverMockConstructor from 'typechain/constructors/flash_loan_receiver_mock';
 import ATokenContractConstructor from 'typechain/constructors/a_token';
 import BlockTimestampProviderConstructor from 'typechain/constructors/block_timestamp_provider';
 import DiamondContractConstructor from 'typechain/constructors/diamond';
 import LendingPoolConstructor from 'typechain/constructors/lending_pool';
-import TestPSP22FacetV1Constructor from 'typechain/constructors/test_psp22_facet_v1';
+// import TestPSP22FacetV1Constructor from 'typechain/constructors/test_psp22_facet_v1';
 import PSP22EmitableConstructor from 'typechain/constructors/psp22_emitable';
 import PSP22OwnableConstructor from 'typechain/constructors/psp22_ownable';
 import TestReservesMinterConstructor from 'typechain/constructors/test_reserves_minter';
@@ -215,31 +215,31 @@ const getSelectorsFromMessages = (messages: AbiMessage[]) => messages.map((messa
 
 const getSelectorByName = (messages: AbiMessage[], name: string) =>
   messages.filter((message) => message.identifier === name)[0].selector.toU8a() as unknown as number[];
-async function setupPSP22Facet(signer: KeyringPair) {
-  const api = await ApiPromise.create();
+// async function setupPSP22Facet(signer: KeyringPair) {
+//   const api = await ApiPromise.create();
 
-  const signers = getSigners();
-  const alice = signers[0];
-  const bob = signers[1];
+//   const signers = getSigners();
+//   const alice = signers[0];
+//   const bob = signers[1];
 
-  const contractFactory = new TestPSP22FacetV1Constructor(api, signer);
-  const contractAddress = (await contractFactory.new()).address;
-  const contract = new TestPSP22FacetV1(contractAddress, signer, api);
+//   const contractFactory = new TestPSP22FacetV1Constructor(api, signer);
+//   const contractAddress = (await contractFactory.new()).address;
+//   const contract = new TestPSP22FacetV1(contractAddress, signer, api);
 
-  return {
-    api,
-    signer,
-    alice,
-    bob,
-    contract,
-    query: contract.query,
-    tx: contract.tx,
-    abi: contract.abi,
-    close: async () => {
-      await api.disconnect();
-    },
-  };
-}
+//   return {
+//     api,
+//     signer,
+//     alice,
+//     bob,
+//     contract,
+//     query: contract.query,
+//     tx: contract.tx,
+//     abi: contract.abi,
+//     close: async () => {
+//       await api.disconnect();
+//     },
+//   };
+// }
 export const setupDiamondContract = async <T>(
   constructor: new (address: string, signer: KeyringPair, nativeAPI: ApiPromise) => T,
   defaultSigner: KeyringPair,
@@ -295,7 +295,6 @@ export const setupDiamondContract = async <T>(
     const facetSelectors = getSelectorsFromMessages(facetMessages);
     const facetCut = { hash: facetCodeHash, selectors: facetSelectors };
     cuts.push(facetCut);
-    console.log({ facet });
     const res = await diamondContract.query.diamondCut([facetCut], null);
     try {
       await diamondContract.tx.diamondCut([facetCut], null);
@@ -323,19 +322,23 @@ export async function deployCoreContracts(owner: KeyringPair) {
     console.log(`Deployer: ${owner.address}`);
   }
   const blockTimestampProvider = await deployBlockTimestampProvider(owner);
-  const lendingPool = await deployLendingPool(owner);
-  // const lendingPool = await setupUpgradableContract(LendingPool, owner, owner, 'lending_pool_v0_initialize_facet', [
-  //   'lending_pool_v0_borrow_facet',
-  //   'lending_pool_v0_deposit_facet',
-  //   'lending_pool_v0_flash_facet',
-  //   'lending_pool_v0_liquidate_facet',
-  //   'lending_pool_v0_maintain_facet',
-  //   'lending_pool_v0_a_token_interface_facet',
-  //   'lending_pool_v0_v_token_interface_facet',
-  //   'lending_pool_v0_s_token_interface_facet',
-  //   'lending_pool_v0_manage_facet',
-  //   'lending_pool_v0_view_facet',
-  // ]);
+
+  // fallback:
+  // const lendingPool = await deployLendingPool(owner);
+
+  const initFacet = 'lending_pool_v0_initialize_facet';
+  const functionalFacets = [
+    'lending_pool_v0_manage_facet',
+    'lending_pool_v0_borrow_facet',
+    'lending_pool_v0_deposit_facet',
+    'lending_pool_v0_flash_facet',
+    'lending_pool_v0_liquidate_facet',
+    'lending_pool_v0_maintain_facet',
+    'lending_pool_v0_a_token_interface_facet',
+    'lending_pool_v0_v_token_interface_facet',
+    'lending_pool_v0_view_facet',
+  ];
+  const lendingPool = await setupDiamondContract(LendingPool, owner, owner, initFacet, functionalFacets);
   return { blockTimestampProvider, lendingPool };
 }
 
