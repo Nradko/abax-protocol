@@ -4,29 +4,19 @@
 #[openbrush::contract]
 pub mod v_token {
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::{EmitEvent, Env},
         prelude::string::String,
     };
 
     use lending_project::{
-        impls::abacus_token::{
-            abacus_token::AbacusTokenImpl,
-            data::AbacusTokenData,
-        },
+        impls::abacus_token::{abacus_token::AbacusTokenImpl, data::AbacusTokenData},
         traits::{
-            abacus_token::traits::abacus_token::*,
-            account_id_utils::AccountIdExt,
+            abacus_token::traits::abacus_token::*, account_id_utils::AccountIdExt,
             lending_pool::traits::v_token_interface::LendingPoolVTokenInterfaceRef,
         },
     };
     use openbrush::{
-        contracts::psp22::{
-            extensions::metadata::*,
-            PSP22Error,
-        },
+        contracts::psp22::{extensions::metadata::*, PSP22Error},
         traits::Storage,
     };
 
@@ -111,7 +101,7 @@ pub mod v_token {
 
         if allowance < value {
             ink::env::debug_println!("gonna return insufficient allowance");
-            return Err(PSP22Error::InsufficientAllowance)
+            return Err(PSP22Error::InsufficientAllowance);
         }
         ink::env::debug_println!("Transfer after allowance < value");
         psp22::Internal::_approve_from_to(self, to, from, allowance - value)?;
@@ -153,7 +143,7 @@ pub mod v_token {
         );
         if allowance < value {
             ink::env::debug_println!("gonna return insufficient allowance");
-            return Err(PSP22Error::InsufficientAllowance)
+            return Err(PSP22Error::InsufficientAllowance);
         }
 
         psp22::Internal::_approve_from_to(self, to, caller, allowance - value)?;
@@ -211,10 +201,10 @@ pub mod v_token {
     #[overrider(psp22::Internal)]
     fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
+            return Err(PSP22Error::ZeroSenderAddress);
         }
         if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
+            return Err(PSP22Error::ZeroRecipientAddress);
         }
 
         self.abacus_token.allowances.insert(&(owner, spender), &amount);

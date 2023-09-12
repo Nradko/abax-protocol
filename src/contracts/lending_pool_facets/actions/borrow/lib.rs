@@ -46,11 +46,7 @@ pub mod lending_pool_v0_borrow_facet {
             LendingPoolBorrowImpl::choose_market_rule(self, market_rule_id)
         }
         #[ink(message)]
-        fn set_as_collateral(
-            &mut self,
-            asset: AccountId,
-            use_as_collateral: bool,
-        ) -> Result<(), LendingPoolError> {
+        fn set_as_collateral(&mut self, asset: AccountId, use_as_collateral: bool) -> Result<(), LendingPoolError> {
             LendingPoolBorrowImpl::set_as_collateral(self, asset, use_as_collateral)
         }
         #[ink(message)]

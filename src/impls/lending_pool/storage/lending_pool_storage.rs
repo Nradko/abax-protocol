@@ -52,16 +52,10 @@ impl LendingPoolStorage {
 
     // asset_user_to_user_reserve
     pub fn get_user_reserve(&self, asset: &AccountId, user: &AccountId) -> Option<UserReserveData> {
-        self.asset_and_user_to_user_reserve_data
-            .get(&(*asset, *user))
+        self.asset_and_user_to_user_reserve_data.get(&(*asset, *user))
     }
 
-    pub fn insert_user_reserve(
-        &mut self,
-        asset: &AccountId,
-        user: &AccountId,
-        user_reesrve: &UserReserveData,
-    ) {
+    pub fn insert_user_reserve(&mut self, asset: &AccountId, user: &AccountId, user_reesrve: &UserReserveData) {
         self.asset_and_user_to_user_reserve_data
             .insert(&(*asset, *user), user_reesrve);
     }
@@ -78,7 +72,6 @@ impl LendingPoolStorage {
         self.market_rule_id_to_market_rule.get(market_rule_id)
     }
     pub fn insert_market_rule(&mut self, market_rule_id: &u64, market_rule: &MarketRule) {
-        self.market_rule_id_to_market_rule
-            .insert(market_rule_id, market_rule);
+        self.market_rule_id_to_market_rule.insert(market_rule_id, market_rule);
     }
 }

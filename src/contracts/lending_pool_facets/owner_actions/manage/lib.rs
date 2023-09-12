@@ -11,32 +11,20 @@
 #[openbrush::contract]
 pub mod lending_pool_v0_manage_facet {
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::{EmitEvent, Env},
         prelude::vec::Vec,
     };
     use lending_project::{
         impls::lending_pool::{
             manage::LendingPoolManageImpl,
-            storage::lending_pool_storage::{
-                LendingPoolStorage,
-                MarketRule,
-            },
+            storage::lending_pool_storage::{LendingPoolStorage, MarketRule},
         },
-        traits::lending_pool::{
-            errors::LendingPoolError,
-            traits::manage::*,
-        },
+        traits::lending_pool::{errors::LendingPoolError, traits::manage::*},
     };
     // use openbrush::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
     use openbrush::{
-        contracts::{
-            access_control::*,
-            ownable::*,
-        },
+        contracts::{access_control::*, ownable::*},
         traits::Storage,
     };
 

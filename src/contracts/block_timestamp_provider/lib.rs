@@ -23,16 +23,11 @@ pub mod block_timestamp_provider {
 
     impl BlockTimestampProvider {
         #[ink(constructor)]
-        pub fn new(
-            init_should_return_mock_value: bool,
-            owner: AccountId,
-            speed_multiplier: u64,
-        ) -> Self {
+        pub fn new(init_should_return_mock_value: bool, owner: AccountId, speed_multiplier: u64) -> Self {
             let mut instance = Self::default();
             instance.should_return_mock_value = init_should_return_mock_value;
             instance.speed_multiplier = speed_multiplier;
-            instance.starting_timestamp =
-                <BlockTimestampProvider as DefaultEnv>::env().block_timestamp();
+            instance.starting_timestamp = <BlockTimestampProvider as DefaultEnv>::env().block_timestamp();
             ownable::Internal::_init_with_owner(&mut instance, owner);
             instance
         }
@@ -75,10 +70,7 @@ pub mod block_timestamp_provider {
         }
         #[ink(message)]
         #[modifiers(only_owner)]
-        fn set_should_return_mock_value(
-            &mut self,
-            should_return_mock_value: bool,
-        ) -> Result<(), OwnableError> {
+        fn set_should_return_mock_value(&mut self, should_return_mock_value: bool) -> Result<(), OwnableError> {
             self.should_return_mock_value = should_return_mock_value;
             Ok(())
         }

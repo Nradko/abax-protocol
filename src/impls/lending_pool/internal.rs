@@ -51,10 +51,7 @@ pub fn _check_activeness(reserve_data: &ReserveData) -> Result<(), LendingPoolEr
     Ok(())
 }
 
-pub fn _check_borrowing_enabled(
-    reserve_data: &ReserveData,
-    market_rule: &MarketRule,
-) -> Result<(), LendingPoolError> {
+pub fn _check_borrowing_enabled(reserve_data: &ReserveData, market_rule: &MarketRule) -> Result<(), LendingPoolError> {
     if !reserve_data.activated {
         return Err(LendingPoolError::Inactive);
     }
@@ -167,17 +164,11 @@ pub fn _increase_user_variable_debt(
     // add variable debt
     user_config.borrows |= 1_u128 << reserve_data.id;
 
-    user_reserve_data.debt = user_reserve_data
-        .debt
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
+    user_reserve_data.debt = user_reserve_data.debt.checked_add(amount).expect(MATH_ERROR_MESSAGE);
 }
 
 pub fn _increase_total_variable_debt(reserve_data: &mut ReserveData, amount: u128) {
-    reserve_data.total_debt = reserve_data
-        .total_debt
-        .checked_add(amount)
-        .expect(MATH_ERROR_MESSAGE);
+    reserve_data.total_debt = reserve_data.total_debt.checked_add(amount).expect(MATH_ERROR_MESSAGE);
 }
 
 pub fn _decrease_user_variable_debt(
@@ -305,7 +296,7 @@ pub trait Internal {
 }
 
 impl<T: Storage<LendingPoolStorage>> Internal for T {
-    #[allow(clippy::needless_range_loop)] //for readability/performance purposes
+    #[allow(clippy::needless_range_loop)] // for readability/performance purposes
     fn _get_user_free_collateral_coefficient_e6(
         &self,
         user: &AccountId,
@@ -315,13 +306,11 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
     ) -> Result<(bool, u128), LendingPoolError> {
         let mut total_collateral_coefficient_e6: u128 = 0;
         let mut total_debt_coefficient_e6: u128 = 0;
-        let registered_assets = self
-            .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
+        let registered_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
 
         let collaterals = user_config.deposits & user_config.collaterals;
         let borrows = user_config.borrows;
-        ink::env::debug_println!("user_config.borrows {}", borrows); //PR-->OB this produces 1
+        ink::env::debug_println!("user_config.borrows {}", borrows); // PR-->OB this produces 1
         ink::env::debug_println!("registered_assets.len() {}", registered_assets.len());
         let active_user_assets = collaterals | borrows;
         for i in 0..registered_assets.len() {
@@ -340,9 +329,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                 .data::<LendingPoolStorage>()
                 .get_user_reserve(&asset, user)
                 .unwrap_or_default();
-            let asset_price_e8 = reserve_data
-                .token_price_e8
-                .ok_or(LendingPoolError::PriceMissing)?;
+            let asset_price_e8 = reserve_data.token_price_e8.ok_or(LendingPoolError::PriceMissing)?;
             reserve_data._accumulate_interest(block_timestamp);
             user_reserve._accumulate_user_interest(&mut reserve_data);
             if ((collaterals >> i) & 1) == 1 {
@@ -353,8 +340,7 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                     0
                 };
                 let asset_supplied_value_e8 = u128::try_from(
-                    checked_math!(collateral * collateral_asset_price_e8 / reserve_data.decimals)
-                        .unwrap(),
+                    checked_math!(collateral * collateral_asset_price_e8 / reserve_data.decimals).unwrap(),
                 )
                 .expect(MATH_ERROR_MESSAGE);
                 let collateral_coefficient_e6 = market_rule
@@ -363,11 +349,9 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
                     .ok_or(LendingPoolError::RuleCollateralDisable)?
                     .collateral_coefficient_e6
                     .ok_or(LendingPoolError::RuleCollateralDisable)?;
-                let value_to_add = u128::try_from(
-                    checked_math!(asset_supplied_value_e8 * collateral_coefficient_e6 / E8)
-                        .unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
+                let value_to_add =
+                    u128::try_from(checked_math!(asset_supplied_value_e8 * collateral_coefficient_e6 / E8).unwrap())
+                        .expect(MATH_ERROR_MESSAGE);
                 total_collateral_coefficient_e6 = total_collateral_coefficient_e6
                     .checked_add(value_to_add)
                     .expect(MATH_ERROR_MESSAGE);
@@ -376,43 +360,34 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
             if ((borrows >> i) & 1) == 1 {
                 let debt = user_reserve.debt;
 
-                ink::env::debug_println!("debt enabled for {:X?} | debt {}", asset, debt); //PR-->OB this code is unreachable
-                let asset_debt_value_e8 = u128::try_from(
-                    checked_math!(debt * asset_price_e8 / reserve_data.decimals).unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
+                ink::env::debug_println!("debt enabled for {:X?} | debt {}", asset, debt); // PR-->OB this code is unreachable
+                let asset_debt_value_e8 =
+                    u128::try_from(checked_math!(debt * asset_price_e8 / reserve_data.decimals).unwrap())
+                        .expect(MATH_ERROR_MESSAGE);
                 let borrow_coefficient_e6 = market_rule
                     .get(i)
                     .ok_or(LendingPoolError::RuleBorrowDisable)?
                     .ok_or(LendingPoolError::RuleBorrowDisable)?
                     .borrow_coefficient_e6
                     .ok_or(LendingPoolError::RuleBorrowDisable)?;
-                let value_to_add = u128::try_from(
-                    checked_math!(asset_debt_value_e8 * borrow_coefficient_e6 / 100_000_000)
-                        .unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
+                let value_to_add =
+                    u128::try_from(checked_math!(asset_debt_value_e8 * borrow_coefficient_e6 / 100_000_000).unwrap())
+                        .expect(MATH_ERROR_MESSAGE);
                 total_debt_coefficient_e6 = total_debt_coefficient_e6
                     .checked_add(value_to_add)
                     .expect(MATH_ERROR_MESSAGE);
             }
         }
         ink::env::debug_println!(
-            "total_collateral_coefficient_e6 {} | total_debt_coefficient_e6 {}", //PR-->OB this prints 0, 0 when it should print 0 and 1000000000000000000
+            "total_collateral_coefficient_e6 {} | total_debt_coefficient_e6 {}", /* PR-->OB this prints 0, 0 when it should print 0 and 1000000000000000000 */
             total_collateral_coefficient_e6,
             total_debt_coefficient_e6
         );
 
         if total_collateral_coefficient_e6 >= total_debt_coefficient_e6 {
-            Ok((
-                true,
-                total_collateral_coefficient_e6 - total_debt_coefficient_e6,
-            ))
+            Ok((true, total_collateral_coefficient_e6 - total_debt_coefficient_e6))
         } else {
-            Ok((
-                false,
-                total_debt_coefficient_e6 - total_collateral_coefficient_e6,
-            ))
+            Ok((false, total_debt_coefficient_e6 - total_collateral_coefficient_e6))
         }
     }
 
@@ -423,12 +398,8 @@ impl<T: Storage<LendingPoolStorage>> Internal for T {
         market_rule: &MarketRule,
         block_timestamp: Timestamp,
     ) -> Result<(), LendingPoolError> {
-        let (collaterized, free_collateral) = self._get_user_free_collateral_coefficient_e6(
-            user,
-            user_config,
-            market_rule,
-            block_timestamp,
-        )?;
+        let (collaterized, free_collateral) =
+            self._get_user_free_collateral_coefficient_e6(user, user_config, market_rule, block_timestamp)?;
 
         ink::env::debug_println!(
             "{}",
@@ -457,13 +428,8 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
                 .get_reserve_data(asset)
                 .unwrap_or_default();
             let balance = PSP22Ref::balance_of(asset, Self::env().account_id());
-            let income = i128::try_from(
-                reserve_data
-                    .total_debt
-                    .checked_add(balance)
-                    .expect(MATH_ERROR_MESSAGE),
-            )
-            .expect(MATH_ERROR_MESSAGE)
+            let income = i128::try_from(reserve_data.total_debt.checked_add(balance).expect(MATH_ERROR_MESSAGE))
+                .expect(MATH_ERROR_MESSAGE)
                 - reserve_data.total_supplied as i128;
             result.push((*asset, income));
         }

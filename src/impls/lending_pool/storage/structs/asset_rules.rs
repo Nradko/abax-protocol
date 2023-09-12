@@ -1,7 +1,4 @@
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::{Decode, Encode};
 
 /// stores configuration of the user for each reserve in Bitmap
 /// the order of reserve is the order from registered_asset list in LendingPoolStorage

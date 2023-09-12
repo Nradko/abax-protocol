@@ -1,15 +1,6 @@
 use proc_macro_error::abort;
 use quote::quote;
-use syn::{
-    spanned::Spanned,
-    BinOp,
-    Expr,
-    ExprBinary,
-    ExprUnary,
-    Ident,
-    Lit,
-    UnOp,
-};
+use syn::{spanned::Spanned, BinOp, Expr, ExprBinary, ExprUnary, Ident, Lit, UnOp};
 
 pub fn transform_expr(mut expr: Expr) -> proc_macro2::TokenStream {
     match expr {
@@ -47,12 +38,10 @@ pub fn transform_expr(mut expr: Expr) -> proc_macro2::TokenStream {
                 (#expr)
             }
         }
-        Expr::Lit(lit) => {
-            match lit.lit {
-                Lit::Int(_) | Lit::Float(_) => quote! { Some(primitive_types::U256::from(#lit)) },
-                _ => abort!(lit, "unsupported literal"),
-            }
-        }
+        Expr::Lit(lit) => match lit.lit {
+            Lit::Int(_) | Lit::Float(_) => quote! { Some(primitive_types::U256::from(#lit)) },
+            _ => abort!(lit, "unsupported literal"),
+        },
         Expr::Path(_) | Expr::Field(_) => {
             quote! { Some(primitive_types::U256::from(#expr)) }
         }

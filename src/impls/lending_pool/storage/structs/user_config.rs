@@ -1,7 +1,4 @@
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::{Decode, Encode};
 
 use crate::impls::types::Bitmap128;
 

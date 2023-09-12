@@ -8,11 +8,7 @@ use crate::{
 use openbrush::traits::{AccountId, Storage};
 
 pub trait LendingPoolMaintainImpl: Storage<LendingPoolStorage> + EmitMaintainEvents {
-    fn insert_reserve_token_price_e8(
-        &mut self,
-        asset: AccountId,
-        price_e8: u128,
-    ) -> Result<(), LendingPoolError> {
+    fn insert_reserve_token_price_e8(&mut self, asset: AccountId, price_e8: u128) -> Result<(), LendingPoolError> {
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
             .get_reserve_data(&asset)

@@ -12,10 +12,7 @@ pub trait BlockTimestampProviderInterface {
     #[ink(message)]
     fn increase_block_timestamp(&mut self, delta_timestamp: u64) -> Result<(), OwnableError>;
     #[ink(message)]
-    fn set_should_return_mock_value(
-        &mut self,
-        should_return_mock_value: bool,
-    ) -> Result<(), OwnableError>;
+    fn set_should_return_mock_value(&mut self, should_return_mock_value: bool) -> Result<(), OwnableError>;
     #[ink(message)]
     fn get_should_return_mock_value(&self) -> bool;
     #[ink(message)]

@@ -1,12 +1,5 @@
-use ink::{
-    prelude::string::String,
-    LangError,
-};
-use openbrush::contracts::{
-    access_control::AccessControlError,
-    pausable::PausableError,
-    psp22::PSP22Error,
-};
+use ink::{prelude::string::String, LangError};
+use openbrush::contracts::{access_control::AccessControlError, pausable::PausableError, psp22::PSP22Error};
 
 use crate::traits::flash_loan_receiver::FlashLoanReceiverError;
 

@@ -3,41 +3,22 @@ use crate::{
         constants::E18,
         lending_pool::{
             internal::InternalIncome,
-            storage::{
-                lending_pool_storage::LendingPoolStorage,
-                structs::reserve_data::ReserveData,
-            },
+            storage::{lending_pool_storage::LendingPoolStorage, structs::reserve_data::ReserveData},
         },
     },
     traits::{
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{
-            errors::LendingPoolError,
-            events::*,
-        },
+        lending_pool::{errors::LendingPoolError, events::*},
     },
 };
-use ink::prelude::{
-    vec,
-    vec::Vec,
-};
+use ink::prelude::{vec, vec::Vec};
 use openbrush::{
-    contracts::{
-        access_control::*,
-        psp22::PSP22Ref,
-    },
+    contracts::{access_control::*, psp22::PSP22Ref},
     modifiers,
-    traits::{
-        AccountId,
-        Balance,
-        Storage,
-    },
+    traits::{AccountId, Balance, Storage},
 };
 
-use super::storage::{
-    lending_pool_storage::MarketRule,
-    structs::asset_rules::AssetRules,
-};
+use super::storage::{lending_pool_storage::MarketRule, structs::asset_rules::AssetRules};
 
 /// pays only 10% of standard flash loan fee
 pub const FLASH_BORROWER: RoleType = ink::selector_id!("FLASH_BORROWER"); // 1_112_475_474_u32
@@ -84,7 +65,7 @@ pub trait LendingPoolManageImpl:
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !(self.has_role(ASSET_LISTING_ADMIN, caller.into()) || self.has_role(GLOBAL_ADMIN, caller.into())) {
-            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+            return Err(LendingPoolError::from(AccessControlError::MissingRole));
         }
 
         let new_id = self.data::<LendingPoolStorage>().registered_asset_len();
@@ -157,7 +138,7 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_is_active(&mut self, asset: AccountId, active: bool) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !(self.has_role(EMERGENCY_ADMIN, caller.into()) || self.has_role(GLOBAL_ADMIN, caller.into())) {
-            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+            return Err(LendingPoolError::from(AccessControlError::MissingRole));
         }
 
         let mut reserve = self
@@ -175,7 +156,7 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_is_freezed(&mut self, asset: AccountId, freeze: bool) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !(self.has_role(EMERGENCY_ADMIN, caller.into()) || self.has_role(GLOBAL_ADMIN, caller.into())) {
-            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+            return Err(LendingPoolError::from(AccessControlError::MissingRole));
         }
         let mut reserve = self
             .data::<LendingPoolStorage>()
@@ -202,7 +183,7 @@ pub trait LendingPoolManageImpl:
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !(self.has_role(PARAMETERS_ADMIN, caller.into()) || self.has_role(GLOBAL_ADMIN, caller.into())) {
-            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+            return Err(LendingPoolError::from(AccessControlError::MissingRole));
         }
 
         let mut reserve = self
@@ -233,14 +214,14 @@ pub trait LendingPoolManageImpl:
     fn add_market_rule(&mut self, market_rule_id: u64, market_rule: MarketRule) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !(self.has_role(PARAMETERS_ADMIN, caller.into()) || self.has_role(GLOBAL_ADMIN, caller.into())) {
-            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+            return Err(LendingPoolError::from(AccessControlError::MissingRole));
         }
         if self
             .data::<LendingPoolStorage>()
             .get_market_rule(&market_rule_id)
             .is_some()
         {
-            return Err(LendingPoolError::MarketRuleInvalidId)
+            return Err(LendingPoolError::MarketRuleInvalidId);
         }
         let registerd_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
 
@@ -274,7 +255,7 @@ pub trait LendingPoolManageImpl:
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !(self.has_role(PARAMETERS_ADMIN, caller.into()) || self.has_role(GLOBAL_ADMIN, caller.into())) {
-            return Err(LendingPoolError::from(AccessControlError::MissingRole))
+            return Err(LendingPoolError::from(AccessControlError::MissingRole));
         }
         let reserve_data = self
             .data::<LendingPoolStorage>()

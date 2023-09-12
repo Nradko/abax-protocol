@@ -29,12 +29,12 @@ impl Rand {
         self.y = self.z;
         self.z = self.w;
         self.w ^= self.w.wrapping_shr(19) ^ t ^ t.wrapping_shr(8);
-        return self.w
+        return self.w;
     }
 
     pub fn shuffle<T>(&mut self, a: &mut [T]) {
         if a.len() == 0 {
-            return
+            return;
         }
         let mut i = a.len() - 1;
         while i > 0 {
@@ -46,7 +46,7 @@ impl Rand {
 
     pub fn rand_range(&mut self, a: u128, b: u128) -> u128 {
         let m = (b - a + 1) as u32;
-        return a + (self.rand() % m) as u128
+        return a + (self.rand() % m) as u128;
     }
 
     pub fn rand_float(&mut self) -> f64 {

@@ -17,10 +17,7 @@ pub mod lending_pool_v0_view_facet {
         impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
         impls::lending_pool::storage::{
             lending_pool_storage::MarketRule,
-            structs::{
-                reserve_data::ReserveData, user_config::UserConfig,
-                user_reserve_data::UserReserveData,
-            },
+            structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
         },
     };
     use openbrush::{
@@ -65,18 +62,11 @@ pub mod lending_pool_v0_view_facet {
             LendingPoolViewImpl::view_unupdated_reserve_datas(self, assets)
         }
         #[ink(message)]
-        fn view_reserve_datas(
-            &self,
-            assets: Option<Vec<AccountId>>,
-        ) -> Vec<(AccountId, Option<ReserveData>)> {
+        fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)> {
             LendingPoolViewImpl::view_reserve_datas(self, assets)
         }
         #[ink(message)]
-        fn view_unupdated_user_reserve_data(
-            &self,
-            asset: AccountId,
-            account: AccountId,
-        ) -> UserReserveData {
+        fn view_unupdated_user_reserve_data(&self, asset: AccountId, account: AccountId) -> UserReserveData {
             LendingPoolViewImpl::view_unupdated_user_reserve_data(self, asset, account)
         }
         #[ink(message)]

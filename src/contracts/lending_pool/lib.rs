@@ -11,69 +11,37 @@
 #[openbrush::contract]
 pub mod lending_pool {
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::{EmitEvent, Env},
         prelude::vec::Vec,
     };
 
     use lending_project::{
         impls::lending_pool::{
             actions::{
-                borrow::LendingPoolBorrowImpl,
-                deposit::LendingPoolDepositImpl,
-                flash::LendingPoolFlashImpl,
-                liquidate::LendingPoolLiquidateImpl,
-                maintain::LendingPoolMaintainImpl,
+                borrow::LendingPoolBorrowImpl, deposit::LendingPoolDepositImpl, flash::LendingPoolFlashImpl,
+                liquidate::LendingPoolLiquidateImpl, maintain::LendingPoolMaintainImpl,
             },
             interfaces::{
-                a_token_interface::LendingPoolATokenInterfaceImpl,
-                v_token_interface::LendingPoolVTokenInterfaceImpl,
+                a_token_interface::LendingPoolATokenInterfaceImpl, v_token_interface::LendingPoolVTokenInterfaceImpl,
             },
-            manage::{
-                LendingPoolManageImpl,
-                GLOBAL_ADMIN,
-            },
+            manage::{LendingPoolManageImpl, GLOBAL_ADMIN},
             storage::{
-                lending_pool_storage::{
-                    LendingPoolStorage,
-                    MarketRule,
-                },
-                structs::{
-                    reserve_data::ReserveData,
-                    user_config::UserConfig,
-                    user_reserve_data::UserReserveData,
-                },
+                lending_pool_storage::{LendingPoolStorage, MarketRule},
+                structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
             },
             view::LendingPoolViewImpl,
         },
         traits::lending_pool::{
-            errors::{
-                LendingPoolError,
-                LendingPoolTokenInterfaceError,
-            },
-            traits::{
-                a_token_interface::*,
-                actions::*,
-                manage::*,
-                v_token_interface::*,
-                view::*,
-            },
+            errors::{LendingPoolError, LendingPoolTokenInterfaceError},
+            traits::{a_token_interface::*, actions::*, manage::*, v_token_interface::*, view::*},
         },
     };
     // use openbrush::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
     use openbrush::{
         contracts::{
-            access_control::{
-                self,
-                *,
-            },
-            pausable::{
-                self,
-                *,
-            },
+            access_control::{self, *},
+            pausable::{self, *},
         },
         traits::Storage,
     };

@@ -3,9 +3,7 @@ use crate::{
         constants::{E6, MATH_ERROR_MESSAGE},
         lending_pool::{
             manage::FLASH_BORROWER,
-            storage::{
-                lending_pool_storage::LendingPoolStorage, structs::reserve_data::ReserveData,
-            },
+            storage::{lending_pool_storage::LendingPoolStorage, structs::reserve_data::ReserveData},
         },
     },
     traits::{
@@ -25,9 +23,7 @@ use openbrush::{
     traits::{AccountId, Balance, Storage},
 };
 
-pub trait LendingPoolFlashImpl:
-    Storage<LendingPoolStorage> + EmitFlashEvents + AccessControlImpl
-{
+pub trait LendingPoolFlashImpl: Storage<LendingPoolStorage> + EmitFlashEvents + AccessControlImpl {
     fn flash_loan(
         &mut self,
         receiver_address: AccountId,
@@ -80,8 +76,7 @@ pub trait LendingPoolFlashImpl:
 
         for i in 0..assets.len() {
             reserve_data_vec[i]._accumulate_interest(block_timestamp);
-            let income_for_suppliers =
-                fees[i] * reserve_data_vec[i].income_for_suppliers_part_e6 / E6;
+            let income_for_suppliers = fees[i] * reserve_data_vec[i].income_for_suppliers_part_e6 / E6;
             reserve_data_vec[i].cumulative_supply_rate_index_e18 = u128::try_from(
                 checked_math!(
                     reserve_data_vec[i].cumulative_supply_rate_index_e18
