@@ -44,10 +44,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
         }
     }
 
-    fn view_unupdated_reserve_datas(
-        &self,
-        assets: Option<Vec<AccountId>>,
-    ) -> Vec<(AccountId, Option<ReserveData>)> {
+    fn view_unupdated_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)> {
         let assets_to_view = assets.unwrap_or_else(|| {
             self.data::<LendingPoolStorage>()
                 .registered_assets
@@ -57,18 +54,12 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
 
         let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
         for asset in assets_to_view {
-            ret.push((
-                asset,
-                self.data::<LendingPoolStorage>().get_reserve_data(&asset),
-            ));
+            ret.push((asset, self.data::<LendingPoolStorage>().get_reserve_data(&asset)));
         }
         ret
     }
 
-    fn view_reserve_datas(
-        &self,
-        assets: Option<Vec<AccountId>>,
-    ) -> Vec<(AccountId, Option<ReserveData>)> {
+    fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)> {
         let assets_to_view = assets.unwrap_or_else(|| {
             self.data::<LendingPoolStorage>()
                 .registered_assets
@@ -83,11 +74,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
         ret
     }
 
-    fn view_unupdated_user_reserve_data(
-        &self,
-        asset: AccountId,
-        user: AccountId,
-    ) -> UserReserveData {
+    fn view_unupdated_user_reserve_data(&self, asset: AccountId, user: AccountId) -> UserReserveData {
         self.data::<LendingPoolStorage>()
             .get_user_reserve(&asset, &user)
             .unwrap_or_default()
@@ -95,29 +82,20 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
 
     fn view_user_reserve_data(&self, asset: AccountId, user: AccountId) -> UserReserveData {
         match self.data::<LendingPoolStorage>().get_reserve_data(&asset) {
-            Some(mut reserve_data) => {
-                match self
-                    .data::<LendingPoolStorage>()
-                    .get_user_reserve(&asset, &user)
-                {
-                    Some(mut user_reserve_data) => {
-                        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-                            &self
-                                .data::<LendingPoolStorage>()
-                                .block_timestamp_provider
-                                .get()
-                                .unwrap(),
-                        );
-                        _accumulate_interest(
-                            &mut reserve_data,
-                            &mut user_reserve_data,
-                            block_timestamp,
-                        );
-                        user_reserve_data
-                    }
-                    None => UserReserveData::default(),
+            Some(mut reserve_data) => match self.data::<LendingPoolStorage>().get_user_reserve(&asset, &user) {
+                Some(mut user_reserve_data) => {
+                    let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
+                        &self
+                            .data::<LendingPoolStorage>()
+                            .block_timestamp_provider
+                            .get()
+                            .unwrap(),
+                    );
+                    _accumulate_interest(&mut reserve_data, &mut user_reserve_data, block_timestamp);
+                    user_reserve_data
                 }
-            }
+                None => UserReserveData::default(),
+            },
             None => UserReserveData::default(),
         }
     }
@@ -172,8 +150,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
     }
 
     fn view_market_rule(&self, market_rule_id: u64) -> Option<MarketRule> {
-        self.data::<LendingPoolStorage>()
-            .get_market_rule(&market_rule_id)
+        self.data::<LendingPoolStorage>().get_market_rule(&market_rule_id)
     }
 
     fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128) {
@@ -193,13 +170,8 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             .get_market_rule(&user_config.market_rule_id)
             .unwrap_or_default();
 
-        self._get_user_free_collateral_coefficient_e6(
-            &user_address,
-            &user_config,
-            &market_rule,
-            block_timestamp,
-        )
-        .unwrap_or_default()
+        self._get_user_free_collateral_coefficient_e6(&user_address, &user_config, &market_rule, block_timestamp)
+            .unwrap_or_default()
     }
 
     fn get_block_timestamp_provider_address(&self) -> AccountId {
@@ -223,9 +195,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
         match assets {
             Some(assets_vec) => self._get_protocol_income(&assets_vec),
             None => {
-                let registered_assets = self
-                    .data::<LendingPoolStorage>()
-                    .get_all_registered_assets();
+                let registered_assets = self.data::<LendingPoolStorage>().get_all_registered_assets();
                 self._get_protocol_income(&registered_assets)
             }
         }

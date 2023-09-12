@@ -19,9 +19,7 @@ where
     let lending_pool: AccountId = instance.get_lending_pool();
 
     if lending_pool != T::env().caller() {
-        return Err(From::from(PSP22Error::Custom(
-            String::from("NotLendingPool").into(),
-        )));
+        return Err(From::from(PSP22Error::Custom(String::from("NotLendingPool").into())));
     }
 
     body(instance)
@@ -35,12 +33,7 @@ pub trait AbacusTokenImpl: Storage<AbacusTokenData> + psp22::Internal {
     {
         for event in &events {
             if event.amount != 0 {
-                <Self as psp22::Internal>::_emit_transfer_event(
-                    self,
-                    event.from,
-                    event.to,
-                    event.amount,
-                );
+                <Self as psp22::Internal>::_emit_transfer_event(self, event.from, event.to, event.amount);
             }
         }
         Ok(())

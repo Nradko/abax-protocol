@@ -1,25 +1,11 @@
 use checked_math::checked_math;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Timestamp,
-};
+use openbrush::traits::{AccountId, Balance, Timestamp};
 use primitive_types::U256;
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::{Decode, Encode};
 
-use crate::impls::constants::{
-    E18,
-    E6,
-    MATH_ERROR_MESSAGE,
-};
+use crate::impls::constants::{E18, E6, MATH_ERROR_MESSAGE};
 
-use crate::traits::lending_pool::errors::{
-    LendingPoolError,
-    StorageError,
-};
+use crate::traits::lending_pool::errors::{LendingPoolError, StorageError};
 use ink::prelude::string::String;
 
 /// is a struct containing all important constants and non-constant parameters and variables for each asset available on market.
@@ -87,7 +73,7 @@ impl ReserveData {
     //// VIEW
     pub fn _current_utilization_rate_e6(&self) -> u128 {
         if self.total_supplied == 0 {
-            return E6
+            return E6;
         }
         let total_debt = self.total_debt;
         u128::try_from(checked_math!(total_debt * E6 / self.total_supplied).unwrap()).expect(MATH_ERROR_MESSAGE)
@@ -125,7 +111,7 @@ impl ReserveData {
         let delta_timestamp: u128 = (new_timestamp - self.indexes_update_timestamp) as u128;
         // variable_borrow
         if delta_timestamp == 0 {
-            return
+            return;
         }
 
         if self.current_supply_rate_e24 != 0 {
@@ -194,7 +180,7 @@ impl ReserveData {
         if self.total_debt == 0 {
             self.current_debt_rate_e24 = 0;
             self.current_supply_rate_e24 = 0;
-            return
+            return;
         }
         let utilization_rate_e6 = self._current_utilization_rate_e6();
         self.current_debt_rate_e24 = self._utilization_rate_to_interest_rate_e24(utilization_rate_e6);

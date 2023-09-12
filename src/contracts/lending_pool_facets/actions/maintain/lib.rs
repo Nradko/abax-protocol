@@ -46,11 +46,7 @@ pub mod lending_pool_v0_maintain_facet {
             LendingPoolMaintainImpl::accumulate_interest(self, asset)
         }
         #[ink(message)]
-        fn insert_reserve_token_price_e8(
-            &mut self,
-            asset: AccountId,
-            price_e8: u128,
-        ) -> Result<(), LendingPoolError> {
+        fn insert_reserve_token_price_e8(&mut self, asset: AccountId, price_e8: u128) -> Result<(), LendingPoolError> {
             LendingPoolMaintainImpl::insert_reserve_token_price_e8(self, asset, price_e8)
         }
     }
@@ -86,8 +82,7 @@ pub mod lending_pool_v0_maintain_facet {
 
     impl EmitMaintainEvents for LendingPoolV0MaintainFacet {
         fn _emit_accumulate_interest_event(&mut self, asset: &AccountId) {
-            self.env()
-                .emit_event(InterestsAccumulated { asset: *asset });
+            self.env().emit_event(InterestsAccumulated { asset: *asset });
         }
         fn _emit_accumulate_user_interest_event(&mut self, asset: &AccountId, user: &AccountId) {
             self.env().emit_event(UserInterestsAccumulated {

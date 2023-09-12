@@ -1,8 +1,5 @@
 use crate::traits::lending_pool::errors::LendingPoolTokenInterfaceError;
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 #[openbrush::wrapper]
 pub type LendingPoolATokenInterfaceRef = dyn LendingPoolATokenInterface;

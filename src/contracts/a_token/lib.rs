@@ -4,18 +4,12 @@
 #[openbrush::contract]
 pub mod a_token {
     use ink::{
-        codegen::{
-            EmitEvent,
-            Env,
-        },
+        codegen::{EmitEvent, Env},
         prelude::string::String,
     };
     use lending_project::{
         impls::abacus_token::abacus_token::AbacusTokenImpl,
-        traits::{
-            abacus_token::traits::abacus_token::*,
-            account_id_utils::AccountIdExt,
-        },
+        traits::{abacus_token::traits::abacus_token::*, account_id_utils::AccountIdExt},
     };
 
     use lending_project::{
@@ -23,10 +17,7 @@ pub mod a_token {
         traits::lending_pool::traits::a_token_interface::LendingPoolATokenInterfaceRef,
     };
     use openbrush::{
-        contracts::psp22::{
-            extensions::metadata::*,
-            PSP22Error,
-        },
+        contracts::psp22::{extensions::metadata::*, PSP22Error},
         traits::Storage,
     };
 
@@ -109,7 +100,7 @@ pub mod a_token {
         let allowance = psp22::Internal::_allowance(self, &from, &caller);
 
         if allowance < value {
-            return Err(PSP22Error::InsufficientAllowance)
+            return Err(PSP22Error::InsufficientAllowance);
         }
 
         psp22::Internal::_approve_from_to(self, from, caller, allowance - value)?;
@@ -154,10 +145,10 @@ pub mod a_token {
     #[overrider(psp22::Internal)]
     fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress)
+            return Err(PSP22Error::ZeroSenderAddress);
         }
         if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress)
+            return Err(PSP22Error::ZeroRecipientAddress);
         }
 
         self.abacus_token.allowances.insert(&(owner, spender), &amount);

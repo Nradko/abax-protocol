@@ -1,7 +1,4 @@
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 #[openbrush::trait_definition]
 pub trait EmitDepositEvents {

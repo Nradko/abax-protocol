@@ -9,10 +9,7 @@ use crate::{
         internal::{_accumulate_interest, _check_activeness, _check_deposit_enabled, *},
         storage::{
             lending_pool_storage::{LendingPoolStorage, MarketRule},
-            structs::{
-                reserve_data::ReserveData, user_config::UserConfig,
-                user_reserve_data::UserReserveData,
-            },
+            structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
         },
     },
     traits::{
@@ -21,9 +18,7 @@ use crate::{
     },
 };
 
-pub trait LendingPoolDepositImpl:
-    Storage<LendingPoolStorage> + DepositInternal + EmitDepositEvents
-{
+pub trait LendingPoolDepositImpl: Storage<LendingPoolStorage> + DepositInternal + EmitDepositEvents {
     fn deposit(
         &mut self,
         asset: AccountId,
@@ -46,14 +41,8 @@ pub trait LendingPoolDepositImpl:
 
         //// MODIFY DATA
         // accumulate
-        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (
-            Balance,
-            Balance,
-        ) = _accumulate_interest(
-            &mut reserve_data,
-            &mut on_behalf_of_reserve_data,
-            block_timestamp,
-        );
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
+            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
         // add deposit
         _change_state_on_deposit(
             &mut reserve_data,
@@ -125,14 +114,8 @@ pub trait LendingPoolDepositImpl:
             self._pull_data_for_redeem(&asset, &on_behalf_of)?;
         // MODIFY PULLED STORAGE & AMOUNT CHECK
         // accumulate
-        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (
-            Balance,
-            Balance,
-        ) = _accumulate_interest(
-            &mut reserve_data,
-            &mut on_behalf_of_reserve_data,
-            block_timestamp,
-        );
+        let (interest_on_behalf_of_supply, interest_on_behalf_of_variable_borrow): (Balance, Balance) =
+            _accumulate_interest(&mut reserve_data, &mut on_behalf_of_reserve_data, block_timestamp);
         // amount checks
         let amount = match amount_arg {
             Some(v) => {
@@ -163,12 +146,7 @@ pub trait LendingPoolDepositImpl:
             &on_behalf_of_config,
         );
         // check if there ie enought collateral
-        self._check_user_free_collateral(
-            &on_behalf_of,
-            &on_behalf_of_config,
-            &market_rule,
-            block_timestamp,
-        )?;
+        self._check_user_free_collateral(&on_behalf_of, &on_behalf_of_config, &market_rule, block_timestamp)?;
 
         //// TOKEN TRANSFERS
         PSP22Ref::transfer(&asset, Self::env().caller(), amount, Vec::<u8>::new())?;
@@ -280,11 +258,8 @@ impl<T: Storage<LendingPoolStorage>> DepositInternal for T {
     ) {
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&asset, &reserve_data);
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &asset,
-            &on_behalf_of,
-            &on_behalf_of_reserve_data,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&asset, &on_behalf_of, &on_behalf_of_reserve_data);
         self.data::<LendingPoolStorage>()
             .insert_user_config(&on_behalf_of, &on_behalf_of_config);
     }
@@ -296,12 +271,7 @@ fn _change_state_on_deposit(
     on_behalf_of_config: &mut UserConfig,
     amount: u128,
 ) {
-    _increase_user_deposit(
-        &*reserve_data,
-        on_behalf_of_reserve_data,
-        on_behalf_of_config,
-        amount,
-    );
+    _increase_user_deposit(&*reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
     _increase_total_deposit(reserve_data, amount);
 }
 
@@ -311,12 +281,7 @@ fn _change_state_on_redeem(
     on_behalf_of_config: &mut UserConfig,
     amount: u128,
 ) {
-    _decrease_user_deposit(
-        &*reserve_data,
-        on_behalf_of_reserve_data,
-        on_behalf_of_config,
-        amount,
-    );
+    _decrease_user_deposit(&*reserve_data, on_behalf_of_reserve_data, on_behalf_of_config, amount);
     _decrease_total_deposit(reserve_data, amount);
     if on_behalf_of_reserve_data.supplied <= reserve_data.minimal_collateral {
         on_behalf_of_config.collaterals &= !(1_u128 << reserve_data.id);

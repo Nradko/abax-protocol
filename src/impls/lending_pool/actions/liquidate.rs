@@ -13,10 +13,7 @@ use crate::{
             internal::{_accumulate_interest, *},
             storage::{
                 lending_pool_storage::{LendingPoolStorage, MarketRule},
-                structs::{
-                    reserve_data::ReserveData, user_config::UserConfig,
-                    user_reserve_data::UserReserveData,
-                },
+                structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
             },
         },
     },
@@ -26,9 +23,7 @@ use crate::{
     },
 };
 
-pub trait LendingPoolLiquidateImpl:
-    Storage<LendingPoolStorage> + LiquidateInternal + EmitLiquidateEvents
-{
+pub trait LendingPoolLiquidateImpl: Storage<LendingPoolStorage> + LiquidateInternal + EmitLiquidateEvents {
     fn liquidate(
         &mut self,
         liquidated_user: AccountId,
@@ -64,12 +59,7 @@ pub trait LendingPoolLiquidateImpl:
             UserConfig,
             UserReserveData,
             MarketRule,
-        ) = self._pull_data_for_liquidate(
-            &asset_to_repay,
-            &asset_to_take,
-            &liquidated_user,
-            &caller,
-        )?;
+        ) = self._pull_data_for_liquidate(&asset_to_repay, &asset_to_take, &liquidated_user, &caller)?;
         let (collaterized, _) = self._get_user_free_collateral_coefficient_e6(
             &liquidated_user,
             &user_config,
@@ -110,29 +100,23 @@ pub trait LendingPoolLiquidateImpl:
         }
         // MODIFY PULLED STORAGE
         // accumulate to repay
-        let (interest_user_supply_to_repay, interest_user_variable_borrow_to_repay): (
-            Balance,
-            Balance,
-        ) = _accumulate_interest(
-            &mut reserve_data_to_repay,
-            &mut user_reserve_data_to_repay,
-            block_timestamp,
-        );
+        let (interest_user_supply_to_repay, interest_user_variable_borrow_to_repay): (Balance, Balance) =
+            _accumulate_interest(
+                &mut reserve_data_to_repay,
+                &mut user_reserve_data_to_repay,
+                block_timestamp,
+            );
         // accumulate to take
         // user's
-        let (interest_user_supply_to_take, interest_user_variable_borrow_to_take): (
-            Balance,
-            Balance,
-        ) = _accumulate_interest(
-            &mut reserve_data_to_take,
-            &mut user_reserve_data_to_take,
-            block_timestamp,
-        );
+        let (interest_user_supply_to_take, interest_user_variable_borrow_to_take): (Balance, Balance) =
+            _accumulate_interest(
+                &mut reserve_data_to_take,
+                &mut user_reserve_data_to_take,
+                block_timestamp,
+            );
         // caller's
-        let (interest_caller_supply_to_take, interest_caller_variable_borrow_to_take): (
-            Balance,
-            Balance,
-        ) = caller_reserve_data_to_take._accumulate_user_interest(&mut reserve_data_to_take);
+        let (interest_caller_supply_to_take, interest_caller_variable_borrow_to_take): (Balance, Balance) =
+            caller_reserve_data_to_take._accumulate_user_interest(&mut reserve_data_to_take);
 
         // calculate and check amount to be taken by caller
         let amount_to_repay_value = match amount_to_repay {
@@ -402,11 +386,8 @@ impl<T: Storage<LendingPoolStorage> + EmitLiquidateEvents> LiquidateInternal for
             &liquidated_user,
             &user_reserve_data_to_take,
         );
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &asset_to_take,
-            &caller,
-            &caller_reserve_data_to_take,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&asset_to_take, &caller, &caller_reserve_data_to_take);
         // configs
         self.data::<LendingPoolStorage>()
             .insert_user_config(liquidated_user, liquidated_user_config);

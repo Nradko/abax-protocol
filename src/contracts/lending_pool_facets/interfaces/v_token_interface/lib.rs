@@ -180,13 +180,7 @@ pub mod lending_pool_v0_v_token_interface_facet {
             to: AccountId,
             amount: Balance,
         ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
-            LendingPoolVTokenInterfaceImpl::transfer_variable_debt_from_to(
-                self,
-                underlying_asset,
-                from,
-                to,
-                amount,
-            )
+            LendingPoolVTokenInterfaceImpl::transfer_variable_debt_from_to(self, underlying_asset, from, to, amount)
         }
     }
 

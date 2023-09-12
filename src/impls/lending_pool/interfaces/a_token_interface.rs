@@ -1,15 +1,9 @@
 use crate::{
     impls::lending_pool::{
-        internal::{
-            Internal, _check_enough_supply_to_be_collateral, _decrease_user_deposit,
-            _increase_user_deposit,
-        },
+        internal::{Internal, _check_enough_supply_to_be_collateral, _decrease_user_deposit, _increase_user_deposit},
         storage::{
             lending_pool_storage::{LendingPoolStorage, MarketRule},
-            structs::{
-                reserve_data::ReserveData, user_config::UserConfig,
-                user_reserve_data::UserReserveData,
-            },
+            structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
         },
     },
     traits::{
@@ -111,22 +105,12 @@ pub trait LendingPoolATokenInterfaceImpl:
         if from_user_reserve_data.supplied < amount {
             return Err(LendingPoolTokenInterfaceError::InsufficientBalance);
         }
-        _decrease_user_deposit(
-            &reserve_data,
-            &mut from_user_reserve_data,
-            &mut from_config,
-            amount,
-        );
+        _decrease_user_deposit(&reserve_data, &mut from_user_reserve_data, &mut from_config, amount);
         if from_user_reserve_data.supplied <= reserve_data.minimal_collateral {
             from_config.collaterals &= !(1_u128 << reserve_data.id);
         }
         // add_to_user_supply
-        _increase_user_deposit(
-            &reserve_data,
-            &mut to_user_reserve_data,
-            &mut to_config,
-            amount,
-        );
+        _increase_user_deposit(&reserve_data, &mut to_user_reserve_data, &mut to_config, amount);
 
         if (from_config.collaterals >> reserve_data.id) & 1 == 1 {
             _check_enough_supply_to_be_collateral(&reserve_data, &from_user_reserve_data)
@@ -272,19 +256,12 @@ impl<T: Storage<LendingPoolStorage>> ATokenInterfaceInternal for T {
     ) {
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&underlying_asset, reserve_data);
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &underlying_asset,
-            &from,
-            &from_user_reserve_data,
-        );
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &underlying_asset,
-            &to,
-            &to_user_reserve_data,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
         self.data::<LendingPoolStorage>()
             .insert_user_config(&from, &from_config);
-        self.data::<LendingPoolStorage>()
-            .insert_user_config(&to, &to_config);
+        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
     }
 }
