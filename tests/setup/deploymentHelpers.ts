@@ -324,21 +324,21 @@ export async function deployCoreContracts(owner: KeyringPair) {
   const blockTimestampProvider = await deployBlockTimestampProvider(owner);
 
   // fallback:
-  // const lendingPool = await deployLendingPool(owner);
+  const lendingPool = await deployLendingPool(owner);
 
-  const initFacet = 'lending_pool_v0_initialize_facet';
-  const functionalFacets = [
-    'lending_pool_v0_manage_facet',
-    'lending_pool_v0_borrow_facet',
-    'lending_pool_v0_deposit_facet',
-    'lending_pool_v0_flash_facet',
-    'lending_pool_v0_liquidate_facet',
-    'lending_pool_v0_maintain_facet',
-    'lending_pool_v0_a_token_interface_facet',
-    'lending_pool_v0_v_token_interface_facet',
-    'lending_pool_v0_view_facet',
-  ];
-  const lendingPool = await setupDiamondContract(LendingPool, owner, owner, initFacet, functionalFacets);
+  // const initFacet = 'lending_pool_v0_initialize_facet';
+  // const functionalFacets = [
+  //   'lending_pool_v0_manage_facet',
+  //   'lending_pool_v0_borrow_facet',
+  //   'lending_pool_v0_deposit_facet',
+  //   'lending_pool_v0_flash_facet',
+  //   'lending_pool_v0_liquidate_facet',
+  //   'lending_pool_v0_maintain_facet',
+  //   'lending_pool_v0_a_token_interface_facet',
+  //   'lending_pool_v0_v_token_interface_facet',
+  //   'lending_pool_v0_view_facet',
+  // ];
+  // const lendingPool = await setupDiamondContract(LendingPool, owner, owner, initFacet, functionalFacets);
   return { blockTimestampProvider, lendingPool };
 }
 

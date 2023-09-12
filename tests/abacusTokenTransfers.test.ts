@@ -12,9 +12,8 @@ import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
 import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
-import { LPFacetAdapter } from 'tests/LendingPoolAdapter';
 
-makeSuite.only('AbacusToken transfers', (getTestEnv) => {
+makeSuite('AbacusToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
@@ -211,12 +210,11 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
           });
           it('Alice should be able to transfer vWETH to Bob and Transfer event should be emitted', async () => {
             const capturedRepayEvents: RepayVariable[] = [];
-            const borrowFacet = new LPFacetAdapter(lendingPool.address, lendingPool.signer, lendingPool.nativeAPI).asV0BorrowFacet();
-            borrowFacet.events.subscribeOnRepayVariableEvent((event) => {
+            lendingPool.events.subscribeOnRepayVariableEvent((event) => {
               capturedRepayEvents.push(event);
             });
             const capturedBorrowEvents: BorrowVariable[] = [];
-            borrowFacet.events.subscribeOnBorrowVariableEvent((event) => {
+            lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
               capturedBorrowEvents.push(event);
             });
             const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
@@ -265,14 +263,13 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
               await lendingPool.withSigner(bob).tx.borrow(wethContract.address, bob.address, bobDebt, []);
               await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR);
             });
-            it('Alice should be able to transfer vWETH to Bob and Transfer multiple events(including Alice debt mint) should be emitted', async () => {
+            it.only('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedRepayEvents: RepayVariable[] = [];
-              const borrowFacet = new LPFacetAdapter(lendingPool.address, lendingPool.signer, lendingPool.nativeAPI).asV0BorrowFacet();
-              borrowFacet.events.subscribeOnRepayVariableEvent((event) => {
+              lendingPool.events.subscribeOnRepayVariableEvent((event) => {
                 capturedRepayEvents.push(event);
               });
               const capturedBorrowEvents: BorrowVariable[] = [];
-              borrowFacet.events.subscribeOnBorrowVariableEvent((event) => {
+              lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
                 capturedBorrowEvents.push(event);
               });
               const capturedTransferEvents: Transfer[] = [];
@@ -337,15 +334,13 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
               expect(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([]);
             });
 
-            it('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(including Alice debt mint) should be emitted', async () => {
+            it.only('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedDepositEvents: Deposit[] = [];
-              const depositFacet = new LPFacetAdapter(lendingPool.address, lendingPool.signer, lendingPool.nativeAPI).asV0DepositFacet();
-              const borrowFacet = new LPFacetAdapter(lendingPool.address, lendingPool.signer, lendingPool.nativeAPI).asV0BorrowFacet();
-              depositFacet.events.subscribeOnDepositEvent((event) => {
+              lendingPool.events.subscribeOnDepositEvent((event) => {
                 capturedDepositEvents.push(event);
               });
               const capturedRedeemEvents: Redeem[] = [];
-              borrowFacet.events.subscribeOnRedeemEvent((event) => {
+              lendingPool.events.subscribeOnRedeemEvent((event) => {
                 capturedRedeemEvents.push(event);
               });
               const capturedTransferEvents: Transfer[] = [];
@@ -401,18 +396,17 @@ makeSuite.only('AbacusToken transfers', (getTestEnv) => {
             });
 
             describe('Charlie sets Weth as a collateral and gives Alice allowance to trasnfer vWETH', () => {
-              beforeEach('set collateral and give allowance', async () => {
+              beforeEach('set collateral and igive allowance', async () => {
                 await lendingPool.withSigner(charlie).tx.setAsCollateral(wethContract.address, true);
                 await vTokenWETHContract.withSigner(charlie).tx.increaseAllowance(alice.address, aliceDebt);
               });
-              it('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(including Alice debt mint) should be emitted', async () => {
+              it.only('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
                 const capturedRepayEvents: RepayVariable[] = [];
-                const borrowFacet = new LPFacetAdapter(lendingPool.address, lendingPool.signer, lendingPool.nativeAPI).asV0BorrowFacet();
-                borrowFacet.events.subscribeOnRepayVariableEvent((event) => {
+                lendingPool.events.subscribeOnRepayVariableEvent((event) => {
                   capturedRepayEvents.push(event);
                 });
                 const capturedBorrowEvents: RepayVariable[] = [];
-                borrowFacet.events.subscribeOnBorrowVariableEvent((event) => {
+                lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
                   capturedBorrowEvents.push(event);
                 });
                 const capturedTransferEvents: Transfer[] = [];
