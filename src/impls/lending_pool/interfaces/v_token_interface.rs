@@ -1,30 +1,44 @@
-use openbrush::traits::{AccountId, Balance, Storage};
+use openbrush::traits::{
+    AccountId,
+    Balance,
+    Storage,
+};
 
 use ink::prelude::*;
 
 use crate::{
     impls::lending_pool::{
-        internal::{_check_borrowing_enabled, *},
+        internal::{
+            _check_borrowing_enabled,
+            *,
+        },
         storage::{
-            lending_pool_storage::{LendingPoolStorage, MarketRule},
+            lending_pool_storage::{
+                LendingPoolStorage,
+                MarketRule,
+            },
             structs::{
-                reserve_data::ReserveData, user_config::UserConfig,
+                reserve_data::ReserveData,
+                user_config::UserConfig,
                 user_reserve_data::UserReserveData,
             },
         },
     },
     traits::{
-        abacus_token::traits::abacus_token::{AbacusTokenRef, TransferEventData},
+        abacus_token::traits::abacus_token::{
+            AbacusTokenRef,
+            TransferEventData,
+        },
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{errors::LendingPoolTokenInterfaceError, events::EmitBorrowEvents},
+        lending_pool::{
+            errors::LendingPoolTokenInterfaceError,
+            events::EmitBorrowEvents,
+        },
     },
 };
 
 pub trait LendingPoolVTokenInterfaceImpl:
-    Storage<LendingPoolStorage>
-    + Storage<openbrush::contracts::pausable::Data>
-    + VTokenInterfaceInternal
-    + EmitBorrowEvents
+    Storage<LendingPoolStorage> + Storage<openbrush::contracts::pausable::Data> + VTokenInterfaceInternal + EmitBorrowEvents
 {
     fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let mut reserve_data = self
@@ -32,7 +46,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .get_reserve_data(&underlying_asset)
             .unwrap_or_default();
         if reserve_data.total_debt == 0 {
-            return 0;
+            return 0
         }
 
         let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
@@ -52,7 +66,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .get_user_reserve(&underlying_asset, &user)
             .unwrap_or_default();
         if user_reserve_data.debt == 0 {
-            return 0;
+            return 0
         }
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
@@ -89,7 +103,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             to_market_rule,
         ) = self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
         if reserve_data.v_token_address != Self::env().caller() {
-            return Err(LendingPoolTokenInterfaceError::WrongCaller);
+            return Err(LendingPoolTokenInterfaceError::WrongCaller)
         }
         let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
             &self
@@ -101,6 +115,14 @@ pub trait LendingPoolVTokenInterfaceImpl:
         _check_borrowing_enabled(&reserve_data, &to_market_rule)
             .or(Err(LendingPoolTokenInterfaceError::TransfersDisabled))?;
 
+        ink::env::debug_println!(
+            "transfer_variable_debt_from_to \n asset {:X?} \n from: {:X?}\n to: {:X?}\n value {:X?}",
+            underlying_asset,
+            from,
+            to,
+            amount
+        );
+        ink::env::debug_println!("debt before accumulate: {}", to_user_reserve_data.debt);
         // MODIFY PULLED STORAGE & AMOUNT CHECKS
         // accumulate reserve
         reserve_data._accumulate_interest(block_timestamp);
@@ -110,21 +132,14 @@ pub trait LendingPoolVTokenInterfaceImpl:
             to_user_reserve_data._accumulate_user_interest(&mut reserve_data);
 
         if from_user_reserve_data.debt < amount {
-            return Err(LendingPoolTokenInterfaceError::InsufficientBalance);
+            return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
         }
-        _decrease_user_variable_debt(
-            &reserve_data,
-            &mut from_user_reserve_data,
-            &mut from_config,
-            amount,
-        );
-        _increase_user_variable_debt(
-            &reserve_data,
-            &mut to_user_reserve_data,
-            &mut to_config,
-            amount,
-        );
+        ink::env::debug_println!("debt after accumulate: {}", to_user_reserve_data.debt);
+
+        _decrease_user_variable_debt(&reserve_data, &mut from_user_reserve_data, &mut from_config, amount);
+        _increase_user_variable_debt(&reserve_data, &mut to_user_reserve_data, &mut to_config, amount);
         reserve_data._recalculate_current_rates();
+        ink::env::debug_println!("debt after transfer: {}", to_user_reserve_data.debt);
 
         _check_enough_variable_debt(&reserve_data, &from_user_reserve_data)
             .or(Err(LendingPoolTokenInterfaceError::MinimalDebt))?;
@@ -142,19 +157,11 @@ pub trait LendingPoolVTokenInterfaceImpl:
             &to_user_reserve_data,
         );
         // check if there is enough collateral
-        ink::env::debug_println!(
-            "transfer_variable_debt_from_to | asset {:X?}",
-            underlying_asset,
-        );
-        ink::env::debug_println!(
-            "before self._check_user_free_collateral | to_user debt {} | to_config borrows {}", //PR-->OB this prints data correctly (1000000000000000000) config non 0
-            to_user_reserve_data.debt,
-            to_config.borrows
-        );
+
         self._check_user_free_collateral(&to, &to_config, &to_market_rule, block_timestamp)
-            .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?; //PR-->OB self does not carry over storage changes to the function inside
+            .or(Err(LendingPoolTokenInterfaceError::InsufficientCollateral))?; // PR-->OB self does not carry over storage changes to the function inside
         ink::env::debug_println!(
-            "after self._check_user_free_collateral | user debt {}", //PR-->OB this prints data correctly (1000000000000000000) config non 0
+            "after self._check_user_free_collateral | user debt {}", /* PR-->OB this prints data correctly (1000000000000000000) config non 0 */
             to_user_reserve_data.debt
         );
 
@@ -284,19 +291,12 @@ impl<T: Storage<LendingPoolStorage>> VTokenInterfaceInternal for T {
     ) {
         self.data::<LendingPoolStorage>()
             .insert_reserve_data(&underlying_asset, reserve_data);
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &underlying_asset,
-            &from,
-            &from_user_reserve_data,
-        );
-        self.data::<LendingPoolStorage>().insert_user_reserve(
-            &underlying_asset,
-            &to,
-            &to_user_reserve_data,
-        );
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &from, &from_user_reserve_data);
+        self.data::<LendingPoolStorage>()
+            .insert_user_reserve(&underlying_asset, &to, &to_user_reserve_data);
         self.data::<LendingPoolStorage>()
             .insert_user_config(&from, &from_config);
-        self.data::<LendingPoolStorage>()
-            .insert_user_config(&to, &to_config);
+        self.data::<LendingPoolStorage>().insert_user_config(&to, &to_config);
     }
 }

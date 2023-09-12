@@ -39,6 +39,7 @@ import { toE6 } from '@abaxfinance/utils';
 import { getLineSeparator } from 'tests/scenarios/utils/misc';
 import { AbiMessage } from '@polkadot/api-contract/types';
 import { SignAndSendSuccessResponse, _genValidGasLimitAndValue, _signAndSend } from '@727-ventures/typechain-types';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from './defaultInterestRateModel';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());
@@ -356,6 +357,7 @@ const getEntryOrThrow = <T>(record: Record<string, T>, key: string) => {
 
 export type DeploymentConfig = {
   testReserveTokensToDeploy: Omit<ReserveTokenDeploymentData, 'address'>[];
+  interestRateModel: [number, number, number, number, number, number, number];
   priceOverridesE8: Record<string, number>;
   shouldUseMockTimestamp: boolean;
   owner: KeyringPair;
@@ -363,6 +365,7 @@ export type DeploymentConfig = {
 };
 export const defaultDeploymentConfig: DeploymentConfig = {
   testReserveTokensToDeploy: fs.readJSONSync(path.join(__dirname, 'reserveTokensToDeploy.json')) as Omit<ReserveTokenDeploymentData, 'address'>[],
+  interestRateModel: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
   priceOverridesE8: MOCK_CHAINLINK_AGGREGATORS_PRICES,
   shouldUseMockTimestamp: true,
   owner: getSigners()[0],
@@ -382,7 +385,7 @@ export const deployAndConfigureSystem = async (
     },
   };
 
-  const { owner, users, testReserveTokensToDeploy, priceOverridesE8: prices, shouldUseMockTimestamp } = config;
+  const { owner, users, testReserveTokensToDeploy, priceOverridesE8: prices, shouldUseMockTimestamp, interestRateModel } = config;
 
   const contracts = await deployCoreContracts(owner);
 
@@ -414,6 +417,7 @@ export const deployAndConfigureSystem = async (
       reserveData.decimals,
       reserveData.feeD6,
       reserveData.flashLoanFeeE6,
+      interestRateModel,
     );
     await contracts.lendingPool.tx.insertReserveTokenPriceE8(reserve.address, prices[reserveData.name]);
     reservesWithLendingTokens[reserveData.name] = {
@@ -483,6 +487,7 @@ export async function registerNewAsset(
   decimals: number,
   feeD6: number,
   flashLoanFeeE6: number,
+  interestRateModel: [number, number, number, number, number, number, number],
 ) {
   const aToken = await deployAToken(owner, symbol, decimals, lendingPool.address, assetAddress);
   const vToken = await deployVToken(owner, symbol, decimals, lendingPool.address, assetAddress);
@@ -498,6 +503,7 @@ export async function registerNewAsset(
     minimalDebt,
     toE6(1) - feeD6,
     flashLoanFeeE6,
+    interestRateModel,
     aToken.address,
     vToken.address,
   ];
