@@ -3,17 +3,30 @@
 #[openbrush::implementation(PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod v_token {
-    use ink::codegen::{EmitEvent, Env};
-    use ink::prelude::string::String;
+    use ink::{
+        codegen::{
+            EmitEvent,
+            Env,
+        },
+        prelude::string::String,
+    };
 
-    use lending_project::traits::account_id_utils::AccountIdExt;
     use lending_project::{
-        impls::abacus_token::{abacus_token::AbacusTokenImpl, data::AbacusTokenData},
-        traits::abacus_token::traits::abacus_token::*,
-        traits::lending_pool::traits::v_token_interface::LendingPoolVTokenInterfaceRef,
+        impls::abacus_token::{
+            abacus_token::AbacusTokenImpl,
+            data::AbacusTokenData,
+        },
+        traits::{
+            abacus_token::traits::abacus_token::*,
+            account_id_utils::AccountIdExt,
+            lending_pool::traits::v_token_interface::LendingPoolVTokenInterfaceRef,
+        },
     };
     use openbrush::{
-        contracts::psp22::{extensions::metadata::*, PSP22Error},
+        contracts::psp22::{
+            extensions::metadata::*,
+            PSP22Error,
+        },
         traits::Storage,
     };
 
@@ -47,12 +60,7 @@ pub mod v_token {
     }
 
     #[overrider(psp22::Internal)]
-    fn _emit_transfer_event(
-        &self,
-        from: Option<AccountId>,
-        to: Option<AccountId>,
-        amount: Balance,
-    ) {
+    fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, amount: Balance) {
         self.env().emit_event(Transfer {
             from,
             to,
@@ -79,10 +87,7 @@ pub mod v_token {
 
     #[overrider(psp22::Internal)]
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
-        self.abacus_token
-            .allowances
-            .get(&(*owner, *spender))
-            .unwrap_or(0)
+        self.abacus_token.allowances.get(&(*owner, *spender)).unwrap_or(0)
     }
 
     /// Transfers `value` amount of tokens from the caller's account to account `to`
@@ -106,7 +111,7 @@ pub mod v_token {
 
         if allowance < value {
             ink::env::debug_println!("gonna return insufficient allowance");
-            return Err(PSP22Error::InsufficientAllowance);
+            return Err(PSP22Error::InsufficientAllowance)
         }
         ink::env::debug_println!("Transfer after allowance < value");
         psp22::Internal::_approve_from_to(self, to, from, allowance - value)?;
@@ -140,12 +145,16 @@ pub mod v_token {
         let caller = self.env().caller();
         let allowance = psp22::Internal::_allowance(self, &from, &caller);
 
-        ink::env::debug_println!("Transfer_from before allowance < value {}", allowance);
+        ink::env::debug_println!(
+            "Transfer VToken\n from: {:X?} \n to: {:X?}\n value {:?}",
+            from,
+            to,
+            value
+        );
         if allowance < value {
             ink::env::debug_println!("gonna return insufficient allowance");
-            return Err(PSP22Error::InsufficientAllowance);
+            return Err(PSP22Error::InsufficientAllowance)
         }
-        ink::env::debug_println!("Transfer_from after allowance < value");
 
         psp22::Internal::_approve_from_to(self, to, caller, allowance - value)?;
         psp22::Internal::_transfer_from_to(self, from, to, value, data)?;
@@ -171,7 +180,9 @@ pub mod v_token {
     ) -> Result<(), PSP22Error> {
         // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
 
-        ink::env::debug_println!("_transfer_from_to before LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call");
+        ink::env::debug_println!(
+            "_transfer_from_to before LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call"
+        );
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
             LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to(
                 &(self.abacus_token.lending_pool),
@@ -180,7 +191,9 @@ pub mod v_token {
                 to,
                 amount,
             )?;
-        ink::env::debug_println!("_transfer_from_to after LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call");
+        ink::env::debug_println!(
+            "_transfer_from_to after LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call"
+        );
 
         // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
         if mint_from_amount > 0 {
@@ -196,22 +209,15 @@ pub mod v_token {
     }
 
     #[overrider(psp22::Internal)]
-    fn _approve_from_to(
-        &mut self,
-        owner: AccountId,
-        spender: AccountId,
-        amount: Balance,
-    ) -> Result<(), PSP22Error> {
+    fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress);
+            return Err(PSP22Error::ZeroSenderAddress)
         }
         if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress);
+            return Err(PSP22Error::ZeroRecipientAddress)
         }
 
-        self.abacus_token
-            .allowances
-            .insert(&(owner, spender), &amount);
+        self.abacus_token.allowances.insert(&(owner, spender), &amount);
         psp22::Internal::_emit_approval_event(self, owner, spender, amount);
         Ok(())
     }
@@ -229,10 +235,7 @@ pub mod v_token {
     impl AbacusTokenImpl for VToken {}
     impl AbacusToken for VToken {
         #[ink(message)]
-        fn emit_transfer_events(
-            &mut self,
-            transfer_event_data: Vec<TransferEventData>,
-        ) -> Result<(), PSP22Error> {
+        fn emit_transfer_events(&mut self, transfer_event_data: Vec<TransferEventData>) -> Result<(), PSP22Error> {
             AbacusTokenImpl::emit_transfer_events(self, transfer_event_data)
         }
 

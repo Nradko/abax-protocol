@@ -35,6 +35,10 @@ impl UserReserveData {
             return (0, 0)
         }
 
+        ink::env::debug_println!("+++ accumulate interest +++");
+        ink::env::debug_println!("supply: {}", self.supplied);
+        ink::env::debug_println!("debt: {}", self.debt);
+
         let (mut delta_user_supply, mut delta_user_varaible_debt): (Balance, Balance) = (0, 0);
 
         if self.supplied != 0
@@ -58,6 +62,14 @@ impl UserReserveData {
             && self.applied_cumulative_debt_rate_index_e18 != 0
             && self.applied_cumulative_debt_rate_index_e18 < reserve.cumulative_debt_rate_index_e18
         {
+            ink::env::debug_println!(
+                "applied_cumulative_debt_rate_index_e18 {}",
+                self.applied_cumulative_debt_rate_index_e18
+            );
+            ink::env::debug_println!(
+                "cumulative_debt_rate_index_e18 {}",
+                reserve.cumulative_debt_rate_index_e18
+            );
             let updated_borrow = {
                 let updated_borrow_rounded_down = u128::try_from(
                     checked_math!(
@@ -70,10 +82,11 @@ impl UserReserveData {
                 updated_borrow_rounded_down.checked_add(1).expect(MATH_ERROR_MESSAGE)
             };
             delta_user_varaible_debt = updated_borrow - self.debt;
+            ink::env::debug_println!("delta_user_varaible_debt {}", delta_user_varaible_debt);
             self.debt = updated_borrow;
         }
         self.applied_cumulative_debt_rate_index_e18 = reserve.cumulative_debt_rate_index_e18;
-
+        ink::env::debug_println!("--- accumulate interest ---");
         return (delta_user_supply, delta_user_varaible_debt)
     }
 }

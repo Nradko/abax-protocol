@@ -95,6 +95,17 @@ impl ReserveData {
 
     pub fn _utilization_rate_to_interest_rate_e24(&self, utilization_rate_e6: u128) -> u128 {
         let [t50, t60, t70, t80, t90, t95, t100]: [u128; 7] = self.interest_rate_model;
+        ink::env::debug_println!(
+            "interestRateModel: {} | {} | {} | {} | {} | {} | {}",
+            t50,
+            t60,
+            t70,
+            t80,
+            t90,
+            t95,
+            t100
+        );
+        ink::env::debug_println!("utilization_rate_e6: {}", utilization_rate_e6);
         match utilization_rate_e6 {
             0 => 0,
             1..=499_999 => t50 * utilization_rate_e6 / 500_000 + 1,
@@ -133,6 +144,17 @@ impl ReserveData {
             .expect(MATH_ERROR_MESSAGE);
         }
 
+        ink::env::debug_println!("+++ reserve_data accumulate interest +++");
+
+        ink::env::debug_println!(
+            "new_timestamp: {}, old_timestamp: {}, delta_timestamp: {}",
+            new_timestamp,
+            self.indexes_update_timestamp,
+            delta_timestamp
+        );
+
+        ink::env::debug_println!("current_debt_rate_e24: {}", self.current_debt_rate_e24,);
+
         if self.current_debt_rate_e24 != 0 {
             let index_multiplier_e18 = {
                 let delta_index_multiplier_e18 =
@@ -140,8 +162,15 @@ impl ReserveData {
                         .expect(MATH_ERROR_MESSAGE);
                 delta_index_multiplier_e18.checked_add(E18).expect(MATH_ERROR_MESSAGE)
             };
+            ink::env::debug_println!("index_multiplier_e18: {}", index_multiplier_e18);
             self.total_debt = u128::try_from(checked_math!((self.total_debt * index_multiplier_e18) / E18).unwrap())
                 .expect(MATH_ERROR_MESSAGE);
+
+            ink::env::debug_println!(
+                "old cumulative_debt_rate_index_e18: {}",
+                self.cumulative_debt_rate_index_e18
+            );
+
             self.cumulative_debt_rate_index_e18 = {
                 let cumulative_debt_rate_index_e18_rounded_down = u128::try_from(
                     checked_math!((self.cumulative_debt_rate_index_e18 * index_multiplier_e18) / E18).unwrap(),
@@ -151,8 +180,14 @@ impl ReserveData {
                     .checked_add(1)
                     .expect(MATH_ERROR_MESSAGE)
             };
+
+            ink::env::debug_println!(
+                "new cumulative_debt_rate_index_e18: {}",
+                self.cumulative_debt_rate_index_e18
+            );
         }
         self.indexes_update_timestamp = new_timestamp;
+        ink::env::debug_println!("--- reserve_data accumulate interest ---");
     }
 
     pub fn _recalculate_current_rates(&mut self) {
@@ -163,6 +198,7 @@ impl ReserveData {
         }
         let utilization_rate_e6 = self._current_utilization_rate_e6();
         self.current_debt_rate_e24 = self._utilization_rate_to_interest_rate_e24(utilization_rate_e6);
+        ink::env::debug_println!("recalculated current_debt_rate_e24: {}", self.current_debt_rate_e24);
 
         if self.total_supplied != 0 {
             let current_income_per_milisecond_e24: U256 =
