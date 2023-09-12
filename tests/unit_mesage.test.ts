@@ -17,6 +17,7 @@ import { subscribeOnEvents } from './scenarios/utils/misc';
 import { ValidateEventParameters } from './scenarios/utils/validateEvents';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
+import { ReturnNumber } from '@727-ventures/typechain-types';
 
 makeSuite('Message', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -231,7 +232,22 @@ makeSuite('Message', (getTestEnv) => {
         const queryRes = (
           await lendingPool
             .withSigner(users[1])
-            .query.registerAsset(users[1].address, '1000000', null, null, null, null, null, 0, 0, '0', '12', users[1].address, users[1].address)
+            .query.registerAsset(
+              users[1].address,
+              '1000000',
+              null,
+              null,
+              null,
+              null,
+              null,
+              0,
+              0,
+              '0',
+              '12',
+              [0, 0, 0, 0, 0, 0, 0],
+              users[1].address,
+              users[1].address,
+            )
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       });
@@ -252,6 +268,7 @@ makeSuite('Message', (getTestEnv) => {
             0,
             '900000',
             '1000',
+            [1, 2, 3, 4, 5, 6, 7],
             users[3].address,
             users[4].address,
           );
@@ -269,6 +286,17 @@ makeSuite('Message', (getTestEnv) => {
         expect.soft(reserveData.flashLoanFeeE6.toString()).to.equal('1000');
         expect.soft(reserveData.aTokenAddress).to.equal(users[3].address);
         expect.soft(reserveData.vTokenAddress).to.equal(users[4].address);
+        expect
+          .soft(reserveData.interestRateModel)
+          .to.equal([
+            new ReturnNumber(1),
+            new ReturnNumber(2),
+            new ReturnNumber(3),
+            new ReturnNumber(4),
+            new ReturnNumber(5),
+            new ReturnNumber(6),
+            new ReturnNumber(7),
+          ]);
 
         expect.soft(AssetRegisteredEvent, 'AssetRegisteredEvent | Event | not emitted').not.to.be.undefined;
         expect.flushSoft();

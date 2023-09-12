@@ -3,18 +3,30 @@
 #[openbrush::implementation(PSP22, PSP22Metadata)]
 #[openbrush::contract]
 pub mod a_token {
-    use ink::codegen::{EmitEvent, Env};
-    use ink::prelude::string::String;
-    use lending_project::impls::abacus_token::abacus_token::AbacusTokenImpl;
-    use lending_project::traits::abacus_token::traits::abacus_token::*;
-    use lending_project::traits::account_id_utils::AccountIdExt;
+    use ink::{
+        codegen::{
+            EmitEvent,
+            Env,
+        },
+        prelude::string::String,
+    };
+    use lending_project::{
+        impls::abacus_token::abacus_token::AbacusTokenImpl,
+        traits::{
+            abacus_token::traits::abacus_token::*,
+            account_id_utils::AccountIdExt,
+        },
+    };
 
     use lending_project::{
         impls::abacus_token::data as abacus_token,
         traits::lending_pool::traits::a_token_interface::LendingPoolATokenInterfaceRef,
     };
     use openbrush::{
-        contracts::psp22::{extensions::metadata::*, PSP22Error},
+        contracts::psp22::{
+            extensions::metadata::*,
+            PSP22Error,
+        },
         traits::Storage,
     };
 
@@ -48,12 +60,7 @@ pub mod a_token {
     }
 
     #[overrider(psp22::Internal)]
-    fn _emit_transfer_event(
-        &self,
-        from: Option<AccountId>,
-        to: Option<AccountId>,
-        amount: Balance,
-    ) {
+    fn _emit_transfer_event(&self, from: Option<AccountId>, to: Option<AccountId>, amount: Balance) {
         self.env().emit_event(Transfer {
             from,
             to,
@@ -80,10 +87,7 @@ pub mod a_token {
 
     #[overrider(psp22::Internal)]
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
-        self.abacus_token
-            .allowances
-            .get(&(*owner, *spender))
-            .unwrap_or(0)
+        self.abacus_token.allowances.get(&(*owner, *spender)).unwrap_or(0)
     }
     #[overrider(Internal)]
     fn _total_supply(&self) -> Balance {
@@ -105,7 +109,7 @@ pub mod a_token {
         let allowance = psp22::Internal::_allowance(self, &from, &caller);
 
         if allowance < value {
-            return Err(PSP22Error::InsufficientAllowance);
+            return Err(PSP22Error::InsufficientAllowance)
         }
 
         psp22::Internal::_approve_from_to(self, from, caller, allowance - value)?;
@@ -124,7 +128,6 @@ pub mod a_token {
     ) -> Result<(), PSP22Error> {
         // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
 
-        ink::env::debug_println!("Transfer_from_to before LPRef");
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
             LendingPoolATokenInterfaceRef::transfer_supply_from_to(
                 &(self.abacus_token.lending_pool),
@@ -133,7 +136,6 @@ pub mod a_token {
                 to,
                 amount,
             )?;
-        ink::env::debug_println!("Transfer_from_to after LPRef");
 
         // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
         // emitting accumulated interest events
@@ -150,22 +152,15 @@ pub mod a_token {
     }
 
     #[overrider(psp22::Internal)]
-    fn _approve_from_to(
-        &mut self,
-        owner: AccountId,
-        spender: AccountId,
-        amount: Balance,
-    ) -> Result<(), PSP22Error> {
+    fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error> {
         if owner.is_zero() {
-            return Err(PSP22Error::ZeroSenderAddress);
+            return Err(PSP22Error::ZeroSenderAddress)
         }
         if spender.is_zero() {
-            return Err(PSP22Error::ZeroRecipientAddress);
+            return Err(PSP22Error::ZeroRecipientAddress)
         }
 
-        self.abacus_token
-            .allowances
-            .insert(&(owner, spender), &amount);
+        self.abacus_token.allowances.insert(&(owner, spender), &amount);
         psp22::Internal::_emit_approval_event(self, owner, spender, amount);
         Ok(())
     }
@@ -183,10 +178,7 @@ pub mod a_token {
     impl AbacusTokenImpl for AToken {}
     impl AbacusToken for AToken {
         #[ink(message)]
-        fn emit_transfer_events(
-            &mut self,
-            transfer_event_data: Vec<TransferEventData>,
-        ) -> Result<(), PSP22Error> {
+        fn emit_transfer_events(&mut self, transfer_event_data: Vec<TransferEventData>) -> Result<(), PSP22Error> {
             AbacusTokenImpl::emit_transfer_events(self, transfer_event_data)
         }
 

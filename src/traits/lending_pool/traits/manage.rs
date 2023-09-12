@@ -47,6 +47,7 @@ pub trait LendingPoolManage {
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
         flash_loan_fee_e6: u128,
+        interest_rate_model: [u128; 7],
         a_token_address: AccountId,
         v_token_address: AccountId,
     ) -> Result<(), LendingPoolError>;

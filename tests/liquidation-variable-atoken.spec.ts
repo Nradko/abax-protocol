@@ -134,7 +134,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         // const borrowerData = await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address);
 
-        await lendingPool
+        const res = await lendingPool
           .withSigner(liquidator)
           .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), []);
         //Act & Assert
