@@ -1,9 +1,5 @@
 use ink::prelude::string::String;
-use num_traits::{
-    FromPrimitive,
-    NumCast,
-    ToPrimitive,
-};
+use num_traits::{FromPrimitive, NumCast, ToPrimitive};
 use openbrush::traits::Timestamp;
 
 use super::rand::Rand;

@@ -1,39 +1,19 @@
-use openbrush::traits::{
-    AccountId,
-    Balance,
-    Storage,
-};
+use openbrush::traits::{AccountId, Balance, Storage};
 
 use ink::prelude::*;
 
 use crate::{
     impls::lending_pool::{
-        internal::{
-            _check_borrowing_enabled,
-            *,
-        },
+        internal::{_check_borrowing_enabled, *},
         storage::{
-            lending_pool_storage::{
-                LendingPoolStorage,
-                MarketRule,
-            },
-            structs::{
-                reserve_data::ReserveData,
-                user_config::UserConfig,
-                user_reserve_data::UserReserveData,
-            },
+            lending_pool_storage::{LendingPoolStorage, MarketRule},
+            structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
         },
     },
     traits::{
-        abacus_token::traits::abacus_token::{
-            AbacusTokenRef,
-            TransferEventData,
-        },
+        abacus_token::traits::abacus_token::{AbacusTokenRef, TransferEventData},
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::{
-            errors::LendingPoolTokenInterfaceError,
-            events::EmitBorrowEvents,
-        },
+        lending_pool::{errors::LendingPoolTokenInterfaceError, events::EmitBorrowEvents},
     },
 };
 
@@ -46,7 +26,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .get_reserve_data(&underlying_asset)
             .unwrap_or_default();
         if reserve_data.total_debt == 0 {
-            return 0
+            return 0;
         }
 
         let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
@@ -66,7 +46,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .get_user_reserve(&underlying_asset, &user)
             .unwrap_or_default();
         if user_reserve_data.debt == 0 {
-            return 0
+            return 0;
         }
         let mut reserve_data = self
             .data::<LendingPoolStorage>()
@@ -103,7 +83,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             to_market_rule,
         ) = self._pull_data_for_token_transfer(&underlying_asset, &from, &to)?;
         if reserve_data.v_token_address != Self::env().caller() {
-            return Err(LendingPoolTokenInterfaceError::WrongCaller)
+            return Err(LendingPoolTokenInterfaceError::WrongCaller);
         }
         let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
             &self
@@ -132,7 +112,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             to_user_reserve_data._accumulate_user_interest(&mut reserve_data);
 
         if from_user_reserve_data.debt < amount {
-            return Err(LendingPoolTokenInterfaceError::InsufficientBalance)
+            return Err(LendingPoolTokenInterfaceError::InsufficientBalance);
         }
         ink::env::debug_println!("debt after accumulate: {}", to_user_reserve_data.debt);
 

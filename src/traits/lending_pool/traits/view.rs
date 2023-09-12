@@ -1,10 +1,6 @@
 use crate::impls::lending_pool::storage::{
     lending_pool_storage::MarketRule,
-    structs::{
-        reserve_data::ReserveData,
-        user_config::UserConfig,
-        user_reserve_data::UserReserveData,
-    },
+    structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
 };
 
 use openbrush::traits::AccountId;

@@ -74,11 +74,7 @@ pub trait LendingPoolBorrow {
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be collateral.
     /// * `use_as_collateral` - true if the user wants to use the asset as collateral, false in the opposite case.
     #[ink(message)]
-    fn set_as_collateral(
-        &mut self,
-        asset: AccountId,
-        use_as_collateral: bool,
-    ) -> Result<(), LendingPoolError>;
+    fn set_as_collateral(&mut self, asset: AccountId, use_as_collateral: bool) -> Result<(), LendingPoolError>;
     /// is used by a user0, once he made a deposit and chosen users collaterals, to borrow an asset from LendingPool.
     /// user0 can specify a Variable or Stable borrow rate by passing 0 or 1 in data\[0\].
     ///
@@ -153,11 +149,7 @@ pub trait LendingPoolMaintain {
     ///  * `reserve_token_address` - AccountId (aka address) of an asset to update price for
     ///  * `price_e8` - price of the token in E8 notation (multiplied by 10^8)
     #[ink(message)]
-    fn insert_reserve_token_price_e8(
-        &mut self,
-        asset: AccountId,
-        price_e8: u128,
-    ) -> Result<(), LendingPoolError>;
+    fn insert_reserve_token_price_e8(&mut self, asset: AccountId, price_e8: u128) -> Result<(), LendingPoolError>;
 }
 
 /// contains `flash_looan` function

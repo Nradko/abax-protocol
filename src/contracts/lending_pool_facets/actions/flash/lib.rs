@@ -17,9 +17,7 @@ pub mod lending_pool_v0_flash_facet {
         impls::lending_pool::{
             actions::flash::LendingPoolFlashImpl, storage::lending_pool_storage::LendingPoolStorage,
         },
-        traits::lending_pool::{
-            errors::LendingPoolError, events::EmitFlashEvents, traits::actions::*,
-        },
+        traits::lending_pool::{errors::LendingPoolError, events::EmitFlashEvents, traits::actions::*},
     };
 
     use openbrush::{
@@ -52,13 +50,7 @@ pub mod lending_pool_v0_flash_facet {
             amounts: Vec<Balance>,
             receiver_params: Vec<u8>,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolFlashImpl::flash_loan(
-                self,
-                receiver_address,
-                assets,
-                amounts,
-                receiver_params,
-            )
+            LendingPoolFlashImpl::flash_loan(self, receiver_address, assets, amounts, receiver_params)
         }
     }
 

@@ -12,9 +12,7 @@
 pub mod lending_pool_v0_facet_initialize {
     use lending_project::{
         self,
-        impls::lending_pool::{
-            manage::GLOBAL_ADMIN, storage::lending_pool_storage::LendingPoolStorage,
-        },
+        impls::lending_pool::{manage::GLOBAL_ADMIN, storage::lending_pool_storage::LendingPoolStorage},
     };
     // use openbrush::storage::Mapping;
     use openbrush::{

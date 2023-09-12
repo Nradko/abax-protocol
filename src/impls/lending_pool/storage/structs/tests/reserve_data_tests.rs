@@ -5,15 +5,8 @@ pub mod reserve_data_tests {
     use openbrush::traits::Timestamp;
 
     use crate::impls::{
-        constants::{
-            DAY,
-            E12,
-            E6,
-        },
-        lending_pool::storage::structs::{
-            reserve_data::ReserveData,
-            tests::helpers::*,
-        },
+        constants::{DAY, E12, E6},
+        lending_pool::storage::structs::{reserve_data::ReserveData, tests::helpers::*},
     };
     use openbrush::traits::Balance;
 

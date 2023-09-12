@@ -112,13 +112,7 @@ pub mod lending_pool_v0_a_token_interface_facet {
             to: AccountId,
             amount: Balance,
         ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
-            LendingPoolATokenInterfaceImpl::transfer_supply_from_to(
-                self,
-                underlying_asset,
-                from,
-                to,
-                amount,
-            )
+            LendingPoolATokenInterfaceImpl::transfer_supply_from_to(self, underlying_asset, from, to, amount)
         }
     }
 

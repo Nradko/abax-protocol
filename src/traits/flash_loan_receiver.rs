@@ -1,7 +1,4 @@
-use ink::prelude::{
-    string::String,
-    vec::Vec,
-};
+use ink::prelude::{string::String, vec::Vec};
 use openbrush::traits::AccountId;
 
 #[openbrush::wrapper]

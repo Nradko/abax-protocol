@@ -3,21 +3,12 @@
 #[cfg(test)]
 pub mod user_reserve_data_tests {
     use crate::impls::{
-        constants::{
-            DAY,
-            E12,
-            E18,
-        },
+        constants::{DAY, E12, E18},
         lending_pool::storage::structs::{
-            reserve_data::ReserveData,
-            tests::helpers::*,
-            user_reserve_data::UserReserveData,
+            reserve_data::ReserveData, tests::helpers::*, user_reserve_data::UserReserveData,
         },
     };
-    use openbrush::traits::{
-        Balance,
-        Timestamp,
-    };
+    use openbrush::traits::{Balance, Timestamp};
 
     pub struct DvsUA {
         pub init_user_supplied: Balance,

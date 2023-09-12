@@ -1,11 +1,7 @@
-use openbrush::traits::{
-    AccountId,
-    Balance,
-};
+use openbrush::traits::{AccountId, Balance};
 
 use crate::{
-    impls::lending_pool::storage::lending_pool_storage::MarketRule,
-    traits::lending_pool::errors::LendingPoolError,
+    impls::lending_pool::storage::lending_pool_storage::MarketRule, traits::lending_pool::errors::LendingPoolError,
 };
 
 use ink::prelude::vec::Vec;

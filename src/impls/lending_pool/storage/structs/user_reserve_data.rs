@@ -1,15 +1,9 @@
 use checked_math::checked_math;
 use openbrush::traits::Balance;
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::{Decode, Encode};
 
 use crate::impls::{
-    constants::{
-        E18,
-        MATH_ERROR_MESSAGE,
-    },
+    constants::{E18, MATH_ERROR_MESSAGE},
     lending_pool::storage::structs::reserve_data::ReserveData,
 };
 
@@ -32,7 +26,7 @@ impl UserReserveData {
         if self.applied_cumulative_supply_rate_index_e18 >= reserve.cumulative_supply_rate_index_e18
             && self.applied_cumulative_debt_rate_index_e18 >= reserve.cumulative_debt_rate_index_e18
         {
-            return (0, 0)
+            return (0, 0);
         }
 
         ink::env::debug_println!("+++ accumulate interest +++");
@@ -87,7 +81,7 @@ impl UserReserveData {
         }
         self.applied_cumulative_debt_rate_index_e18 = reserve.cumulative_debt_rate_index_e18;
         ink::env::debug_println!("--- accumulate interest ---");
-        return (delta_user_supply, delta_user_varaible_debt)
+        return (delta_user_supply, delta_user_varaible_debt);
     }
 }
 
