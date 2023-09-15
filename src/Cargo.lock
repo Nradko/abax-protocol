@@ -776,116 +776,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lending_pool_v0_a_token_interface_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_borrow_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_deposit_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_flash_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_initialize_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_liquidate_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_maintain_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_manage_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_v_token_interface_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "lending_pool_v0_view_facet"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
 name = "lending_project"
 version = "2.2.0"
 dependencies = [
@@ -983,7 +873,7 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 [[package]]
 name = "openbrush"
 version = "4.0.0-beta"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
+source = "git+https://github.com/Brushfam/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "ink",
  "openbrush_contracts",
@@ -995,7 +885,7 @@ dependencies = [
 [[package]]
 name = "openbrush_contracts"
 version = "4.0.0-beta"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
+source = "git+https://github.com/Brushfam/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "ink",
  "openbrush_lang",
@@ -1007,7 +897,7 @@ dependencies = [
 [[package]]
 name = "openbrush_lang"
 version = "4.0.0-beta"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
+source = "git+https://github.com/Brushfam/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "const_format",
  "ink",
@@ -1020,7 +910,7 @@ dependencies = [
 [[package]]
 name = "openbrush_lang_codegen"
 version = "4.0.0-beta"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
+source = "git+https://github.com/Brushfam/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "blake2 0.9.2",
  "cargo_metadata",
@@ -1040,7 +930,7 @@ dependencies = [
 [[package]]
 name = "openbrush_lang_macro"
 version = "4.0.0-beta"
-source = "git+https://github.com/727-Ventures/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
+source = "git+https://github.com/Brushfam/openbrush-contracts?tag=4.0.0-beta#553347354de6d0ead6a335ba4c197bdd01fb2d12"
 dependencies = [
  "openbrush_lang_codegen",
  "proc-macro2",

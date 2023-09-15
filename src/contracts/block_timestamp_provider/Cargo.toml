@@ -13,7 +13,7 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-openbrush = { tag = "4.0.0-beta", git = "https://github.com/727-Ventures/openbrush-contracts", default-features = false, features = [
+openbrush = { tag = "4.0.0-beta", git = "https://github.com/Brushfam/openbrush-contracts", default-features = false, features = [
     "ownable",
 ] }
 

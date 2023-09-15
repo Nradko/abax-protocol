@@ -18,22 +18,31 @@ pub mod lending_pool {
     use lending_project::{
         impls::lending_pool::{
             actions::{
-                borrow::LendingPoolBorrowImpl, deposit::LendingPoolDepositImpl, flash::LendingPoolFlashImpl,
-                liquidate::LendingPoolLiquidateImpl, maintain::LendingPoolMaintainImpl,
+                borrow::LendingPoolBorrowImpl, deposit::LendingPoolDepositImpl,
+                flash::LendingPoolFlashImpl,
+                liquidate::LendingPoolLiquidateImpl,
+                maintain::LendingPoolMaintainImpl,
             },
             interfaces::{
-                a_token_interface::LendingPoolATokenInterfaceImpl, v_token_interface::LendingPoolVTokenInterfaceImpl,
+                a_token_interface::LendingPoolATokenInterfaceImpl,
+                v_token_interface::LendingPoolVTokenInterfaceImpl,
             },
             manage::{LendingPoolManageImpl, GLOBAL_ADMIN},
             storage::{
                 lending_pool_storage::{LendingPoolStorage, MarketRule},
-                structs::{reserve_data::ReserveData, user_config::UserConfig, user_reserve_data::UserReserveData},
+                structs::{
+                    reserve_data::ReserveData, user_config::UserConfig,
+                    user_reserve_data::UserReserveData,
+                },
             },
             view::LendingPoolViewImpl,
         },
         traits::lending_pool::{
             errors::{LendingPoolError, LendingPoolTokenInterfaceError},
-            traits::{a_token_interface::*, actions::*, manage::*, v_token_interface::*, view::*},
+            traits::{
+                a_token_interface::*, actions::*, manage::*,
+                v_token_interface::*, view::*,
+            },
         },
     };
     // use openbrush::storage::Mapping;
@@ -70,7 +79,13 @@ pub mod lending_pool {
             amount: Balance,
             data: Vec<u8>,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolDepositImpl::deposit(self, asset, on_behalf_of, amount, data)
+            LendingPoolDepositImpl::deposit(
+                self,
+                asset,
+                on_behalf_of,
+                amount,
+                data,
+            )
         }
         #[ink(message)]
         fn redeem(
@@ -80,19 +95,36 @@ pub mod lending_pool {
             amount: Option<Balance>,
             data: Vec<u8>,
         ) -> Result<Balance, LendingPoolError> {
-            LendingPoolDepositImpl::redeem(self, asset, on_behalf_of, amount, data)
+            LendingPoolDepositImpl::redeem(
+                self,
+                asset,
+                on_behalf_of,
+                amount,
+                data,
+            )
         }
     }
 
     impl LendingPoolBorrowImpl for LendingPool {}
     impl LendingPoolBorrow for LendingPool {
         #[ink(message)]
-        fn choose_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError> {
+        fn choose_market_rule(
+            &mut self,
+            market_rule_id: u64,
+        ) -> Result<(), LendingPoolError> {
             LendingPoolBorrowImpl::choose_market_rule(self, market_rule_id)
         }
         #[ink(message)]
-        fn set_as_collateral(&mut self, asset: AccountId, use_as_collateral: bool) -> Result<(), LendingPoolError> {
-            LendingPoolBorrowImpl::set_as_collateral(self, asset, use_as_collateral)
+        fn set_as_collateral(
+            &mut self,
+            asset: AccountId,
+            use_as_collateral: bool,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolBorrowImpl::set_as_collateral(
+                self,
+                asset,
+                use_as_collateral,
+            )
         }
         #[ink(message)]
         fn borrow(
@@ -102,7 +134,13 @@ pub mod lending_pool {
             amount: Balance,
             data: Vec<u8>,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolBorrowImpl::borrow(self, asset, on_behalf_of, amount, data)
+            LendingPoolBorrowImpl::borrow(
+                self,
+                asset,
+                on_behalf_of,
+                amount,
+                data,
+            )
         }
         #[ink(message)]
         fn repay(
@@ -112,7 +150,13 @@ pub mod lending_pool {
             amount_arg: Option<Balance>,
             data: Vec<u8>,
         ) -> Result<Balance, LendingPoolError> {
-            LendingPoolBorrowImpl::repay(self, asset, on_behalf_of, amount_arg, data)
+            LendingPoolBorrowImpl::repay(
+                self,
+                asset,
+                on_behalf_of,
+                amount_arg,
+                data,
+            )
         }
     }
 
@@ -126,7 +170,13 @@ pub mod lending_pool {
             amounts: Vec<Balance>,
             receiver_params: Vec<u8>,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolFlashImpl::flash_loan(self, receiver_address, assets, amounts, receiver_params)
+            LendingPoolFlashImpl::flash_loan(
+                self,
+                receiver_address,
+                assets,
+                amounts,
+                receiver_params,
+            )
         }
     }
     impl LendingPoolLiquidateImpl for LendingPool {}
@@ -155,19 +205,34 @@ pub mod lending_pool {
     impl LendingPoolMaintainImpl for LendingPool {}
     impl LendingPoolMaintain for LendingPool {
         #[ink(message)]
-        fn accumulate_interest(&mut self, asset: AccountId) -> Result<(), LendingPoolError> {
+        fn accumulate_interest(
+            &mut self,
+            asset: AccountId,
+        ) -> Result<(), LendingPoolError> {
             LendingPoolMaintainImpl::accumulate_interest(self, asset)
         }
         #[ink(message)]
-        fn insert_reserve_token_price_e8(&mut self, asset: AccountId, price_e8: u128) -> Result<(), LendingPoolError> {
-            LendingPoolMaintainImpl::insert_reserve_token_price_e8(self, asset, price_e8)
+        fn insert_reserve_token_price_e8(
+            &mut self,
+            asset: AccountId,
+            price_e8: u128,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolMaintainImpl::insert_reserve_token_price_e8(
+                self, asset, price_e8,
+            )
         }
     }
     impl LendingPoolManageImpl for LendingPool {}
     impl LendingPoolManage for LendingPool {
         #[ink(message)]
-        fn set_block_timestamp_provider(&mut self, provider_address: AccountId) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::set_block_timestamp_provider(self, provider_address)
+        fn set_block_timestamp_provider(
+            &mut self,
+            provider_address: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_block_timestamp_provider(
+                self,
+                provider_address,
+            )
         }
 
         #[ink(message)]
@@ -208,12 +273,20 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        fn set_reserve_is_active(&mut self, asset: AccountId, active: bool) -> Result<(), LendingPoolError> {
+        fn set_reserve_is_active(
+            &mut self,
+            asset: AccountId,
+            active: bool,
+        ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_reserve_is_active(self, asset, active)
         }
 
         #[ink(message)]
-        fn set_reserve_is_freezed(&mut self, asset: AccountId, freeze: bool) -> Result<(), LendingPoolError> {
+        fn set_reserve_is_freezed(
+            &mut self,
+            asset: AccountId,
+            freeze: bool,
+        ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_reserve_is_freezed(self, asset, freeze)
         }
 
@@ -243,8 +316,16 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        fn add_market_rule(&mut self, market_rule_id: u64, market_rule: MarketRule) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::add_market_rule(self, market_rule_id, market_rule)
+        fn add_market_rule(
+            &mut self,
+            market_rule_id: u64,
+            market_rule: MarketRule,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::add_market_rule(
+                self,
+                market_rule_id,
+                market_rule,
+            )
         }
 
         #[ink(message)]
@@ -282,7 +363,10 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_registered_assets(self)
         }
         #[ink(message)]
-        fn view_unupdated_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
+        fn view_unupdated_reserve_data(
+            &self,
+            asset: AccountId,
+        ) -> Option<ReserveData> {
             LendingPoolViewImpl::view_unupdated_reserve_data(self, asset)
         }
         #[ink(message)]
@@ -297,15 +381,28 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_unupdated_reserve_datas(self, assets)
         }
         #[ink(message)]
-        fn view_reserve_datas(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, Option<ReserveData>)> {
+        fn view_reserve_datas(
+            &self,
+            assets: Option<Vec<AccountId>>,
+        ) -> Vec<(AccountId, Option<ReserveData>)> {
             LendingPoolViewImpl::view_reserve_datas(self, assets)
         }
         #[ink(message)]
-        fn view_unupdated_user_reserve_data(&self, asset: AccountId, account: AccountId) -> UserReserveData {
-            LendingPoolViewImpl::view_unupdated_user_reserve_data(self, asset, account)
+        fn view_unupdated_user_reserve_data(
+            &self,
+            asset: AccountId,
+            account: AccountId,
+        ) -> UserReserveData {
+            LendingPoolViewImpl::view_unupdated_user_reserve_data(
+                self, asset, account,
+            )
         }
         #[ink(message)]
-        fn view_user_reserve_data(&self, asset: AccountId, account: AccountId) -> UserReserveData {
+        fn view_user_reserve_data(
+            &self,
+            asset: AccountId,
+            account: AccountId,
+        ) -> UserReserveData {
             LendingPoolViewImpl::view_user_reserve_data(self, asset, account)
         }
         #[ink(message)]
@@ -314,7 +411,9 @@ pub mod lending_pool {
             assets: Option<Vec<AccountId>>,
             account: AccountId,
         ) -> Vec<(AccountId, UserReserveData)> {
-            LendingPoolViewImpl::view_unupdated_user_reserve_datas(self, assets, account)
+            LendingPoolViewImpl::view_unupdated_user_reserve_datas(
+                self, assets, account,
+            )
         }
         #[ink(message)]
         fn view_user_reserve_datas(
@@ -333,20 +432,35 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_market_rule(self, market_rule_id)
         }
         #[ink(message)]
-        fn get_user_free_collateral_coefficient(&self, user_address: AccountId) -> (bool, u128) {
-            LendingPoolViewImpl::get_user_free_collateral_coefficient(self, user_address)
+        fn get_user_free_collateral_coefficient(
+            &self,
+            user_address: AccountId,
+        ) -> (bool, u128) {
+            LendingPoolViewImpl::get_user_free_collateral_coefficient(
+                self,
+                user_address,
+            )
         }
         #[ink(message)]
         fn get_block_timestamp_provider_address(&self) -> AccountId {
             LendingPoolViewImpl::get_block_timestamp_provider_address(self)
         }
         #[ink(message)]
-        fn get_reserve_token_price_e8(&self, reserve_token_address: AccountId) -> Option<u128> {
-            LendingPoolViewImpl::get_reserve_token_price_e8(self, reserve_token_address)
+        fn get_reserve_token_price_e8(
+            &self,
+            reserve_token_address: AccountId,
+        ) -> Option<u128> {
+            LendingPoolViewImpl::get_reserve_token_price_e8(
+                self,
+                reserve_token_address,
+            )
         }
 
         #[ink(message)]
-        fn view_protocol_income(&self, assets: Option<Vec<AccountId>>) -> Vec<(AccountId, i128)> {
+        fn view_protocol_income(
+            &self,
+            assets: Option<Vec<AccountId>>,
+        ) -> Vec<(AccountId, i128)> {
             LendingPoolViewImpl::view_protocol_income(self, assets)
         }
     }
@@ -355,11 +469,22 @@ pub mod lending_pool {
     impl LendingPoolATokenInterface for LendingPool {
         #[ink(message)]
         fn total_supply_of(&self, underlying_asset: AccountId) -> Balance {
-            LendingPoolATokenInterfaceImpl::total_supply_of(self, underlying_asset)
+            LendingPoolATokenInterfaceImpl::total_supply_of(
+                self,
+                underlying_asset,
+            )
         }
         #[ink(message)]
-        fn user_supply_of(&self, underlying_asset: AccountId, user: AccountId) -> Balance {
-            LendingPoolATokenInterfaceImpl::user_supply_of(self, underlying_asset, user)
+        fn user_supply_of(
+            &self,
+            underlying_asset: AccountId,
+            user: AccountId,
+        ) -> Balance {
+            LendingPoolATokenInterfaceImpl::user_supply_of(
+                self,
+                underlying_asset,
+                user,
+            )
         }
         #[ink(message)]
         fn transfer_supply_from_to(
@@ -368,20 +493,41 @@ pub mod lending_pool {
             from: AccountId,
             to: AccountId,
             amount: Balance,
-        ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
-            LendingPoolATokenInterfaceImpl::transfer_supply_from_to(self, underlying_asset, from, to, amount)
+        ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError>
+        {
+            LendingPoolATokenInterfaceImpl::transfer_supply_from_to(
+                self,
+                underlying_asset,
+                from,
+                to,
+                amount,
+            )
         }
     }
 
     impl LendingPoolVTokenInterfaceImpl for LendingPool {}
     impl LendingPoolVTokenInterface for LendingPool {
         #[ink(message)]
-        fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
-            LendingPoolVTokenInterfaceImpl::total_variable_debt_of(self, underlying_asset)
+        fn total_variable_debt_of(
+            &self,
+            underlying_asset: AccountId,
+        ) -> Balance {
+            LendingPoolVTokenInterfaceImpl::total_variable_debt_of(
+                self,
+                underlying_asset,
+            )
         }
         #[ink(message)]
-        fn user_variable_debt_of(&self, underlying_asset: AccountId, user: AccountId) -> Balance {
-            LendingPoolVTokenInterfaceImpl::user_variable_debt_of(self, underlying_asset, user)
+        fn user_variable_debt_of(
+            &self,
+            underlying_asset: AccountId,
+            user: AccountId,
+        ) -> Balance {
+            LendingPoolVTokenInterfaceImpl::user_variable_debt_of(
+                self,
+                underlying_asset,
+                user,
+            )
         }
         #[ink(message)]
         fn transfer_variable_debt_from_to(
@@ -390,8 +536,15 @@ pub mod lending_pool {
             from: AccountId,
             to: AccountId,
             amount: Balance,
-        ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
-            LendingPoolVTokenInterfaceImpl::transfer_variable_debt_from_to(self, underlying_asset, from, to, amount)
+        ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError>
+        {
+            LendingPoolVTokenInterfaceImpl::transfer_variable_debt_from_to(
+                self,
+                underlying_asset,
+                from,
+                to,
+                amount,
+            )
         }
     }
 
@@ -400,8 +553,16 @@ pub mod lending_pool {
         pub fn new() -> Self {
             let mut instance = Self::default();
             let caller = instance.env().caller();
-            access_control::Internal::_init_with_admin(&mut instance, caller.into());
-            access_control::AccessControl::grant_role(&mut instance, GLOBAL_ADMIN, caller.into()).unwrap();
+            access_control::Internal::_init_with_admin(
+                &mut instance,
+                caller.into(),
+            );
+            access_control::AccessControl::grant_role(
+                &mut instance,
+                GLOBAL_ADMIN,
+                caller.into(),
+            )
+            .unwrap();
             instance
         }
 
@@ -421,9 +582,16 @@ pub mod lending_pool {
 
         #[ink(message)]
         #[openbrush::modifiers(only_role(GLOBAL_ADMIN))]
-        pub fn set_code(&mut self, code_hash: [u8; 32]) -> Result<(), LendingPoolError> {
-            ink::env::set_code_hash(&code_hash)
-                .unwrap_or_else(|err| panic!("Failed to `set_code_hash` to {:?} due to {:?}", code_hash, err));
+        pub fn set_code(
+            &mut self,
+            code_hash: [u8; 32],
+        ) -> Result<(), LendingPoolError> {
+            ink::env::set_code_hash(&code_hash).unwrap_or_else(|err| {
+                panic!(
+                    "Failed to `set_code_hash` to {:?} due to {:?}",
+                    code_hash, err
+                )
+            });
             ink::env::debug_println!("Switched code hash to {:?}.", code_hash);
             Ok(())
         }
@@ -616,13 +784,22 @@ pub mod lending_pool {
     }
 
     impl EmitBorrowEvents for LendingPool {
-        fn _emit_market_rule_chosen(&mut self, user: &AccountId, market_rule_id: &u64) {
+        fn _emit_market_rule_chosen(
+            &mut self,
+            user: &AccountId,
+            market_rule_id: &RuleId,
+        ) {
             self.env().emit_event(MarketRuleChosen {
                 user: *user,
                 market_rule_id: *market_rule_id,
             });
         }
-        fn _emit_collateral_set_event(&mut self, asset: AccountId, caller: AccountId, set: bool) {
+        fn _emit_collateral_set_event(
+            &mut self,
+            asset: AccountId,
+            caller: AccountId,
+            set: bool,
+        ) {
             self.env().emit_event(CollateralSet { asset, caller, set });
         }
         fn _emit_borrow_variable_event(
@@ -677,15 +854,24 @@ pub mod lending_pool {
 
     impl EmitMaintainEvents for LendingPool {
         fn _emit_accumulate_interest_event(&mut self, asset: &AccountId) {
-            self.env().emit_event(InterestsAccumulated { asset: *asset });
+            self.env()
+                .emit_event(InterestsAccumulated { asset: *asset });
         }
-        fn _emit_accumulate_user_interest_event(&mut self, asset: &AccountId, user: &AccountId) {
+        fn _emit_accumulate_user_interest_event(
+            &mut self,
+            asset: &AccountId,
+            user: &AccountId,
+        ) {
             self.env().emit_event(UserInterestsAccumulated {
                 asset: *asset,
                 user: *user,
             });
         }
-        fn _emit_rebalance_rate_event(&mut self, asset: &AccountId, user: &AccountId) {
+        fn _emit_rebalance_rate_event(
+            &mut self,
+            asset: &AccountId,
+            user: &AccountId,
+        ) {
             self.env().emit_event(RateRebalanced {
                 asset: *asset,
                 user: *user,
@@ -709,11 +895,25 @@ pub mod lending_pool {
             })
         }
 
-        fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool) {
-            self.env().emit_event(ReserveActivated { asset: *asset, active });
+        fn _emit_reserve_activated_event(
+            &mut self,
+            asset: &AccountId,
+            active: bool,
+        ) {
+            self.env().emit_event(ReserveActivated {
+                asset: *asset,
+                active,
+            });
         }
-        fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, freezed: bool) {
-            self.env().emit_event(ReserveFreezed { asset: *asset, freezed })
+        fn _emit_reserve_freezed_event(
+            &mut self,
+            asset: &AccountId,
+            freezed: bool,
+        ) {
+            self.env().emit_event(ReserveFreezed {
+                asset: *asset,
+                freezed,
+            })
         }
 
         fn _emit_reserve_parameters_changed_event(
@@ -740,7 +940,7 @@ pub mod lending_pool {
         }
         fn _emit_asset_rules_changed(
             &mut self,
-            market_rule_id: &u64,
+            market_rule_id: &u32,
             asset: &AccountId,
             collateral_coefficient_e6: &Option<u128>,
             borrow_coefficient_e6: &Option<u128>,

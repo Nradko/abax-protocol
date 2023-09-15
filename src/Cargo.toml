@@ -9,13 +9,7 @@ members = [
     "contracts/block_timestamp_provider",
     "contracts/diamond",
     "contracts/flash_loan_receiver_mock",
-    "contracts/lending_pool_facets/0_initialize",
-    "contracts/lending_pool_facets/actions/**",
 
-    "contracts/lending_pool_facets/interfaces/**",
-
-    "contracts/lending_pool_facets/owner_actions/**",
-    "contracts/lending_pool_facets/view/**",
     "contracts/periphery/**",
 ]
 
@@ -26,23 +20,33 @@ authors = []
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.2.1", default-features = false}
-scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = ["derive"] }
-scale-info = { version = "2.7", default-features = false, features = ["derive"], optional = true }
+ink = { version = "4.2.1", default-features = false }
+scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = [
+    "derive",
+] }
+scale-info = { version = "2.7", default-features = false, features = [
+    "derive",
+], optional = true }
 
-openbrush = { tag = "4.0.0-beta", git = "https://github.com/727-Ventures/openbrush-contracts", default-features = false, features = ["psp22", "psp34", "ownable", "pausable", "access_control"] }
-primitive-types = { version = "0.12.1", default-features = false, features = ["codec"] }
+openbrush = { tag = "4.0.0-beta", git = "https://github.com/Brushfam/openbrush-contracts", default-features = false, features = [
+    "psp22",
+    "psp34",
+    "ownable",
+    "pausable",
+    "access_control",
+] }
+primitive-types = { version = "0.12.1", default-features = false, features = [
+    "codec",
+] }
 
 num-traits = { version = "0.2.15", default-features = false }
 checked_math = { path = "dependencies/checked_math", default-features = false }
-itertools = { version ="0.10.5", default-features = false }
+itertools = { version = "0.10.5", default-features = false }
 
 [lib]
 name = "lending_project"
 path = "lib.rs"
-crate-type = [
-    "rlib"
-]
+crate-type = ["rlib"]
 
 [features]
 default = ["std"]
@@ -54,5 +58,5 @@ std = [
     # These dependencies
     "openbrush/std",
     "primitive-types/std",
-    "primitive-types/scale-info"
+    "primitive-types/scale-info",
 ]

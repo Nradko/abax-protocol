@@ -1,15 +1,38 @@
 use openbrush::traits::{AccountId, Balance};
 
+use crate::impls::lending_pool::storage::lending_pool_storage::RuleId;
+
 #[openbrush::trait_definition]
 pub trait EmitDepositEvents {
-    fn _emit_deposit_event(&mut self, asset: AccountId, caller: AccountId, on_behalf_of: AccountId, amount: Balance);
-    fn _emit_redeem_event(&mut self, asset: AccountId, caller: AccountId, on_behalf_of: AccountId, amount: Balance);
+    fn _emit_deposit_event(
+        &mut self,
+        asset: AccountId,
+        caller: AccountId,
+        on_behalf_of: AccountId,
+        amount: Balance,
+    );
+    fn _emit_redeem_event(
+        &mut self,
+        asset: AccountId,
+        caller: AccountId,
+        on_behalf_of: AccountId,
+        amount: Balance,
+    );
 }
 
 #[openbrush::trait_definition]
 pub trait EmitBorrowEvents {
-    fn _emit_market_rule_chosen(&mut self, user: &AccountId, market_rule_id: &u64);
-    fn _emit_collateral_set_event(&mut self, asset: AccountId, user: AccountId, set: bool);
+    fn _emit_market_rule_chosen(
+        &mut self,
+        user: &AccountId,
+        market_rule_id: &RuleId,
+    );
+    fn _emit_collateral_set_event(
+        &mut self,
+        asset: AccountId,
+        user: AccountId,
+        set: bool,
+    );
     fn _emit_borrow_variable_event(
         &mut self,
         asset: AccountId,
@@ -59,8 +82,16 @@ pub trait EmitLiquidateEvents {
 #[openbrush::trait_definition]
 pub trait EmitMaintainEvents {
     fn _emit_accumulate_interest_event(&mut self, asset: &AccountId);
-    fn _emit_accumulate_user_interest_event(&mut self, asset: &AccountId, user: &AccountId);
-    fn _emit_rebalance_rate_event(&mut self, asset: &AccountId, user: &AccountId);
+    fn _emit_accumulate_user_interest_event(
+        &mut self,
+        asset: &AccountId,
+        user: &AccountId,
+    );
+    fn _emit_rebalance_rate_event(
+        &mut self,
+        asset: &AccountId,
+        user: &AccountId,
+    );
 }
 
 #[openbrush::trait_definition]
@@ -73,7 +104,11 @@ pub trait EmitManageEvents {
         v_token_address: &AccountId,
     );
 
-    fn _emit_reserve_activated_event(&mut self, asset: &AccountId, active: bool);
+    fn _emit_reserve_activated_event(
+        &mut self,
+        asset: &AccountId,
+        active: bool,
+    );
     fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, freezed: bool);
 
     fn _emit_reserve_parameters_changed_event(
@@ -90,7 +125,7 @@ pub trait EmitManageEvents {
 
     fn _emit_asset_rules_changed(
         &mut self,
-        market_rule_id: &u64,
+        market_rule_id: &u32,
         asset: &AccountId,
         collateral_coefficient_e6: &Option<u128>,
         borrow_coefficient_e6: &Option<u128>,

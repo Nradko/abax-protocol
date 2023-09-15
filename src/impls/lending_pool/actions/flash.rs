@@ -1,29 +1,33 @@
 use crate::{
     impls::{
-        constants::{E6, MATH_ERROR_MESSAGE},
+        constants::E6_U128,
         lending_pool::{
+            internal::Transfer,
             manage::FLASH_BORROWER,
-            storage::{lending_pool_storage::LendingPoolStorage, structs::reserve_data::ReserveData},
+            storage::{
+                lending_pool_storage::LendingPoolStorage,
+                structs::reserve_data::{ReserveData, ReserveIndexes},
+            },
         },
     },
     traits::{
-        block_timestamp_provider::BlockTimestampProviderRef,
         flash_loan_receiver::FlashLoanReceiverRef,
         lending_pool::{errors::LendingPoolError, events::EmitFlashEvents},
     },
 };
-use checked_math::checked_math;
 use ink::{
     env::CallFlags,
     prelude::{vec, vec::Vec},
 };
 
 use openbrush::{
-    contracts::{access_control::*, traits::psp22::PSP22Ref},
+    contracts::access_control::*,
     traits::{AccountId, Balance, Storage},
 };
 
-pub trait LendingPoolFlashImpl: Storage<LendingPoolStorage> + EmitFlashEvents + AccessControlImpl {
+pub trait LendingPoolFlashImpl:
+    Storage<LendingPoolStorage> + EmitFlashEvents + AccessControlImpl
+{
     fn flash_loan(
         &mut self,
         receiver_address: AccountId,
@@ -32,27 +36,50 @@ pub trait LendingPoolFlashImpl: Storage<LendingPoolStorage> + EmitFlashEvents + 
         receiver_params: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         if !(assets.len() == amounts.len()) {
-            return Err(LendingPoolError::FlashLoanAmountsAssetsInconsistentLengths);
+            return Err(
+                LendingPoolError::FlashLoanAmountsAssetsInconsistentLengths,
+            );
         }
 
         let mut reserve_data_vec: Vec<ReserveData> = vec![];
+        let mut reserve_indexes_vec: Vec<ReserveIndexes> = vec![];
         let mut fees: Vec<u128> = vec![];
 
         for i in 0..assets.len() {
+            let asset_id = self
+                .data::<LendingPoolStorage>()
+                .asset_to_id
+                .get(&assets[i])
+                .ok_or(LendingPoolError::AssetNotRegistered)?;
             reserve_data_vec.push(
                 self.data::<LendingPoolStorage>()
-                    .get_reserve_data(&assets[i])
-                    .ok_or(LendingPoolError::AssetNotRegistered)?,
+                    .reserve_datas
+                    .get(&asset_id)
+                    .unwrap(),
             );
-            let fee = match self.has_role(FLASH_BORROWER, Self::env().caller().into()) {
-                false => amounts[i] * reserve_data_vec[i].flash_loan_fee_e6 / E6,
-                true => amounts[i] * reserve_data_vec[i].flash_loan_fee_e6 / E6 / 10,
+            reserve_indexes_vec.push(
+                self.data::<LendingPoolStorage>()
+                    .reserve_indexes
+                    .get(&asset_id)
+                    .unwrap(),
+            );
+            let fee = match self
+                .has_role(FLASH_BORROWER, Self::env().caller().into())
+            {
+                false => {
+                    amounts[i]
+                        * reserve_data_vec[i].parameters.flash_loan_fee_e6
+                        / E6_U128
+                }
+                true => {
+                    amounts[i]
+                        * reserve_data_vec[i].parameters.flash_loan_fee_e6
+                        / E6_U128
+                        / 10
+                }
             };
             fees.push(fee);
-            PSP22Ref::transfer_builder(&assets[i], receiver_address, amounts[i], Vec::<u8>::new())
-                .call_flags(CallFlags::default().set_allow_reentry(true))
-                .try_invoke()
-                .unwrap()??;
+            self._transfer_out(&assets[i], &receiver_address, &amounts[i])?;
         }
 
         FlashLoanReceiverRef::execute_operation_builder(
@@ -66,45 +93,12 @@ pub trait LendingPoolFlashImpl: Storage<LendingPoolStorage> + EmitFlashEvents + 
         .try_invoke()
         .unwrap()??;
 
-        let block_timestamp = BlockTimestampProviderRef::get_block_timestamp(
-            &self
-                .data::<LendingPoolStorage>()
-                .block_timestamp_provider
-                .get()
-                .unwrap(),
-        );
-
         for i in 0..assets.len() {
-            reserve_data_vec[i]._accumulate_interest(block_timestamp);
-            let income_for_suppliers = fees[i] * reserve_data_vec[i].income_for_suppliers_part_e6 / E6;
-            reserve_data_vec[i].cumulative_supply_rate_index_e18 = u128::try_from(
-                checked_math!(
-                    reserve_data_vec[i].cumulative_supply_rate_index_e18
-                        * (reserve_data_vec[i].total_supplied + income_for_suppliers)
-                        / reserve_data_vec[i].total_supplied
-                )
-                .unwrap(),
-            )
-            .expect(MATH_ERROR_MESSAGE);
-            reserve_data_vec[i].total_supplied = reserve_data_vec[i]
-                .total_supplied
-                .checked_add(fees[i])
-                .expect(MATH_ERROR_MESSAGE);
-
-            reserve_data_vec[i]._recalculate_current_rates();
-
-            self.data::<LendingPoolStorage>()
-                .insert_reserve_data(&assets[i], &reserve_data_vec[i]);
-            PSP22Ref::transfer_from_builder(
+            self._transfer_in(
                 &assets[i],
-                receiver_address,
-                Self::env().account_id(),
-                amounts[i].checked_add(fees[i]).expect(MATH_ERROR_MESSAGE),
-                Vec::<u8>::new(),
-            )
-            .call_flags(ink::env::CallFlags::default().set_allow_reentry(true))
-            .try_invoke()
-            .unwrap()??;
+                &receiver_address,
+                &amounts[i].checked_add(fees[i]).unwrap(),
+            )?;
 
             self._emit_flash_loan_event(
                 receiver_address,

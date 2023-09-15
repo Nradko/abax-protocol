@@ -1,10 +1,14 @@
 use crate::traits::lending_pool::errors::LendingPoolTokenInterfaceError;
+use ink::{contract_ref, env::DefaultEnvironment};
 use openbrush::traits::{AccountId, Balance};
 
-#[openbrush::wrapper]
-pub type LendingPoolATokenInterfaceRef = dyn LendingPoolATokenInterface;
+// #[openbrush::wrapper]
+// pub type LendingPoolATokenInterfaceRef = dyn LendingPoolATokenInterface;
 
-#[openbrush::trait_definition]
+pub type LendingPoolATokenInterfaceRef =
+    contract_ref!(LendingPoolATokenInterface, DefaultEnvironment);
+
+#[ink::trait_definition]
 pub trait LendingPoolATokenInterface {
     /// Returns LendingPool's total supply of an underlying asset.
     ///
@@ -17,7 +21,11 @@ pub trait LendingPoolATokenInterface {
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up supply of.
     /// * `user` - AccountId (aka address) of an user to look up supply of.
     #[ink(message)]
-    fn user_supply_of(&self, underlying_asset: AccountId, user: AccountId) -> Balance;
+    fn user_supply_of(
+        &self,
+        underlying_asset: AccountId,
+        user: AccountId,
+    ) -> Balance;
 
     /// Transfers an `amount` of `underlying_asset` supply on the behalf of `from` to the account `to`
     ///

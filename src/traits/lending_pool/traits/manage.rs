@@ -1,18 +1,22 @@
 use openbrush::traits::{AccountId, Balance};
 
 use crate::{
-    impls::lending_pool::storage::lending_pool_storage::MarketRule, traits::lending_pool::errors::LendingPoolError,
+    impls::lending_pool::storage::lending_pool_storage::MarketRule,
+    traits::lending_pool::errors::LendingPoolError,
 };
 
 use ink::prelude::vec::Vec;
 
-#[openbrush::wrapper]
-pub type LendingPoolManageRef = dyn LendingPoolManage;
+// #[openbrush::wrapper]
+// pub type LendingPoolManageRef = dyn LendingPoolManage;
 
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait LendingPoolManage {
     #[ink(message)]
-    fn set_block_timestamp_provider(&mut self, provider_address: AccountId) -> Result<(), LendingPoolError>;
+    fn set_block_timestamp_provider(
+        &mut self,
+        provider_address: AccountId,
+    ) -> Result<(), LendingPoolError>;
 
     /// Registers new asset in the `LendingPool`'s storage
     ///
@@ -52,13 +56,21 @@ pub trait LendingPoolManage {
     ///
     ///  * `active` - true if reserve should be activated. flase if reserve should be disactivated. When disactivated all actions on the reserve are disabled.
     #[ink(message)]
-    fn set_reserve_is_active(&mut self, asset: AccountId, active: bool) -> Result<(), LendingPoolError>;
+    fn set_reserve_is_active(
+        &mut self,
+        asset: AccountId,
+        active: bool,
+    ) -> Result<(), LendingPoolError>;
 
     ///  freezes or unfreezes reserv
     ///
     ///  * `freeze` - true if reserve should be freezed. flase if reserve should be unffreeze. When freezed supplying and borrowing are disabled.
     #[ink(message)]
-    fn set_reserve_is_freezed(&mut self, asset: AccountId, freeze: bool) -> Result<(), LendingPoolError>;
+    fn set_reserve_is_freezed(
+        &mut self,
+        asset: AccountId,
+        freeze: bool,
+    ) -> Result<(), LendingPoolError>;
 
     /// modifies reserve in the `LendingPool`'s storage
     ///
@@ -87,7 +99,11 @@ pub trait LendingPoolManage {
     /// * `market_rule_id` - yet unused id for new market rule
     /// * `market_rule` - list of asset rules for that market rule
     #[ink(message)]
-    fn add_market_rule(&mut self, market_rule_id: u64, market_rule: MarketRule) -> Result<(), LendingPoolError>;
+    fn add_market_rule(
+        &mut self,
+        market_rule_id: u64,
+        market_rule: MarketRule,
+    ) -> Result<(), LendingPoolError>;
 
     /// modifies asset_rules of a given asset in the market rule identified by market_rule_id
     ///

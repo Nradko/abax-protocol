@@ -102,18 +102,18 @@ export const checkDeposit = (
   );
 
   // ReserveData Checks
-  // total_supplied <- increases on deposit
+  // total_deposit <- increases on deposit
   let before = parBefore.reserveData.totalSupplied.rawNumber;
   let expected = before.add(amount).add(reserveInterests.supply);
   let actual = parAfter.reserveData.totalSupplied.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Deposit | ReserveData | total_supplied | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Deposit | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Deposit | ReserveData | total_supplied | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Deposit | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
@@ -126,10 +126,10 @@ export const checkDeposit = (
   actual = parAfter.userReserveData.supplied.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Deposit | UserReserveData | total_supplied | before:\n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Deposit | UserReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(actual.toString(), `Deposit | UserReserveData | total_supplied | before:\n expected: ${expected} \n actual: ${actual}\n`)
+    .soft(actual.toString(), `Deposit | UserReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
 
   // Underlying Asset Checks
@@ -229,18 +229,18 @@ export const checkRedeem = (
   );
 
   // ReserveData Checks
-  // total_supplied <- decreases on Redeem
+  // total_deposit <- decreases on Redeem
   let before = parBefore.reserveData.totalSupplied.rawNumber;
   let expected = before.add(reserveInterests.supply).sub(amount);
   let actual = parAfter.reserveData.totalSupplied.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Redeem | ReserveData | total_supplied | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Redeem | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Redeem | ReserveData | total_supplied | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Redeem | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
@@ -254,13 +254,13 @@ export const checkRedeem = (
 
   if (expected.toString() !== actual.toString()) {
     console.log(
-      `Redeem | UserReserveData | total_supplied | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Redeem | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     );
   }
   expect
     .soft(
       actual.toString(),
-      `Redeem | UserReserveData | total_supplied | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Redeem | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
