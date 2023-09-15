@@ -1,7 +1,13 @@
 use ink::{prelude::string::String, LangError};
-use openbrush::contracts::{access_control::AccessControlError, pausable::PausableError, psp22::PSP22Error};
+use openbrush::contracts::{
+    access_control::AccessControlError, pausable::PausableError,
+    psp22::PSP22Error,
+};
 
-use crate::traits::flash_loan_receiver::FlashLoanReceiverError;
+use crate::{
+    library::math::MathError,
+    traits::flash_loan_receiver::FlashLoanReceiverError,
+};
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
@@ -13,15 +19,20 @@ pub enum LendingPoolError {
     AccessControlError(AccessControlError),
     PausableError(PausableError),
     LangError(LangError),
+    MathError(MathError),
     Inactive,
+    AlreadySet,
     Freezed,
+    AlreadyRegistered,
     AssetNotRegistered,
     RuleBorrowDisable,
     RuleCollateralDisable,
     InsufficientCollateral,
+    MinimalCollateralDeposit,
+    MinimalDebt,
     InsufficientDebt,
     Collaterized,
-    InsufficientSupply,
+    InsufficientDeposit,
     MinimumRecieved,
     AmountNotGreaterThanZero,
     AmountExceedsUserDeposit,
@@ -29,6 +40,7 @@ pub enum LendingPoolError {
     AmountExceedsUserDebt,
     NothingToRepay,
     NothingToCompensateWith,
+    RepayingWithACollateral,
     TakingNotACollateral,
     FlashLoanAmountsAssetsInconsistentLengths,
     MaxSupplyReached,
@@ -37,11 +49,18 @@ pub enum LendingPoolError {
     MarketRuleInvalidId,
     MarketRulePenaltyNotSet,
     PriceMissing,
+    AccumulatedAlready,
 }
 
 impl From<LangError> for LendingPoolError {
     fn from(error: LangError) -> Self {
         LendingPoolError::LangError(error)
+    }
+}
+
+impl From<MathError> for LendingPoolError {
+    fn from(error: MathError) -> Self {
+        LendingPoolError::MathError(error)
     }
 }
 
@@ -51,6 +70,7 @@ pub enum LendingPoolTokenInterfaceError {
     PSP22Error(PSP22Error),
     PausableError(PausableError),
     StorageError(StorageError),
+    LendingPoolError(LendingPoolError),
     InsufficientBalance,
     WrongCaller,
     InsufficientCollateral,
@@ -61,9 +81,21 @@ pub enum LendingPoolTokenInterfaceError {
     MarketRule,
 }
 
+impl From<LendingPoolError> for LendingPoolTokenInterfaceError {
+    fn from(error: LendingPoolError) -> Self {
+        LendingPoolTokenInterfaceError::LendingPoolError(error)
+    }
+}
+
 impl From<PSP22Error> for LendingPoolError {
     fn from(error: PSP22Error) -> Self {
         LendingPoolError::PSP22Error(error)
+    }
+}
+
+impl From<LendingPoolError> for PSP22Error {
+    fn from(error: LendingPoolError) -> Self {
+        PSP22Error::Custom(format!("{:?}", error))
     }
 }
 
@@ -94,23 +126,44 @@ impl From<PSP22Error> for LendingPoolTokenInterfaceError {
 impl From<LendingPoolTokenInterfaceError> for PSP22Error {
     fn from(error: LendingPoolTokenInterfaceError) -> Self {
         match error {
-            LendingPoolTokenInterfaceError::PausableError(_) => PSP22Error::Custom(String::from("Paused").into()),
-            LendingPoolTokenInterfaceError::InsufficientBalance => PSP22Error::InsufficientBalance,
+            LendingPoolTokenInterfaceError::PausableError(_) => {
+                PSP22Error::Custom(String::from("Paused").into())
+            }
+            LendingPoolTokenInterfaceError::InsufficientBalance => {
+                PSP22Error::InsufficientBalance
+            }
             LendingPoolTokenInterfaceError::AssetNotRegistered => {
                 PSP22Error::Custom(String::from("AssetNotRegistered").into())
             }
-            LendingPoolTokenInterfaceError::WrongCaller => PSP22Error::Custom(String::from("WrongCaller").into()),
+            LendingPoolTokenInterfaceError::WrongCaller => {
+                PSP22Error::Custom(String::from("WrongCaller").into())
+            }
             LendingPoolTokenInterfaceError::InsufficientCollateral => {
-                PSP22Error::Custom(String::from("InsufficientCollateral").into())
+                PSP22Error::Custom(
+                    String::from("InsufficientCollateral").into(),
+                )
             }
             LendingPoolTokenInterfaceError::TransfersDisabled => {
                 PSP22Error::Custom(String::from("TransfersDisabled").into())
             }
-            LendingPoolTokenInterfaceError::StorageError(_) => PSP22Error::Custom(String::from("StorageError").into()),
-            LendingPoolTokenInterfaceError::MinimalDebt => PSP22Error::Custom(String::from("MinimalDebt").into()),
-            LendingPoolTokenInterfaceError::MinimalSupply => PSP22Error::Custom(String::from("MinimalSupply").into()),
-            LendingPoolTokenInterfaceError::MarketRule => PSP22Error::Custom(String::from("MarketRule").into()),
-            LendingPoolTokenInterfaceError::PSP22Error(psp22_error) => psp22_error,
+            LendingPoolTokenInterfaceError::StorageError(_) => {
+                PSP22Error::Custom(String::from("StorageError").into())
+            }
+            LendingPoolTokenInterfaceError::MinimalDebt => {
+                PSP22Error::Custom(String::from("MinimalDebt").into())
+            }
+            LendingPoolTokenInterfaceError::MinimalSupply => {
+                PSP22Error::Custom(String::from("MinimalSupply").into())
+            }
+            LendingPoolTokenInterfaceError::MarketRule => {
+                PSP22Error::Custom(String::from("MarketRule").into())
+            }
+            LendingPoolTokenInterfaceError::PSP22Error(psp22_error) => {
+                psp22_error
+            }
+            LendingPoolTokenInterfaceError::LendingPoolError(error) => {
+                error.into()
+            }
         }
     }
 }

@@ -3,26 +3,27 @@ use openbrush::traits::{AccountId, Balance};
 use crate::traits::lending_pool::errors::LendingPoolError;
 use ink::prelude::vec::Vec;
 
-#[openbrush::wrapper]
-pub type LendingPoolRef = dyn LendingPoolDeposit + LendingPoolBorrow + LendingPoolLiquidate;
+// #[openbrush::wrapper]
+// pub type LendingPoolRef =
+//     dyn LendingPoolDeposit + LendingPoolBorrow + LendingPoolLiquidate;
 
-#[openbrush::wrapper]
-pub type LendingPoolDepositRef = dyn LendingPoolDeposit;
+// #[openbrush::wrapper]
+// pub type LendingPoolDepositRef = dyn LendingPoolDeposit;
 
-#[openbrush::wrapper]
-pub type LendingPoolBorrowRef = dyn LendingPoolBorrow;
+// #[openbrush::wrapper]
+// pub type LendingPoolBorrowRef = dyn LendingPoolBorrow;
 
-#[openbrush::wrapper]
-pub type LendingPoolLiquidateRef = dyn LendingPoolLiquidate;
+// #[openbrush::wrapper]
+// pub type LendingPoolLiquidateRef = dyn LendingPoolLiquidate;
 
-#[openbrush::wrapper]
-pub type LendingPoolMaintainRef = dyn LendingPoolMaintain;
+// #[openbrush::wrapper]
+// pub type LendingPoolMaintainRef = dyn LendingPoolMaintain;
 
-#[openbrush::wrapper]
-pub type LendingPoolFlashRef = dyn LendingPoolFlash;
+// #[openbrush::wrapper]
+// pub type LendingPoolFlashRef = dyn LendingPoolFlash;
 
 /// contains `deposit` and `redeem` functions
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait LendingPoolDeposit {
     /// is used by a user0, to deposit on an account of on_behalf_of an asset to LendingPool.
     /// Then, within the possibilities, a deposit can be marked as collateral and used to back a loan.
@@ -59,14 +60,17 @@ pub trait LendingPoolDeposit {
 }
 
 /// contains `set_as_collateral`, `borow` and `repay` functions
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait LendingPoolBorrow {
     /// is used by user to chose a market rule user want to use.
     /// After changing the chosen market rule users position should be collaterized
     ///
     /// * `market_rule_id` - the id of the market_rule to use.
     #[ink(message)]
-    fn choose_market_rule(&mut self, market_rule_id: u64) -> Result<(), LendingPoolError>;
+    fn choose_market_rule(
+        &mut self,
+        market_rule_id: u64,
+    ) -> Result<(), LendingPoolError>;
 
     /// is used by a user to choose to use or not a given asset as a collateral
     /// i.e. if the user's deposit of this concrete asset should back his debt and be vulnerable to liquidation.
@@ -74,7 +78,11 @@ pub trait LendingPoolBorrow {
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be collateral.
     /// * `use_as_collateral` - true if the user wants to use the asset as collateral, false in the opposite case.
     #[ink(message)]
-    fn set_as_collateral(&mut self, asset: AccountId, use_as_collateral: bool) -> Result<(), LendingPoolError>;
+    fn set_as_collateral(
+        &mut self,
+        asset: AccountId,
+        use_as_collateral: bool,
+    ) -> Result<(), LendingPoolError>;
     /// is used by a user0, once he made a deposit and chosen users collaterals, to borrow an asset from LendingPool.
     /// user0 can specify a Variable or Stable borrow rate by passing 0 or 1 in data\[0\].
     ///
@@ -112,7 +120,7 @@ pub trait LendingPoolBorrow {
 }
 
 /// contains `liquidate` function
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait LendingPoolLiquidate {
     /// is used by a liquidator to liquidate the uncollateralized position of another user
     ///
@@ -137,23 +145,30 @@ pub trait LendingPoolLiquidate {
 }
 
 /// contains `accumulate_interest`, `acumulate_user_interest`, `rebalance_stable_borrow_rate` functions
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait LendingPoolMaintain {
     /// is used by anyone to accumulate deposit and variable rate interests
     ///
     ///  * `asset` - AccountId (aka address) of asset of which interests should be accumulated
     #[ink(message)]
-    fn accumulate_interest(&mut self, asset: AccountId) -> Result<(), LendingPoolError>;
+    fn accumulate_interest(
+        &mut self,
+        asset: AccountId,
+    ) -> Result<(), LendingPoolError>;
     /// is used by anyone to update reserve's asset price //TODO: we need to get oracle API first!
     ///
     ///  * `reserve_token_address` - AccountId (aka address) of an asset to update price for
     ///  * `price_e8` - price of the token in E8 notation (multiplied by 10^8)
     #[ink(message)]
-    fn insert_reserve_token_price_e8(&mut self, asset: AccountId, price_e8: u128) -> Result<(), LendingPoolError>;
+    fn insert_reserve_token_price_e8(
+        &mut self,
+        asset: AccountId,
+        price_e8: u128,
+    ) -> Result<(), LendingPoolError>;
 }
 
 /// contains `flash_looan` function
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait LendingPoolFlash {
     #[ink(message)]
     fn flash_loan(

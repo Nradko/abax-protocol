@@ -30,7 +30,12 @@ pub mod psp22_emitable {
 
     impl PSP22OwnableContract {
         #[ink(constructor)]
-        pub fn new(name: String, symbol: String, decimal: u8, owner: AccountId) -> Self {
+        pub fn new(
+            name: String,
+            symbol: String,
+            decimal: u8,
+            owner: AccountId,
+        ) -> Self {
             let mut instance = Self::default();
             instance.metadata.name.set(&name.into());
             instance.metadata.symbol.set(&symbol.into());
@@ -43,7 +48,11 @@ pub mod psp22_emitable {
     #[overrider(PSP22MintableImpl)]
     #[ink(message)]
     #[modifiers(only_owner)]
-    fn mint(&mut self, account: AccountId, amount: Balance) -> Result<(), PSP22Error> {
+    fn mint(
+        &mut self,
+        account: AccountId,
+        amount: Balance,
+    ) -> Result<(), PSP22Error> {
         self._mint_to(account, amount)
     }
 }

@@ -1,10 +1,11 @@
 use crate::traits::lending_pool::errors::LendingPoolTokenInterfaceError;
+use ink::{contract_ref, env::DefaultEnvironment};
 use openbrush::traits::{AccountId, Balance};
 
-#[openbrush::wrapper]
-pub type LendingPoolVTokenInterfaceRef = dyn LendingPoolVTokenInterface;
+pub type LendingPoolVTokenInterfaceRef =
+    contract_ref!(LendingPoolVTokenInterface, DefaultEnvironment);
 
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait LendingPoolVTokenInterface {
     /// Returns LendingPool's total variable debt of users in the context of an underlying asset.
     ///
@@ -16,7 +17,11 @@ pub trait LendingPoolVTokenInterface {
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up user's variable debt of.
     /// * `user` - AccountId (aka address) of an user to look up variable debt for.
     #[ink(message)]
-    fn user_variable_debt_of(&self, underlying_asset: AccountId, user: AccountId) -> Balance;
+    fn user_variable_debt_of(
+        &self,
+        underlying_asset: AccountId,
+        user: AccountId,
+    ) -> Balance;
     /// Transfers an `amount` of variable debt on the behalf of `from` to the account `to` in the context of an `underlying_asset`.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to transfer variable debt from/to.

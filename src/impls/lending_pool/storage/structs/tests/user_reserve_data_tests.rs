@@ -5,7 +5,8 @@ pub mod user_reserve_data_tests {
     use crate::impls::{
         constants::{DAY, E12, E18},
         lending_pool::storage::structs::{
-            reserve_data::ReserveData, tests::helpers::*, user_reserve_data::UserReserveData,
+            reserve_data::ReserveData, tests::helpers::*,
+            user_reserve_data::UserReserveData,
         },
     };
     use openbrush::traits::{Balance, Timestamp};
@@ -65,8 +66,13 @@ pub mod user_reserve_data_tests {
                 cumulative_supply_rate_index_e12: si_e12,
                 init_user_stable_borrow_rate_e18: t.iasr_e18,
                 expected_supplied_difference: t.is * si_e12 / E12 - t.is,
-                expected_variable_borrowed_difference: t.ivb * t.icvbr_e12 / E12 + 1 - t.ivb,
-                expected_stable_borrowed_difference: t.isb * t.iasr_e18 * DAY / E18 + 1,
+                expected_variable_borrowed_difference: t.ivb * t.icvbr_e12
+                    / E12
+                    + 1
+                    - t.ivb,
+                expected_stable_borrowed_difference: t.isb * t.iasr_e18 * DAY
+                    / E18
+                    + 1,
                 expected_stable_borrow_rate_difference_e18: 0,
                 update_timestamp: DAY as Timestamp,
             })
@@ -75,23 +81,30 @@ pub mod user_reserve_data_tests {
         for case in test_cases {
             let mut init_reserve_data = ReserveData::default();
             init_reserve_data.indexes_update_timestamp = case.update_timestamp;
-            init_reserve_data.cumulative_supply_rate_index_e18 = case.cumulative_supply_rate_index_e12;
-            init_reserve_data.cumulative_debt_rate_index_e18 = case.cumulative_variable_borrow_rate_index_e12;
+            init_reserve_data.cumulative_supply_rate_index_e18 =
+                case.cumulative_supply_rate_index_e12;
+            init_reserve_data.cumulative_debt_rate_index_e18 =
+                case.cumulative_variable_borrow_rate_index_e12;
 
             let mut init_user_reserve_data = UserReserveData::my_default();
-            init_user_reserve_data.supplied = case.init_user_supplied;
+            init_user_reserve_data.deposit = case.init_user_supplied;
             init_user_reserve_data.debt = case.init_user_variable_borrowed;
 
             let mut final_reserve_data = init_reserve_data.clone();
             let mut final_user_reserve_data = init_user_reserve_data.clone();
 
-            final_user_reserve_data._accumulate_user_interest(&mut final_reserve_data);
+            final_user_reserve_data
+                ._accumulate_user_interest(&mut final_reserve_data);
 
             let user_reserve_difference = UserReserveDataDifference {
                 supplied: case.expected_supplied_difference as i128,
                 debt: case.expected_variable_borrowed_difference as i128,
-                applied_cumulative_supply_rate_index_e18: final_reserve_data.cumulative_supply_rate_index_e18 - E12,
-                applied_cumulative_debt_rate_index_e18: final_reserve_data.cumulative_debt_rate_index_e18 - E12,
+                applied_cumulative_supply_rate_index_e18: final_reserve_data
+                    .cumulative_supply_rate_index_e18
+                    - E12,
+                applied_cumulative_debt_rate_index_e18: final_reserve_data
+                    .cumulative_debt_rate_index_e18
+                    - E12,
             };
 
             assert_user_reserve_data_difference(
@@ -116,8 +129,8 @@ pub mod user_reserve_data_tests {
         differences: UserReserveDataDifference,
     ) {
         assert(
-            initital_user_reserve_data.supplied,
-            final_user_reserve_data.supplied,
+            initital_user_reserve_data.deposit,
+            final_user_reserve_data.deposit,
             differences.supplied,
             "supplied".to_string(),
         );
@@ -129,14 +142,14 @@ pub mod user_reserve_data_tests {
         );
 
         assert(
-            initital_user_reserve_data.applied_cumulative_supply_rate_index_e18,
-            final_user_reserve_data.applied_cumulative_supply_rate_index_e18,
+            initital_user_reserve_data.applied_cumulative_supply_index_e18,
+            final_user_reserve_data.applied_cumulative_supply_index_e18,
             differences.applied_cumulative_supply_rate_index_e18,
             "applied_cumulative_supply_rate_index_e18".to_string(),
         );
         assert(
-            initital_user_reserve_data.applied_cumulative_debt_rate_index_e18,
-            final_user_reserve_data.applied_cumulative_debt_rate_index_e18,
+            initital_user_reserve_data.applied_cumulative_debt_index_e18,
+            final_user_reserve_data.applied_cumulative_debt_index_e18,
             differences.applied_cumulative_debt_rate_index_e18,
             "applied_cumulative_debt_rate_index_e18".to_string(),
         );
