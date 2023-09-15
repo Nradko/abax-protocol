@@ -1,10 +1,12 @@
 use ink::prelude::{string::String, vec::Vec};
 use openbrush::traits::AccountId;
 
-#[openbrush::wrapper]
-pub type FlashLoanReceiverRef = dyn FlashLoanReceiver;
+use ink::contract_ref;
+use ink::env::DefaultEnvironment;
+pub type FlashLoanReceiverRef =
+    contract_ref!(FlashLoanReceiver, DefaultEnvironment);
 
-#[openbrush::trait_definition]
+#[ink::trait_definition]
 pub trait FlashLoanReceiver {
     #[ink(message)]
     fn execute_operation(

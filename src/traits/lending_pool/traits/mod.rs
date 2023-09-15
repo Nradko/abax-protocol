@@ -2,6 +2,8 @@
 pub mod a_token_interface;
 /// contains functions that are used by users with no special access to interact and use `LendingPool`
 pub mod actions;
+
+pub mod deposit;
 /// contains functions that are used by users with special acces to manage `LendingPool`
 pub mod manage;
 /// contains function that are used by `VToken` to interact with `LendingPool`
