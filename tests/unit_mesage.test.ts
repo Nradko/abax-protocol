@@ -6,7 +6,7 @@ import { AssetRegistered } from 'typechain/event-types/lending_pool';
 import { ContractsEvents } from 'typechain/events/enum';
 import { AccountId } from 'typechain/types-arguments/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
-import { LendingPoolTokenInterfaceErrorBuilder, StorageErrorBuilder } from 'typechain/types-returns/lending_pool';
+import { StorageErrorBuilder } from 'typechain/types-returns/lending_pool';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import BlockTimestampProviderContract from '../typechain/contracts/block_timestamp_provider';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
@@ -18,6 +18,8 @@ import { ValidateEventParameters } from './scenarios/utils/validateEvents';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 import { ReturnNumber } from '@727-ventures/typechain-types';
+import { MAX_U128 } from './consts';
+import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 
 makeSuite('Message', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -85,7 +87,7 @@ makeSuite('Message', (getTestEnv) => {
         //Assert
         const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
         const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
-        expect(userReserveDataAfter.supplied.rawNumber.toString()).to.be.equal('0');
+        expect(userReserveDataAfter.deposit.rawNumber.toString()).to.be.equal('0');
         expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
       });
 
@@ -102,7 +104,7 @@ makeSuite('Message', (getTestEnv) => {
         //Assert
         const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
         const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
-        expect(userReserveDataAfter.supplied.rawNumber.toNumber()).to.be.greaterThan(0);
+        expect(userReserveDataAfter.deposit.rawNumber.toNumber()).to.be.greaterThan(0);
         expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
       });
 
@@ -190,7 +192,7 @@ makeSuite('Message', (getTestEnv) => {
           });
         });
 
-        await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, null, []);
+        await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, MAX_U128, []);
 
         const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
         const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
@@ -210,7 +212,7 @@ makeSuite('Message', (getTestEnv) => {
           reserve,
           testUser.address,
           testUser.address,
-          null,
+          new BN(MAX_U128),
           redeemParametersBefore,
           redeemParametersAfter,
           eventsFromTxOnly,
@@ -275,28 +277,22 @@ makeSuite('Message', (getTestEnv) => {
 
         const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value.ok!;
         const reserveData = (await lendingPool.query.viewUnupdatedReserveData(users[2].address)).value.ok!;
+        const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(users[2].address)).value.ok!;
+        const reserveTokens = (await lendingPool.query.viewReserveTokens(users[2].address)).value.ok!;
+        const reservePrices = (await lendingPool.query.viewReservePrices(users[2].address)).value.ok!;
+
         const AssetRegisteredEvent = Object.values(txResult.events!).find((e) => e.name === ContractsEvents.LendingPoolEvent.AssetRegistered)
           ?.args as AssetRegistered;
 
         expect(registerAssets[4]).to.equal(users[2].address);
-        expect.soft(reserveData.decimals.toString()).to.equal('100000000');
-        expect.soft(reserveData.maximalTotalSupply?.toString()).to.equal('99999999');
-        expect.soft(reserveData.maximalTotalDebt?.toString()).to.equal('11111111');
-        expect.soft(reserveData.incomeForSuppliersPartE6.toString()).to.equal('900000');
-        expect.soft(reserveData.flashLoanFeeE6.toString()).to.equal('1000');
-        expect.soft(reserveData.aTokenAddress).to.equal(users[3].address);
-        expect.soft(reserveData.vTokenAddress).to.equal(users[4].address);
-        expect
-          .soft(reserveData.interestRateModel)
-          .to.equal([
-            new ReturnNumber(1),
-            new ReturnNumber(2),
-            new ReturnNumber(3),
-            new ReturnNumber(4),
-            new ReturnNumber(5),
-            new ReturnNumber(6),
-            new ReturnNumber(7),
-          ]);
+        expect.soft(reservePrices.decimals.toString()).to.equal('100000000');
+        expect.soft(reserveRestrictions.maximalTotalSupply?.toString()).to.equal('99999999');
+        expect.soft(reserveRestrictions.maximalTotalDebt?.toString()).to.equal('11111111');
+        expect.soft(reserveData.parameters.incomeForSuppliersPartE6.toString()).to.equal('900000');
+        expect.soft(reserveData.parameters.flashLoanFeeE6.toString()).to.equal('1000');
+        expect.soft(reserveTokens.aTokenAddress).to.equal(users[3].address);
+        expect.soft(reserveTokens.vTokenAddress).to.equal(users[4].address);
+        expect.soft(replaceRNBNPropsWithStrings(reserveData.parameters.interestRateModel)).to.deep.equal(['1', '2', '3', '4', '5', '6', '7']);
 
         expect.soft(AssetRegisteredEvent, 'AssetRegisteredEvent | Event | not emitted').not.to.be.undefined;
         expect.flushSoft();
@@ -365,7 +361,7 @@ makeSuite('Message', (getTestEnv) => {
           .withSigner(testEnv.users[1])
           .query.transferSupplyFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000)
       ).value.ok;
-      expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
+      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('WrongCaller'));
     });
     it('A regular user should not be able to execute transfer supply on VToken', async () => {
       const amountToBorrow = mintedAmount / 2;
@@ -381,7 +377,7 @@ makeSuite('Message', (getTestEnv) => {
           .withSigner(testEnv.users[0])
           .query.transferVariableDebtFromTo(reserveWETH.underlying.address, testEnv.users[1].address, testEnv.users[0].address, amountToBorrow)
       ).value.ok;
-      expect(queryRes).to.have.deep.property('err', LendingPoolTokenInterfaceErrorBuilder.WrongCaller());
+      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('WrongCaller'));
     });
   });
 });

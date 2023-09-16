@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(PSP22, PSP22Metadata)]
-#[openbrush::contract]
+#[pendzl::implementation(PSP22, PSP22Metadata)]
+#[ink::contract]
 pub mod v_token {
     use ink::{
         codegen::{EmitEvent, Env},
@@ -17,7 +17,7 @@ pub mod v_token {
         lending_pool::traits::v_token_interface::LendingPoolVTokenInterface,
         lending_pool::traits::v_token_interface::LendingPoolVTokenInterfaceRef,
     };
-    use openbrush::{
+    use pendzl::{
         contracts::psp22::{extensions::metadata::*, PSP22Error},
         traits::Storage,
     };
@@ -206,7 +206,11 @@ pub mod v_token {
         ink::env::debug_println!(
             "_transfer_from_to after LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call"
         );
-
+        ink::env::debug_println!(
+            "mint_from: {} |    mint_to: {}",
+            mint_from_amount,
+            mint_to_amount
+        );
         // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
         if mint_from_amount > 0 {
             psp22::Internal::_emit_transfer_event(

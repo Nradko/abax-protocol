@@ -9,7 +9,7 @@ pub mod user_reserve_data_tests {
             user_reserve_data::UserReserveData,
         },
     };
-    use openbrush::traits::{Balance, Timestamp};
+    use pendzl::traits::{Balance, Timestamp};
 
     pub struct DvsUA {
         pub init_user_supplied: Balance,

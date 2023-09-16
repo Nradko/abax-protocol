@@ -1,12 +1,11 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(Ownable)]
-#[openbrush::contract]
+#[pendzl::implementation(Ownable)]
+#[ink::contract]
 pub mod block_timestamp_provider {
     use lending_project::traits::block_timestamp_provider::*;
-    use openbrush::{
+    use pendzl::{
         contracts::ownable::{OwnableError, *},
-        modifiers,
         traits::{DefaultEnv, Storage},
     };
 
@@ -23,11 +22,16 @@ pub mod block_timestamp_provider {
 
     impl BlockTimestampProvider {
         #[ink(constructor)]
-        pub fn new(init_should_return_mock_value: bool, owner: AccountId, speed_multiplier: u64) -> Self {
+        pub fn new(
+            init_should_return_mock_value: bool,
+            owner: AccountId,
+            speed_multiplier: u64,
+        ) -> Self {
             let mut instance = Self::default();
             instance.should_return_mock_value = init_should_return_mock_value;
             instance.speed_multiplier = speed_multiplier;
-            instance.starting_timestamp = <BlockTimestampProvider as DefaultEnv>::env().block_timestamp();
+            instance.starting_timestamp =
+                <BlockTimestampProvider as DefaultEnv>::env().block_timestamp();
             ownable::Internal::_init_with_owner(&mut instance, owner);
             instance
         }
@@ -39,22 +43,30 @@ pub mod block_timestamp_provider {
             if self.should_return_mock_value {
                 return self.mock_timestamp;
             }
-            let current_timestamp = Self::env().block_timestamp();
+            let current_timestamp =
+                <BlockTimestampProvider as DefaultEnv>::env().block_timestamp();
             if self.speed_multiplier != 1 {
                 let time_passed = current_timestamp - self.starting_timestamp;
-                return self.starting_timestamp + time_passed * self.speed_multiplier;
+                return self.starting_timestamp
+                    + time_passed * self.speed_multiplier;
             }
             current_timestamp
         }
         #[ink(message)]
-        #[modifiers(only_owner)]
-        fn set_block_timestamp(&mut self, timestamp: u64) -> Result<(), OwnableError> {
+        fn set_block_timestamp(
+            &mut self,
+            timestamp: u64,
+        ) -> Result<(), OwnableError> {
+            ownable::Internal::_only_owner(self)?;
             self.mock_timestamp = timestamp;
             Ok(())
         }
         #[ink(message)]
-        #[modifiers(only_owner)]
-        fn set_speed_multiplier(&mut self, speed_multiplier: u64) -> Result<(), OwnableError> {
+        fn set_speed_multiplier(
+            &mut self,
+            speed_multiplier: u64,
+        ) -> Result<(), OwnableError> {
+            ownable::Internal::_only_owner(self)?;
             self.speed_multiplier = speed_multiplier;
             Ok(())
         }
@@ -63,14 +75,20 @@ pub mod block_timestamp_provider {
             self.speed_multiplier
         }
         #[ink(message)]
-        #[modifiers(only_owner)]
-        fn increase_block_timestamp(&mut self, delta_timestamp: u64) -> Result<(), OwnableError> {
+        fn increase_block_timestamp(
+            &mut self,
+            delta_timestamp: u64,
+        ) -> Result<(), OwnableError> {
+            ownable::Internal::_only_owner(self)?;
             self.mock_timestamp += delta_timestamp;
             Ok(())
         }
         #[ink(message)]
-        #[modifiers(only_owner)]
-        fn set_should_return_mock_value(&mut self, should_return_mock_value: bool) -> Result<(), OwnableError> {
+        fn set_should_return_mock_value(
+            &mut self,
+            should_return_mock_value: bool,
+        ) -> Result<(), OwnableError> {
+            ownable::Internal::_only_owner(self)?;
             self.should_return_mock_value = should_return_mock_value;
             Ok(())
         }

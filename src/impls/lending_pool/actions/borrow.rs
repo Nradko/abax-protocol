@@ -6,7 +6,7 @@ use crate::{
     traits::lending_pool::{errors::LendingPoolError, events::*},
 };
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, Storage};
 
 pub trait LendingPoolBorrowImpl:
     Storage<LendingPoolStorage> + TimestampMock + EmitBorrowEvents
@@ -32,6 +32,7 @@ pub trait LendingPoolBorrowImpl:
     ) -> Result<(), LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
         let caller = Self::env().caller();
+        ink::env::debug_println!("set_colalteral | account");
         self.data::<LendingPoolStorage>()
             .account_for_set_as_collateral(
                 &caller,
@@ -39,11 +40,13 @@ pub trait LendingPoolBorrowImpl:
                 use_as_collateral_to_set,
             )?;
 
+        ink::env::debug_println!("set_colalteral | cehck lending power");
         if use_as_collateral_to_set == false {
             self.data::<LendingPoolStorage>()
                 .check_lending_power(&caller)?;
         }
 
+        ink::env::debug_println!("set_colalteral | event");
         self._emit_collateral_set_event(
             asset,
             caller,

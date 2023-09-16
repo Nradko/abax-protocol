@@ -7,19 +7,20 @@ use crate::{
         abacus_token::traits::abacus_token::{
             AbacusToken, AbacusTokenRef, TransferEventData,
         },
-        lending_pool::{
-            errors::{LendingPoolError, LendingPoolTokenInterfaceError},
-            events::EmitDepositEvents,
-        },
+        lending_pool::events::EmitDepositEvents,
     },
 };
 use ink::prelude::*;
-use openbrush::traits::{AccountId, Balance, Storage};
+use pendzl::{
+    contracts::psp22::PSP22Error,
+    traits::{AccountId, Balance, Storage},
+};
 
 pub trait LendingPoolATokenInterfaceImpl:
     Storage<LendingPoolStorage>
     + TimestampMock
-    + Storage<openbrush::contracts::pausable::Data>
+    + Storage<pendzl::contracts::pausable::Data>
+    + pendzl::contracts::pausable::Internal
     + EmitDepositEvents
 {
     fn total_supply_of(&self, underlying_asset: AccountId) -> Balance {
@@ -40,21 +41,21 @@ pub trait LendingPoolATokenInterfaceImpl:
             .unwrap()
     }
 
-    #[openbrush::modifiers(openbrush::contracts::pausable::when_not_paused)]
     fn transfer_supply_from_to(
         &mut self,
         underlying_asset: AccountId,
         from: AccountId,
         to: AccountId,
         amount: Balance,
-    ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
+    ) -> Result<(Balance, Balance), PSP22Error> {
+        self._ensure_not_paused()?;
         let reserve_abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus
             .get(&underlying_asset)
-            .ok_or(LendingPoolError::AssetNotRegistered)?;
+            .ok_or(PSP22Error::Custom("AssetNotRegistered".into()))?;
         if Self::env().caller() != reserve_abacus_tokens.a_token_address {
-            return Err(LendingPoolTokenInterfaceError::WrongCaller);
+            return Err(PSP22Error::Custom("WrongCaller".into()));
         }
 
         let timestamp = self._timestamp();

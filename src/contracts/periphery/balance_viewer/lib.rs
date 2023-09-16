@@ -1,10 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::contract]
+#[ink::contract]
 pub mod balance_viewer {
 
     // use lending_project::traits::managing::*;
-    use openbrush::{contracts::psp22::*, traits::Storage};
+    use pendzl::{contracts::psp22::*, traits::Storage};
 
     use ink::prelude::{vec::Vec, *};
     use lending_project::traits::lending_pool::traits::view::LendingPoolView;
@@ -47,7 +47,8 @@ pub mod balance_viewer {
 
             let mut ret: Vec<(AccountId, Balance)> = vec![];
             for asset in assets_to_view {
-                ret.push((asset, PSP22Ref::balance_of(&asset, user)));
+                let psp22: PSP22Ref = asset.into();
+                ret.push((asset, psp22.balance_of(user)));
             }
             ret
         }

@@ -6,18 +6,33 @@ use crate::impls::{
     },
 };
 
-use openbrush::traits::{AccountId, Storage};
+use pendzl::traits::{AccountId, Storage};
 
 use ink::prelude::{vec::Vec, *};
 
 use super::{
     internal::{InternalIncome, TimestampMock},
     storage::{
-        lending_pool_storage::MarketRule, structs::user_config::UserConfig,
+        lending_pool_storage::{MarketRule, RuleId},
+        structs::{
+            reserve_data::{
+                ReserveAbacusTokens, ReserveIndexes, ReservePrice,
+                ReserveRestrictions,
+            },
+            user_config::UserConfig,
+        },
     },
 };
 
 pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
+    fn view_asset_id(&self, asset: AccountId) -> Option<RuleId> {
+        ink::env::debug_println!(
+            "view asset: {:X?} | {:?}",
+            asset,
+            self.data::<LendingPoolStorage>().asset_to_id.get(&asset)
+        );
+        self.data::<LendingPoolStorage>().asset_to_id.get(&asset)
+    }
     fn view_registered_assets(&self) -> Vec<AccountId> {
         self.data::<LendingPoolStorage>()
             .get_all_registered_assets()
@@ -57,6 +72,73 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     )
                     .unwrap();
                 Some(reserve_data)
+            }
+            None => None,
+        }
+    }
+
+    fn view_unupdated_reserve_indexes(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveIndexes> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => self
+                .data::<LendingPoolStorage>()
+                .reserve_indexes
+                .get(&asset_id),
+            None => None,
+        }
+    }
+
+    fn view_reserve_restrictions(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveRestrictions> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => self
+                .data::<LendingPoolStorage>()
+                .reserve_restrictions
+                .get(&asset_id),
+            None => None,
+        }
+    }
+    fn view_reserve_tokens(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveAbacusTokens> {
+        self.data::<LendingPoolStorage>().reserve_abacus.get(&asset)
+    }
+    fn view_reserve_prices(&self, asset: AccountId) -> Option<ReservePrice> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => self
+                .data::<LendingPoolStorage>()
+                .reserve_prices
+                .get(&asset_id),
+            None => None,
+        }
+    }
+
+    fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => {
+                let mut reserve_data = self
+                    .data::<LendingPoolStorage>()
+                    .reserve_datas
+                    .get(&asset_id)
+                    .unwrap();
+                let mut reserve_indexes = self
+                    .data::<LendingPoolStorage>()
+                    .reserve_indexes
+                    .get(&asset_id)
+                    .unwrap();
+
+                reserve_data
+                    .accumulate_interest(
+                        &mut reserve_indexes,
+                        &self._timestamp(),
+                    )
+                    .unwrap();
+                Some(reserve_indexes)
             }
             None => None,
         }
@@ -198,7 +280,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             .unwrap_or_default()
     }
 
-    fn view_market_rule(&self, market_rule_id: u32) -> Option<MarketRule> {
+    fn view_market_rule(&self, market_rule_id: RuleId) -> Option<MarketRule> {
         self.data::<LendingPoolStorage>()
             .market_rules
             .get(&market_rule_id)

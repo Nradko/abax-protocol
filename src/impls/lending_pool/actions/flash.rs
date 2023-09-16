@@ -23,7 +23,7 @@ use ink::{
     prelude::{vec, vec::Vec},
 };
 
-use openbrush::{
+use pendzl::{
     contracts::access_control::*,
     traits::{AccountId, Balance, Storage},
 };

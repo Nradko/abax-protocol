@@ -4,7 +4,7 @@ import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import chalk from 'chalk';
 import { isNil, maxBy } from 'lodash';
-import { LendingToken, ONE_YEAR, RateMode } from 'tests/consts';
+import { LendingToken, MAX_U128, ONE_YEAR, RateMode } from 'tests/consts';
 import { expect } from 'tests/setup/chai';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { PSP22Metadata } from 'tests/types/PSP22Metadata';
@@ -222,11 +222,11 @@ export const redeem = async (
     caller,
     onBehalfOf,
   );
-
-  let amountToWithdraw: BN | null = null;
-
-  if (amount !== null) {
+  let amountToWithdraw: BN;
+  if (amount) {
     amountToWithdraw = await convertToCurrencyDecimals(reserve.underlying, amount);
+  } else {
+    amountToWithdraw = new BN(MAX_U128);
   }
   const args: Parameters<typeof lendingPool.tx.redeem> = [reserve.underlying.address, onBehalfOf.address, amountToWithdraw, []];
 
@@ -400,11 +400,11 @@ export const repayVariable = async (
     caller,
     onBehalfOf,
   );
-
-  let amountToRepay: BN | null = null;
-
-  if (amount !== null) {
+  let amountToRepay: BN;
+  if (amount) {
     amountToRepay = await convertToCurrencyDecimals(reserve.underlying, amount);
+  } else {
+    amountToRepay = new BN(MAX_U128);
   }
   const args: Parameters<typeof lendingPool.tx.repay> = [reserve.underlying.address, onBehalfOf.address, amountToRepay, [0]];
   if (expectedResult === 'success') {
@@ -459,20 +459,27 @@ export const setUseAsCollateral = async (
   expectedErrorName?: string,
 ) => {
   const { lendingPool, reserves, blockTimestampProvider } = testEnv;
-  const reserve = reserves[reserveSymbol].underlying;
+  const underlying = reserves[reserveSymbol].underlying;
 
-  const { reserveData: reserveDataBefore } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
+  const assetId = (await testEnv.lendingPool.query.viewAssetId(underlying.address)).value.ok;
+
+  if (assetId === undefined || assetId === null) {
+    throw new Error(`ERROR READING ASSET ID (asset: ${underlying.address})`);
+  }
+  const { reserveData: reserveDataBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool, blockTimestampProvider);
 
   const useAsCollateralToSet = useAsCollateral.toLowerCase() === 'true';
-  const args: Parameters<typeof lendingPool.tx.setAsCollateral> = [reserve.address, useAsCollateralToSet];
+  const args: Parameters<typeof lendingPool.tx.setAsCollateral> = [underlying.address, useAsCollateralToSet];
   if (expectedResult === 'success') {
-    const { userConfig: userConfigBefore } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
+    const { userConfig: userConfigBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool, blockTimestampProvider);
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.setAsCollateral(...args);
     }
-    const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.setAsCollateral(...args));
 
-    const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(reserve, caller, lendingPool, blockTimestampProvider);
+    const txQuery = await lendingPool.withSigner(caller).query.setAsCollateral(...args);
+    const txResult = await lendingPool.withSigner(caller).tx.setAsCollateral(...args);
+
+    const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool, blockTimestampProvider);
 
     if (userConfigBefore.collaterals.rawNumber !== userConfigAfter.collaterals.rawNumber) {
       expect(txResult.events).to.deep.equal([
@@ -480,16 +487,14 @@ export const setUseAsCollateral = async (
           args: {
             asset: testEnv.reserves[reserveSymbol].underlying.address,
             caller: caller.address,
-            set: (userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id) % 2 === 1 ? true : false,
+            set: (userConfigAfter.collaterals.toNumber() >> assetId) % 2 === 1 ? true : false,
           },
           name: 'CollateralSet',
         },
       ]);
     }
     expect.toBeDefined(userConfigAfter);
-    expect((userConfigAfter.collaterals.toNumber() >> reserveDataBefore.id) % 2, 'setUseAsCollateral didnt work').to.equal(
-      useAsCollateralToSet ? 1 : 0,
-    );
+    expect((userConfigAfter.collaterals.toNumber() >> assetId) % 2, 'setUseAsCollateral didnt work').to.equal(useAsCollateralToSet ? 1 : 0);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.setAsCollateral(...args)).value.ok;
@@ -511,12 +516,15 @@ export const getTxTimestamp = async (tx: SignAndSendSuccessResponse) => {
 
 export const getReserveAndUserReserveData = async <R extends { address: string }>(reserve: R, user: KeyringPair, lendingPool: LendingPool) => {
   const reserveData = (await lendingPool.query.viewUnupdatedReserveData(reserve.address)).value.unwrap();
+  const reserveIndexes = (await lendingPool.query.viewUnupdatedReserveIndexes(reserve.address)).value.unwrap();
   if (!reserveData) throw new Error(`ERROR READING RESERVE DATA (reserve: ${reserve.address})`);
+  if (!reserveIndexes) throw new Error(`ERROR READING RESERVE INDEXES (reserve: ${reserve.address})`);
 
   const userReserveDataResult = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.address, user.address)).value.unwrap();
   const userConfig = (await lendingPool.query.viewUserConfig(user.address)).value.unwrap();
   const result = {
     reserveData,
+    reserveIndexes,
     userConfig,
     //return default obj to faciliate calculations
     userReserveData: userReserveDataResult,

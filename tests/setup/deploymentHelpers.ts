@@ -397,6 +397,8 @@ export const deployAndConfigureSystem = async (
   if (shouldUseMockTimestamp) {
     await contracts.blockTimestampProvider.withSigner(owner).tx.setShouldReturnMockValue(true);
   }
+  await contracts.lendingPool.withSigner(owner).query.addMarketRule([]);
+  await contracts.lendingPool.withSigner(owner).tx.addMarketRule([]);
 
   const reservesWithLendingTokens = {} as TestEnv['reserves'];
   for (const reserveData of testReserveTokensToDeploy) {

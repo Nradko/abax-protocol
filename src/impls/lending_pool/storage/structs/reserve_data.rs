@@ -1,12 +1,13 @@
 use checked_math::checked_math;
-use openbrush::traits::{AccountId, Balance, Timestamp};
+use pendzl::traits::{AccountId, Balance, Timestamp};
 use primitive_types::U256;
 use scale::{Decode, Encode};
 
 use crate::impls::constants::{E18_U128, E6_U128, MATH_ERROR_MESSAGE};
 
 use crate::library::math::{
-    e18_mul_e0_to_e0_rdown, e18_mul_e18_to_e18_rup, e24_mul_e0_to_e18_rup,
+    e18_mul_e0_to_e0_rdown, e18_mul_e18_to_e18_rdown, e18_mul_e18_to_e18_rup,
+    e24_mul_e0_to_e18_rdown, e24_mul_e0_to_e18_rup,
     e24_mul_e6_div_e0_to_e24_rdown, MathError,
 };
 use crate::traits::lending_pool::errors::LendingPoolError;
@@ -98,7 +99,7 @@ impl ReserveIndexes {
         supply_index_multiplier_e18: u128,
         debt_index_multiplier_e18: u128,
     ) -> Result<(), MathError> {
-        self.cumulative_supply_index_e18 = e18_mul_e18_to_e18_rup(
+        self.cumulative_supply_index_e18 = e18_mul_e18_to_e18_rdown(
             self.cumulative_supply_index_e18,
             supply_index_multiplier_e18,
         )?;
@@ -202,7 +203,7 @@ impl ReserveData {
         timestamp: &Timestamp,
     ) -> Self {
         ReserveData {
-            activated: false,
+            activated: true,
             freezed: false,
             parameters: ReserveDataParameters {
                 interest_rate_model: *interest_rate_model,
@@ -318,10 +319,12 @@ impl ReserveData {
         }
 
         if self.current_supply_rate_e24 != 0 {
-            supply_index_multiplier_e18 = e24_mul_e0_to_e18_rup(
-                self.current_supply_rate_e24,
-                delta_timestamp,
-            )?;
+            supply_index_multiplier_e18 = supply_index_multiplier_e18
+                .checked_add(e24_mul_e0_to_e18_rdown(
+                    self.current_supply_rate_e24,
+                    delta_timestamp,
+                )?)
+                .ok_or(MathError::Overflow)?;
             self.total_deposit = e18_mul_e0_to_e0_rdown(
                 supply_index_multiplier_e18,
                 self.total_deposit,
@@ -329,10 +332,12 @@ impl ReserveData {
         }
 
         if self.current_debt_rate_e24 != 0 {
-            debt_index_multiplier_e18 = e24_mul_e0_to_e18_rup(
-                self.current_debt_rate_e24,
-                delta_timestamp,
-            )?;
+            debt_index_multiplier_e18 = debt_index_multiplier_e18
+                .checked_add(e24_mul_e0_to_e18_rup(
+                    self.current_debt_rate_e24,
+                    delta_timestamp,
+                )?)
+                .ok_or(MathError::Overflow)?;
             self.total_debt = e18_mul_e0_to_e0_rdown(
                 debt_index_multiplier_e18,
                 self.total_debt,

@@ -8,7 +8,7 @@ import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import VToken from 'typechain/contracts/v_token';
 import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
 import { getEventTypeDescription } from 'typechain/shared/utils';
-import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
+import { ReserveData, ReserveDataParameters, UserReserveData } from 'typechain/types-returns/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import { TestEnv } from './make-suite';
 
@@ -108,12 +108,8 @@ export const subscribeOnEvents = async (
   return Promise.all(subscribePromises);
 };
 
-export const getReserveDefaultObj = (): ReserveData => {
+export const getReserveDataParametersDefaultObj = (): ReserveDataParameters => {
   return {
-    id: -1,
-    activated: true,
-    freezed: false,
-    decimals: new ReturnNumber(10000000),
     interestRateModel: [
       new ReturnNumber(300000000000),
       new ReturnNumber(500000000000),
@@ -123,30 +119,29 @@ export const getReserveDefaultObj = (): ReserveData => {
       new ReturnNumber(100000000000000),
       new ReturnNumber(300000000000000),
     ],
-    maximalTotalSupply: null,
-    maximalTotalDebt: null,
     incomeForSuppliersPartE6: new ReturnNumber(E6),
-    minimalCollateral: new ReturnNumber(0),
-    minimalDebt: new ReturnNumber(0),
     flashLoanFeeE6: new ReturnNumber(0),
-    tokenPriceE8: null,
-    totalSupplied: new ReturnNumber(0),
-    cumulativeSupplyRateIndexE18: new ReturnNumber(E18),
-    currentSupplyRateE24: new ReturnNumber(0),
+  };
+};
+
+export const getReserveDefaultObj = (): ReserveData => {
+  return {
+    activated: true,
+    freezed: false,
+    parameters: getReserveDataParametersDefaultObj(),
+    totalDeposit: new ReturnNumber(0),
+    currentSupplyRateE24: new ReturnNumber(E18),
     totalDebt: new ReturnNumber(0),
-    cumulativeDebtRateIndexE18: new ReturnNumber(E18),
-    currentDebtRateE24: new ReturnNumber(0),
+    currentDebtRateE24: new ReturnNumber(E18),
     indexesUpdateTimestamp: 0,
-    aTokenAddress: '',
-    vTokenAddress: '',
   };
 };
 
 export const getUserReserveDataDefaultObj = (): UserReserveData => {
   return {
-    supplied: new ReturnNumber(0),
+    deposit: new ReturnNumber(0),
     debt: new ReturnNumber(0),
-    appliedCumulativeSupplyRateIndexE18: new ReturnNumber(0),
-    appliedCumulativeDebtRateIndexE18: new ReturnNumber(0),
+    appliedCumulativeSupplyIndexE18: new ReturnNumber(0),
+    appliedCumulativeDebtIndexE18: new ReturnNumber(0),
   };
 };

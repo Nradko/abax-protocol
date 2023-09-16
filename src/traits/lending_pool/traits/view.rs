@@ -1,12 +1,16 @@
 use crate::impls::lending_pool::storage::{
-    lending_pool_storage::MarketRule,
+    lending_pool_storage::{MarketRule, RuleId},
     structs::{
-        reserve_data::ReserveData, user_config::UserConfig,
+        reserve_data::{
+            ReserveAbacusTokens, ReserveData, ReserveIndexes, ReservePrice,
+            ReserveRestrictions,
+        },
+        user_config::UserConfig,
         user_reserve_data::UserReserveData,
     },
 };
 
-use openbrush::traits::AccountId;
+use pendzl::traits::AccountId;
 
 use ink::prelude::vec::Vec;
 
@@ -18,6 +22,8 @@ pub type LendingPoolViewRef =
 #[ink::trait_definition]
 pub trait LendingPoolView {
     #[ink(message)]
+    fn view_asset_id(&self, asset: AccountId) -> Option<RuleId>;
+    #[ink(message)]
     fn view_registered_assets(&self) -> Vec<AccountId>;
     #[ink(message)]
     fn view_unupdated_reserve_data(
@@ -26,6 +32,25 @@ pub trait LendingPoolView {
     ) -> Option<ReserveData>;
     #[ink(message)]
     fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData>;
+    #[ink(message)]
+    fn view_unupdated_reserve_indexes(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveIndexes>;
+    #[ink(message)]
+    fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes>;
+    #[ink(message)]
+    fn view_reserve_restrictions(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveRestrictions>;
+    #[ink(message)]
+    fn view_reserve_tokens(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveAbacusTokens>;
+    #[ink(message)]
+    fn view_reserve_prices(&self, asset: AccountId) -> Option<ReservePrice>;
     #[ink(message)]
     fn view_unupdated_reserve_datas(
         &self,
@@ -63,7 +88,7 @@ pub trait LendingPoolView {
     #[ink(message)]
     fn view_user_config(&self, user: AccountId) -> UserConfig;
     #[ink(message)]
-    fn view_market_rule(&self, market_rule_id: u64) -> Option<MarketRule>;
+    fn view_market_rule(&self, market_rule_id: RuleId) -> Option<MarketRule>;
     #[ink(message)]
     fn get_user_free_collateral_coefficient(
         &self,
