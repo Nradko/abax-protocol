@@ -11,12 +11,15 @@ use crate::{
         },
     },
     traits::{
-        flash_loan_receiver::FlashLoanReceiverRef,
+        flash_loan_receiver::FlashLoanReceiverError,
         lending_pool::{errors::LendingPoolError, events::EmitFlashEvents},
     },
 };
 use ink::{
-    env::CallFlags,
+    env::{
+        call::{build_call, ExecutionInput},
+        CallFlags, DefaultEnvironment,
+    },
     prelude::{vec, vec::Vec},
 };
 
@@ -82,16 +85,24 @@ pub trait LendingPoolFlashImpl:
             self._transfer_out(&assets[i], &receiver_address, &amounts[i])?;
         }
 
-        FlashLoanReceiverRef::execute_operation_builder(
-            &receiver_address,
-            assets.clone(),
-            amounts.clone(),
-            fees.clone(),
-            receiver_params,
-        )
-        .call_flags(CallFlags::default().set_allow_reentry(true))
-        .try_invoke()
-        .unwrap()??;
+        build_call::<DefaultEnvironment>()
+            .call(receiver_address)
+            .call_flags(CallFlags::default().set_allow_reentry(true))
+            .exec_input(
+                ExecutionInput::new(ink::env::call::Selector::new(
+                    ink::selector_bytes!(
+                        "FlashLoanReceiver::execute_operation"
+                    ),
+                ))
+                .push_arg(assets.clone())
+                .push_arg(amounts.clone())
+                .push_arg(fees.clone())
+                .push_arg(receiver_params),
+            )
+            .returns::<Result<(), FlashLoanReceiverError>>()
+            .try_invoke()
+            .unwrap()
+            .unwrap()?;
 
         for i in 0..assets.len() {
             self._transfer_in(

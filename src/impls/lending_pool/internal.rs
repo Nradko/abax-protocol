@@ -1,17 +1,22 @@
 use openbrush::{
     contracts::psp22::{PSP22Error, PSP22Ref},
-    traits::{AccountId, Balance, Storage, Timestamp},
+    traits::{Balance, Storage, Timestamp},
 };
 
 use crate::{
     impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
     traits::{
         abacus_token::traits::abacus_token::*,
-        block_timestamp_provider::BlockTimestampProviderRef,
+        block_timestamp_provider::{
+            BlockTimestampProviderInterface, BlockTimestampProviderRef,
+        },
         lending_pool::errors::LendingPoolError,
     },
 };
-use ink::prelude::{vec::Vec, *};
+use ink::{
+    prelude::{vec::Vec, *},
+    primitives::AccountId,
+};
 
 pub fn _check_amount_not_zero(amount: u128) -> Result<(), LendingPoolError> {
     if amount == 0 {
@@ -24,24 +29,19 @@ pub fn _emit_abacus_token_transfer_event(
     user: &AccountId,
     amount_transferred: i128,
 ) -> Result<(), PSP22Error> {
+    let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
     if amount_transferred > 0 {
-        AbacusTokenRef::emit_transfer_events(
-            abacus_token,
-            vec![TransferEventData {
-                from: None,
-                to: Some(*user),
-                amount: amount_transferred as u128,
-            }],
-        )
+        abacus_token_contract.emit_transfer_events(vec![TransferEventData {
+            from: None,
+            to: Some(*user),
+            amount: amount_transferred as u128,
+        }])
     } else if amount_transferred < 0 {
-        AbacusTokenRef::emit_transfer_events(
-            abacus_token,
-            vec![TransferEventData {
-                from: Some(*user),
-                to: None,
-                amount: (-amount_transferred) as u128,
-            }],
-        )
+        abacus_token_contract.emit_transfer_events(vec![TransferEventData {
+            from: Some(*user),
+            to: None,
+            amount: (-amount_transferred) as u128,
+        }])
     } else {
         Ok(())
     }
@@ -72,7 +72,9 @@ pub fn _emit_abacus_token_transfer_events(
             })
         }
     }
-    AbacusTokenRef::emit_transfer_events(abacus_token, events)
+    let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
+
+    abacus_token_contract.emit_transfer_events(events)
 }
 
 pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
@@ -103,8 +105,9 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
                 amount: amount_transferred as u128,
             }
         }
-        AbacusTokenRef::emit_transfer_event_and_decrease_allowance(
-            abacus_token,
+        let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
+
+        abacus_token_contract.emit_transfer_event_and_decrease_allowance(
             event,
             *user,
             *spender,
@@ -119,13 +122,14 @@ pub trait TimestampMock {
 
 impl<T: Storage<LendingPoolStorage>> TimestampMock for T {
     fn _timestamp(&self) -> Timestamp {
-        BlockTimestampProviderRef::get_block_timestamp(
-            &self
-                .data::<LendingPoolStorage>()
-                .block_timestamp_provider
-                .get()
-                .unwrap(),
-        )
+        let provider: BlockTimestampProviderRef = (self
+            .data::<LendingPoolStorage>()
+            .block_timestamp_provider
+            .get()
+            .unwrap())
+        .into();
+
+        provider.get_block_timestamp()
     }
 }
 

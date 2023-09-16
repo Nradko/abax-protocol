@@ -8,11 +8,14 @@ pub mod v_token {
         prelude::string::String,
     };
 
-    use lending_project::{
-        impls::abacus_token::{
-            abacus_token::AbacusTokenImpl, data::AbacusTokenData,
-        },
-        traits::abacus_token::traits::abacus_token::*,
+    use lending_project::impls::abacus_token::{
+        abacus_token::AbacusTokenImpl, data::AbacusTokenData,
+    };
+    use lending_project::traits::{
+        abacus_token::traits::abacus_token::AbacusToken,
+        abacus_token::traits::abacus_token::*,
+        lending_pool::traits::v_token_interface::LendingPoolVTokenInterface,
+        lending_pool::traits::v_token_interface::LendingPoolVTokenInterfaceRef,
     };
     use openbrush::{
         contracts::psp22::{extensions::metadata::*, PSP22Error},
@@ -77,11 +80,10 @@ pub mod v_token {
 
     #[overrider(psp22::Internal)]
     fn _balance_of(&self, owner: &AccountId) -> Balance {
-        LendingPoolVTokenInterfaceRef::user_variable_debt_of(
-            &(self.abacus_token.lending_pool),
-            self.abacus_token.underlying_asset,
-            *owner,
-        )
+        let lending_pool: LendingPoolVTokenInterfaceRef =
+            self.abacus_token.lending_pool.into();
+        lending_pool
+            .user_variable_debt_of(self.abacus_token.underlying_asset, *owner)
     }
 
     #[overrider(psp22::Internal)]
@@ -173,10 +175,9 @@ pub mod v_token {
 
     #[overrider(psp22::Internal)]
     fn _total_supply(&self) -> Balance {
-        LendingPoolVTokenInterfaceRef::total_variable_debt_of(
-            &self.abacus_token.lending_pool,
-            self.abacus_token.underlying_asset,
-        )
+        let lending_pool: LendingPoolVTokenInterfaceRef =
+            self.abacus_token.lending_pool.into();
+        lending_pool.total_variable_debt_of(self.abacus_token.underlying_asset)
     }
 
     #[overrider(psp22::Internal)]
@@ -193,9 +194,10 @@ pub mod v_token {
         ink::env::debug_println!(
             "_transfer_from_to before LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call"
         );
+        let mut lending_pool: LendingPoolVTokenInterfaceRef =
+            self.abacus_token.lending_pool.into();
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
-            LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to(
-                &(self.abacus_token.lending_pool),
+            lending_pool.transfer_variable_debt_from_to(
                 self.abacus_token.underlying_asset,
                 from,
                 to,
@@ -240,13 +242,6 @@ pub mod v_token {
         spender: AccountId,
         amount: Balance,
     ) -> Result<(), PSP22Error> {
-        if owner == 0 {
-            return Err(PSP22Error::ZeroSenderAddress);
-        }
-        if spender == 0 {
-            return Err(PSP22Error::ZeroRecipientAddress);
-        }
-
         self.abacus_token
             .allowances
             .insert(&(owner, spender), &amount);

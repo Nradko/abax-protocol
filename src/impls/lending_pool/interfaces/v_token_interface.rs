@@ -8,7 +8,7 @@ use crate::{
     },
     traits::{
         abacus_token::traits::abacus_token::{
-            AbacusTokenRef, TransferEventData,
+            AbacusToken, AbacusTokenRef, TransferEventData,
         },
         lending_pool::{
             errors::{LendingPoolError, LendingPoolTokenInterfaceError},
@@ -85,21 +85,21 @@ pub trait LendingPoolVTokenInterfaceImpl:
         if from_accumulated_deposit_interest != 0
             || to_accumulated_deposit_interest != 0
         {
-            AbacusTokenRef::emit_transfer_events(
-                &reserve_abacus_tokens.a_token_address,
-                vec![
-                    TransferEventData {
-                        from: None,
-                        to: Some(from),
-                        amount: from_accumulated_deposit_interest,
-                    },
-                    TransferEventData {
-                        from: None,
-                        to: Some(to),
-                        amount: to_accumulated_deposit_interest,
-                    },
-                ],
-            )?;
+            let mut abacus_token_contract: AbacusTokenRef =
+                reserve_abacus_tokens.a_token_address.into();
+
+            abacus_token_contract.emit_transfer_events(vec![
+                TransferEventData {
+                    from: None,
+                    to: Some(from),
+                    amount: from_accumulated_deposit_interest,
+                },
+                TransferEventData {
+                    from: None,
+                    to: Some(to),
+                    amount: to_accumulated_deposit_interest,
+                },
+            ])?;
         }
         // VToken intersts are returned
 

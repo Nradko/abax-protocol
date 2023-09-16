@@ -6,7 +6,11 @@ pub mod flash_loan_receiver_mock {
         codegen::{EmitEvent, Env},
         prelude::{format, vec::Vec},
     };
-    use lending_project::traits::flash_loan_receiver::{FlashLoanReceiverError, *};
+    use lending_project::traits::flash_loan_receiver::{
+        FlashLoanReceiverError, *,
+    };
+
+    use lending_project::traits::flash_loan_receiver::flash_loan_receiver_external::*;
     use openbrush::{
         contracts::traits::psp22::{extensions::mintable::PSP22MintableRef, *},
         traits::Storage,
@@ -49,11 +53,16 @@ pub mod flash_loan_receiver_mock {
             receiver_params: Vec<u8>,
         ) -> Result<(), FlashLoanReceiverError> {
             if self.fail_execute_operation {
-                self.env().emit_event(ExecutedWithFail { assets, amounts, fees });
+                self.env().emit_event(ExecutedWithFail {
+                    assets,
+                    amounts,
+                    fees,
+                });
                 return Err(FlashLoanReceiverError::ExecuteOperationFailed);
             }
             for i in 0..assets.len() {
-                let balance = PSP22Ref::balance_of(&assets[i], self.env().account_id());
+                let balance =
+                    PSP22Ref::balance_of(&assets[i], self.env().account_id());
                 if amounts[i] > balance {
                     return Err(FlashLoanReceiverError::Custom(format!(
                         "Insufficient balance for the contract for asset {:X?}",
@@ -62,7 +71,13 @@ pub mod flash_loan_receiver_mock {
                 }
 
                 if self.simulate_balance_to_cover_fee {
-                    if PSP22MintableRef::mint(&assets[i], self.env().account_id(), fees[i]).is_err() {
+                    if PSP22MintableRef::mint(
+                        &assets[i],
+                        self.env().account_id(),
+                        fees[i],
+                    )
+                    .is_err()
+                    {
                         return Err(FlashLoanReceiverError::Custom(format!(
                             "Asset {:X?} is not mintable",
                             assets[i]
@@ -70,13 +85,27 @@ pub mod flash_loan_receiver_mock {
                     }
                 }
 
-                let amount_to_return = self.custom_amount_to_approve.unwrap_or(amounts[i] + fees[i]);
-                if PSP22Ref::approve(&assets[i], self.env().caller(), amount_to_return).is_err() {
-                    return Err(FlashLoanReceiverError::Custom(format!("Can't approve")));
+                let amount_to_return = self
+                    .custom_amount_to_approve
+                    .unwrap_or(amounts[i] + fees[i]);
+                if PSP22Ref::approve(
+                    &assets[i],
+                    self.env().caller(),
+                    amount_to_return,
+                )
+                .is_err()
+                {
+                    return Err(FlashLoanReceiverError::Custom(format!(
+                        "Can't approve"
+                    )));
                 }
             }
 
-            self.env().emit_event(ExecutedWithSuccess { assets, amounts, fees });
+            self.env().emit_event(ExecutedWithSuccess {
+                assets,
+                amounts,
+                fees,
+            });
             Ok(())
         }
     }
@@ -94,17 +123,26 @@ pub mod flash_loan_receiver_mock {
         }
 
         #[ink(message)]
-        pub fn set_fail_execute_operation(&mut self, should_fail_execute_operation: bool) {
+        pub fn set_fail_execute_operation(
+            &mut self,
+            should_fail_execute_operation: bool,
+        ) {
             self.fail_execute_operation = should_fail_execute_operation;
         }
 
         #[ink(message)]
-        pub fn set_custom_amount_to_approve(&mut self, custom_amount_to_approve: u128) {
+        pub fn set_custom_amount_to_approve(
+            &mut self,
+            custom_amount_to_approve: u128,
+        ) {
             self.custom_amount_to_approve = Some(custom_amount_to_approve);
         }
 
         #[ink(message)]
-        pub fn set_simulate_balance_to_cover_fee(&mut self, simulate_balance_to_cover_fee: bool) {
+        pub fn set_simulate_balance_to_cover_fee(
+            &mut self,
+            simulate_balance_to_cover_fee: bool,
+        ) {
             self.simulate_balance_to_cover_fee = simulate_balance_to_cover_fee;
         }
     }

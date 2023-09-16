@@ -5,12 +5,9 @@ use openbrush::{
 };
 use scale::{Decode, Encode};
 
-use openbrush::{contracts::psp22::psp22, traits::Storage};
-
-use crate::impls::abacus_token::data::AbacusTokenData;
-
-#[openbrush::wrapper]
-pub type AbacusTokenRef = dyn AbacusToken;
+use ink::contract_ref;
+use ink::env::DefaultEnvironment;
+pub type AbacusTokenRef = contract_ref!(AbacusToken, DefaultEnvironment);
 
 #[derive(Default, Debug, Decode, Encode, Clone)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
@@ -20,11 +17,14 @@ pub struct TransferEventData {
     pub amount: Balance,
 }
 
-#[openbrush::trait_definition]
-pub trait AbacusToken: Storage<AbacusTokenData> + psp22::Internal {
+#[ink::trait_definition]
+pub trait AbacusToken {
     /// called whenever the state of user supply, variable_borrow, stable_borrow (aToken, vToken, sToken) is changed.
     #[ink(message)]
-    fn emit_transfer_events(&mut self, transfer_event_data: Vec<TransferEventData>) -> Result<(), PSP22Error>;
+    fn emit_transfer_events(
+        &mut self,
+        transfer_event_data: Vec<TransferEventData>,
+    ) -> Result<(), PSP22Error>;
 
     #[ink(message)]
     fn emit_transfer_event_and_decrease_allowance(
@@ -41,8 +41,18 @@ pub trait AbacusToken: Storage<AbacusTokenData> + psp22::Internal {
 
 pub trait Internal {
     /// User must override those methods in their contract.
-    fn _emit_transfer_event(&self, _from: Option<AccountId>, _to: Option<AccountId>, _amount: Balance);
-    fn _emit_approval_event(&self, _owner: AccountId, _spender: AccountId, _amount: Balance);
+    fn _emit_transfer_event(
+        &self,
+        _from: Option<AccountId>,
+        _to: Option<AccountId>,
+        _amount: Balance,
+    );
+    fn _emit_approval_event(
+        &self,
+        _owner: AccountId,
+        _spender: AccountId,
+        _amount: Balance,
+    );
 
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance;
 
@@ -54,5 +64,10 @@ pub trait Internal {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error>;
 
-    fn _approve_from_to(&mut self, owner: AccountId, spender: AccountId, amount: Balance) -> Result<(), PSP22Error>;
+    fn _approve_from_to(
+        &mut self,
+        owner: AccountId,
+        spender: AccountId,
+        amount: Balance,
+    ) -> Result<(), PSP22Error>;
 }

@@ -29,7 +29,9 @@ pub mod lending_pool {
             },
             manage::{LendingPoolManageImpl, GLOBAL_ADMIN},
             storage::{
-                lending_pool_storage::{LendingPoolStorage, MarketRule},
+                lending_pool_storage::{
+                    LendingPoolStorage, MarketRule, RuleId,
+                },
                 structs::{
                     reserve_data::ReserveData, user_config::UserConfig,
                     user_reserve_data::UserReserveData,
@@ -40,8 +42,14 @@ pub mod lending_pool {
         traits::lending_pool::{
             errors::{LendingPoolError, LendingPoolTokenInterfaceError},
             traits::{
-                a_token_interface::*, actions::*, manage::*,
-                v_token_interface::*, view::*,
+                a_token_interface::LendingPoolATokenInterface,
+                actions::{
+                    LendingPoolBorrow, LendingPoolDeposit, LendingPoolFlash,
+                    LendingPoolLiquidate, LendingPoolMaintain,
+                },
+                manage::LendingPoolManage,
+                v_token_interface::LendingPoolVTokenInterface,
+                view::LendingPoolView,
             },
         },
     };
@@ -61,10 +69,8 @@ pub mod lending_pool {
         #[storage_field]
         pause: pausable::Data,
         #[storage_field]
-        /// storage used by openbrush's `AccesControl` trait
         access: access_control::Data,
         #[storage_field]
-        /// reserve and user datas
         lending_pool: LendingPoolStorage,
     }
 

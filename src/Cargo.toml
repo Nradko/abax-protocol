@@ -7,7 +7,6 @@ members = [
     "contracts/psp22_ownable",
     "contracts/test_reserves_minter",
     "contracts/block_timestamp_provider",
-    "contracts/diamond",
     "contracts/flash_loan_receiver_mock",
 
     "contracts/periphery/**",

@@ -294,17 +294,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "diamond"
-version = "0.1.0"
-dependencies = [
- "ink",
- "lending_project",
- "openbrush",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
 name = "digest"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
