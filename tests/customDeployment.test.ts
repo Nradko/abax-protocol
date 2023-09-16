@@ -65,9 +65,11 @@ describe('Custom deployment', () => {
     });
     it('Contains deployed reserves', async () => {
       const reserveBOI = (await testEnv.lendingPool.query.viewUnupdatedReserveData(testEnv.reserves['BOI'].underlying.address)).value.ok;
+      const aTokensBOI = (await testEnv.lendingPool.query.viewReserveTokens(testEnv.reserves['BOI'].underlying.address)).value.ok;
+
       expect.soft(reserveBOI).to.be.not.null;
-      expect.soft(reserveBOI?.aTokenAddress).to.be.ok;
-      expect.soft(reserveBOI?.flashLoanFeeE6.toNumber()).to.equal(2000);
+      expect.soft(aTokensBOI?.aTokenAddress).to.be.ok;
+      expect.soft(reserveBOI?.parameters.flashLoanFeeE6.toNumber()).to.equal(2000);
       expect.flushSoft();
     });
   });

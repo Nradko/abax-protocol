@@ -7,7 +7,7 @@ use crate::{
         errors::LendingPoolError, events::EmitMaintainEvents,
     },
 };
-use openbrush::traits::{AccountId, Storage};
+use pendzl::traits::{AccountId, Storage};
 
 pub trait LendingPoolMaintainImpl:
     Storage<LendingPoolStorage> + EmitMaintainEvents

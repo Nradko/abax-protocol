@@ -9,7 +9,6 @@ export interface Action {
   expected: string;
   revertMessage?: string;
 }
-
 export interface Story {
   description: string;
   actions: Action[];

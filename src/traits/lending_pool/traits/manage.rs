@@ -1,13 +1,13 @@
-use openbrush::traits::{AccountId, Balance};
+use pendzl::traits::{AccountId, Balance};
 
 use crate::{
-    impls::lending_pool::storage::lending_pool_storage::MarketRule,
+    impls::lending_pool::storage::lending_pool_storage::{MarketRule, RuleId},
     traits::lending_pool::errors::LendingPoolError,
 };
 
 use ink::prelude::vec::Vec;
 
-// #[openbrush::wrapper]
+// #[pendzl::wrapper]
 // pub type LendingPoolManageRef = dyn LendingPoolManage;
 
 #[ink::trait_definition]
@@ -86,12 +86,18 @@ pub trait LendingPoolManage {
         &mut self,
         asset: AccountId,
         interest_rate_model: [u128; 7],
+        income_for_suppliers_part_e6: u128,
+        flash_loan_fee_e6: u128,
+    ) -> Result<(), LendingPoolError>;
+
+    #[ink(message)]
+    fn set_reserve_restrictions(
+        &mut self,
+        asset: AccountId,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError>;
 
     /// adds new market rule at unused market_rule_id
@@ -101,7 +107,6 @@ pub trait LendingPoolManage {
     #[ink(message)]
     fn add_market_rule(
         &mut self,
-        market_rule_id: u64,
         market_rule: MarketRule,
     ) -> Result<(), LendingPoolError>;
 
@@ -115,7 +120,7 @@ pub trait LendingPoolManage {
     #[ink(message)]
     fn modify_asset_rule(
         &mut self,
-        market_rule_id: u64,
+        market_rule_id: RuleId,
         asset: AccountId,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,

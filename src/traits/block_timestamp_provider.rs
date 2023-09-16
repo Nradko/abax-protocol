@@ -1,4 +1,4 @@
-use openbrush::contracts::ownable::OwnableError;
+use pendzl::contracts::ownable::OwnableError;
 
 use ink::contract_ref;
 use ink::env::DefaultEnvironment;

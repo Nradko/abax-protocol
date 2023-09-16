@@ -1,8 +1,7 @@
-use openbrush::traits::{AccountId, Balance};
+use pendzl::traits::{AccountId, Balance};
 
 use crate::impls::lending_pool::storage::lending_pool_storage::RuleId;
 
-#[openbrush::trait_definition]
 pub trait EmitDepositEvents {
     fn _emit_deposit_event(
         &mut self,
@@ -20,7 +19,6 @@ pub trait EmitDepositEvents {
     );
 }
 
-#[openbrush::trait_definition]
 pub trait EmitBorrowEvents {
     fn _emit_market_rule_chosen(
         &mut self,
@@ -49,12 +47,10 @@ pub trait EmitBorrowEvents {
     );
 }
 
-#[openbrush::trait_definition]
 pub trait EmitConfigureEvents {
     fn _emit_choose_rule_event(&mut self, caller: AccountId, rule_id: u64);
 }
 
-#[openbrush::trait_definition]
 pub trait EmitFlashEvents {
     fn _emit_flash_loan_event(
         &mut self,
@@ -66,7 +62,6 @@ pub trait EmitFlashEvents {
     );
 }
 
-#[openbrush::trait_definition]
 pub trait EmitLiquidateEvents {
     fn _emit_liquidation_variable_event(
         &mut self,
@@ -79,7 +74,6 @@ pub trait EmitLiquidateEvents {
     );
 }
 
-#[openbrush::trait_definition]
 pub trait EmitMaintainEvents {
     fn _emit_accumulate_interest_event(&mut self, asset: &AccountId);
     fn _emit_accumulate_user_interest_event(
@@ -94,7 +88,6 @@ pub trait EmitMaintainEvents {
     );
 }
 
-#[openbrush::trait_definition]
 pub trait EmitManageEvents {
     fn _emit_asset_registered_event(
         &mut self,
@@ -115,12 +108,17 @@ pub trait EmitManageEvents {
         &mut self,
         asset: &AccountId,
         interest_rate_model: &[u128; 7],
+        income_for_suppliers_part_e6: u128,
+        flash_loan_fee_e6: u128,
+    );
+
+    fn _emit_reserve_restrictions_changed_event(
+        &mut self,
+        asset: &AccountId,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
     );
 
     fn _emit_asset_rules_changed(

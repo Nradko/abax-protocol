@@ -7,6 +7,8 @@ import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { E18, E6 } from '@abaxfinance/utils';
+import { ReturnNumber } from '@727-ventures/typechain-types';
+import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 
 makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -35,7 +37,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     let totalDaiSupply: BN;
     let collateralWethAmount: BN;
     let debtDaiAmount: BN;
-    let suppliedLinkAmount: BN;
+    let depositLinkAmount: BN;
 
     const daiPrice = E6;
     const wethPrice = 1500 * E6;
@@ -61,10 +63,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await lendingPool.withSigner(borrower).tx.deposit(wethContract.address, borrower.address, collateralWethAmount, []);
       await lendingPool.withSigner(borrower).tx.setAsCollateral(wethContract.address, true);
 
-      suppliedLinkAmount = await convertToCurrencyDecimals(wethContract, 1000);
-      await linkContract.tx.mint(borrower.address, suppliedLinkAmount);
-      await linkContract.withSigner(borrower).tx.approve(lendingPool.address, suppliedLinkAmount);
-      await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, suppliedLinkAmount, []);
+      depositLinkAmount = await convertToCurrencyDecimals(wethContract, 1000);
+      await linkContract.tx.mint(borrower.address, depositLinkAmount);
+      await linkContract.withSigner(borrower).tx.approve(lendingPool.address, depositLinkAmount);
+      await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, depositLinkAmount, []);
       //
       debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000);
       await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
@@ -155,10 +157,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
         expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
-        expect.soft(liquidatorsWETHDataAfter.supplied.rawNumber.gt(new BN((0.8 * E18).toString()))).to.be.true;
-        expect.soft(borrowersWETHDataAfter.supplied.rawNumber.lt(new BN((0.2 * E18).toString()))).to.be.true;
+        expect.soft(liquidatorsWETHDataAfter.deposit.rawNumber.gt(new BN((0.8 * E18).toString()))).to.be.true;
+        expect.soft(borrowersWETHDataAfter.deposit.rawNumber.lt(new BN((0.2 * E18).toString()))).to.be.true;
         expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');
-        expect.soft(daiReserveDataAfter.totalSupplied.toString()).to.equal(daiReserveDataBefore.totalSupplied.toString());
+        expect.soft(daiReserveDataAfter.totalDeposit.toString()).to.equal(daiReserveDataBefore.totalDeposit.toString());
         expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
         expect.flushSoft();
       });
@@ -172,7 +174,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     let totalDaiSupply: BN;
     let collateralWethAmount: BN;
     let debtDaiAmount: BN;
-    let suppliedLinkAmount: BN;
+    let depositLinkAmount: BN;
 
     const daiPrice = E6;
     const wethPrice = 1500 * E6;
@@ -198,10 +200,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await lendingPool.withSigner(borrower).tx.deposit(wethContract.address, borrower.address, collateralWethAmount, []);
       await lendingPool.withSigner(borrower).tx.setAsCollateral(wethContract.address, true);
 
-      suppliedLinkAmount = await convertToCurrencyDecimals(wethContract, 1000);
-      await linkContract.tx.mint(borrower.address, suppliedLinkAmount);
-      await linkContract.withSigner(borrower).tx.approve(lendingPool.address, suppliedLinkAmount);
-      await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, suppliedLinkAmount, []);
+      depositLinkAmount = await convertToCurrencyDecimals(wethContract, 1000);
+      await linkContract.tx.mint(borrower.address, depositLinkAmount);
+      await linkContract.withSigner(borrower).tx.approve(lendingPool.address, depositLinkAmount);
+      await lendingPool.withSigner(borrower).tx.deposit(linkContract.address, borrower.address, depositLinkAmount, []);
       //
       debtDaiAmount = await convertToCurrencyDecimals(daiContract, 1000);
       await lendingPool.withSigner(borrower).query.borrow(daiContract.address, borrower.address, debtDaiAmount, []);
@@ -296,19 +298,31 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
         expect
           .soft(
-            liquidatorsWETHDataAfter.supplied.rawNumber.toString(),
+            liquidatorsWETHDataAfter.deposit.rawNumber.toString(),
             'liquidator received the exactly the minimal amount he provided as it was the maximal minimal amount he could provide',
           )
           .to.equal((0.87109375 * E18).toString());
         expect
-          .soft(borrowersWETHDataAfter.supplied.rawNumber.toString(), 'liquidated user supply is decreased by what the liquidator have received')
+          .soft(borrowersWETHDataAfter.deposit.rawNumber.toString(), 'liquidated user supply is decreased by what the liquidator have received')
           .to.equal(((1 - 0.87109375) * E18).toString());
         expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');
-        expect.soft(daiReserveDataAfter.totalSupplied.toString()).to.equal(daiReserveDataBefore.totalSupplied.toString());
+        expect.soft(daiReserveDataAfter.totalDeposit.toString()).to.equal(daiReserveDataBefore.totalDeposit.toString());
         expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
 
         const txRes = await tx;
-        expect.soft(txRes.events).to.deep.equal([]);
+        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+          {
+            name: 'Liquidation',
+            args: {
+              liquidator: liquidator.address,
+              user: borrower.address,
+              assetToRepay: daiContract.address,
+              assetToTake: wethContract.address,
+              amountRepaid: debtDaiAmount.toString(),
+              amountTaken: '871093750000000000',
+            },
+          },
+        ]);
         expect.flushSoft();
       });
     });

@@ -7,8 +7,10 @@ import { ContractsEvents } from 'typechain/events/enum';
 import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
 import { TokenReserve } from './make-suite';
 import { ValidateEventParameters } from './validateEvents';
+import { ReserveIndexes } from 'typechain/types-returns/lending_pool';
 export interface CheckDepositParameters {
   reserveData: ReserveData;
+  reserveIndexes: ReserveIndexes;
   userReserveData: UserReserveData;
   poolBalance: BN;
   callerBalance: BN;
@@ -18,6 +20,7 @@ export interface CheckDepositParameters {
 
 export interface CheckRedeemParameters {
   reserveData: ReserveData;
+  reserveIndexes: ReserveIndexes;
   userReserveData: UserReserveData;
   poolBalance: BN;
   callerBalance: BN;
@@ -28,6 +31,7 @@ export interface CheckRedeemParameters {
 
 export interface CheckBorrowVariableParameters {
   reserveData: ReserveData;
+  reserveIndexes: ReserveIndexes;
   userReserveData: UserReserveData;
   poolBalance: BN;
   callerBalance: BN;
@@ -38,6 +42,7 @@ export interface CheckBorrowVariableParameters {
 
 export interface CheckRepayVariableParameters {
   reserveData: ReserveData;
+  reserveIndexes: ReserveIndexes;
   userReserveData: UserReserveData;
   poolBalance: BN;
   callerBalance: BN;
@@ -67,8 +72,8 @@ export const checkDeposit = (
   //   console.log('Deposit | TIME HAS PASSED | CHECK IS SKIPPED');
   //   return;
   // }
-  const userInterests = getUserInterests(parBefore.userReserveData, parBefore.reserveData, parAfter.reserveData);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
+  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
+  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
 
   // get event and check what can be checked
   const depositEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.Deposit);
@@ -103,9 +108,9 @@ export const checkDeposit = (
 
   // ReserveData Checks
   // total_deposit <- increases on deposit
-  let before = parBefore.reserveData.totalSupplied.rawNumber;
+  let before = parBefore.reserveData.totalDeposit.rawNumber;
   let expected = before.add(amount).add(reserveInterests.supply);
-  let actual = parAfter.reserveData.totalSupplied.rawNumber;
+  let actual = parAfter.reserveData.totalDeposit.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
     console.log(`Deposit | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
@@ -120,10 +125,10 @@ export const checkDeposit = (
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
 
-  // supplied <- increases on deposit
-  before = parBefore.userReserveData.supplied.rawNumber;
+  // deposit <- increases on deposit
+  before = parBefore.userReserveData.deposit.rawNumber;
   expected = before.add(amount).add(userInterests.supply);
-  actual = parAfter.userReserveData.supplied.rawNumber;
+  actual = parAfter.userReserveData.deposit.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
     console.log(`Deposit | UserReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`);
@@ -180,7 +185,7 @@ export const checkRedeem = (
   reserveTokens: TokenReserve,
   caller: string,
   onBehalfOf: string,
-  amount: BN | null,
+  amount: BN,
   parBefore: CheckRedeemParameters,
   parAfter: CheckRedeemParameters,
   capturedEventsParameters: ValidateEventParameters[],
@@ -193,9 +198,11 @@ export const checkRedeem = (
   //   console.log('Redeem | TIME HAS PASSED | CHECK IS SKIPPED');
   //   return;
   // }
-  const userInterests = getUserInterests(parBefore.userReserveData, parBefore.reserveData, parAfter.reserveData);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
-  amount = amount !== null ? amount : parBefore.userReserveData.supplied.rawNumber.add(userInterests.supply);
+  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
+  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
+  amount = amount.lt(parBefore.userReserveData.deposit.rawNumber.add(userInterests.supply))
+    ? amount
+    : parBefore.userReserveData.deposit.rawNumber.add(userInterests.supply);
 
   const redeemEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.Redeem);
   expect(redeemEventParameters, 'Redeem | Event | not emitted').not.to.be.undefined;
@@ -230,9 +237,9 @@ export const checkRedeem = (
 
   // ReserveData Checks
   // total_deposit <- decreases on Redeem
-  let before = parBefore.reserveData.totalSupplied.rawNumber;
+  let before = parBefore.reserveData.totalDeposit.rawNumber;
   let expected = before.add(reserveInterests.supply).sub(amount);
-  let actual = parAfter.reserveData.totalSupplied.rawNumber;
+  let actual = parAfter.reserveData.totalDeposit.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
     console.log(`Redeem | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
@@ -247,10 +254,10 @@ export const checkRedeem = (
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
 
-  // supplied <- decreases on Redeem
-  before = parBefore.userReserveData.supplied.rawNumber;
+  // deposit <- decreases on Redeem
+  before = parBefore.userReserveData.deposit.rawNumber;
   expected = before.add(userInterests.supply).sub(amount);
-  actual = parAfter.userReserveData.supplied.rawNumber;
+  actual = parAfter.userReserveData.deposit.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
@@ -341,8 +348,8 @@ export const checkBorrowVariable = (
   //   return;
   // }
 
-  const userInterests = getUserInterests(parBefore.userReserveData, parBefore.reserveData, parAfter.reserveData);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
+  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
+  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
 
   // get event and check what can be checked
   const borrowVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.BorrowVariable);
@@ -495,9 +502,11 @@ export const checkRepayVariable = (
   //   return;
   // }
 
-  const userInterests = getUserInterests(parBefore.userReserveData, parBefore.reserveData, parAfter.reserveData);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parAfter.reserveData);
-  amount = amount !== null ? amount : parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow);
+  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
+  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
+  amount = amount?.lte(parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow))
+    ? amount
+    : parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow);
 
   // get event and check what can be checked
   const repayVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.RepayVariable);
@@ -616,22 +625,22 @@ export const checkRepayVariable = (
   expect.flushSoft();
 };
 
-const getUserInterests = (userReserveData: UserReserveData, reserveDataBefore: ReserveData, reserveDataAfter: ReserveData): Interests => {
-  const supplyInterest = userReserveData.appliedCumulativeSupplyRateIndexE18.rawNumber.eqn(0)
+const getUserInterests = (userReserveData: UserReserveData, reserveIndexesAfter: ReserveIndexes): Interests => {
+  const supplyInterest = userReserveData.appliedCumulativeSupplyIndexE18.rawNumber.eqn(0)
     ? new BN(0)
-    : userReserveData.supplied.rawNumber
-        .mul(reserveDataAfter.cumulativeSupplyRateIndexE18.rawNumber)
-        .div(userReserveData.appliedCumulativeSupplyRateIndexE18.rawNumber)
-        .sub(userReserveData.supplied.rawNumber);
+    : userReserveData.deposit.rawNumber
+        .mul(reserveIndexesAfter.cumulativeSupplyIndexE18.rawNumber)
+        .div(userReserveData.appliedCumulativeSupplyIndexE18.rawNumber)
+        .sub(userReserveData.deposit.rawNumber);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = userReserveData.appliedCumulativeSupplyRateIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = userReserveData.appliedCumulativeSupplyIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : userReserveData.debt.rawNumber
-        .mul(reserveDataAfter.cumulativeDebtRateIndexE18.rawNumber)
-        .div(userReserveData.appliedCumulativeDebtRateIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.cumulativeDebtIndexE18.rawNumber)
+        .div(userReserveData.appliedCumulativeDebtIndexE18.rawNumber)
         .sub(userReserveData.debt.rawNumber);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
@@ -641,22 +650,26 @@ const getUserInterests = (userReserveData: UserReserveData, reserveDataBefore: R
 };
 // this function does assume that comulative Indexes are calculated correctly inside the contract.
 // this corectness is tested in rust unit tests.
-const getReserveInterests = (reserveDataBefore: ReserveData, reserveDataAfter: ReserveData): Interests => {
-  const supplyInterest = reserveDataBefore.cumulativeSupplyRateIndexE18.rawNumber.eqn(0)
+const getReserveInterests = (
+  reserveDataBefore: ReserveData,
+  reserveIndexesBefore: ReserveIndexes,
+  reserveIndexesAfter: ReserveIndexes,
+): Interests => {
+  const supplyInterest = reserveIndexesBefore.cumulativeSupplyIndexE18.rawNumber.eqn(0)
     ? new BN(0)
-    : reserveDataBefore.totalSupplied.rawNumber
-        .mul(reserveDataAfter.cumulativeSupplyRateIndexE18.rawNumber)
-        .div(reserveDataBefore.cumulativeSupplyRateIndexE18.rawNumber)
-        .sub(reserveDataBefore.totalSupplied.rawNumber);
+    : reserveDataBefore.totalDeposit.rawNumber
+        .mul(reserveIndexesAfter.cumulativeSupplyIndexE18.rawNumber)
+        .div(reserveIndexesBefore.cumulativeSupplyIndexE18.rawNumber)
+        .sub(reserveDataBefore.totalDeposit.rawNumber);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = reserveDataBefore.cumulativeDebtRateIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = reserveIndexesBefore.cumulativeDebtIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : reserveDataBefore.totalDebt.rawNumber
-        .mul(reserveDataAfter.cumulativeDebtRateIndexE18.rawNumber)
-        .div(reserveDataBefore.cumulativeDebtRateIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.cumulativeDebtIndexE18.rawNumber)
+        .div(reserveIndexesBefore.cumulativeDebtIndexE18.rawNumber)
         .sub(reserveDataBefore.totalDebt.rawNumber);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);

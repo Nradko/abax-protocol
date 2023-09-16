@@ -32,14 +32,14 @@ export const getReserveDataValueMutator = <K extends keyof ReserveData>(seriesNa
       return (val: ReserveData['freezed']) => (val ? 1 : 0);
     case 'totalSupplied':
       return (val: ReserveData['totalSupplied']) => fromE12(val.rawNumber);
-    case 'cumulativeSupplyRateIndexE18':
-      return (val: ReserveData['cumulativeSupplyRateIndexE18']) => fromE12(val.rawNumber);
+    case 'cumulativeSupplyIndexE18':
+      return (val: ReserveData['cumulativeSupplyIndexE18']) => fromE12(val.rawNumber);
     case 'currentSupplyRateE24':
       return (val: ReserveData['currentSupplyRateE24']) => fromE18(val.rawNumber);
     case 'totalDebt':
       return (val: ReserveData['totalDebt']) => fromE12(val.rawNumber);
-    case 'cumulativeDebtRateIndexE18':
-      return (val: ReserveData['cumulativeDebtRateIndexE18']) => fromE12(val.rawNumber);
+    case 'cumulativeDebtIndexE18':
+      return (val: ReserveData['cumulativeDebtIndexE18']) => fromE12(val.rawNumber);
     case 'currentDebtRateE24':
       return (val: ReserveData['currentDebtRateE24']) => fromE18(val.rawNumber);
     case 'indexesUpdateTimestamp':

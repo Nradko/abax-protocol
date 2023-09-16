@@ -1,5 +1,5 @@
 use ink::prelude::{string::String, vec::Vec};
-use openbrush::traits::AccountId;
+use pendzl::traits::AccountId;
 
 use ink::contract_ref;
 use ink::env::DefaultEnvironment;

@@ -2,7 +2,7 @@ use ink::{
     prelude::{string::String, vec::Vec},
     primitives::AccountId,
 };
-use openbrush::{
+use pendzl::{
     contracts::psp22::{psp22, PSP22Error},
     traits::{Balance, Storage},
 };
