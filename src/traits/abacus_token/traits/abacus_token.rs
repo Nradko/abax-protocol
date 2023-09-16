@@ -1,5 +1,5 @@
 use ink::prelude::vec::Vec;
-use openbrush::{
+use pendzl::{
     contracts::psp22::PSP22Error,
     traits::{AccountId, Balance},
 };

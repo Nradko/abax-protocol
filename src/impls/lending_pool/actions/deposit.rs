@@ -1,5 +1,5 @@
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, Storage};
 
 use crate::{
     impls::lending_pool::{

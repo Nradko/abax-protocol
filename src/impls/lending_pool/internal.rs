@@ -1,4 +1,4 @@
-use openbrush::{
+use pendzl::{
     contracts::psp22::{PSP22Error, PSP22Ref},
     traits::{Balance, Storage, Timestamp},
 };
@@ -17,6 +17,7 @@ use ink::{
     prelude::{vec::Vec, *},
     primitives::AccountId,
 };
+use pendzl::contracts::psp22::PSP22;
 
 pub fn _check_amount_not_zero(amount: u128) -> Result<(), LendingPoolError> {
     if amount == 0 {
@@ -158,8 +159,8 @@ impl<T: Storage<LendingPoolStorage>> Transfer for T {
         from: &AccountId,
         amount: &Balance,
     ) -> Result<(), LendingPoolError> {
-        PSP22Ref::transfer_from(
-            asset,
+        let mut psp22: PSP22Ref = (*asset).into();
+        psp22.transfer_from(
             *from,
             Self::env().account_id(),
             *amount,
@@ -175,7 +176,8 @@ impl<T: Storage<LendingPoolStorage>> Transfer for T {
         to: &AccountId,
         amount: &Balance,
     ) -> Result<(), LendingPoolError> {
-        PSP22Ref::transfer(asset, *to, *amount, vec![])?;
+        let mut psp22: PSP22Ref = (*asset).into();
+        psp22.transfer(*to, *amount, vec![])?;
         Ok(())
     }
 }
@@ -201,7 +203,8 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
             let total_debt = self
                 .data::<LendingPoolStorage>()
                 .total_debt_of(&asset, &timestamp)?;
-            let balance = PSP22Ref::balance_of(asset, Self::env().account_id());
+            let psp22: PSP22Ref = (*asset).into();
+            let balance = psp22.balance_of(Self::env().account_id());
             let income = {
                 (balance as i128)
                     .checked_add(total_debt as i128)

@@ -6,7 +6,7 @@ use crate::{
     traits::lending_pool::{errors::LendingPoolError, events::*},
 };
 use ink::prelude::vec::Vec;
-use openbrush::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, Storage};
 
 pub trait LendingPoolBorrowImpl:
     Storage<LendingPoolStorage> + TimestampMock + EmitBorrowEvents

@@ -1,25 +1,28 @@
-use openbrush::traits::{AccountId, Balance};
+use pendzl::traits::{AccountId, Balance};
 
-use crate::traits::lending_pool::errors::LendingPoolError;
+use crate::{
+    impls::lending_pool::storage::lending_pool_storage::RuleId,
+    traits::lending_pool::errors::LendingPoolError,
+};
 use ink::prelude::vec::Vec;
 
-// #[openbrush::wrapper]
+// #[pendzl::wrapper]
 // pub type LendingPoolRef =
 //     dyn LendingPoolDeposit + LendingPoolBorrow + LendingPoolLiquidate;
 
-// #[openbrush::wrapper]
+// #[pendzl::wrapper]
 // pub type LendingPoolDepositRef = dyn LendingPoolDeposit;
 
-// #[openbrush::wrapper]
+// #[pendzl::wrapper]
 // pub type LendingPoolBorrowRef = dyn LendingPoolBorrow;
 
-// #[openbrush::wrapper]
+// #[pendzl::wrapper]
 // pub type LendingPoolLiquidateRef = dyn LendingPoolLiquidate;
 
-// #[openbrush::wrapper]
+// #[pendzl::wrapper]
 // pub type LendingPoolMaintainRef = dyn LendingPoolMaintain;
 
-// #[openbrush::wrapper]
+// #[pendzl::wrapper]
 // pub type LendingPoolFlashRef = dyn LendingPoolFlash;
 
 /// contains `deposit` and `redeem` functions
@@ -54,7 +57,7 @@ pub trait LendingPoolDeposit {
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
-        amount: Option<Balance>,
+        amount: Balance,
         data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError>;
 }
@@ -69,7 +72,7 @@ pub trait LendingPoolBorrow {
     #[ink(message)]
     fn choose_market_rule(
         &mut self,
-        market_rule_id: u64,
+        market_rule_id: RuleId,
     ) -> Result<(), LendingPoolError>;
 
     /// is used by a user to choose to use or not a given asset as a collateral
@@ -114,7 +117,7 @@ pub trait LendingPoolBorrow {
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
-        amount_arg: Option<Balance>,
+        amount: Balance,
         data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError>;
 }
@@ -138,7 +141,7 @@ pub trait LendingPoolLiquidate {
         liquidated_user: AccountId,
         asset_to_repay: AccountId,
         asset_to_take: AccountId,
-        amount_to_repay: Option<Balance>,
+        amount_to_repay: Balance,
         minimum_recieved_for_one_repaid_token_e12: u128,
         data: Vec<u8>,
     ) -> Result<(Balance, Balance), LendingPoolError>;

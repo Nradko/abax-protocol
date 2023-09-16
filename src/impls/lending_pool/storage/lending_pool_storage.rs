@@ -1,5 +1,5 @@
-use ink::prelude::vec::*;
-use openbrush::{
+use ink::prelude::vec::Vec;
+use pendzl::{
     storage::Mapping,
     traits::{AccountId, Balance, Timestamp},
 };
@@ -28,7 +28,7 @@ pub type AssetId = u32;
 pub type RuleId = u32;
 
 #[derive(Default, Debug)]
-#[openbrush::storage_item]
+#[pendzl::storage_item]
 pub struct LendingPoolStorage {
     #[lazy]
     pub block_timestamp_provider: AccountId,
@@ -80,7 +80,7 @@ impl LendingPoolStorage {
         Ok(())
     }
     pub fn get_all_registered_assets(&self) -> Vec<AccountId> {
-        let mut assets: Vec<AccountId> = vec![];
+        let mut assets: Vec<AccountId> = Vec::new();
         for u in 0..self.next_asset_id.get_or_default() {
             assets.push(self.id_to_asset.get(&u).unwrap())
         }

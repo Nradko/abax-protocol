@@ -2,7 +2,7 @@
 #[cfg(not(feature = "ink-experimental-engine"))]
 #[cfg(test)]
 pub mod reserve_data_tests {
-    use openbrush::traits::Timestamp;
+    use pendzl::traits::Timestamp;
 
     use crate::impls::{
         constants::{DAY, E12, E6},
@@ -10,7 +10,7 @@ pub mod reserve_data_tests {
             reserve_data::ReserveData, tests::helpers::*,
         },
     };
-    use openbrush::traits::Balance;
+    use pendzl::traits::Balance;
 
     const YEAR: Timestamp = 365 * 24 * 60 * 60;
     const SUPPLY: Balance = E12;

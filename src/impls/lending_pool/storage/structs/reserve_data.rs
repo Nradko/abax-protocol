@@ -1,5 +1,5 @@
 use checked_math::checked_math;
-use openbrush::traits::{AccountId, Balance, Timestamp};
+use pendzl::traits::{AccountId, Balance, Timestamp};
 use primitive_types::U256;
 use scale::{Decode, Encode};
 

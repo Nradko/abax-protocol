@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(PSP22, PSP22Metadata)]
-#[openbrush::contract]
+#[pendzl::implementation(PSP22, PSP22Metadata)]
+#[ink::contract]
 pub mod v_token {
     use ink::{
         codegen::{EmitEvent, Env},
@@ -17,7 +17,7 @@ pub mod v_token {
         lending_pool::traits::v_token_interface::LendingPoolVTokenInterface,
         lending_pool::traits::v_token_interface::LendingPoolVTokenInterfaceRef,
     };
-    use openbrush::{
+    use pendzl::{
         contracts::psp22::{extensions::metadata::*, PSP22Error},
         traits::Storage,
     };

@@ -14,12 +14,13 @@ use crate::{
     },
 };
 use ink::prelude::*;
-use openbrush::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, Storage};
 
 pub trait LendingPoolATokenInterfaceImpl:
     Storage<LendingPoolStorage>
     + TimestampMock
-    + Storage<openbrush::contracts::pausable::Data>
+    + Storage<pendzl::contracts::pausable::Data>
+    + pendzl::contracts::pausable::Internal
     + EmitDepositEvents
 {
     fn total_supply_of(&self, underlying_asset: AccountId) -> Balance {
@@ -40,7 +41,6 @@ pub trait LendingPoolATokenInterfaceImpl:
             .unwrap()
     }
 
-    #[openbrush::modifiers(openbrush::contracts::pausable::when_not_paused)]
     fn transfer_supply_from_to(
         &mut self,
         underlying_asset: AccountId,
@@ -48,6 +48,7 @@ pub trait LendingPoolATokenInterfaceImpl:
         to: AccountId,
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
+        self._ensure_not_paused()?;
         let reserve_abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus

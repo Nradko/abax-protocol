@@ -1,12 +1,12 @@
 use crate::impls::lending_pool::storage::{
-    lending_pool_storage::MarketRule,
+    lending_pool_storage::{MarketRule, RuleId},
     structs::{
         reserve_data::ReserveData, user_config::UserConfig,
         user_reserve_data::UserReserveData,
     },
 };
 
-use openbrush::traits::AccountId;
+use pendzl::traits::AccountId;
 
 use ink::prelude::vec::Vec;
 
@@ -63,7 +63,7 @@ pub trait LendingPoolView {
     #[ink(message)]
     fn view_user_config(&self, user: AccountId) -> UserConfig;
     #[ink(message)]
-    fn view_market_rule(&self, market_rule_id: u64) -> Option<MarketRule>;
+    fn view_market_rule(&self, market_rule_id: RuleId) -> Option<MarketRule>;
     #[ink(message)]
     fn get_user_free_collateral_coefficient(
         &self,

@@ -7,8 +7,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(Pausable, AccessControl)]
-#[openbrush::contract]
+#[pendzl::implementation(Pausable, AccessControl)]
+#[ink::contract]
 pub mod lending_pool {
     use ink::{
         codegen::{EmitEvent, Env},
@@ -27,7 +27,7 @@ pub mod lending_pool {
                 a_token_interface::LendingPoolATokenInterfaceImpl,
                 v_token_interface::LendingPoolVTokenInterfaceImpl,
             },
-            manage::{LendingPoolManageImpl, GLOBAL_ADMIN},
+            manage::{LendingPoolManageImpl, EMERGENCY_ADMIN, GLOBAL_ADMIN},
             storage::{
                 lending_pool_storage::{
                     LendingPoolStorage, MarketRule, RuleId,
@@ -53,9 +53,9 @@ pub mod lending_pool {
             },
         },
     };
-    // use openbrush::storage::Mapping;
+    // use pendzl::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
-    use openbrush::{
+    use pendzl::{
         contracts::{
             access_control::{self, *},
             pausable::{self, *},
@@ -98,7 +98,7 @@ pub mod lending_pool {
             &mut self,
             asset: AccountId,
             on_behalf_of: AccountId,
-            amount: Option<Balance>,
+            amount: Balance,
             data: Vec<u8>,
         ) -> Result<Balance, LendingPoolError> {
             LendingPoolDepositImpl::redeem(
@@ -116,7 +116,7 @@ pub mod lending_pool {
         #[ink(message)]
         fn choose_market_rule(
             &mut self,
-            market_rule_id: u64,
+            market_rule_id: RuleId,
         ) -> Result<(), LendingPoolError> {
             LendingPoolBorrowImpl::choose_market_rule(self, market_rule_id)
         }
@@ -153,14 +153,14 @@ pub mod lending_pool {
             &mut self,
             asset: AccountId,
             on_behalf_of: AccountId,
-            amount_arg: Option<Balance>,
+            amount: Balance,
             data: Vec<u8>,
         ) -> Result<Balance, LendingPoolError> {
             LendingPoolBorrowImpl::repay(
                 self,
                 asset,
                 on_behalf_of,
-                amount_arg,
+                amount,
                 data,
             )
         }
@@ -193,7 +193,7 @@ pub mod lending_pool {
             liquidated_user: AccountId,
             asset_to_repay: AccountId,
             asset_to_take: AccountId,
-            amount_to_repay: Option<Balance>,
+            amount_to_repay: Balance,
             minimum_recieved_for_one_repaid_token_e18: u128,
             #[allow(unused_variables)] data: Vec<u8>,
         ) -> Result<(Balance, Balance), LendingPoolError> {
@@ -301,10 +301,6 @@ pub mod lending_pool {
             &mut self,
             asset: AccountId,
             interest_rate_model: [u128; 7],
-            maximal_total_supply: Option<Balance>,
-            maximal_total_debt: Option<Balance>,
-            minimal_collateral: Balance,
-            minimal_debt: Balance,
             income_for_suppliers_part_e6: u128,
             flash_loan_fee_e6: u128,
         ) -> Result<(), LendingPoolError> {
@@ -312,10 +308,6 @@ pub mod lending_pool {
                 self,
                 asset,
                 interest_rate_model,
-                maximal_total_supply,
-                maximal_total_debt,
-                minimal_collateral,
-                minimal_debt,
                 income_for_suppliers_part_e6,
                 flash_loan_fee_e6,
             )
@@ -324,20 +316,15 @@ pub mod lending_pool {
         #[ink(message)]
         fn add_market_rule(
             &mut self,
-            market_rule_id: u64,
             market_rule: MarketRule,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::add_market_rule(
-                self,
-                market_rule_id,
-                market_rule,
-            )
+            LendingPoolManageImpl::add_market_rule(self, market_rule)
         }
 
         #[ink(message)]
         fn modify_asset_rule(
             &mut self,
-            market_rule_id: u64,
+            market_rule_id: RuleId,
             asset: AccountId,
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
@@ -434,7 +421,10 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_user_config(self, user)
         }
         #[ink(message)]
-        fn view_market_rule(&self, market_rule_id: u64) -> Option<MarketRule> {
+        fn view_market_rule(
+            &self,
+            market_rule_id: RuleId,
+        ) -> Option<MarketRule> {
             LendingPoolViewImpl::view_market_rule(self, market_rule_id)
         }
         #[ink(message)]
@@ -573,25 +563,38 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        #[openbrush::modifiers(only_role(GLOBAL_ADMIN))]
         pub fn pause(&mut self) -> Result<(), LendingPoolError> {
+            access_control::Internal::_ensure_has_role(
+                self,
+                EMERGENCY_ADMIN,
+                Some(Self::env().caller()),
+            )?;
+            pausable::Internal::_ensure_not_paused(self)?;
             pausable::Internal::_pause(self)?;
             Ok(())
         }
 
         #[ink(message)]
-        #[openbrush::modifiers(only_role(GLOBAL_ADMIN))]
         pub fn unpause(&mut self) -> Result<(), LendingPoolError> {
+            access_control::Internal::_ensure_has_role(
+                self,
+                EMERGENCY_ADMIN,
+                Some(Self::env().caller()),
+            )?;
             pausable::Internal::_unpause(self)?;
             Ok(())
         }
 
         #[ink(message)]
-        #[openbrush::modifiers(only_role(GLOBAL_ADMIN))]
         pub fn set_code(
             &mut self,
             code_hash: [u8; 32],
         ) -> Result<(), LendingPoolError> {
+            access_control::Internal::_ensure_has_role(
+                self,
+                GLOBAL_ADMIN,
+                Some(Self::env().caller()),
+            )?;
             ink::env::set_code_hash(&code_hash).unwrap_or_else(|err| {
                 panic!(
                     "Failed to `set_code_hash` to {:?} due to {:?}",
@@ -626,7 +629,7 @@ pub mod lending_pool {
     pub struct MarketRuleChosen {
         #[ink(topic)]
         user: AccountId,
-        market_rule_id: u64,
+        market_rule_id: RuleId,
     }
 
     #[ink(event)]
@@ -743,7 +746,7 @@ pub mod lending_pool {
     #[ink(event)]
     pub struct AssetRulesChanged {
         #[ink(topic)]
-        market_rule_id: u64,
+        market_rule_id: RuleId,
         #[ink(topic)]
         asset: AccountId,
         collateral_coefficient_e6: Option<u128>,

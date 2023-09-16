@@ -1,6 +1,6 @@
 use crate::traits::lending_pool::errors::LendingPoolTokenInterfaceError;
 use ink::{contract_ref, env::DefaultEnvironment};
-use openbrush::traits::{AccountId, Balance};
+use pendzl::traits::{AccountId, Balance};
 
 pub type LendingPoolVTokenInterfaceRef =
     contract_ref!(LendingPoolVTokenInterface, DefaultEnvironment);

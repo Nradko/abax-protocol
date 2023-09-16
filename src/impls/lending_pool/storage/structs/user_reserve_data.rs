@@ -1,5 +1,5 @@
 use checked_math::checked_math;
-use openbrush::traits::Balance;
+use pendzl::traits::Balance;
 use scale::{Decode, Encode};
 
 use crate::{

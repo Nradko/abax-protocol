@@ -1,19 +1,19 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::implementation(Ownable)]
-#[openbrush::contract]
+#[pendzl::implementation(Ownable)]
+#[ink::contract]
 pub mod psp22_emitable {
 
-    use openbrush::{
+    use pendzl::{
         contracts::{
             ownable::*,
             psp22::{extensions::mintable::PSP22MintableRef, PSP22Error},
         },
-        storage::Mapping,
         traits::Storage,
     };
 
-    use ink::prelude::vec::Vec;
+    use ink::{prelude::vec::Vec, storage::Mapping};
+    use pendzl::contracts::psp22::extensions::mintable::PSP22Mintable;
 
     #[ink(storage)]
     #[derive(Default, Storage)]
@@ -41,7 +41,8 @@ pub mod psp22_emitable {
         ) -> Result<(), TestReservesMinterError> {
             if !self.already_minted.contains(&to) {
                 for &(addr, amount) in addreses_with_amounts.iter() {
-                    PSP22MintableRef::mint(&addr, to, amount)?;
+                    let mut psp22_mintable: PSP22MintableRef = addr.into();
+                    psp22_mintable.mint(to, amount)?;
                 }
                 self.already_minted.insert(&to, &true);
             } else {

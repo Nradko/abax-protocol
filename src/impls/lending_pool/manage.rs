@@ -9,7 +9,8 @@ use crate::{
     traits::lending_pool::{errors::LendingPoolError, events::*},
 };
 use ink::prelude::{vec, vec::Vec};
-use openbrush::{
+use pendzl::contracts::psp22::PSP22;
+use pendzl::{
     contracts::{access_control::*, psp22::PSP22Ref},
     traits::{AccountId, Balance, Storage},
 };
@@ -236,7 +237,6 @@ pub trait LendingPoolManageImpl:
 
     fn add_market_rule(
         &mut self,
-        market_rule_id: u32,
         market_rule: MarketRule,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
@@ -248,7 +248,8 @@ pub trait LendingPoolManageImpl:
             ));
         }
 
-        self.data::<LendingPoolStorage>()
+        let market_rule_id = self
+            .data::<LendingPoolStorage>()
             .account_for_add_market_rule(&market_rule)?;
 
         let registerd_assets = self
@@ -336,12 +337,8 @@ pub trait LendingPoolManageImpl:
         for asset_and_amount in
             assets_and_amounts.iter().take_while(|x| x.1.is_positive())
         {
-            PSP22Ref::transfer(
-                &asset_and_amount.0,
-                to,
-                asset_and_amount.1 as Balance,
-                vec![],
-            )?;
+            let mut psp22: PSP22Ref = asset_and_amount.0.into();
+            psp22.transfer(to, asset_and_amount.1 as Balance, vec![])?;
             self._emit_income_taken(&asset_and_amount.0);
         }
 

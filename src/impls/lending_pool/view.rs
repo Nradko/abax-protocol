@@ -6,14 +6,15 @@ use crate::impls::{
     },
 };
 
-use openbrush::traits::{AccountId, Storage};
+use pendzl::traits::{AccountId, Storage};
 
 use ink::prelude::{vec::Vec, *};
 
 use super::{
     internal::{InternalIncome, TimestampMock},
     storage::{
-        lending_pool_storage::MarketRule, structs::user_config::UserConfig,
+        lending_pool_storage::{MarketRule, RuleId},
+        structs::user_config::UserConfig,
     },
 };
 
@@ -198,7 +199,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             .unwrap_or_default()
     }
 
-    fn view_market_rule(&self, market_rule_id: u32) -> Option<MarketRule> {
+    fn view_market_rule(&self, market_rule_id: RuleId) -> Option<MarketRule> {
         self.data::<LendingPoolStorage>()
             .market_rules
             .get(&market_rule_id)

@@ -1,17 +1,14 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[openbrush::contract]
+#[ink::contract]
 pub mod flash_loan_receiver_mock {
-    use ink::{
-        codegen::{EmitEvent, Env},
-        prelude::{format, vec::Vec},
-    };
+    use ink::prelude::{format, vec::Vec};
     use lending_project::traits::flash_loan_receiver::{
         FlashLoanReceiverError, *,
     };
 
-    use lending_project::traits::flash_loan_receiver::flash_loan_receiver_external::*;
-    use openbrush::{
+    use pendzl::contracts::psp22::extensions::mintable::PSP22Mintable;
+    use pendzl::{
         contracts::traits::psp22::{extensions::mintable::PSP22MintableRef, *},
         traits::Storage,
     };
@@ -61,8 +58,8 @@ pub mod flash_loan_receiver_mock {
                 return Err(FlashLoanReceiverError::ExecuteOperationFailed);
             }
             for i in 0..assets.len() {
-                let balance =
-                    PSP22Ref::balance_of(&assets[i], self.env().account_id());
+                let psp22: PSP22Ref = assets[i].into();
+                let balance = psp22.balance_of(self.env().account_id());
                 if amounts[i] > balance {
                     return Err(FlashLoanReceiverError::Custom(format!(
                         "Insufficient balance for the contract for asset {:X?}",
@@ -71,13 +68,9 @@ pub mod flash_loan_receiver_mock {
                 }
 
                 if self.simulate_balance_to_cover_fee {
-                    if PSP22MintableRef::mint(
-                        &assets[i],
-                        self.env().account_id(),
-                        fees[i],
-                    )
-                    .is_err()
-                    {
+                    let mut psp22: PSP22MintableRef = assets[i].into();
+
+                    if psp22.mint(self.env().account_id(), fees[i]).is_err() {
                         return Err(FlashLoanReceiverError::Custom(format!(
                             "Asset {:X?} is not mintable",
                             assets[i]
@@ -88,11 +81,10 @@ pub mod flash_loan_receiver_mock {
                 let amount_to_return = self
                     .custom_amount_to_approve
                     .unwrap_or(amounts[i] + fees[i]);
-                if PSP22Ref::approve(
-                    &assets[i],
-                    self.env().caller(),
-                    amount_to_return,
-                )
+                if {
+                    let mut psp22: PSP22Ref = assets[i].into();
+                    psp22.approve(self.env().caller(), amount_to_return)
+                }
                 .is_err()
                 {
                     return Err(FlashLoanReceiverError::Custom(format!(

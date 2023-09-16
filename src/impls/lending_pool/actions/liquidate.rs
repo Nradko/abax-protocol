@@ -1,6 +1,6 @@
 use ink::prelude::{vec::Vec, *};
 
-use openbrush::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, Storage};
 use primitive_types::U256;
 
 use crate::{

@@ -27,7 +27,7 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-openbrush = { tag = "4.0.0-beta", git = "https://github.com/Brushfam/openbrush-contracts", default-features = false, features = [
+pendzl = { path = "../../pendzl-contracts", default-features = false, features = [
     "psp22",
     "psp34",
     "ownable",
@@ -55,7 +55,7 @@ std = [
     "scale-info/std",
 
     # These dependencies
-    "openbrush/std",
+    "pendzl/std",
     "primitive-types/std",
     "primitive-types/scale-info",
 ]

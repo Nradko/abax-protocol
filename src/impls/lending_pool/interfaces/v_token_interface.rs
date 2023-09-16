@@ -1,4 +1,4 @@
-use openbrush::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, Storage};
 
 use ink::prelude::*;
 
@@ -19,7 +19,8 @@ use crate::{
 
 pub trait LendingPoolVTokenInterfaceImpl:
     Storage<LendingPoolStorage>
-    + Storage<openbrush::contracts::pausable::Data>
+    + Storage<pendzl::contracts::pausable::Data>
+    + pendzl::contracts::pausable::Internal
     + EmitBorrowEvents
 {
     fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
@@ -40,7 +41,6 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .unwrap()
     }
 
-    #[openbrush::modifiers(openbrush::contracts::pausable::when_not_paused)]
     fn transfer_variable_debt_from_to(
         &mut self,
         underlying_asset: AccountId,
@@ -48,6 +48,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
         to: AccountId,
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
+        self._ensure_not_paused()?;
         // pull reserve_data
         let reserve_abacus_tokens = self
             .data::<LendingPoolStorage>()
