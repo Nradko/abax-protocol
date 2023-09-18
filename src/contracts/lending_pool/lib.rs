@@ -315,6 +315,25 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
+        fn set_reserve_restrictions(
+            &mut self,
+            asset: AccountId,
+            maximal_total_supply: Option<Balance>,
+            maximal_total_debt: Option<Balance>,
+            minimal_collateral: Balance,
+            minimal_debt: Balance,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_reserve_restrictions(
+                self,
+                asset,
+                maximal_total_supply,
+                maximal_total_debt,
+                minimal_collateral,
+                minimal_debt,
+            )
+        }
+
+        #[ink(message)]
         fn add_market_rule(
             &mut self,
             market_rule: MarketRule,

@@ -90,6 +90,16 @@ pub trait LendingPoolManage {
         flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError>;
 
+    #[ink(message)]
+    fn set_reserve_restrictions(
+        &mut self,
+        asset: AccountId,
+        maximal_total_supply: Option<Balance>,
+        maximal_total_debt: Option<Balance>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
+    ) -> Result<(), LendingPoolError>;
+
     /// adds new market rule at unused market_rule_id
     ///
     /// * `market_rule_id` - yet unused id for new market rule
