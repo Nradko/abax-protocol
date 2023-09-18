@@ -1,7 +1,8 @@
 use crate::impls::lending_pool::storage::{
     lending_pool_storage::{MarketRule, RuleId},
     structs::{
-        reserve_data::ReserveData, user_config::UserConfig,
+        reserve_data::{ReserveData, ReserveIndexes},
+        user_config::UserConfig,
         user_reserve_data::UserReserveData,
     },
 };
@@ -26,6 +27,13 @@ pub trait LendingPoolView {
     ) -> Option<ReserveData>;
     #[ink(message)]
     fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData>;
+    #[ink(message)]
+    fn view_unupdated_reserve_indexes(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveIndexes>;
+    #[ink(message)]
+    fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes>;
     #[ink(message)]
     fn view_unupdated_reserve_datas(
         &self,

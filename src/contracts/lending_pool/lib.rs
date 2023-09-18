@@ -33,7 +33,8 @@ pub mod lending_pool {
                     LendingPoolStorage, MarketRule, RuleId,
                 },
                 structs::{
-                    reserve_data::ReserveData, user_config::UserConfig,
+                    reserve_data::{ReserveData, ReserveIndexes},
+                    user_config::UserConfig,
                     user_reserve_data::UserReserveData,
                 },
             },
@@ -365,6 +366,20 @@ pub mod lending_pool {
         #[ink(message)]
         fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
             LendingPoolViewImpl::view_reserve_data(self, asset)
+        }
+        #[ink(message)]
+        fn view_unupdated_reserve_indexes(
+            &self,
+            asset: AccountId,
+        ) -> Option<ReserveIndexes> {
+            LendingPoolViewImpl::view_unupdated_reserve_indexes(self, asset)
+        }
+        #[ink(message)]
+        fn view_reserve_indexes(
+            &self,
+            asset: AccountId,
+        ) -> Option<ReserveIndexes> {
+            LendingPoolViewImpl::view_reserve_indexes(self, asset)
         }
         #[ink(message)]
         fn view_unupdated_reserve_datas(

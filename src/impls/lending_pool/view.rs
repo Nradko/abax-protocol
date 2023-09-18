@@ -14,7 +14,7 @@ use super::{
     internal::{InternalIncome, TimestampMock},
     storage::{
         lending_pool_storage::{MarketRule, RuleId},
-        structs::user_config::UserConfig,
+        structs::{reserve_data::ReserveIndexes, user_config::UserConfig},
     },
 };
 
@@ -58,6 +58,45 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     )
                     .unwrap();
                 Some(reserve_data)
+            }
+            None => None,
+        }
+    }
+
+    fn view_unupdated_reserve_indexes(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveIndexes> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => self
+                .data::<LendingPoolStorage>()
+                .reserve_indexes
+                .get(&asset_id),
+            None => None,
+        }
+    }
+
+    fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => {
+                let mut reserve_data = self
+                    .data::<LendingPoolStorage>()
+                    .reserve_datas
+                    .get(&asset_id)
+                    .unwrap();
+                let mut reserve_indexes = self
+                    .data::<LendingPoolStorage>()
+                    .reserve_indexes
+                    .get(&asset_id)
+                    .unwrap();
+
+                reserve_data
+                    .accumulate_interest(
+                        &mut reserve_indexes,
+                        &self._timestamp(),
+                    )
+                    .unwrap();
+                Some(reserve_indexes)
             }
             None => None,
         }
