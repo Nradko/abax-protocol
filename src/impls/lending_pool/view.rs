@@ -224,7 +224,9 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                         &self._timestamp(),
                     )
                     .unwrap();
-                user_reserve_data.accumulate_user_interest(&reserve_indexes);
+                user_reserve_data
+                    .accumulate_user_interest(&reserve_indexes)
+                    .unwrap();
                 user_reserve_data
             }
             None => UserReserveData {
