@@ -1,4 +1,7 @@
-use pendzl::traits::{AccountId, Balance, Storage};
+use pendzl::{
+    contracts::psp22::PSP22Error,
+    traits::{AccountId, Balance, Storage},
+};
 
 use ink::prelude::*;
 
@@ -10,10 +13,7 @@ use crate::{
         abacus_token::traits::abacus_token::{
             AbacusToken, AbacusTokenRef, TransferEventData,
         },
-        lending_pool::{
-            errors::{LendingPoolError, LendingPoolTokenInterfaceError},
-            events::EmitBorrowEvents,
-        },
+        lending_pool::events::EmitBorrowEvents,
     },
 };
 
@@ -47,19 +47,20 @@ pub trait LendingPoolVTokenInterfaceImpl:
         from: AccountId,
         to: AccountId,
         amount: Balance,
-    ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError> {
+    ) -> Result<(Balance, Balance), PSP22Error> {
         self._ensure_not_paused()?;
         // pull reserve_data
         let reserve_abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus
             .get(&underlying_asset)
-            .ok_or(LendingPoolError::AssetNotRegistered)?;
+            .ok_or(PSP22Error::Custom("AssetNotRegistered".into()))?;
         if Self::env().caller() != reserve_abacus_tokens.v_token_address {
-            return Err(LendingPoolTokenInterfaceError::WrongCaller);
+            return Err(PSP22Error::Custom("WrongCaller".into()));
         }
 
         let timestamp = self._timestamp();
+        ink::env::debug_println!("v_token transfer| account");
         let (
             from_accumulated_deposit_interest,
             from_accumulated_debt_interest,
@@ -67,7 +68,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             to_accumulated_debt_interest,
         ) = self
             .data::<LendingPoolStorage>()
-            .account_for_deposit_transfer_from_to(
+            .account_for_debt_transfer_from_to(
                 &underlying_asset,
                 &from,
                 &to,
@@ -75,10 +76,9 @@ pub trait LendingPoolVTokenInterfaceImpl:
                 &timestamp,
             )?;
 
-        // _check_borrowing_enabled(&reserve_data, &to_market_rule)
-        //     .or(Err(LendingPoolTokenInterfaceError::TransfersDisabled))?;
+        // check if there ie enought
+        ink::env::debug_println!("v_token transfer| check lending Power");
 
-        // check if there ie enought collateral
         self.data::<LendingPoolStorage>().check_lending_power(&to)?;
 
         //// ABACUS TOKEN EVENTS

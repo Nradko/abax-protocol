@@ -145,7 +145,6 @@ pub mod a_token {
                 to,
                 amount,
             )?;
-
         // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
         // emitting accumulated interest events
         if mint_from_amount > 0 {

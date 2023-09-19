@@ -4,7 +4,7 @@ import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
-import { PARAMETERS_ADMIN } from './consts';
+import { MAX_U128, PARAMETERS_ADMIN } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
@@ -27,7 +27,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
     await lendingPool.withSigner(owner).tx.grantRole(PARAMETERS_ADMIN, parametersAdmin.address);
     await lendingPool
       .withSigner(parametersAdmin)
-      .tx.addMarketRule(1, [
+      .tx.addMarketRule([
         { collateralCoefficientE6: 970000, borrowCoefficientE6: 1030000, penaltyE6: 150000 },
         { collateralCoefficientE6: 970000, borrowCoefficientE6: 1030000, penaltyE6: 150000 },
         null,
@@ -88,7 +88,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
       });
       describe(`User repays WETH debt. Then`, () => {
         beforeEach('repays WETH debt', async () => {
-          await lendingPool.withSigner(user).tx.repay(wethContract.address, user.address, null, []);
+          await lendingPool.withSigner(user).tx.repay(wethContract.address, user.address, MAX_U128, []);
         });
         it('User tries to switch market mode and succeeds as user has enough collateral. Event should be emitted.', async () => {
           const txRes = await lendingPool.withSigner(user).tx.chooseMarketRule(1);
@@ -131,7 +131,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
             expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.RuleCollateralDisable());
           });
           it('Users tries to borrow WETH  fails with Err(LendingPoolError::RuleBorrowDisable))', async () => {
-            const res = (await lendingPool.withSigner(user).query.borrow(wethContract.address, user.address, 1, [])).value.ok;
+            const res = (await lendingPool.withSigner(user).query.borrow(wethContract.address, user.address, wethUserBalance.divn(4), [])).value.ok;
             expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.RuleBorrowDisable());
           });
         });

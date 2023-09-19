@@ -46,7 +46,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
     aTokenWETHContract = reserves['WETH'].aToken;
   });
 
-  describe('Alice and Bob have 10000$ of both DAI and USDC supplied to the Lending Pool. Then ...', () => {
+  describe('Alice and Bob have 10000$ of both DAI and USDC deposit to the Lending Pool. Then ...', () => {
     let initialDaiBalance: BN;
     let initialUsdcBalance: BN;
 
@@ -80,7 +80,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       expect(bobATokenUsdcBalance.rawNumber.toString()).to.equal(initialUsdcBalance.toString());
     });
 
-    it('Alice should NOT be able to transfer more than she has', async () => {
+    it('Alice should NOT be able to transfer more aDai than she has', async () => {
       const queryResult = (await aTokenDaiContract.withSigner(alice).query.transfer(bob.address, initialDaiBalance.addn(1), [])).value.ok;
       expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.InsufficientBalance());
     });
@@ -110,10 +110,10 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       const bobSupplyAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
 
       expect.soft(aliceBalanceAfter.rawNumber.toString()).to.equal('0');
-      expect.soft(aliceSupplyAfter.supplied.rawNumber.toString()).to.equal('0');
+      expect.soft(aliceSupplyAfter.deposit.rawNumber.toString()).to.equal('0');
 
       expect.soft(bobBalanceAfter.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
-      expect.soft(bobSupplyAfter.supplied.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
+      expect.soft(bobSupplyAfter.deposit.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.flushSoft();
     });
 
@@ -133,10 +133,10 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       const bobSupplyAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
 
       expect.soft(aliceBalanceAfter.rawNumber.toString()).to.equal('0');
-      expect.soft(aliceSupplyAfter.supplied.rawNumber.toString()).to.equal('0');
+      expect.soft(aliceSupplyAfter.deposit.rawNumber.toString()).to.equal('0');
 
       expect.soft(bobBalanceAfter.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
-      expect.soft(bobSupplyAfter.supplied.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
+      expect.soft(bobSupplyAfter.deposit.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Approval',
@@ -158,7 +158,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       expect.flushSoft();
     });
 
-    describe('Alice takes 1WETH loan after Charlie has supplied 10 WETH. Then...', () => {
+    describe('Alice takes 1WETH loan after Charlie has deposit 10 WETH. Then...', () => {
       let vTokenWETHContract: VToken;
       let aliceDebt: BN;
       let charliesDeposit: BN;
@@ -294,7 +294,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: alice.address,
-                    value: `1911081600031538`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                    value: `1911081600031539`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
                   },
                 },
                 {
@@ -391,7 +391,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
                 {
                   from: null,
                   to: alice.address,
-                  value: `1911081600031538`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                  value: `1911081600031539`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
                 },
               ]);
             });
@@ -431,7 +431,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
                     args: {
                       from: null,
                       to: alice.address,
-                      value: `1911081600031538`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                      value: `1911081600031539`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
                     },
                   },
                   {

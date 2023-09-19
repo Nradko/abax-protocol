@@ -206,7 +206,11 @@ pub mod v_token {
         ink::env::debug_println!(
             "_transfer_from_to after LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call"
         );
-
+        ink::env::debug_println!(
+            "mint_from: {} |    mint_to: {}",
+            mint_from_amount,
+            mint_to_amount
+        );
         // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
         if mint_from_amount > 0 {
             psp22::Internal::_emit_transfer_event(

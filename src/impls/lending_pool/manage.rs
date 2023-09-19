@@ -81,8 +81,8 @@ pub trait LendingPoolManageImpl:
         v_token_address: AccountId,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !(self.has_role(ASSET_LISTING_ADMIN, caller.into())
-            || self.has_role(GLOBAL_ADMIN, caller.into()))
+        if !self.has_role(ASSET_LISTING_ADMIN, caller.into())
+            && !self.has_role(GLOBAL_ADMIN, caller.into())
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -110,6 +110,17 @@ pub trait LendingPoolManageImpl:
                 &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
             )?;
 
+        self.data::<LendingPoolStorage>()
+            .account_for_asset_rule_change(
+                &0,
+                &asset,
+                &AssetRules {
+                    collateral_coefficient_e6,
+                    borrow_coefficient_e6,
+                    penalty_e6,
+                },
+            )?;
+
         self._emit_asset_registered_event(
             &asset,
             decimals,
@@ -119,12 +130,15 @@ pub trait LendingPoolManageImpl:
         self._emit_reserve_parameters_changed_event(
             &asset,
             &interest_rate_model,
+            income_for_suppliers_part_e6,
+            flash_loan_fee_e6,
+        );
+        self._emit_reserve_restrictions_changed_event(
+            &asset,
             maximal_total_supply,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
-            income_for_suppliers_part_e6,
-            flash_loan_fee_e6,
         );
         self._emit_asset_rules_changed(
             &0,
@@ -142,8 +156,8 @@ pub trait LendingPoolManageImpl:
         active: bool,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !(self.has_role(EMERGENCY_ADMIN, caller.into())
-            || self.has_role(GLOBAL_ADMIN, caller.into()))
+        if !self.has_role(EMERGENCY_ADMIN, caller.into())
+            && !self.has_role(GLOBAL_ADMIN, caller.into())
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -163,8 +177,8 @@ pub trait LendingPoolManageImpl:
         freeze: bool,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !(self.has_role(EMERGENCY_ADMIN, caller.into())
-            || self.has_role(GLOBAL_ADMIN, caller.into()))
+        if !self.has_role(EMERGENCY_ADMIN, caller.into())
+            && !self.has_role(GLOBAL_ADMIN, caller.into())
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -185,8 +199,8 @@ pub trait LendingPoolManageImpl:
         minimal_debt: Balance,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !(self.has_role(PARAMETERS_ADMIN, caller.into())
-            || self.has_role(GLOBAL_ADMIN, caller.into()))
+        if !self.has_role(PARAMETERS_ADMIN, caller.into())
+            && !self.has_role(GLOBAL_ADMIN, caller.into())
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -203,6 +217,14 @@ pub trait LendingPoolManageImpl:
                 },
             )?;
 
+        self._emit_reserve_restrictions_changed_event(
+            &asset,
+            maximal_total_supply,
+            maximal_total_debt,
+            minimal_collateral,
+            minimal_debt,
+        );
+
         Ok(())
     }
 
@@ -214,8 +236,8 @@ pub trait LendingPoolManageImpl:
         flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !(self.has_role(PARAMETERS_ADMIN, caller.into())
-            || self.has_role(GLOBAL_ADMIN, caller.into()))
+        if !self.has_role(PARAMETERS_ADMIN, caller.into())
+            && !self.has_role(GLOBAL_ADMIN, caller.into())
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -232,6 +254,12 @@ pub trait LendingPoolManageImpl:
                 },
                 &timestamp,
             )?;
+        self._emit_reserve_parameters_changed_event(
+            &asset,
+            &interest_rate_model,
+            income_for_suppliers_part_e6,
+            flash_loan_fee_e6,
+        );
         Ok(())
     }
 
@@ -240,8 +268,8 @@ pub trait LendingPoolManageImpl:
         market_rule: MarketRule,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !(self.has_role(PARAMETERS_ADMIN, caller.into())
-            || self.has_role(GLOBAL_ADMIN, caller.into()))
+        if !self.has_role(PARAMETERS_ADMIN, caller.into())
+            && !self.has_role(GLOBAL_ADMIN, caller.into())
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -283,8 +311,8 @@ pub trait LendingPoolManageImpl:
         penalty_e6: Option<u128>,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !(self.has_role(PARAMETERS_ADMIN, caller.into())
-            || self.has_role(GLOBAL_ADMIN, caller.into()))
+        if !self.has_role(PARAMETERS_ADMIN, caller.into())
+            && !self.has_role(GLOBAL_ADMIN, caller.into())
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,

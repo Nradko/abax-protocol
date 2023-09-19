@@ -8,7 +8,7 @@ const addBNToReturnNumber = (rn: ReturnNumber, addValue: BN) => BNToReturnNumber
 export const calcExpectedReserveDataAfterDeposit = (amountDeposited: BN, reserveDataBeforeAction: ReserveData, txTimestamp: BN): ReserveData => {
   const expectedReserveData: ReserveData = <ReserveData>{ ...reserveDataBeforeAction };
 
-  expectedReserveData.totalSupplied = addBNToReturnNumber(reserveDataBeforeAction.totalSupplied, amountDeposited);
+  expectedReserveData.totalDeposit = addBNToReturnNumber(reserveDataBeforeAction.totalDeposit, amountDeposited);
   return expectedReserveData;
 };
 

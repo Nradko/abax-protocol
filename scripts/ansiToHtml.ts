@@ -18,7 +18,7 @@ const printHelp = () => {
   if (!inputFile) throw 'could not determine input path';
   if (!outputFile) throw 'could not determine output path';
   if (!outputFile || !inputFile || !fs.pathExistsSync(inputFile)) {
-    console.log(chalk.yellow('Invalid or missing arguments supplied!'));
+    console.log(chalk.yellow('Invalid or missing arguments deposit!'));
     printHelp();
     process.exit(127);
   }

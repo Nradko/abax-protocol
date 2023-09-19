@@ -1,6 +1,8 @@
-use crate::traits::lending_pool::errors::LendingPoolTokenInterfaceError;
 use ink::{contract_ref, env::DefaultEnvironment};
-use pendzl::traits::{AccountId, Balance};
+use pendzl::{
+    contracts::psp22::PSP22Error,
+    traits::{AccountId, Balance},
+};
 
 pub type LendingPoolVTokenInterfaceRef =
     contract_ref!(LendingPoolVTokenInterface, DefaultEnvironment);
@@ -46,5 +48,5 @@ pub trait LendingPoolVTokenInterface {
         from: AccountId,
         to: AccountId,
         amount: Balance,
-    ) -> Result<(Balance, Balance), LendingPoolTokenInterfaceError>;
+    ) -> Result<(Balance, Balance), PSP22Error>;
 }

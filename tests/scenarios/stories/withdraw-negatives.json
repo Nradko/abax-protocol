@@ -44,7 +44,7 @@
       ]
     },
     {
-      "description": "Users 0 tries to redeem 1100 DAI from the 1000 DAI deposited (revert expected)",
+      "description": "Users 0 tries to redeem 1100 DAI from the 1000 DAI deposited, he redeems successfully 1000DAI (1100DAI is casted to 1000DAI)",
       "actions": [
         {
           "name": "mint",
@@ -79,8 +79,7 @@
             "amount": "1100",
             "user": "0"
           },
-          "expected": "revert",
-          "revertMessage": "AmountExceedsUserDeposit"
+          "expected": "success"
         }
       ]
     },
@@ -162,11 +161,11 @@
           "name": "redeem",
           "args": {
             "reserve": "WETH",
-            "amount": "2",
+            "amount": "1",
             "user": "1"
           },
           "expected": "revert",
-          "revertMessage": "AmountExceedsUserDeposit"
+          "revertMessage": "InsufficientCollateral"
         }
       ]
     }

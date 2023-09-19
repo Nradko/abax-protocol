@@ -14,11 +14,25 @@ use super::{
     internal::{InternalIncome, TimestampMock},
     storage::{
         lending_pool_storage::{MarketRule, RuleId},
-        structs::{reserve_data::ReserveIndexes, user_config::UserConfig},
+        structs::{
+            reserve_data::{
+                ReserveAbacusTokens, ReserveIndexes, ReservePrice,
+                ReserveRestrictions,
+            },
+            user_config::UserConfig,
+        },
     },
 };
 
 pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
+    fn view_asset_id(&self, asset: AccountId) -> Option<RuleId> {
+        ink::env::debug_println!(
+            "view asset: {:X?} | {:?}",
+            asset,
+            self.data::<LendingPoolStorage>().asset_to_id.get(&asset)
+        );
+        self.data::<LendingPoolStorage>().asset_to_id.get(&asset)
+    }
     fn view_registered_assets(&self) -> Vec<AccountId> {
         self.data::<LendingPoolStorage>()
             .get_all_registered_assets()
@@ -71,6 +85,34 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
                 .reserve_indexes
+                .get(&asset_id),
+            None => None,
+        }
+    }
+
+    fn view_reserve_restrictions(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveRestrictions> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => self
+                .data::<LendingPoolStorage>()
+                .reserve_restrictions
+                .get(&asset_id),
+            None => None,
+        }
+    }
+    fn view_reserve_tokens(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveAbacusTokens> {
+        self.data::<LendingPoolStorage>().reserve_abacus.get(&asset)
+    }
+    fn view_reserve_prices(&self, asset: AccountId) -> Option<ReservePrice> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => self
+                .data::<LendingPoolStorage>()
+                .reserve_prices
                 .get(&asset_id),
             None => None,
         }

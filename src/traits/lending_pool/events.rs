@@ -108,12 +108,17 @@ pub trait EmitManageEvents {
         &mut self,
         asset: &AccountId,
         interest_rate_model: &[u128; 7],
+        income_for_suppliers_part_e6: u128,
+        flash_loan_fee_e6: u128,
+    );
+
+    fn _emit_reserve_restrictions_changed_event(
+        &mut self,
+        asset: &AccountId,
         maximal_total_supply: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
     );
 
     fn _emit_asset_rules_changed(

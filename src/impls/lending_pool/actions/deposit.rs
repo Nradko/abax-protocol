@@ -20,11 +20,18 @@ pub trait LendingPoolDepositImpl:
         amount: Balance,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
+        ink::env::debug_println!(
+            "deposit | asset: {:X?}, on_behalf_of: {:X?}, amount {}",
+            asset,
+            on_behalf_of,
+            amount
+        );
         //// ARGUMENT CHECK
         _check_amount_not_zero(amount)?;
-        //// PULL DATA
+        //// PULL
         let block_timestamp = self._timestamp();
 
+        ink::env::debug_println!("deposit | account");
         let (user_accumulated_supply_interest, user_accumulated_debt_interest) =
             self.data::<LendingPoolStorage>().account_for_deposit(
                 &asset,
@@ -34,20 +41,24 @@ pub trait LendingPoolDepositImpl:
             )?;
 
         //// TOKEN TRANSFERS
+        ink::env::debug_println!("deposit | transfer_in");
         self._transfer_in(&asset, &Self::env().caller(), &amount)?;
         //// ABACUS TOKEN EVENTS
+        ink::env::debug_println!("deposit | get_token");
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus
             .get(&asset)
             .unwrap();
         // ATOKEN
+        ink::env::debug_println!("deposit | emit_event1");
         _emit_abacus_token_transfer_event(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
             (user_accumulated_supply_interest + amount) as i128,
         )?;
         // VTOKEN
+        ink::env::debug_println!("deposit | emit_event2");
         _emit_abacus_token_transfer_event(
             &abacus_tokens.v_token_address,
             &on_behalf_of,
@@ -55,6 +66,7 @@ pub trait LendingPoolDepositImpl:
         )?;
 
         //// EVENT
+        ink::env::debug_println!("deposit | emit_event3");
         self._emit_deposit_event(
             asset,
             Self::env().caller(),

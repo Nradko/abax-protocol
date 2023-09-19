@@ -99,7 +99,7 @@ impl UserReserveData {
         &self,
         reserve_restrictions: &ReserveRestrictions,
     ) -> Result<(), LendingPoolError> {
-        if self.debt < reserve_restrictions.minimal_debt {
+        if self.debt != 0 && self.debt < reserve_restrictions.minimal_debt {
             return Err(LendingPoolError::MinimalDebt);
         }
         Ok(())
@@ -109,7 +109,9 @@ impl UserReserveData {
         &self,
         reserve_restrictions: &ReserveRestrictions,
     ) -> Result<(), LendingPoolError> {
-        if self.deposit < reserve_restrictions.minimal_collateral {
+        if self.deposit != 0
+            && self.deposit < reserve_restrictions.minimal_collateral
+        {
             return Err(LendingPoolError::MinimalCollateralDeposit);
         }
         Ok(())
