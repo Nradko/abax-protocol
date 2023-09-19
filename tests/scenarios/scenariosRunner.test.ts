@@ -7,7 +7,7 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
 
 const scenarioFolder = path.join(__dirname, 'stories');
 
-const selectedFiles: string[] = []; //['deposit'];
+const selectedFiles: string[] = ['borrow-repay-variable']; //['deposit'];
 const selectedScenarios: string[] = []; //['User 0 Deposits 1000 DAI in an empty reserve'];
 const skipScenarios = false;
 const forceOnlyScenarios = false;

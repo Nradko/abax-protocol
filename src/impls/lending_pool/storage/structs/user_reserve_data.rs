@@ -1,5 +1,5 @@
-use checked_math::checked_math;
 use pendzl::traits::Balance;
+use primitive_types::U256;
 use scale::{Decode, Encode};
 
 use crate::{
@@ -120,13 +120,13 @@ impl UserReserveData {
     pub fn accumulate_user_interest(
         &mut self,
         reserve_indexes: &ReserveIndexes,
-    ) -> (Balance, Balance) {
+    ) -> Result<(Balance, Balance), MathError> {
         if self.applied_cumulative_supply_index_e18
             >= reserve_indexes.cumulative_supply_index_e18
             && self.applied_cumulative_debt_index_e18
                 >= reserve_indexes.cumulative_debt_index_e18
         {
-            return (0, 0);
+            return Ok((0, 0));
         }
 
         let (mut delta_user_supply, mut delta_user_varaible_debt): (
@@ -139,14 +139,20 @@ impl UserReserveData {
             && self.applied_cumulative_supply_index_e18
                 < reserve_indexes.cumulative_supply_index_e18
         {
-            let updated_supply = u128::try_from(
-                checked_math!(
-                    self.deposit * reserve_indexes.cumulative_supply_index_e18
-                        / self.applied_cumulative_supply_index_e18
-                )
-                .unwrap(),
-            )
-            .expect(MATH_ERROR_MESSAGE);
+            let updated_supply = match u128::try_from({
+                let x = U256::try_from(self.deposit).unwrap();
+                let y =
+                    U256::try_from(reserve_indexes.cumulative_supply_index_e18)
+                        .unwrap();
+                let z =
+                    U256::try_from(self.applied_cumulative_supply_index_e18)
+                        .unwrap();
+
+                x.checked_mul(y).unwrap().checked_div(z).unwrap()
+            }) {
+                Ok(v) => Ok(v),
+                _ => Err(MathError::Overflow),
+            }?;
             delta_user_supply = updated_supply - self.deposit;
             self.deposit = updated_supply;
         }
@@ -167,14 +173,21 @@ impl UserReserveData {
                 reserve_indexes.cumulative_debt_index_e18
             );
             let updated_borrow = {
-                let updated_borrow_rounded_down = u128::try_from(
-                    checked_math!(
-                        self.debt * reserve_indexes.cumulative_debt_index_e18
-                            / self.applied_cumulative_debt_index_e18
+                let updated_borrow_rounded_down = match u128::try_from({
+                    let x = U256::try_from(self.debt).unwrap();
+                    let y = U256::try_from(
+                        reserve_indexes.cumulative_debt_index_e18,
                     )
-                    .unwrap(),
-                )
-                .expect(MATH_ERROR_MESSAGE);
+                    .unwrap();
+                    let z =
+                        U256::try_from(self.applied_cumulative_debt_index_e18)
+                            .unwrap();
+
+                    x.checked_mul(y).unwrap().checked_div(z).unwrap()
+                }) {
+                    Ok(v) => Ok(v),
+                    _ => Err(MathError::Overflow),
+                }?;
                 updated_borrow_rounded_down
                     .checked_add(1)
                     .expect(MATH_ERROR_MESSAGE)
@@ -189,7 +202,7 @@ impl UserReserveData {
         self.applied_cumulative_debt_index_e18 =
             reserve_indexes.cumulative_debt_index_e18;
         ink::env::debug_println!("--- accumulate interest ---");
-        return (delta_user_supply, delta_user_varaible_debt);
+        return Ok((delta_user_supply, delta_user_varaible_debt));
     }
 }
 

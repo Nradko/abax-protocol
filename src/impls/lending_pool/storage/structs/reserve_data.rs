@@ -1,9 +1,8 @@
-use checked_math::checked_math;
 use pendzl::traits::{AccountId, Balance, Timestamp};
 use primitive_types::U256;
 use scale::{Decode, Encode};
 
-use crate::impls::constants::{E18_U128, E6_U128, MATH_ERROR_MESSAGE};
+use crate::impls::constants::{E18_U128, E6_U128};
 
 use crate::library::math::{
     e18_mul_e0_to_e0_rdown, e18_mul_e18_to_e18_rdown, e18_mul_e18_to_e18_rup,
@@ -290,15 +289,20 @@ impl ReserveData {
         }
     }
     //// VIEW
-    pub fn current_utilization_rate_e6(&self) -> u128 {
+    pub fn current_utilization_rate_e6(&self) -> Result<u128, MathError> {
         if self.total_deposit == 0 {
-            return E6_U128;
+            return Ok(E6_U128);
         }
         let total_debt = self.total_debt;
-        u128::try_from(
-            checked_math!(total_debt * E6_U128 / self.total_deposit).unwrap(),
-        )
-        .expect(MATH_ERROR_MESSAGE)
+        match u128::try_from({
+            let x = U256::try_from(total_debt).unwrap();
+            let y = U256::try_from(E6_U128).unwrap();
+            let z = U256::try_from(self.total_deposit).unwrap();
+            x.checked_mul(y).unwrap().checked_div(z).unwrap()
+        }) {
+            Ok(v) => Ok(v),
+            _ => Err(MathError::Overflow),
+        }
     }
 
     //// MUT
@@ -357,7 +361,7 @@ impl ReserveData {
             self.current_supply_rate_e24 = 0;
             return Ok(());
         }
-        let utilization_rate_e6 = self.current_utilization_rate_e6();
+        let utilization_rate_e6 = self.current_utilization_rate_e6()?;
         self.current_debt_rate_e24 =
             self.utilization_rate_to_interest_rate_e24(utilization_rate_e6);
 

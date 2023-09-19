@@ -39,7 +39,6 @@ primitive-types = { version = "0.12.1", default-features = false, features = [
 ] }
 
 num-traits = { version = "0.2.15", default-features = false }
-checked_math = { path = "dependencies/checked_math", default-features = false }
 itertools = { version = "0.10.5", default-features = false }
 
 [lib]
