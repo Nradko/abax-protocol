@@ -245,7 +245,6 @@ makeSuite('Message', (getTestEnv) => {
               0,
               0,
               '0',
-              '12',
               [0, 0, 0, 0, 0, 0, 0],
               users[1].address,
               users[1].address,
@@ -269,7 +268,6 @@ makeSuite('Message', (getTestEnv) => {
             0,
             0,
             '900000',
-            '1000',
             [1, 2, 3, 4, 5, 6, 7],
             users[3].address,
             users[4].address,
@@ -278,6 +276,7 @@ makeSuite('Message', (getTestEnv) => {
         const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value.ok!;
         const reserveData = (await lendingPool.query.viewUnupdatedReserveData(users[2].address)).value.ok!;
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(users[2].address)).value.ok!;
+        const resreveParameters = (await lendingPool.query.viewReserveParameters(users[2].address)).value.ok!;
         const reserveTokens = (await lendingPool.query.viewReserveTokens(users[2].address)).value.ok!;
         const reservePrices = (await lendingPool.query.viewReservePrices(users[2].address)).value.ok!;
 
@@ -288,11 +287,10 @@ makeSuite('Message', (getTestEnv) => {
         expect.soft(reservePrices.decimals.toString()).to.equal('100000000');
         expect.soft(reserveRestrictions.maximalTotalSupply?.toString()).to.equal('99999999');
         expect.soft(reserveRestrictions.maximalTotalDebt?.toString()).to.equal('11111111');
-        expect.soft(reserveData.parameters.incomeForSuppliersPartE6.toString()).to.equal('900000');
-        expect.soft(reserveData.parameters.flashLoanFeeE6.toString()).to.equal('1000');
+        expect.soft(resreveParameters.incomeForSuppliersPartE6.toString()).to.equal('900000');
         expect.soft(reserveTokens.aTokenAddress).to.equal(users[3].address);
         expect.soft(reserveTokens.vTokenAddress).to.equal(users[4].address);
-        expect.soft(replaceRNBNPropsWithStrings(reserveData.parameters.interestRateModel)).to.deep.equal(['1', '2', '3', '4', '5', '6', '7']);
+        expect.soft(replaceRNBNPropsWithStrings(resreveParameters.interestRateModel)).to.deep.equal(['1', '2', '3', '4', '5', '6', '7']);
 
         expect.soft(AssetRegisteredEvent, 'AssetRegisteredEvent | Event | not emitted').not.to.be.undefined;
         expect.flushSoft();

@@ -35,7 +35,7 @@ pub mod lending_pool {
                 structs::{
                     reserve_data::{
                         ReserveAbacusTokens, ReserveData, ReserveIndexes,
-                        ReservePrice, ReserveRestrictions,
+                        ReserveParameters, ReservePrice, ReserveRestrictions,
                     },
                     user_config::UserConfig,
                     user_reserve_data::UserReserveData,
@@ -239,6 +239,16 @@ pub mod lending_pool {
     impl LendingPoolManageImpl for LendingPool {}
     impl LendingPoolManage for LendingPool {
         #[ink(message)]
+        fn set_flash_loan_fee_e6(
+            &mut self,
+            flash_loan_fee_e6: u128,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_flash_loan_fee_e6(
+                self,
+                flash_loan_fee_e6,
+            )
+        }
+        #[ink(message)]
         fn set_block_timestamp_provider(
             &mut self,
             provider_address: AccountId,
@@ -262,7 +272,6 @@ pub mod lending_pool {
             minimal_collateral: Balance,
             minimal_debt: Balance,
             income_for_suppliers_part_e6: u128,
-            flash_loan_fee_e6: u128,
             interest_rate_model: [u128; 7],
             a_token_address: AccountId,
             v_token_address: AccountId,
@@ -279,7 +288,6 @@ pub mod lending_pool {
                 minimal_collateral,
                 minimal_debt,
                 income_for_suppliers_part_e6,
-                flash_loan_fee_e6,
                 interest_rate_model,
                 a_token_address,
                 v_token_address,
@@ -310,14 +318,12 @@ pub mod lending_pool {
             asset: AccountId,
             interest_rate_model: [u128; 7],
             income_for_suppliers_part_e6: u128,
-            flash_loan_fee_e6: u128,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_reserve_parameters(
                 self,
                 asset,
                 interest_rate_model,
                 income_for_suppliers_part_e6,
-                flash_loan_fee_e6,
             )
         }
 
@@ -379,6 +385,10 @@ pub mod lending_pool {
     impl LendingPoolViewImpl for LendingPool {}
     impl LendingPoolView for LendingPool {
         #[ink(message)]
+        fn view_flash_loan_fee_e6(&self) -> u128 {
+            LendingPoolViewImpl::view_flash_loan_fee_e6(self)
+        }
+        #[ink(message)]
         fn view_asset_id(&self, account: AccountId) -> Option<RuleId> {
             LendingPoolViewImpl::view_asset_id(self, account)
         }
@@ -404,6 +414,13 @@ pub mod lending_pool {
             asset: AccountId,
         ) -> Option<ReserveIndexes> {
             LendingPoolViewImpl::view_unupdated_reserve_indexes(self, asset)
+        }
+        #[ink(message)]
+        fn view_reserve_parameters(
+            &self,
+            asset: AccountId,
+        ) -> Option<ReserveParameters> {
+            LendingPoolViewImpl::view_reserve_parameters(self, asset)
         }
         #[ink(message)]
         fn view_reserve_restrictions(
@@ -584,6 +601,7 @@ pub mod lending_pool {
             let caller = instance.env().caller();
             instance.lending_pool.next_asset_id.set(&0);
             instance.lending_pool.next_rule_id.set(&0);
+            instance.lending_pool.flash_loan_fee_e6.set(&1000);
             access_control::Internal::_init_with_admin(
                 &mut instance,
                 caller.into(),
@@ -751,6 +769,11 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
+    pub struct FlashLoanFeeChanged {
+        flash_loan_fee_e6: u128,
+    }
+
+    #[ink(event)]
     pub struct ReserveActivated {
         #[ink(topic)]
         asset: AccountId,
@@ -770,7 +793,6 @@ pub mod lending_pool {
         asset: AccountId,
         interest_rate_model: [u128; 7],
         income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
     }
 
     #[ink(event)]
@@ -929,6 +951,14 @@ pub mod lending_pool {
     }
 
     impl EmitManageEvents for LendingPool {
+        fn _emit_flash_loan_fee_e6_changed(
+            &mut self,
+            flash_loan_fee_e6: &u128,
+        ) {
+            self.env().emit_event(FlashLoanFeeChanged {
+                flash_loan_fee_e6: *flash_loan_fee_e6,
+            })
+        }
         fn _emit_asset_registered_event(
             &mut self,
             asset: &AccountId,
@@ -970,13 +1000,11 @@ pub mod lending_pool {
             asset: &AccountId,
             interest_rate_model: &[u128; 7],
             income_for_suppliers_part_e6: u128,
-            flash_loan_fee_e6: u128,
         ) {
             self.env().emit_event(ParametersChanged {
                 asset: *asset,
                 interest_rate_model: *interest_rate_model,
                 income_for_suppliers_part_e6,
-                flash_loan_fee_e6,
             })
         }
 

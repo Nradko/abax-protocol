@@ -13,12 +13,13 @@ import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import VTokenContract from 'typechain/contracts/v_token';
 import { getArgvObj } from '@abaxfinance/utils';
 
+const FLASH_LOAN_FEE_E6 = 1000;
+
 const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = [
   {
     name: 'DAI_TEST',
     decimals: 6,
     feeD6: 100_000,
-    flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.97,
     borrowCoefficient: 1.03,
@@ -32,7 +33,6 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     name: 'USDC_TEST',
     decimals: 6,
     feeD6: 100_000,
-    flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.98,
     maximalTotalSupply: null,
@@ -46,7 +46,6 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     name: 'WETH_TEST',
     decimals: 18,
     feeD6: 100_000,
-    flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
     maximalTotalSupply: null,
@@ -60,7 +59,6 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     name: 'BTC_TEST',
     decimals: 8,
     feeD6: 100_000,
-    flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
     maximalTotalSupply: null,
@@ -74,7 +72,6 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     name: 'AZERO_TEST',
     decimals: 12,
     feeD6: 100_000,
-    flashLoanFeeE6: 1000,
     stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
     maximalTotalSupply: null,
@@ -88,7 +85,6 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     name: 'DOT_TEST',
     decimals: 12,
     feeD6: 100_000,
-    flashLoanFeeE6: 1000,
     stableBaseRate: null,
     collateralCoefficient: 0.7,
     borrowCoefficient: 1.3,
@@ -161,7 +157,6 @@ type TokenReserve = {
       reserveData.minimalDebt,
       reserveData.decimals,
       reserveData.feeD6,
-      reserveData.flashLoanFeeE6,
     );
     await lendingPool.tx.insertReserveTokenPriceE8(reserve.address, PRICES_E8[reserveData.name]);
     reservesWithLendingTokens[reserveData.name] = {

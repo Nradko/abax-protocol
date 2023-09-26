@@ -50,6 +50,11 @@ pub trait LendingPoolFlashImpl:
         let mut reserve_data_vec: Vec<ReserveData> = vec![];
         let mut reserve_indexes_vec: Vec<ReserveIndexes> = vec![];
         let mut fees: Vec<u128> = vec![];
+        let flash_fee_e6 = self
+            .data::<LendingPoolStorage>()
+            .flash_loan_fee_e6
+            .get()
+            .unwrap();
 
         for i in 0..assets.len() {
             let asset_id = self
@@ -72,17 +77,8 @@ pub trait LendingPoolFlashImpl:
             let fee = match self
                 ._has_role(FLASH_BORROWER, &Some(Self::env().caller()))
             {
-                false => {
-                    amounts[i]
-                        * reserve_data_vec[i].parameters.flash_loan_fee_e6
-                        / E6_U128
-                }
-                true => {
-                    amounts[i]
-                        * reserve_data_vec[i].parameters.flash_loan_fee_e6
-                        / E6_U128
-                        / 10
-                }
+                false => amounts[i] * flash_fee_e6 / E6_U128,
+                true => amounts[i] * flash_fee_e6 / E6_U128 / 10,
             };
             fees.push(fee);
             self._transfer_out(&assets[i], &receiver_address, &amounts[i])?;
