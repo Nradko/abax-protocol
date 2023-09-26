@@ -28,7 +28,6 @@ describe('Custom deployment', () => {
             feeD6: 100,
             name: 'BOI',
             stableBaseRate: 100,
-            flashLoanFeeE6: 2000,
             collateralCoefficient: 0.9,
             maximalTotalSupply: null,
             maximalTotalDebt: null,
@@ -42,7 +41,6 @@ describe('Custom deployment', () => {
             feeD6: 200,
             name: 'WMN',
             stableBaseRate: 200,
-            flashLoanFeeE6: 5000,
             collateralCoefficient: 0.9,
             maximalTotalSupply: null,
             maximalTotalDebt: null,
@@ -69,7 +67,6 @@ describe('Custom deployment', () => {
 
       expect.soft(reserveBOI).to.be.not.null;
       expect.soft(aTokensBOI?.aTokenAddress).to.be.ok;
-      expect.soft(reserveBOI?.parameters.flashLoanFeeE6.toNumber()).to.equal(2000);
       expect.flushSoft();
     });
   });

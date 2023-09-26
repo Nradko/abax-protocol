@@ -156,14 +156,13 @@ impl ReservePrice {
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct ReserveDataParameters {
+pub struct ReserveParameters {
     /// delta interest per millisecond for utilizations (50%, 60%, 70%, 80%, 90%, 95%, 100%).
     pub interest_rate_model: [u128; 7],
     /// part of interest paid by borrowers that is redistributed to the suppliers. 10^6 = 100%.
     pub income_for_suppliers_part_e6: u128,
-    /// fee that must be paid while taking flash loan. 10^6 = 100%.
-    pub flash_loan_fee_e6: u128,
 }
+
 /// is a struct containing all important constants and non-constant parameters and variables for each asset available on market.
 /// records  total supplly and debt, interest rates.
 /// very ofther used
@@ -177,8 +176,6 @@ pub struct ReserveData {
     pub activated: bool,
     /// are borrows and supplies freezed?
     pub freezed: bool,
-    ///
-    pub parameters: ReserveDataParameters,
     ///// Variables
     //// Supply
     /// total supply of underlying asset. It is sum of deposits and  of accumulated interests. Total supply of aToken.
@@ -194,21 +191,17 @@ pub struct ReserveData {
     pub indexes_update_timestamp: Timestamp,
 }
 
+#[derive(Debug)]
+pub struct AssetReserveData {
+    pub data: ReserveData,
+    pub parameters: ReserveParameters,
+}
+
 impl ReserveData {
-    pub fn new(
-        interest_rate_model: &[u128; 7],
-        income_for_suppliers_part_e6: &u128,
-        flash_loan_fee_e6: &u128,
-        timestamp: &Timestamp,
-    ) -> Self {
+    pub fn new(timestamp: &Timestamp) -> Self {
         ReserveData {
             activated: true,
             freezed: false,
-            parameters: ReserveDataParameters {
-                interest_rate_model: *interest_rate_model,
-                income_for_suppliers_part_e6: *income_for_suppliers_part_e6,
-                flash_loan_fee_e6: *flash_loan_fee_e6,
-            },
             total_deposit: 0,
             current_supply_rate_e24: E18_U128,
             total_debt: 0,
@@ -256,9 +249,10 @@ impl ReserveData {
     pub fn utilization_rate_to_interest_rate_e24(
         &self,
         utilization_rate_e6: u128,
+        reserve_parameters: &ReserveParameters,
     ) -> u128 {
         let [t50, t60, t70, t80, t90, t95, t100]: [u128; 7] =
-            self.parameters.interest_rate_model;
+            reserve_parameters.interest_rate_model;
         match utilization_rate_e6 {
             0 => 0,
             1..=499_999 => t50 * utilization_rate_e6 / 500_000 + 1,
@@ -355,15 +349,21 @@ impl ReserveData {
         Ok(())
     }
 
-    pub fn recalculate_current_rates(&mut self) -> Result<(), MathError> {
+    pub fn recalculate_current_rates(
+        &mut self,
+        reserve_parameters: &ReserveParameters,
+    ) -> Result<(), MathError> {
         if self.total_debt == 0 {
             self.current_debt_rate_e24 = 0;
             self.current_supply_rate_e24 = 0;
             return Ok(());
         }
         let utilization_rate_e6 = self.current_utilization_rate_e6()?;
-        self.current_debt_rate_e24 =
-            self.utilization_rate_to_interest_rate_e24(utilization_rate_e6);
+        self.current_debt_rate_e24 = self
+            .utilization_rate_to_interest_rate_e24(
+                utilization_rate_e6,
+                reserve_parameters,
+            );
 
         if self.total_deposit != 0 {
             let current_income_per_milisecond_e24: U256 = {
@@ -373,7 +373,7 @@ impl ReserveData {
             };
             self.current_supply_rate_e24 = e24_mul_e6_div_e0_to_e24_rdown(
                 current_income_per_milisecond_e24,
-                self.parameters.income_for_suppliers_part_e6,
+                reserve_parameters.income_for_suppliers_part_e6,
                 self.total_deposit,
             )?;
         } else {

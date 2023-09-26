@@ -8,7 +8,7 @@ import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import VToken from 'typechain/contracts/v_token';
 import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
 import { getEventTypeDescription } from 'typechain/shared/utils';
-import { ReserveData, ReserveDataParameters, UserReserveData } from 'typechain/types-returns/lending_pool';
+import { ReserveData, ReserveParameters, UserReserveData } from 'typechain/types-returns/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import { TestEnv } from './make-suite';
 
@@ -108,7 +108,7 @@ export const subscribeOnEvents = async (
   return Promise.all(subscribePromises);
 };
 
-export const getReserveDataParametersDefaultObj = (): ReserveDataParameters => {
+export const getReserveParametersDefaultObj = (): ReserveParameters => {
   return {
     interestRateModel: [
       new ReturnNumber(300000000000),
@@ -120,7 +120,6 @@ export const getReserveDataParametersDefaultObj = (): ReserveDataParameters => {
       new ReturnNumber(300000000000000),
     ],
     incomeForSuppliersPartE6: new ReturnNumber(E6),
-    flashLoanFeeE6: new ReturnNumber(0),
   };
 };
 
@@ -128,7 +127,6 @@ export const getReserveDefaultObj = (): ReserveData => {
   return {
     activated: true,
     freezed: false,
-    parameters: getReserveDataParametersDefaultObj(),
     totalDeposit: new ReturnNumber(0),
     currentSupplyRateE24: new ReturnNumber(E18),
     totalDebt: new ReturnNumber(0),
