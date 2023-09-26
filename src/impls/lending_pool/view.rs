@@ -8,7 +8,7 @@ use crate::impls::{
 
 use pendzl::traits::{AccountId, Storage};
 
-use ink::prelude::{vec::Vec, *};
+use ink::prelude::vec::Vec;
 
 use super::{
     internal::{InternalIncome, TimestampMock},
@@ -144,38 +144,6 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
         }
     }
 
-    fn view_unupdated_reserve_datas(
-        &self,
-        assets: Option<Vec<AccountId>>,
-    ) -> Vec<(AccountId, Option<ReserveData>)> {
-        let assets_to_view = assets.unwrap_or_else(|| {
-            self.data::<LendingPoolStorage>()
-                .get_all_registered_assets()
-        });
-
-        let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
-        for asset in assets_to_view {
-            ret.push((asset, self.view_unupdated_reserve_data(asset)));
-        }
-        ret
-    }
-
-    fn view_reserve_datas(
-        &self,
-        assets: Option<Vec<AccountId>>,
-    ) -> Vec<(AccountId, Option<ReserveData>)> {
-        let assets_to_view = assets.unwrap_or_else(|| {
-            self.data::<LendingPoolStorage>()
-                .get_all_registered_assets()
-        });
-
-        let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
-        for asset in assets_to_view {
-            ret.push((asset, self.view_reserve_data(asset)));
-        }
-        ret
-    }
-
     fn view_unupdated_user_reserve_data(
         &self,
         asset: AccountId,
@@ -236,43 +204,6 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                 applied_cumulative_debt_index_e18: E18_U128,
             },
         }
-    }
-
-    fn view_unupdated_user_reserve_datas(
-        &self,
-        assets: Option<Vec<AccountId>>,
-        user: AccountId,
-    ) -> Vec<(AccountId, UserReserveData)> {
-        let assets_to_view = assets.unwrap_or_else(|| {
-            self.data::<LendingPoolStorage>()
-                .get_all_registered_assets()
-        });
-
-        let mut ret: Vec<(AccountId, UserReserveData)> = vec![];
-        for asset in assets_to_view {
-            ret.push((
-                asset,
-                self.view_unupdated_user_reserve_data(asset, user),
-            ));
-        }
-        ret
-    }
-
-    fn view_user_reserve_datas(
-        &self,
-        assets: Option<Vec<AccountId>>,
-        user: AccountId,
-    ) -> Vec<(AccountId, UserReserveData)> {
-        let assets_to_view = assets.unwrap_or_else(|| {
-            self.data::<LendingPoolStorage>()
-                .get_all_registered_assets()
-        });
-
-        let mut ret: Vec<(AccountId, UserReserveData)> = vec![];
-        for asset in assets_to_view {
-            ret.push((asset, self.view_user_reserve_data(asset, user)));
-        }
-        ret
     }
 
     fn view_user_config(&self, user: AccountId) -> UserConfig {

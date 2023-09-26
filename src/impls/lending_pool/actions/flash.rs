@@ -41,7 +41,7 @@ pub trait LendingPoolFlashImpl:
         amounts: Vec<Balance>,
         receiver_params: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
-        if !(assets.len() == amounts.len()) {
+        if assets.len() != amounts.len() {
             return Err(
                 LendingPoolError::FlashLoanAmountsAssetsInconsistentLengths,
             );

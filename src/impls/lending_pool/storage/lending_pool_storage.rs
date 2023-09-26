@@ -273,7 +273,10 @@ impl LendingPoolStorage {
             return Err(LendingPoolError::RuleCollateralDisable);
         }
 
-        if user_reserve_data.deposit < reserve_restrictions.minimal_collateral {
+        if use_as_collateral_to_set
+            && user_reserve_data.deposit
+                < reserve_restrictions.minimal_collateral
+        {
             return Err(LendingPoolError::MinimalCollateralDeposit);
         };
 
@@ -891,10 +894,6 @@ impl LendingPoolStorage {
             amount,
         )?;
 
-        if (to_config.collaterals >> asset_id) == 1 {
-            to_user_reserve_data
-                .check_collateral_restrictions(&reserve_restrictions)?;
-        }
         reserve_data.recalculate_current_rates()?;
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
@@ -974,7 +973,10 @@ impl LendingPoolStorage {
             .user_reserve_datas
             .get(&(asset_id, *from))
             .ok_or(LendingPoolError::InsufficientDebt)?;
-        let mut to_config = self.user_configs.get(to).unwrap_or_default();
+        let mut to_config = self
+            .user_configs
+            .get(to)
+            .ok_or(LendingPoolError::InsufficientCollateral)?;
         let mut to_user_reserve_data = self
             .user_reserve_datas
             .get(&(asset_id, *to))

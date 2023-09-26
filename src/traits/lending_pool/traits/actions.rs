@@ -35,7 +35,7 @@ pub trait LendingPoolDeposit {
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
     ///     user0 is making a deposit.
     /// * `amount` - the number of tokens to be deposited in an absolute value (1USDT = 1_000_000, 1AZERO = 1_000_000_000_000).
-    /// * `data` - additional data that is currently unused. In the future it could for example specify some additional data to be passed during PSP22::transfer_from
+    /// * `data` - additional data currently unused.
     #[ink(message)]
     fn deposit(
         &mut self,
@@ -50,8 +50,8 @@ pub trait LendingPoolDeposit {
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
     ///     user0 is making redeem. If user0 != user1 then the allowance of on appropriate AToken will be decreased.
-    /// * `amount` - the number of tokens to be redeemed in Some absolute value (1USDT = 1_000_000, 1AZERO = 1_000_000_000_000) or None to redeem all.
-    /// * `data` - additional data that is currently unused. In the future it could for example specify some additional data to be passed during PSP22::transfer_from
+    /// * `amount` - the number of tokens to be redeemed. if greater then deposit_amount then only deposit_amopunt will be withdrawn.
+    /// * `data` - additional data currently unused.
     #[ink(message)]
     fn redeem(
         &mut self,
@@ -87,14 +87,13 @@ pub trait LendingPoolBorrow {
         use_as_collateral: bool,
     ) -> Result<(), LendingPoolError>;
     /// is used by a user0, once he made a deposit and chosen users collaterals, to borrow an asset from LendingPool.
-    /// user0 can specify a Variable or Stable borrow rate by passing 0 or 1 in data\[0\].
     ///
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
     ///     user1 is making borrow. In case user0 != user1 the allowance on appropriate VToken will be decreased.
     /// * `amount` - the number of tokens to be borrowed in absolute value (1 USDT = 1_000_000, 1 AZERO = 1_000_000_000_000).
-    /// * `data` - additional data to specify borrow options. Right now it is only used to specify Variable or Stable borrow rates.
+    /// * `data` - additional data currently unused.
     #[ink(message)]
     fn borrow(
         &mut self,
@@ -104,14 +103,13 @@ pub trait LendingPoolBorrow {
         data: Vec<u8>,
     ) -> Result<(), LendingPoolError>;
     /// is used by a user0, once he made a borrow, to repay a debt taken in the asset from LendingPool.
-    /// user0 can specify a Variable or Stable debt to repay by passing 0 or 1 in data\[0\].
     ///
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
     ///     user1 is making borrow. In case user0 != user1 the allowance on appropriate VToken will be decreased.
-    /// * `amount_arg` - the number of tokens to be repaid. Pass None to repay all debt or Some in absolute value (1USDT = 1_000_000, 1AZERO = 1_000_000_000_000).
-    /// * `data` - additional data to specify repayment options. Right now it is only used to specify Variable or Stable borrow rates.
+    /// * `amount` - the number of tokens to be repaid. If it is greater then debt_amount only debt_amount will be repaid.
+    /// * `data` - additional data currently unused.
     #[ink(message)]
     fn repay(
         &mut self,
