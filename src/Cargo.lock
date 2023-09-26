@@ -745,57 +745,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "obce"
-version = "0.1.0"
-source = "git+https://github.com/727-Ventures/obce?branch=polkadot-v0.9.37#d452f6eda1bc1ecb36e7e332d61529ad440d5a89"
-dependencies = [
- "ink",
- "ink_engine",
- "obce-macro",
- "parity-scale-codec",
- "scale-info",
-]
-
-[[package]]
-name = "obce-codegen"
-version = "0.1.0"
-source = "git+https://github.com/727-Ventures/obce?branch=polkadot-v0.9.37#d452f6eda1bc1ecb36e7e332d61529ad440d5a89"
-dependencies = [
- "blake2",
- "itertools",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
- "tuple",
-]
-
-[[package]]
-name = "obce-macro"
-version = "0.1.0"
-source = "git+https://github.com/727-Ventures/obce?branch=polkadot-v0.9.37#d452f6eda1bc1ecb36e7e332d61529ad440d5a89"
-dependencies = [
- "obce-codegen",
- "proc-macro2",
- "syn 1.0.109",
- "synstructure 0.12.6",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
-
-[[package]]
-name = "pallet-assets-chain-extension"
-version = "0.1.1"
-source = "git+https://github.com/Brushfam/pallet-assets-chain-extension?branch=polkadot-v0.9.37#f8ea374186df2a3fc139c8d585719e58d83df582"
-dependencies = [
- "ink",
- "obce",
- "parity-scale-codec",
- "scale-info",
-]
 
 [[package]]
 name = "parity-scale-codec"
@@ -831,7 +784,7 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "pendzl"
-version = "4.0.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "ink",
  "parity-scale-codec",
@@ -842,11 +795,10 @@ dependencies = [
 
 [[package]]
 name = "pendzl_contracts"
-version = "4.0.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "hex",
  "ink",
- "pallet-assets-chain-extension",
  "parity-scale-codec",
  "pendzl_lang",
  "scale-info",
@@ -854,7 +806,7 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang"
-version = "4.0.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "const_format",
  "ink",
@@ -866,7 +818,7 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang_codegen"
-version = "4.0.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "blake2",
  "cargo_metadata",
@@ -885,7 +837,7 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang_macro"
-version = "4.0.0-beta.1"
+version = "0.1.0"
 dependencies = [
  "pendzl_lang_codegen",
  "proc-macro2",
@@ -1377,16 +1329,6 @@ dependencies = [
  "indexmap",
  "toml_datetime",
  "winnow",
-]
-
-[[package]]
-name = "tuple"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39a40ba241047e1174c927dc5f61c141a166b938d61a2ff61838441368cc7d0e"
-dependencies = [
- "num-traits",
- "serde",
 ]
 
 [[package]]

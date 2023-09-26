@@ -29,7 +29,10 @@ use pendzl::{
 };
 
 pub trait LendingPoolFlashImpl:
-    Storage<LendingPoolStorage> + EmitFlashEvents + AccessControlImpl
+    Storage<LendingPoolStorage>
+    + EmitFlashEvents
+    + access_control::Internal
+    + access_control::MembersManager
 {
     fn flash_loan(
         &mut self,
@@ -38,7 +41,7 @@ pub trait LendingPoolFlashImpl:
         amounts: Vec<Balance>,
         receiver_params: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
-        if !(assets.len() == amounts.len()) {
+        if assets.len() != amounts.len() {
             return Err(
                 LendingPoolError::FlashLoanAmountsAssetsInconsistentLengths,
             );
@@ -67,7 +70,7 @@ pub trait LendingPoolFlashImpl:
                     .unwrap(),
             );
             let fee = match self
-                .has_role(FLASH_BORROWER, Self::env().caller().into())
+                ._has_role(FLASH_BORROWER, &Some(Self::env().caller()))
             {
                 false => {
                     amounts[i]
