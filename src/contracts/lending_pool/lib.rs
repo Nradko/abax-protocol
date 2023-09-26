@@ -434,20 +434,6 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_reserve_indexes(self, asset)
         }
         #[ink(message)]
-        fn view_unupdated_reserve_datas(
-            &self,
-            assets: Option<Vec<AccountId>>,
-        ) -> Vec<(AccountId, Option<ReserveData>)> {
-            LendingPoolViewImpl::view_unupdated_reserve_datas(self, assets)
-        }
-        #[ink(message)]
-        fn view_reserve_datas(
-            &self,
-            assets: Option<Vec<AccountId>>,
-        ) -> Vec<(AccountId, Option<ReserveData>)> {
-            LendingPoolViewImpl::view_reserve_datas(self, assets)
-        }
-        #[ink(message)]
         fn view_unupdated_user_reserve_data(
             &self,
             asset: AccountId,
@@ -464,24 +450,6 @@ pub mod lending_pool {
             account: AccountId,
         ) -> UserReserveData {
             LendingPoolViewImpl::view_user_reserve_data(self, asset, account)
-        }
-        #[ink(message)]
-        fn view_unupdated_user_reserve_datas(
-            &self,
-            assets: Option<Vec<AccountId>>,
-            account: AccountId,
-        ) -> Vec<(AccountId, UserReserveData)> {
-            LendingPoolViewImpl::view_unupdated_user_reserve_datas(
-                self, assets, account,
-            )
-        }
-        #[ink(message)]
-        fn view_user_reserve_datas(
-            &self,
-            assets: Option<Vec<AccountId>>,
-            account: AccountId,
-        ) -> Vec<(AccountId, UserReserveData)> {
-            LendingPoolViewImpl::view_user_reserve_datas(self, assets, account)
         }
         #[ink(message)]
         fn view_user_config(&self, user: AccountId) -> UserConfig {

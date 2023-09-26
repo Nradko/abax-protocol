@@ -314,7 +314,7 @@ impl ReserveData {
         let mut supply_index_multiplier_e18: u128 = E18_U128;
         let mut debt_index_multiplier_e18: u128 = E18_U128;
 
-        // time that have passed in seconds
+        // time that have passed in miliseconds
         let delta_timestamp: u128 =
             (*new_timestamp - self.indexes_update_timestamp) as u128;
         // variable_borrow

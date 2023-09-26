@@ -50,7 +50,8 @@ pub trait LendingPoolManageImpl:
     + Storage<access_control::Data>
     + InternalIncome
     + EmitManageEvents
-    + AccessControlImpl
+    + access_control::Internal
+    + access_control::MembersManager
 {
     /// used for testing
     fn set_block_timestamp_provider(
@@ -81,8 +82,8 @@ pub trait LendingPoolManageImpl:
         v_token_address: AccountId,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !self.has_role(ASSET_LISTING_ADMIN, caller.into())
-            && !self.has_role(GLOBAL_ADMIN, caller.into())
+        if !self._has_role(ASSET_LISTING_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -156,8 +157,8 @@ pub trait LendingPoolManageImpl:
         active: bool,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !self.has_role(EMERGENCY_ADMIN, caller.into())
-            && !self.has_role(GLOBAL_ADMIN, caller.into())
+        if !self._has_role(EMERGENCY_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -177,8 +178,8 @@ pub trait LendingPoolManageImpl:
         freeze: bool,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !self.has_role(EMERGENCY_ADMIN, caller.into())
-            && !self.has_role(GLOBAL_ADMIN, caller.into())
+        if !self._has_role(EMERGENCY_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -199,8 +200,8 @@ pub trait LendingPoolManageImpl:
         minimal_debt: Balance,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !self.has_role(PARAMETERS_ADMIN, caller.into())
-            && !self.has_role(GLOBAL_ADMIN, caller.into())
+        if !self._has_role(PARAMETERS_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -236,8 +237,8 @@ pub trait LendingPoolManageImpl:
         flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !self.has_role(PARAMETERS_ADMIN, caller.into())
-            && !self.has_role(GLOBAL_ADMIN, caller.into())
+        if !self._has_role(PARAMETERS_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -268,8 +269,8 @@ pub trait LendingPoolManageImpl:
         market_rule: MarketRule,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !self.has_role(PARAMETERS_ADMIN, caller.into())
-            && !self.has_role(GLOBAL_ADMIN, caller.into())
+        if !self._has_role(PARAMETERS_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
@@ -311,8 +312,8 @@ pub trait LendingPoolManageImpl:
         penalty_e6: Option<u128>,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        if !self.has_role(PARAMETERS_ADMIN, caller.into())
-            && !self.has_role(GLOBAL_ADMIN, caller.into())
+        if !self._has_role(PARAMETERS_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
             return Err(LendingPoolError::from(
                 AccessControlError::MissingRole,
