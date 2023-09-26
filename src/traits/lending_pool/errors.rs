@@ -28,6 +28,7 @@ pub enum LendingPoolError {
     Freezed,
     AlreadyRegistered,
     AssetNotRegistered,
+    AssetIsProtocolStablecoin,
     RuleBorrowDisable,
     RuleCollateralDisable,
     InsufficientCollateral,

@@ -20,7 +20,7 @@ import { getArgvObj } from '@abaxfinance/utils';
     const reserveV = (await testEnv.lendingPool.query.viewUnupdatedReserveData(reserve.underlying.address)).value.unwrap();
     const { value } = await testEnv.lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, address);
 
-    console.log(value, reserveV?.totalSupplied.toString(), reserve.underlying.address, address);
+    console.log(value, reserveV?.totalDeposit.toString(), reserve.underlying.address, address);
   }
 
   api.disconnect();

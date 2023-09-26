@@ -27,6 +27,5 @@ export interface ReserveTokenDeploymentData {
   minimalCollateral: number | BN;
   minimalDebt: number | BN;
   penalty: number;
-  flashLoanFeeE6: number;
   stableBaseRate: number | null;
 }

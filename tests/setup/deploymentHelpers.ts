@@ -418,7 +418,6 @@ export const deployAndConfigureSystem = async (
       reserveData.minimalDebt,
       reserveData.decimals,
       reserveData.feeD6,
-      reserveData.flashLoanFeeE6,
       interestRateModel,
     );
     await contracts.lendingPool.tx.insertReserveTokenPriceE8(reserve.address, prices[reserveData.name]);
@@ -488,7 +487,6 @@ export async function registerNewAsset(
   minimalDebt: number | BN,
   decimals: number,
   feeD6: number,
-  flashLoanFeeE6: number,
   interestRateModel: [number, number, number, number, number, number, number],
 ) {
   const aToken = await deployAToken(owner, symbol, decimals, lendingPool.address, assetAddress);
@@ -504,7 +502,6 @@ export async function registerNewAsset(
     minimalCollatral,
     minimalDebt,
     toE6(1) - feeD6,
-    flashLoanFeeE6,
     interestRateModel,
     aToken.address,
     vToken.address,

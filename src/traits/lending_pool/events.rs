@@ -89,6 +89,7 @@ pub trait EmitMaintainEvents {
 }
 
 pub trait EmitManageEvents {
+    fn _emit_flash_loan_fee_e6_changed(&mut self, flash_loan_fee_e6: &u128);
     fn _emit_asset_registered_event(
         &mut self,
         asset: &AccountId,
@@ -109,7 +110,6 @@ pub trait EmitManageEvents {
         asset: &AccountId,
         interest_rate_model: &[u128; 7],
         income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
     );
 
     fn _emit_reserve_restrictions_changed_event(

@@ -2,8 +2,8 @@ use crate::impls::lending_pool::storage::{
     lending_pool_storage::{MarketRule, RuleId},
     structs::{
         reserve_data::{
-            ReserveAbacusTokens, ReserveData, ReserveIndexes, ReservePrice,
-            ReserveRestrictions,
+            ReserveAbacusTokens, ReserveData, ReserveIndexes,
+            ReserveParameters, ReservePrice, ReserveRestrictions,
         },
         user_config::UserConfig,
         user_reserve_data::UserReserveData,
@@ -22,6 +22,8 @@ pub type LendingPoolViewRef =
 #[ink::trait_definition]
 pub trait LendingPoolView {
     #[ink(message)]
+    fn view_flash_loan_fee_e6(&self) -> u128;
+    #[ink(message)]
     fn view_asset_id(&self, asset: AccountId) -> Option<RuleId>;
     #[ink(message)]
     fn view_registered_assets(&self) -> Vec<AccountId>;
@@ -39,6 +41,11 @@ pub trait LendingPoolView {
     ) -> Option<ReserveIndexes>;
     #[ink(message)]
     fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes>;
+    #[ink(message)]
+    fn view_reserve_parameters(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveParameters>;
     #[ink(message)]
     fn view_reserve_restrictions(
         &self,

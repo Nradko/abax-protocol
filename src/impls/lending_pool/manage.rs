@@ -22,7 +22,7 @@ use super::{
         structs::{
             asset_rules::AssetRules,
             reserve_data::{
-                ReserveAbacusTokens, ReserveDataParameters, ReservePrice,
+                ReserveAbacusTokens, ReserveParameters, ReservePrice,
                 ReserveRestrictions,
             },
         },
@@ -64,6 +64,24 @@ pub trait LendingPoolManageImpl:
         Ok(())
     }
 
+    fn set_flash_loan_fee_e6(
+        &mut self,
+        flash_loan_fee_e6: u128,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        if !self._has_role(PARAMETERS_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
+        {
+            return Err(LendingPoolError::from(
+                AccessControlError::MissingRole,
+            ));
+        }
+        self.data::<LendingPoolStorage>()
+            .flash_loan_fee_e6
+            .set(&flash_loan_fee_e6);
+        Ok(())
+    }
+
     fn register_asset(
         &mut self,
         asset: AccountId,
@@ -76,7 +94,6 @@ pub trait LendingPoolManageImpl:
         minimal_collateral: Balance,
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
         interest_rate_model: [u128; 7],
         a_token_address: AccountId,
         v_token_address: AccountId,
@@ -95,12 +112,11 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
                 &asset,
-                &ReserveData::new(
-                    &interest_rate_model,
-                    &income_for_suppliers_part_e6,
-                    &flash_loan_fee_e6,
-                    &timestamp,
-                ),
+                &ReserveData::new(&timestamp),
+                &ReserveParameters {
+                    interest_rate_model,
+                    income_for_suppliers_part_e6,
+                },
                 &ReserveRestrictions::new(
                     &maximal_total_supply,
                     &maximal_total_debt,
@@ -132,7 +148,6 @@ pub trait LendingPoolManageImpl:
             &asset,
             &interest_rate_model,
             income_for_suppliers_part_e6,
-            flash_loan_fee_e6,
         );
         self._emit_reserve_restrictions_changed_event(
             &asset,
@@ -234,7 +249,6 @@ pub trait LendingPoolManageImpl:
         asset: AccountId,
         interest_rate_model: [u128; 7],
         income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         if !self._has_role(PARAMETERS_ADMIN, &Some(caller))
@@ -248,10 +262,9 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .account_for_reserve_data_parameters_change(
                 &asset,
-                &ReserveDataParameters {
+                &ReserveParameters {
                     interest_rate_model,
                     income_for_suppliers_part_e6,
-                    flash_loan_fee_e6,
                 },
                 &timestamp,
             )?;
@@ -259,7 +272,6 @@ pub trait LendingPoolManageImpl:
             &asset,
             &interest_rate_model,
             income_for_suppliers_part_e6,
-            flash_loan_fee_e6,
         );
         Ok(())
     }

@@ -13,6 +13,11 @@ use ink::prelude::vec::Vec;
 #[ink::trait_definition]
 pub trait LendingPoolManage {
     #[ink(message)]
+    fn set_flash_loan_fee_e6(
+        &mut self,
+        flash_loan_fee_e6: u128,
+    ) -> Result<(), LendingPoolError>;
+    #[ink(message)]
     fn set_block_timestamp_provider(
         &mut self,
         provider_address: AccountId,
@@ -30,7 +35,6 @@ pub trait LendingPoolManage {
     ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
     ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
     ///  * `income_for_suppliers_part_e6` - indicates which part of an income should suppliers be paid - in E6 notation (multiplied by 10^6)
-    ///  * `flash_loan_fee_e6` - fee (percentage) to charge for taking a flash loan for this asset - in E6 notation (multiplied by 10^6)
     ///  * `a_token_address` - `AccountId` of the asset's already deployed `AToken`
     ///  * `v_token_address` - `AccountId` of the asset's already deployed `VToken`
     #[ink(message)]
@@ -46,7 +50,6 @@ pub trait LendingPoolManage {
         minimal_collateral: Balance,
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
         interest_rate_model: [u128; 7],
         a_token_address: AccountId,
         v_token_address: AccountId,
@@ -80,14 +83,12 @@ pub trait LendingPoolManage {
     ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
     ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
     ///  * `income_for_suppliers_part_e6` - indicates which part of an income should suppliers be paid - in E6 notation (multiplied by 10^6)
-    ///  * `flash_loan_fee_e6` - fee (percentage) to charge for taking a flash loan for this asset - in E6 notation (multiplied by 10^6)
     #[ink(message)]
     fn set_reserve_parameters(
         &mut self,
         asset: AccountId,
         interest_rate_model: [u128; 7],
         income_for_suppliers_part_e6: u128,
-        flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError>;
 
     #[ink(message)]

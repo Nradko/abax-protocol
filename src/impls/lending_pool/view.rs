@@ -16,8 +16,8 @@ use super::{
         lending_pool_storage::{MarketRule, RuleId},
         structs::{
             reserve_data::{
-                ReserveAbacusTokens, ReserveIndexes, ReservePrice,
-                ReserveRestrictions,
+                ReserveAbacusTokens, ReserveIndexes, ReserveParameters,
+                ReservePrice, ReserveRestrictions,
             },
             user_config::UserConfig,
         },
@@ -25,6 +25,12 @@ use super::{
 };
 
 pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
+    fn view_flash_loan_fee_e6(&self) -> u128 {
+        self.data::<LendingPoolStorage>()
+            .flash_loan_fee_e6
+            .get()
+            .unwrap()
+    }
     fn view_asset_id(&self, asset: AccountId) -> Option<RuleId> {
         ink::env::debug_println!(
             "view asset: {:X?} | {:?}",
@@ -85,6 +91,19 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
                 .reserve_indexes
+                .get(&asset_id),
+            None => None,
+        }
+    }
+
+    fn view_reserve_parameters(
+        &self,
+        asset: AccountId,
+    ) -> Option<ReserveParameters> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => self
+                .data::<LendingPoolStorage>()
+                .reserve_parameters
                 .get(&asset_id),
             None => None,
         }

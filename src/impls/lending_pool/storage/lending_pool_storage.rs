@@ -23,7 +23,7 @@ use crate::{
 };
 
 use super::structs::{
-    asset_rules::AssetRules, reserve_data::ReserveDataParameters,
+    asset_rules::AssetRules, reserve_data::ReserveParameters,
 };
 
 pub type MarketRule = Vec<Option<AssetRules>>;
@@ -51,9 +51,14 @@ pub struct LendingPoolStorage {
     pub reserve_indexes: Mapping<AssetId, ReserveIndexes>,
     pub reserve_prices: Mapping<AssetId, ReservePrice>,
     pub reserve_datas: Mapping<AssetId, ReserveData>,
+    pub reserve_parameters: Mapping<AssetId, ReserveParameters>,
 
     pub user_reserve_datas: Mapping<(AssetId, AccountId), UserReserveData>,
     pub user_configs: Mapping<AccountId, UserConfig>,
+
+    #[lazy]
+    /// fee that must be paid while taking flash loan. 10^6 = 100%.
+    pub flash_loan_fee_e6: u128,
 }
 
 impl LendingPoolStorage {
@@ -62,6 +67,7 @@ impl LendingPoolStorage {
         &mut self,
         asset: &AccountId,
         reserve_data: &ReserveData,
+        reserve_parameters: &ReserveParameters,
         reserve_restrictions: &ReserveRestrictions,
         reserve_price: &ReservePrice,
         reserve_abacus: &ReserveAbacusTokens,
@@ -75,6 +81,7 @@ impl LendingPoolStorage {
         self.id_to_asset.insert(&id, asset);
 
         self.reserve_datas.insert(&id, reserve_data);
+        self.reserve_parameters.insert(&id, reserve_parameters);
         self.reserve_restrictions.insert(&id, reserve_restrictions);
         self.reserve_prices.insert(&id, reserve_price);
         self.reserve_abacus.insert(&asset, reserve_abacus);
@@ -134,6 +141,7 @@ impl LendingPoolStorage {
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
+        let reserve_parameters = self.reserve_parameters.get(&asset_id);
         let mut user_reserve_data = self
             .user_reserve_datas
             .get(&(asset_id, *account))
@@ -154,7 +162,10 @@ impl LendingPoolStorage {
 
         reserve_data.check_max_total_deposit(&reserve_restrictions)?;
 
-        reserve_data.recalculate_current_rates()?;
+        match reserve_parameters {
+            Some(params) => reserve_data.recalculate_current_rates(&params)?,
+            None => (),
+        };
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
@@ -183,6 +194,7 @@ impl LendingPoolStorage {
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
+        let reserve_parameters = self.reserve_parameters.get(&asset_id);
 
         let mut user_reserve_data = self
             .user_reserve_datas
@@ -206,7 +218,10 @@ impl LendingPoolStorage {
         )?;
         reserve_data.decrease_total_deposit(&amount)?;
 
-        reserve_data.recalculate_current_rates()?;
+        match reserve_parameters {
+            Some(params) => reserve_data.recalculate_current_rates(&params)?,
+            None => (),
+        };
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
@@ -307,6 +322,7 @@ impl LendingPoolStorage {
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
+        let reserve_parameters = self.reserve_parameters.get(&asset_id);
 
         let mut user_reserve_data = self
             .user_reserve_datas
@@ -328,7 +344,10 @@ impl LendingPoolStorage {
         reserve_data.increase_total_debt(&amount)?;
         reserve_data.check_max_total_debt(&reserve_restrictions)?;
 
-        reserve_data.recalculate_current_rates()?;
+        match reserve_parameters {
+            Some(params) => reserve_data.recalculate_current_rates(&params)?,
+            None => (),
+        };
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
@@ -357,6 +376,7 @@ impl LendingPoolStorage {
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
+        let reserve_parameters = self.reserve_parameters.get(&asset_id);
 
         let mut user_reserve_data = self
             .user_reserve_datas
@@ -382,7 +402,10 @@ impl LendingPoolStorage {
 
         reserve_data.decrease_total_debt(&amount);
 
-        reserve_data.recalculate_current_rates()?;
+        match reserve_parameters {
+            Some(params) => reserve_data.recalculate_current_rates(&params)?,
+            None => (),
+        };
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
@@ -602,6 +625,11 @@ impl LendingPoolStorage {
             .get(&(asset_to_take_id, *caller))
             .unwrap_or_default();
 
+        let reserve_parameters_to_repay =
+            self.reserve_parameters.get(&asset_to_repay_id);
+        let reserve_parameters_to_take =
+            self.reserve_parameters.get(&asset_to_take_id);
+
         ink::env::debug_println!("b2");
 
         if (caller_config.collaterals >> asset_to_take_id) & 1_u128 == 1 {
@@ -690,9 +718,18 @@ impl LendingPoolStorage {
             .unwrap();
 
         ink::env::debug_println!("b11");
-
-        reserve_data_to_repay.recalculate_current_rates()?;
-        reserve_data_to_take.recalculate_current_rates()?;
+        match reserve_parameters_to_repay {
+            Some(params) => {
+                reserve_data_to_repay.recalculate_current_rates(&params)?
+            }
+            None => (),
+        };
+        match reserve_parameters_to_take {
+            Some(params) => {
+                reserve_data_to_take.recalculate_current_rates(&params)?
+            }
+            None => (),
+        };
 
         ink::env::debug_println!("b12");
 
@@ -749,13 +786,17 @@ impl LendingPoolStorage {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
+        let reserve_parameters = self.reserve_parameters.get(&asset_id);
 
         if reserve_data.indexes_update_timestamp <= *timestamp {
             return Err(LendingPoolError::AccumulatedAlready);
         }
 
         reserve_data.accumulate_interest(&mut reserve_indexes, &timestamp)?;
-        reserve_data.recalculate_current_rates()?;
+        match reserve_parameters {
+            Some(params) => reserve_data.recalculate_current_rates(&params)?,
+            None => (),
+        };
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
@@ -799,16 +840,21 @@ impl LendingPoolStorage {
     pub fn account_for_reserve_data_parameters_change(
         &mut self,
         asset: &AccountId,
-        reserve_parameters: &ReserveDataParameters,
+        reserve_parameters: &ReserveParameters,
         timestamp: &Timestamp,
     ) -> Result<(), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
+        if !self.reserve_parameters.contains(&asset_id) {
+            return Err(LendingPoolError::AssetIsProtocolStablecoin);
+        }
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         reserve_data.accumulate_interest(&mut reserve_indexes, &timestamp)?;
-        reserve_data.parameters = reserve_parameters.clone();
-        reserve_data.recalculate_current_rates()?;
+        reserve_data.recalculate_current_rates(&reserve_parameters)?;
+
         self.reserve_datas.insert(&asset_id, &reserve_data);
+        self.reserve_parameters
+            .insert(&asset_id, &reserve_parameters);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
         Ok(())
     }
@@ -861,6 +907,7 @@ impl LendingPoolStorage {
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
+        let reserve_parameters = self.reserve_parameters.get(&asset_id);
         let mut from_config = self
             .user_configs
             .get(from)
@@ -894,7 +941,10 @@ impl LendingPoolStorage {
             amount,
         )?;
 
-        reserve_data.recalculate_current_rates()?;
+        match reserve_parameters {
+            Some(params) => reserve_data.recalculate_current_rates(&params)?,
+            None => (),
+        };
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
@@ -965,6 +1015,8 @@ impl LendingPoolStorage {
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
+        let reserve_parameters = self.reserve_parameters.get(&asset_id);
+
         let mut from_config = self
             .user_configs
             .get(from)
@@ -1014,7 +1066,10 @@ impl LendingPoolStorage {
             .check_debt_restrictions(&reserve_restrictions)?;
         to_user_reserve_data.check_debt_restrictions(&reserve_restrictions)?;
 
-        reserve_data.recalculate_current_rates()?;
+        match reserve_parameters {
+            Some(params) => reserve_data.recalculate_current_rates(&params)?,
+            None => (),
+        };
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
