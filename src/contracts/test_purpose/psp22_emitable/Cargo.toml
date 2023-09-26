@@ -1,5 +1,5 @@
 [package]
-name = "block_timestamp_provider"
+name = "psp22_emitable"
 version = "0.0.1"
 authors = [""]
 edition = "2021"
@@ -13,14 +13,14 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../pendzl-contracts", default-features = false, features = [
-    "ownable",
+pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
+    "psp22",
 ] }
 
-lending_project = { path = "../..", default-features = false }
+lending_project = { path = "../../..", default-features = false }
 
 [lib]
-name = "block_timestamp_provider"
+name = "psp22_emitable"
 path = "lib.rs"
 
 

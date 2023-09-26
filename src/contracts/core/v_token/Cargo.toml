@@ -1,7 +1,7 @@
 [package]
-name = "psp22_emitable"
-version = "0.0.1"
-authors = [""]
+name = "v_token"
+version = "0.1.0"
+authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
 edition = "2021"
 
 [dependencies]
@@ -13,14 +13,14 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../pendzl-contracts", default-features = false, features = [
+pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
     "psp22",
 ] }
 
-lending_project = { path = "../..", default-features = false }
+lending_project = { path = "../../..", default-features = false }
 
 [lib]
-name = "psp22_emitable"
+name = "v_token"
 path = "lib.rs"
 
 
