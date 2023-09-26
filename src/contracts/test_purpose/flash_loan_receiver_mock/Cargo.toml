@@ -1,5 +1,5 @@
 [package]
-name = "psp22_ownable"
+name = "flash_loan_receiver_mock"
 version = "0.0.1"
 authors = [""]
 edition = "2021"
@@ -13,15 +13,20 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../pendzl-contracts", default-features = false, features = [
+pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
     "psp22",
+    "psp34",
+    "ownable",
+    "pausable",
+    "access_control",
 ] }
 
-lending_project = { path = "../..", default-features = false }
+lending_project = { path = "../../..", default-features = false }
 
 [lib]
-name = "psp22_ownable"
+name = "flash_loan_receiver_mock"
 path = "lib.rs"
+
 
 [features]
 default = ["std"]
