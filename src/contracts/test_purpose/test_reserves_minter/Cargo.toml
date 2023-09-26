@@ -13,11 +13,11 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../pendzl-contracts", default-features = false, features = [
+pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
     "psp22",
 ] }
 
-lending_project = { path = "../..", default-features = false }
+lending_project = { path = "../../..", default-features = false }
 
 [lib]
 name = "test_reserves_minter"

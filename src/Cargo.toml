@@ -1,15 +1,8 @@
 [workspace]
 members = [
-    "contracts/a_token",
-    "contracts/v_token",
-    "contracts/lending_pool",
-    "contracts/psp22_emitable",
-    "contracts/psp22_ownable",
-    "contracts/test_reserves_minter",
-    "contracts/block_timestamp_provider",
-    "contracts/flash_loan_receiver_mock",
-
     "contracts/periphery/**",
+    "contracts/core/**",
+    "contracts/test_purpose/**",
 ]
 
 [package]
