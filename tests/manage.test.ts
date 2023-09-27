@@ -6,9 +6,12 @@ import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 import { ReturnNumber } from '@727-ventures/typechain-types';
-import { ASSET_LISTING_ADMIN, EMERGENCY_ADMIN, FLASH_BORROWER, GLOBAL_ADMIN, PARAMETERS_ADMIN, ROLE_ADMIN, TREASURY } from './consts';
+import { ROLE_NAMES, ROLES } from './consts';
+import { TupleType } from 'typescript';
+import { objectValues } from '@polkadot/util';
 
 makeSuite('Menage tests', (getTestEnv) => {
+  const adminOf: Record<string, KeyringPair> = {};
   let testEnv: TestEnv;
   let users: KeyringPair[];
   let owner: KeyringPair;
@@ -25,197 +28,155 @@ makeSuite('Menage tests', (getTestEnv) => {
     lendingPool = testEnv.lendingPool;
     owner = testEnv.owner;
     users = testEnv.users;
-    flashBorrower = users[0];
-    assetListingAdmin = users[1];
-    parametersAdmin = users[2];
-    emergancyAdmin = users[3];
-    globalAdmin = users[4];
-    roleAdmin = users[5];
-    treasury = users[6];
+    adminOf['ROLE_ADMIN'] = owner;
+    adminOf['GLOBAL_ADMIN'] = users[0];
+    adminOf['ASSET_LISTING_ADMIN'] = users[1];
+    adminOf['PARAMETERS_ADMIN'] = users[2];
+    adminOf['STABLECOIN_RATE_ADMIN'] = users[3];
+    adminOf['EMERGENCY_ADMIN'] = users[4];
+    adminOf['FLASH_BORROWER'] = users[5];
+    adminOf['TREASURY'] = users[6];
 
-    await lendingPool.withSigner(owner).tx.grantRole(FLASH_BORROWER, flashBorrower.address);
-    await lendingPool.withSigner(owner).tx.grantRole(ASSET_LISTING_ADMIN, assetListingAdmin.address);
-    await lendingPool.withSigner(owner).tx.grantRole(PARAMETERS_ADMIN, parametersAdmin.address);
-    await lendingPool.withSigner(owner).tx.grantRole(EMERGENCY_ADMIN, emergancyAdmin.address);
-    await lendingPool.withSigner(owner).tx.grantRole(GLOBAL_ADMIN, globalAdmin.address);
-    await lendingPool.withSigner(owner).tx.grantRole(ROLE_ADMIN, roleAdmin.address);
-    await lendingPool.withSigner(owner).tx.grantRole(TREASURY, treasury.address);
+    for (const role_name of ROLE_NAMES.filter((role) => role !== 'ROLE_ADMIN')) {
+      const role = ROLES[role_name];
+      const qq = await lendingPool.withSigner(owner).query.grantRole(role, adminOf[role_name].address);
+      const tx = await lendingPool.withSigner(owner).tx.grantRole(role, adminOf[role_name].address);
+    }
   });
 
   // assetListingAdmin, globalAdmin are allowed to
-  describe('Register aasset', () => {
-    let asset;
-    let aToken;
-    let vToken;
-    beforeEach('names', async () => {
-      asset = '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy';
-      aToken = '5HA6b9t4DnVD7vmSX6fpU6W6qxc1pS9wKnV1Ee57fQAbNx3H';
-      vToken = '5G4bxHzTmuNtuYUYhwCEyKui83mvW4kooK6RR8Rh1wJGhHce';
-    });
+  describe.only('While registering an aasset', () => {
+    const ROLES_WITH_PERMISSION: string[] = ['ASSET_LISTING_ADMIN', 'GLOBAL_ADMIN'];
+    const PARAMS = {
+      asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
+      decimals: '100000',
+      collateralCoefficientE6: null,
+      borrowCoefficientE6: null,
+      penaltyE6: null,
+      maximalTotalSupply: null,
+      maximalTotalDebt: null,
+      minimalCollateral: '200000',
+      minimalDebt: '500000',
+      incomeForSuppliersPartE6: '800000',
+      interestRateModel: [1, 2, 3, 4, 5, 6, 7],
+      aTokenAddress: '5HA6b9t4DnVD7vmSX6fpU6W6qxc1pS9wKnV1Ee57fQAbNx3H',
+      vTokenAddress: '5G4bxHzTmuNtuYUYhwCEyKui83mvW4kooK6RR8Rh1wJGhHce',
+    };
 
-    it('flashLoanBorrower should return Err(MissingRole)', async () => {
-      const res = (
-        await lendingPool
-          .withSigner(flashBorrower)
-          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', [0, 0, 0, 0, 0, 0, 0], aToken, vToken)
-      ).value.ok;
-      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+    it('roles with no permission should fail with Err MissingRole', async () => {
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES; //.filter((role_name) => !ROLES_WITH_PERMISSION.includes(role_name));
+      for (const role_name of ROLES_WITH_NO_ACCESS) {
+        const res = (
+          await lendingPool
+            .withSigner(adminOf[role_name])
+            .query.registerAsset(
+              PARAMS.asset,
+              PARAMS.decimals,
+              PARAMS.collateralCoefficientE6,
+              PARAMS.borrowCoefficientE6,
+              PARAMS.penaltyE6,
+              PARAMS.maximalTotalSupply,
+              PARAMS.maximalTotalDebt,
+              PARAMS.minimalCollateral,
+              PARAMS.minimalDebt,
+              PARAMS.incomeForSuppliersPartE6,
+              PARAMS.interestRateModel,
+              PARAMS.aTokenAddress,
+              PARAMS.vTokenAddress,
+            )
+        ).value.ok;
+        expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+      }
+      expect.flushSoft();
     });
-    it('assetListingAdmin should succeed and event should be emitted', async () => {
-      const tx = lendingPool
-        .withSigner(assetListingAdmin)
-        .tx.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', [1, 2, 3, 4, 5, 6, 7], aToken, vToken);
-      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
-      const txRes = await tx;
-      expect(txRes.events).to.deep.equal([
-        {
-          name: 'AssetRegistered',
-          args: {
-            asset: asset,
-            decimals: new ReturnNumber(100000),
-            aTokenAddress: aToken,
-            vTokenAddress: vToken,
-          },
-        },
-        {
-          name: 'ParametersChanged',
-          args: {
-            asset: asset,
-            interestRateModel: [
-              new ReturnNumber(1),
-              new ReturnNumber(2),
-              new ReturnNumber(3),
-              new ReturnNumber(4),
-              new ReturnNumber(5),
-              new ReturnNumber(6),
-              new ReturnNumber(7),
-            ],
-            incomeForSuppliersPartE6: new ReturnNumber(1000000),
-          },
-        },
-        {
-          name: 'RestrictionsChanged',
-          args: {
-            asset: asset,
-            maximalTotalSupply: null,
-            maximalTotalDebt: null,
-            minimalCollateral: new ReturnNumber(0),
-            minimalDebt: new ReturnNumber(0),
-          },
-        },
-        {
-          name: 'AssetRulesChanged',
-          args: {
-            marketRuleId: 0,
-            asset: asset,
-            collateralCoefficientE6: null,
-            borrowCoefficientE6: null,
-            penaltyE6: null,
-          },
-        },
-      ]);
-    });
-    it('parametersAdmin should return Err(MissingRole)', async () => {
-      const res = (
-        await lendingPool
-          .withSigner(parametersAdmin)
-          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', [0, 0, 0, 0, 0, 0, 0], aToken, vToken)
-      ).value.ok;
-      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
-    });
-    it('emergancyAdmin should return Err(MissingRole)', async () => {
-      const res = (
-        await lendingPool
-          .withSigner(emergancyAdmin)
-          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', [0, 0, 0, 0, 0, 0, 0], aToken, vToken)
-      ).value.ok;
-      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
-    });
-    it('globalAdmin should succeed and event should be emitted', async () => {
-      const tx = lendingPool
-        .withSigner(globalAdmin)
-        .tx.registerAsset(
-          asset,
-          '1',
-          900000,
-          1100000,
-          50000,
-          4000000000,
-          2000000000,
-          3000000,
-          1000000,
-          '900000',
-          [1, 2, 3, 4, 5, 6, 7],
-          aToken,
-          vToken,
-        );
-      await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
-      const txRes = await tx;
-      expect(txRes.events).to.deep.equal([
-        {
-          name: 'AssetRegistered',
-          args: {
-            asset: asset,
-            decimals: new ReturnNumber(1),
-            aTokenAddress: aToken,
-            vTokenAddress: vToken,
-          },
-        },
-        {
-          name: 'ParametersChanged',
-          args: {
-            asset: asset,
-            interestRateModel: [
-              new ReturnNumber(1),
-              new ReturnNumber(2),
-              new ReturnNumber(3),
-              new ReturnNumber(4),
-              new ReturnNumber(5),
-              new ReturnNumber(6),
-              new ReturnNumber(7),
-            ],
-            incomeForSuppliersPartE6: new ReturnNumber(900000),
-          },
-        },
-        {
-          name: 'RestrictionsChanged',
-          args: {
-            asset: asset,
-            maximalTotalSupply: 4000000000,
-            maximalTotalDebt: 2000000000,
-            minimalCollateral: new ReturnNumber(3000000),
-            minimalDebt: new ReturnNumber(1000000),
-          },
-        },
-        {
-          name: 'AssetRulesChanged',
-          args: {
-            marketRuleId: 0,
-            asset: asset,
-            collateralCoefficientE6: 900000,
-            borrowCoefficientE6: 1100000,
-            penaltyE6: 50000,
-          },
-        },
-      ]);
-    });
+    for (const role_name of ROLES_WITH_PERMISSION) {
+      it(role_name + ' should succeed and event should be emitted', async () => {
+        const query = await lendingPool
+          .withSigner(adminOf[role_name])
+          .query.registerAsset(
+            PARAMS.asset,
+            PARAMS.decimals,
+            PARAMS.collateralCoefficientE6,
+            PARAMS.borrowCoefficientE6,
+            PARAMS.penaltyE6,
+            PARAMS.maximalTotalSupply,
+            PARAMS.maximalTotalDebt,
+            PARAMS.minimalCollateral,
+            PARAMS.minimalDebt,
+            PARAMS.incomeForSuppliersPartE6,
+            PARAMS.interestRateModel,
+            PARAMS.aTokenAddress,
+            PARAMS.vTokenAddress,
+          );
 
-    it('roleAdmin should return Err(MissingRole)', async () => {
-      const res = (
-        await lendingPool
-          .withSigner(roleAdmin)
-          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', [0, 0, 0, 0, 0, 0, 0], aToken, vToken)
-      ).value.ok;
-      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
-    });
-    it('treasury should return Err(MissingRole)', async () => {
-      const res = (
-        await lendingPool
-          .withSigner(treasury)
-          .query.registerAsset(asset, '100000', null, null, null, null, null, 0, 0, '1000000', [0, 0, 0, 0, 0, 0, 0], aToken, vToken)
-      ).value.ok;
-      expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
-    });
+        const tx = await lendingPool
+          .withSigner(adminOf[role_name])
+          .tx.registerAsset(
+            PARAMS.asset,
+            PARAMS.decimals,
+            PARAMS.collateralCoefficientE6,
+            PARAMS.borrowCoefficientE6,
+            PARAMS.penaltyE6,
+            PARAMS.maximalTotalSupply,
+            PARAMS.maximalTotalDebt,
+            PARAMS.minimalCollateral,
+            PARAMS.minimalDebt,
+            PARAMS.incomeForSuppliersPartE6,
+            PARAMS.interestRateModel,
+            PARAMS.aTokenAddress,
+            PARAMS.vTokenAddress,
+          );
+        await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+        const txRes = await tx;
+        expect(txRes.events).to.deep.equal([
+          {
+            name: 'AssetRegistered',
+            args: {
+              asset: PARAMS.asset,
+              decimals: new ReturnNumber(PARAMS.decimals),
+              aTokenAddress: PARAMS.aTokenAddress,
+              vTokenAddress: PARAMS.vTokenAddress,
+            },
+          },
+          {
+            name: 'ParametersChanged',
+            args: {
+              asset: PARAMS.asset,
+              interestRateModel: [
+                new ReturnNumber(PARAMS.interestRateModel[0]),
+                new ReturnNumber(PARAMS.interestRateModel[1]),
+                new ReturnNumber(PARAMS.interestRateModel[2]),
+                new ReturnNumber(PARAMS.interestRateModel[3]),
+                new ReturnNumber(PARAMS.interestRateModel[4]),
+                new ReturnNumber(PARAMS.interestRateModel[5]),
+                new ReturnNumber(PARAMS.interestRateModel[6]),
+              ],
+              incomeForSuppliersPartE6: new ReturnNumber(PARAMS.incomeForSuppliersPartE6),
+            },
+          },
+          {
+            name: 'RestrictionsChanged',
+            args: {
+              asset: PARAMS.asset,
+              maximalTotalSupply: PARAMS.maximalTotalSupply,
+              maximalTotalDebt: PARAMS.maximalTotalDebt,
+              minimalCollateral: new ReturnNumber(PARAMS.minimalCollateral),
+              minimalDebt: new ReturnNumber(PARAMS.minimalDebt),
+            },
+          },
+          {
+            name: 'AssetRulesChanged',
+            args: {
+              marketRuleId: 0,
+              asset: PARAMS.asset,
+              collateralCoefficientE6: PARAMS.collateralCoefficientE6,
+              borrowCoefficientE6: PARAMS.borrowCoefficientE6,
+              penaltyE6: PARAMS.penaltyE6,
+            },
+          },
+        ]);
+      });
+    }
   });
 
   // parametersAdmin, globalAdmin are allowed to
@@ -431,7 +392,6 @@ makeSuite('Menage tests', (getTestEnv) => {
       expect(queryResult).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
   });
-  ////aaa
   // parametersAdmin, globalAdmin are allowed to
   describe('set reserve restrictions with...', () => {
     it('flashBorrower should return Err(MissingRole)', async () => {

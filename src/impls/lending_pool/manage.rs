@@ -36,6 +36,10 @@ pub const ASSET_LISTING_ADMIN: RoleType =
     ink::selector_id!("ASSET_LISTING_ADMIN"); // 1_094_072_439_u32
 /// can modify reserveData parameters
 pub const PARAMETERS_ADMIN: RoleType = ink::selector_id!("PARAMETERS_ADMIN"); // 368_001_360_u32
+
+/// can modify current debt rate in ReserveData of asset that is protocol stablecoin
+pub const STABLECOIN_RATE_ADMIN: RoleType =
+    ink::selector_id!("STABLECOIN_RATE_ADMIN"); // 2_742_621_032
 /// can pause/unpause freeze/unfreeze reserves
 pub const EMERGENCY_ADMIN: RoleType = ink::selector_id!("EMERGENCY_ADMIN"); // 297_099_943_u32
 /// can do what ASSET_LISTING_ADMIN, PARAMETERS_ADMIN and EMERGANCY_ADMIN can do
@@ -166,6 +170,79 @@ pub trait LendingPoolManageImpl:
         Ok(())
     }
 
+    fn register_stablecoin(
+        &mut self,
+        asset: AccountId,
+        decimals: u128,
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        penalty_e6: Option<u128>,
+        maximal_total_supply: Option<Balance>,
+        maximal_total_debt: Option<Balance>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
+        a_token_address: AccountId,
+        v_token_address: AccountId,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        if !self._has_role(ASSET_LISTING_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
+        {
+            return Err(LendingPoolError::from(
+                AccessControlError::MissingRole,
+            ));
+        }
+
+        let timestamp = self._timestamp();
+
+        self.data::<LendingPoolStorage>()
+            .account_for_register_stablecoin(
+                &asset,
+                &ReserveData::new(&timestamp),
+                &ReserveRestrictions::new(
+                    &maximal_total_supply,
+                    &maximal_total_debt,
+                    &minimal_collateral,
+                    &minimal_debt,
+                ),
+                &ReservePrice::new(&decimals),
+                &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
+            )?;
+
+        self.data::<LendingPoolStorage>()
+            .account_for_asset_rule_change(
+                &0,
+                &asset,
+                &AssetRules {
+                    collateral_coefficient_e6,
+                    borrow_coefficient_e6,
+                    penalty_e6,
+                },
+            )?;
+
+        self._emit_asset_registered_event(
+            &asset,
+            decimals,
+            &a_token_address,
+            &v_token_address,
+        );
+        self._emit_reserve_restrictions_changed_event(
+            &asset,
+            maximal_total_supply,
+            maximal_total_debt,
+            minimal_collateral,
+            minimal_debt,
+        );
+        self._emit_asset_rules_changed(
+            &0,
+            &asset,
+            &collateral_coefficient_e6,
+            &borrow_coefficient_e6,
+            &penalty_e6,
+        );
+        Ok(())
+    }
+
     fn set_reserve_is_active(
         &mut self,
         asset: AccountId,
@@ -273,6 +350,28 @@ pub trait LendingPoolManageImpl:
             &interest_rate_model,
             income_for_suppliers_part_e6,
         );
+        Ok(())
+    }
+
+    fn set_stablecoin_debt_rate_e24(
+        &mut self,
+        asset: AccountId,
+        debt_rate_e24: u128,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        if !self._has_role(STABLECOIN_RATE_ADMIN, &Some(caller)) {
+            return Err(LendingPoolError::from(
+                AccessControlError::MissingRole,
+            ));
+        }
+
+        self.data::<LendingPoolStorage>()
+            .account_for_stablecoin_debt_rate_e24_change(
+                &asset,
+                &debt_rate_e24,
+            )?;
+        self._emit_stablecoin_debt_rate_changed(&asset, &debt_rate_e24);
+
         Ok(())
     }
 
