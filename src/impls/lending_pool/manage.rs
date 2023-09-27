@@ -83,6 +83,7 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .flash_loan_fee_e6
             .set(&flash_loan_fee_e6);
+        self._emit_flash_loan_fee_e6_changed(&flash_loan_fee_e6);
         Ok(())
     }
 
@@ -102,6 +103,22 @@ pub trait LendingPoolManageImpl:
         a_token_address: AccountId,
         v_token_address: AccountId,
     ) -> Result<(), LendingPoolError> {
+        ink::env::debug_println!(
+            "{:X?}\n{}\n{:?}\n{:?}\n{:?}\n{:?}\n{:?}\n{}\n{}\n{}\n{:?}\n{:X?}\n{:X?}\n",
+            asset,
+            decimals,
+            collateral_coefficient_e6,
+            borrow_coefficient_e6,
+            penalty_e6,
+            maximal_total_supply,
+            maximal_total_debt,
+            minimal_collateral,
+            minimal_debt,
+            income_for_suppliers_part_e6,
+            interest_rate_model,
+            a_token_address,
+            v_token_address
+        );
         let caller = Self::env().caller();
         if !self._has_role(ASSET_LISTING_ADMIN, &Some(caller))
             && !self._has_role(GLOBAL_ADMIN, &Some(caller))
