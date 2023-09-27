@@ -17,6 +17,7 @@ pub trait LendingPoolManage {
         &mut self,
         flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError>;
+
     #[ink(message)]
     fn set_block_timestamp_provider(
         &mut self,
@@ -51,6 +52,36 @@ pub trait LendingPoolManage {
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
         interest_rate_model: [u128; 7],
+        a_token_address: AccountId,
+        v_token_address: AccountId,
+    ) -> Result<(), LendingPoolError>;
+
+    /// Registers new asset in the `LendingPool`'s storage
+    ///
+    ///  * `asset` - `AccountId` of the registered asset
+    ///  * `decimals` - a decimal denominator of an asset (number already multiplied by 10^N where N is number of decimals)
+    ///  * `collateral_coefficient_e6' - asset's collateral power. 1 = 10^6. If None asset can NOT be a collateral.
+    ///  * `borrow_coefficient_e6' - asset's borrow power. 1 = 10^6. If None asset can NOT be borrowed.
+    ///  * `penalty_e6 - penalty taken when taking part inliquidation as collateral or debt. 10^6 = 100%`.
+    ///  * `maximal_total_supply` - maximal allowed total supply, If exceeded no more deposits are accepted. None for uncapped total supply.
+    ///  * `maximal_total_debt` - maximal allowed total debt, If exceeded no more borrows are accepted. None for uncapped total debt.
+    ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
+    ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
+    ///  * `income_for_suppliers_part_e6` - indicates which part of an income should suppliers be paid - in E6 notation (multiplied by 10^6)
+    ///  * `a_token_address` - `AccountId` of the asset's already deployed `AToken`
+    ///  * `v_token_address` - `AccountId` of the asset's already deployed `VToken`
+    #[ink(message)]
+    fn register_stablecoin(
+        &mut self,
+        asset: AccountId,
+        decimals: u128,
+        collateral_coefficient_e6: Option<u128>,
+        borrow_coefficient_e6: Option<u128>,
+        penalty_e6: Option<u128>,
+        maximal_total_supply: Option<Balance>,
+        maximal_total_debt: Option<Balance>,
+        minimal_collateral: Balance,
+        minimal_debt: Balance,
         a_token_address: AccountId,
         v_token_address: AccountId,
     ) -> Result<(), LendingPoolError>;
@@ -99,6 +130,13 @@ pub trait LendingPoolManage {
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
+    ) -> Result<(), LendingPoolError>;
+
+    #[ink(message)]
+    fn set_stablecoin_debt_rate_e24(
+        &mut self,
+        asset: AccountId,
+        debt_rate_e24: u128,
     ) -> Result<(), LendingPoolError>;
 
     /// adds new market rule at unused market_rule_id
