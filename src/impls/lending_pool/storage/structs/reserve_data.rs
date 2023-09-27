@@ -203,9 +203,9 @@ impl ReserveData {
             activated: true,
             freezed: false,
             total_deposit: 0,
-            current_supply_rate_e24: E18_U128,
+            current_supply_rate_e24: 0,
             total_debt: 0,
-            current_debt_rate_e24: E18_U128,
+            current_debt_rate_e24: 0,
             indexes_update_timestamp: *timestamp,
         }
     }

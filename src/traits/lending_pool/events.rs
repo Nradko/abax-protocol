@@ -130,5 +130,10 @@ pub trait EmitManageEvents {
         penalty_e6: &Option<u128>,
     );
 
+    fn _emit_stablecoin_debt_rate_changed(
+        &mut self,
+        asset: &AccountId,
+        debt_rate_e18: &u128,
+    );
     fn _emit_income_taken(&mut self, asset: &AccountId);
 }

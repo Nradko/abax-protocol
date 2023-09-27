@@ -4,11 +4,12 @@ import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
-import { MAX_U128, PARAMETERS_ADMIN } from './consts';
+import { MAX_U128, ROLES } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 
+const PARAMETERS_ADMIN = ROLES['PARAMETERS_ADMIN'];
 makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1', (getTestEnv) => {
   let testEnv: TestEnv;
   let users: KeyringPair[];

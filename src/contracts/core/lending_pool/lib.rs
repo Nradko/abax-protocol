@@ -295,6 +295,37 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
+        fn register_stablecoin(
+            &mut self,
+            asset: AccountId,
+            decimals: u128,
+            collateral_coefficient_e6: Option<u128>,
+            borrow_coefficient_e6: Option<u128>,
+            penalty_e6: Option<u128>,
+            maximal_total_supply: Option<Balance>,
+            maximal_total_debt: Option<Balance>,
+            minimal_collateral: Balance,
+            minimal_debt: Balance,
+            a_token_address: AccountId,
+            v_token_address: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::register_stablecoin(
+                self,
+                asset,
+                decimals,
+                collateral_coefficient_e6,
+                borrow_coefficient_e6,
+                penalty_e6,
+                maximal_total_supply,
+                maximal_total_debt,
+                minimal_collateral,
+                minimal_debt,
+                a_token_address,
+                v_token_address,
+            )
+        }
+
+        #[ink(message)]
         fn set_reserve_is_active(
             &mut self,
             asset: AccountId,
@@ -380,6 +411,19 @@ pub mod lending_pool {
             to: AccountId,
         ) -> Result<Vec<(AccountId, i128)>, LendingPoolError> {
             LendingPoolManageImpl::take_protocol_income(self, assets, to)
+        }
+
+        #[ink(message)]
+        fn set_stablecoin_debt_rate_e24(
+            &mut self,
+            asset: AccountId,
+            debt_rate_e24: u128,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_stablecoin_debt_rate_e24(
+                self,
+                asset,
+                debt_rate_e24,
+            )
         }
     }
     impl LendingPoolViewImpl for LendingPool {}
@@ -602,6 +646,7 @@ pub mod lending_pool {
             instance.lending_pool.next_asset_id.set(&0);
             instance.lending_pool.next_rule_id.set(&0);
             instance.lending_pool.flash_loan_fee_e6.set(&1000);
+            instance._emit_flash_loan_fee_e6_changed(&1000);
             access_control::Internal::_init_with_admin(
                 &mut instance,
                 caller.into(),
@@ -788,7 +833,7 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
-    pub struct ParametersChanged {
+    pub struct ReserveParametersChanged {
         #[ink(topic)]
         asset: AccountId,
         interest_rate_model: [u128; 7],
@@ -796,7 +841,7 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
-    pub struct RestrictionsChanged {
+    pub struct ReserveRestrictionsChanged {
         #[ink(topic)]
         asset: AccountId,
         maximal_total_supply: Option<Balance>,
@@ -820,6 +865,13 @@ pub mod lending_pool {
     pub struct IncomeTaken {
         #[ink(topic)]
         asset: AccountId,
+    }
+
+    #[ink(event)]
+    pub struct StablecoinDebtRateChanged {
+        #[ink(topic)]
+        asset: AccountId,
+        debt_rate_e24: u128,
     }
 
     impl EmitDepositEvents for LendingPool {
@@ -1001,7 +1053,7 @@ pub mod lending_pool {
             interest_rate_model: &[u128; 7],
             income_for_suppliers_part_e6: u128,
         ) {
-            self.env().emit_event(ParametersChanged {
+            self.env().emit_event(ReserveParametersChanged {
                 asset: *asset,
                 interest_rate_model: *interest_rate_model,
                 income_for_suppliers_part_e6,
@@ -1016,7 +1068,7 @@ pub mod lending_pool {
             minimal_collateral: Balance,
             minimal_debt: Balance,
         ) {
-            self.env().emit_event(RestrictionsChanged {
+            self.env().emit_event(ReserveRestrictionsChanged {
                 asset: *asset,
                 maximal_total_supply,
                 maximal_total_debt,
@@ -1043,6 +1095,17 @@ pub mod lending_pool {
 
         fn _emit_income_taken(&mut self, asset: &AccountId) {
             self.env().emit_event(IncomeTaken { asset: *asset });
+        }
+
+        fn _emit_stablecoin_debt_rate_changed(
+            &mut self,
+            asset: &AccountId,
+            debt_rate_e24: &u128,
+        ) {
+            self.env().emit_event(StablecoinDebtRateChanged {
+                asset: *asset,
+                debt_rate_e24: *debt_rate_e24,
+            })
         }
     }
     impl EmitLiquidateEvents for LendingPool {

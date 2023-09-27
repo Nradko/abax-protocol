@@ -96,6 +96,39 @@ impl LendingPoolStorage {
         self.next_asset_id.set(&(id + 1));
         Ok(())
     }
+
+    pub fn account_for_register_stablecoin(
+        &mut self,
+        asset: &AccountId,
+        reserve_data: &ReserveData,
+        reserve_restrictions: &ReserveRestrictions,
+        reserve_price: &ReservePrice,
+        reserve_abacus: &ReserveAbacusTokens,
+    ) -> Result<(), LendingPoolError> {
+        if self.asset_to_id.contains(asset) {
+            return Err(LendingPoolError::AlreadyRegistered);
+        }
+        let id = self.next_asset_id.get_or_default();
+
+        self.asset_to_id.insert(asset, &id);
+        self.id_to_asset.insert(&id, asset);
+
+        self.reserve_datas.insert(&id, reserve_data);
+        self.reserve_restrictions.insert(&id, reserve_restrictions);
+        self.reserve_prices.insert(&id, reserve_price);
+        self.reserve_abacus.insert(&asset, reserve_abacus);
+        self.reserve_indexes.insert(
+            &id,
+            &ReserveIndexes {
+                cumulative_supply_index_e18: E18_U128,
+                cumulative_debt_index_e18: E18_U128,
+            },
+        );
+
+        self.next_asset_id.set(&(id + 1));
+        Ok(())
+    }
+
     pub fn get_all_registered_assets(&self) -> Vec<AccountId> {
         let mut assets: Vec<AccountId> = Vec::new();
         ink::env::debug_println!(
@@ -812,6 +845,7 @@ impl LendingPoolStorage {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.set_is_active(active)?;
+        self.reserve_datas.insert(&asset_id, &reserve_data);
         Ok(())
     }
 
@@ -823,6 +857,7 @@ impl LendingPoolStorage {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.set_is_freezed(freeze)?;
+        self.reserve_datas.insert(&asset_id, &reserve_data);
         Ok(())
     }
 
@@ -1113,6 +1148,21 @@ impl LendingPoolStorage {
         }
         market_rule[asset_id as usize] = Some(*asset_rules);
         self.market_rules.insert(market_rule_id, &market_rule);
+        Ok(())
+    }
+
+    pub fn account_for_stablecoin_debt_rate_e24_change(
+        &mut self,
+        asset: &AccountId,
+        debt_rate_e24: &u128,
+    ) -> Result<(), LendingPoolError> {
+        let asset_id = self.asset_id(asset)?;
+        if self.reserve_parameters.contains(&asset_id) {
+            return Err(LendingPoolError::AssetIsProtocolStablecoin);
+        }
+        let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
+        reserve_data.current_debt_rate_e24 = *debt_rate_e24;
+        self.reserve_datas.insert(&asset_id, &reserve_data);
         Ok(())
     }
 }
