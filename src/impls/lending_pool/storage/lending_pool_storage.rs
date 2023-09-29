@@ -845,6 +845,7 @@ impl LendingPoolStorage {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.set_is_active(active)?;
+        self.reserve_datas.insert(&asset_id, &reserve_data);
         Ok(())
     }
 
@@ -856,6 +857,7 @@ impl LendingPoolStorage {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.set_is_freezed(freeze)?;
+        self.reserve_datas.insert(&asset_id, &reserve_data);
         Ok(())
     }
 

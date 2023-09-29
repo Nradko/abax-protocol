@@ -833,7 +833,7 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
-    pub struct ParametersChanged {
+    pub struct ReserveParametersChanged {
         #[ink(topic)]
         asset: AccountId,
         interest_rate_model: [u128; 7],
@@ -841,7 +841,7 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
-    pub struct RestrictionsChanged {
+    pub struct ReserveRestrictionsChanged {
         #[ink(topic)]
         asset: AccountId,
         maximal_total_supply: Option<Balance>,
@@ -1053,7 +1053,7 @@ pub mod lending_pool {
             interest_rate_model: &[u128; 7],
             income_for_suppliers_part_e6: u128,
         ) {
-            self.env().emit_event(ParametersChanged {
+            self.env().emit_event(ReserveParametersChanged {
                 asset: *asset,
                 interest_rate_model: *interest_rate_model,
                 income_for_suppliers_part_e6,
@@ -1068,7 +1068,7 @@ pub mod lending_pool {
             minimal_collateral: Balance,
             minimal_debt: Balance,
         ) {
-            self.env().emit_event(RestrictionsChanged {
+            self.env().emit_event(ReserveRestrictionsChanged {
                 asset: *asset,
                 maximal_total_supply,
                 maximal_total_debt,
