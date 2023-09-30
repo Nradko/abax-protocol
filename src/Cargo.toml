@@ -7,7 +7,7 @@ members = [
 
 [package]
 name = "lending_project"
-version = "2.2.0"
+version = "0.1.1"
 authors = []
 edition = "2021"
 
