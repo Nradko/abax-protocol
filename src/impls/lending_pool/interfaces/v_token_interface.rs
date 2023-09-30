@@ -1,5 +1,5 @@
 use pendzl::{
-    contracts::psp22::PSP22Error,
+    contracts::access_control::AccessControlError,
     traits::{AccountId, Balance, Storage},
 };
 
@@ -13,7 +13,7 @@ use crate::{
         abacus_token::traits::abacus_token::{
             AbacusToken, AbacusTokenRef, TransferEventData,
         },
-        lending_pool::events::EmitBorrowEvents,
+        lending_pool::{errors::LendingPoolError, events::EmitBorrowEvents},
     },
 };
 
@@ -47,16 +47,16 @@ pub trait LendingPoolVTokenInterfaceImpl:
         from: AccountId,
         to: AccountId,
         amount: Balance,
-    ) -> Result<(Balance, Balance), PSP22Error> {
+    ) -> Result<(Balance, Balance), LendingPoolError> {
         self._ensure_not_paused()?;
         // pull reserve_data
         let reserve_abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus
             .get(&underlying_asset)
-            .ok_or(PSP22Error::Custom("AssetNotRegistered".into()))?;
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
         if Self::env().caller() != reserve_abacus_tokens.v_token_address {
-            return Err(PSP22Error::Custom("WrongCaller".into()));
+            return Err((AccessControlError::MissingRole).into());
         }
 
         let timestamp = self._timestamp();
