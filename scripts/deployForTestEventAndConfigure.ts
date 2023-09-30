@@ -3,7 +3,14 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
 import { E8 } from '@abaxfinance/utils';
-import { deployOwnableToken, deployTestReservesMinter, getContractObject, registerNewAsset } from 'tests/setup/deploymentHelpers';
+import {
+  deployBalanceViewer,
+  deployCoreContracts,
+  deployOwnableToken,
+  deployTestReservesMinter,
+  getContractObject,
+  registerNewAsset,
+} from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { StoredContractInfo, saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
 import { ReserveTokenDeploymentData } from 'tests/setup/testEnvConsts';
@@ -12,8 +19,7 @@ import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import VTokenContract from 'typechain/contracts/v_token';
 import { getArgvObj } from '@abaxfinance/utils';
-
-const FLASH_LOAN_FEE_E6 = 1000;
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/defaultInterestRateModel';
 
 const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = [
   {
@@ -132,7 +138,11 @@ type TokenReserve = {
   const signer = keyring.createFromUri(seed, {}, 'sr25519');
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.azero.testnet.json');
 
-  const lendingPool = await getContractObject(LendingPool, LENDING_POOL_ADDRESS, signer);
+  // const lendingPool = await getContractObject(LendingPool, LENDING_POOL_ADDRESS, signer);
+  const { lendingPool, blockTimestampProvider } = await deployCoreContracts(signer);
+
+  await lendingPool.withSigner(signer).tx.setBlockTimestampProvider(blockTimestampProvider.address);
+  await blockTimestampProvider.tx.setShouldReturnMockValue(false);
 
   console.log(`signer: ${signer.address}`);
   console.log(`lendingPool: ${lendingPool.address}`);
@@ -157,6 +167,7 @@ type TokenReserve = {
       reserveData.minimalDebt,
       reserveData.decimals,
       reserveData.feeD6,
+      DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
     );
     await lendingPool.tx.insertReserveTokenPriceE8(reserve.address, PRICES_E8[reserveData.name]);
     reservesWithLendingTokens[reserveData.name] = {
@@ -166,6 +177,22 @@ type TokenReserve = {
       decimals: reserveData.decimals,
     };
   }
+
+  await lendingPool.tx.addMarketRule([
+    { collateralCoefficientE6: 970000, borrowCoefficientE6: 1020000, penaltyE6: 50000 },
+    { collateralCoefficientE6: 980000, borrowCoefficientE6: 1010000, penaltyE6: 50000 },
+    null,
+  ]);
+  await lendingPool.tx.addMarketRule([
+    null,
+    null,
+    null,
+    null,
+    { collateralCoefficientE6: 900000, borrowCoefficientE6: 1020000, penaltyE6: 50000 },
+    { collateralCoefficientE6: 910000, borrowCoefficientE6: 1030000, penaltyE6: 50000 },
+  ]);
+
+  const balanceViewer = await deployBalanceViewer(signer, lendingPool.address);
 
   await saveContractInfoToFileAsJson(
     [
@@ -180,8 +207,20 @@ type TokenReserve = {
         name: testReservesMinter.name,
         address: testReservesMinter.address,
       },
+      {
+        name: balanceViewer.name,
+        address: balanceViewer.address,
+      },
+      {
+        name: lendingPool.name,
+        address: lendingPool.address,
+      },
+      {
+        name: blockTimestampProvider.name,
+        address: blockTimestampProvider.address,
+      },
     ],
-    deployPath.replace('.json', 'appendix3.json'),
+    deployPath.replace('.json', 'final_v5.json'),
   );
 
   await api.disconnect();

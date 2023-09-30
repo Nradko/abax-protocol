@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "a_token"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -48,7 +48,7 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "balance_viewer"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "block_timestamp_provider"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -325,7 +325,7 @@ dependencies = [
 
 [[package]]
 name = "flash_loan_receiver_mock"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -689,7 +689,7 @@ dependencies = [
 
 [[package]]
 name = "lending_pool"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -700,7 +700,7 @@ dependencies = [
 
 [[package]]
 name = "lending_project"
-version = "2.2.0"
+version = "0.1.1"
 dependencies = [
  "ink",
  "itertools",
@@ -895,7 +895,7 @@ dependencies = [
 
 [[package]]
 name = "psp22_emitable"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -906,7 +906,7 @@ dependencies = [
 
 [[package]]
 name = "psp22_ownable"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -1285,7 +1285,7 @@ dependencies = [
 
 [[package]]
 name = "test_reserves_minter"
-version = "0.0.1"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
@@ -1381,7 +1381,7 @@ checksum = "7e33648dd74328e622c7be51f3b40a303c63f93e6fa5f08778b6203a4c25c20f"
 
 [[package]]
 name = "v_token"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ink",
  "lending_project",
