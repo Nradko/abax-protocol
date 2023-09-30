@@ -63,7 +63,6 @@ pub mod lending_pool {
         contracts::{
             access_control::{self, *},
             pausable::{self, *},
-            psp22::PSP22Error,
         },
         traits::Storage,
     };
@@ -585,7 +584,7 @@ pub mod lending_pool {
             from: AccountId,
             to: AccountId,
             amount: Balance,
-        ) -> Result<(Balance, Balance), PSP22Error> {
+        ) -> Result<(Balance, Balance), LendingPoolError> {
             LendingPoolATokenInterfaceImpl::transfer_supply_from_to(
                 self,
                 underlying_asset,
@@ -627,7 +626,7 @@ pub mod lending_pool {
             from: AccountId,
             to: AccountId,
             amount: Balance,
-        ) -> Result<(Balance, Balance), PSP22Error> {
+        ) -> Result<(Balance, Balance), LendingPoolError> {
             LendingPoolVTokenInterfaceImpl::transfer_variable_debt_from_to(
                 self,
                 underlying_asset,
