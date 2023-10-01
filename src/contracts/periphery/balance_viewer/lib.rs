@@ -3,7 +3,6 @@
 #[ink::contract]
 pub mod balance_viewer {
 
-    use lending_project::impls::lending_pool::storage::structs::reserve_data;
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveAbacusTokens;
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveData;
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveParameters;

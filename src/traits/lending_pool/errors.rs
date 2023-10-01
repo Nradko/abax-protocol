@@ -1,7 +1,4 @@
-use ink::{
-    prelude::{format, string::String},
-    LangError,
-};
+use ink::prelude::format;
 use pendzl::contracts::{
     access_control::AccessControlError, pausable::PausableError,
     psp22::PSP22Error,
@@ -15,13 +12,11 @@ use crate::{
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum LendingPoolError {
-    PSP22Error(PSP22Error),
-    StorageError(StorageError),
+    // PSP22Error(PSP22Error),
     FlashLoanReceiverError(FlashLoanReceiverError),
 
     AccessControlError(AccessControlError),
     PausableError(PausableError),
-    LangError(LangError),
     MathError(MathError),
     Inactive,
     AlreadySet,
@@ -39,9 +34,7 @@ pub enum LendingPoolError {
     InsufficientDeposit,
     MinimumRecieved,
     AmountNotGreaterThanZero,
-    AmountExceedsUserDeposit,
     AssetPriceNotInitialized,
-    AmountExceedsUserDebt,
     NothingToRepay,
     NothingToCompensateWith,
     RepayingWithACollateral,
@@ -54,12 +47,7 @@ pub enum LendingPoolError {
     MarketRulePenaltyNotSet,
     PriceMissing,
     AccumulatedAlready,
-}
-
-impl From<LangError> for LendingPoolError {
-    fn from(error: LangError) -> Self {
-        LendingPoolError::LangError(error)
-    }
+    PSP22Error,
 }
 
 impl From<MathError> for LendingPoolError {
@@ -69,8 +57,8 @@ impl From<MathError> for LendingPoolError {
 }
 
 impl From<PSP22Error> for LendingPoolError {
-    fn from(error: PSP22Error) -> Self {
-        LendingPoolError::PSP22Error(error)
+    fn from(_error: PSP22Error) -> Self {
+        LendingPoolError::PSP22Error
     }
 }
 
@@ -94,17 +82,6 @@ impl From<LendingPoolError> for PSP22Error {
             }
             e => PSP22Error::Custom(format!("{:?}", e).into()),
         }
-    }
-}
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum StorageError {
-    EntityNotFound(String),
-}
-
-impl From<StorageError> for LendingPoolError {
-    fn from(storage_error: StorageError) -> Self {
-        LendingPoolError::StorageError(storage_error)
     }
 }
 
