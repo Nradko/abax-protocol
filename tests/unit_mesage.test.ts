@@ -6,7 +6,6 @@ import { AssetRegistered } from 'typechain/event-types/lending_pool';
 import { ContractsEvents } from 'typechain/events/enum';
 import { AccountId } from 'typechain/types-arguments/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
-import { StorageErrorBuilder } from 'typechain/types-returns/lending_pool';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import BlockTimestampProviderContract from '../typechain/contracts/block_timestamp_provider';
 import LendingPoolContract from '../typechain/contracts/lending_pool';

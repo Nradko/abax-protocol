@@ -514,7 +514,7 @@ export async function registerNewAsset(
   ];
   const res = await lendingPool.query.registerAsset(...registerAssetArgs);
 
-  await lendingPool.tx.registerAsset(...registerAssetArgs);
+  await lendingPool.withSigner(owner).tx.registerAsset(...registerAssetArgs);
 
   return { aToken, vToken };
 }

@@ -81,6 +81,6 @@ makeSuite('Flash Loan', (getTestEnv) => {
   it('Takes WETH flashloan - the amount is bigger than the available liquidity', async () => {
     const amountToBorrow = amountWETHToDeposit.addn(E6);
     const res = (await lendingPool.query.flashLoan(testEnv.users[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).value.ok;
-    await expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.PSP22Error(PSP22ErrorBuilder.InsufficientBalance()));
+    await expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.PSP22Error());
   });
 });
