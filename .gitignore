@@ -41,6 +41,8 @@ yarn.lock
 /typechain
 
 *deployedContracts.json
+*deployedContracts.*.*.json
+
 build.log
 build.log.html
 
