@@ -9,7 +9,6 @@ pub mod balance_viewer {
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReservePrice;
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveRestrictions;
     use lending_project::impls::lending_pool::storage::structs::user_reserve_data::UserReserveData;
-    use lending_project::traits::lending_pool::errors::LendingPoolError;
     // use lending_project::traits::managing::*;
     use pendzl::{contracts::psp22::*, traits::Storage};
 
