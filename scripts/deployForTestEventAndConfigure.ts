@@ -143,6 +143,7 @@ type TokenReserve = {
 
   await lendingPool.withSigner(signer).tx.setBlockTimestampProvider(blockTimestampProvider.address);
   await blockTimestampProvider.tx.setShouldReturnMockValue(false);
+  await lendingPool.withSigner(signer).tx.addMarketRule([]);
 
   console.log(`signer: ${signer.address}`);
   console.log(`lendingPool: ${lendingPool.address}`);
