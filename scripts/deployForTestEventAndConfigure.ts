@@ -169,6 +169,8 @@ type TokenReserve = {
       reserveData.feeD6,
       DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
     );
+    console.log('inserting token price');
+    const tokenPriceQueryRes = await lendingPool.query.insertReserveTokenPriceE8(reserve.address, PRICES_E8[reserveData.name]);
     await lendingPool.tx.insertReserveTokenPriceE8(reserve.address, PRICES_E8[reserveData.name]);
     reservesWithLendingTokens[reserveData.name] = {
       underlying: reserve,

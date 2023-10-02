@@ -139,39 +139,45 @@ export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldRet
   return getContractObject(BlockTimestampProvider, deployRet.address, owner);
 };
 
-export const deployAToken = async (
-  owner: KeyringPair,
-  symbol: string,
-  decimal: number,
-  lendingPoolAddress: string,
-  underlyingAssetAddress: string,
-) => {
-  const deployRet = await new ATokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
-    'AToken',
-    symbol,
-    decimal,
-    lendingPoolAddress,
-    underlyingAssetAddress,
-  );
-  return getContractObject(ATokenContract, deployRet.address, owner);
-};
+export const deployAToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
+  deployWithLog(owner, ATokenContract, 'a_token', 'AToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
 
-export const deployVToken = async (
-  owner: KeyringPair,
-  symbol: string,
-  decimal: number,
-  lendingPoolAddress: string,
-  underlyingAssetAddress: string,
-) => {
-  const deployRet = await new VTokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
-    'VToken',
-    symbol,
-    decimal,
-    lendingPoolAddress,
-    underlyingAssetAddress,
-  );
-  return getContractObject(VTokenContract, deployRet.address, owner);
-};
+export const deployVToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
+  deployWithLog(owner, VTokenContract, 'v_token', 'VToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
+
+// export const deployAToken = async (
+//   owner: KeyringPair,
+//   symbol: string,
+//   decimal: number,
+//   lendingPoolAddress: string,
+//   underlyingAssetAddress: string,
+// ) => {
+//   const deployRet = await new ATokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+//     'AToken',
+//     symbol,
+//     decimal,
+//     lendingPoolAddress,
+//     underlyingAssetAddress,
+//   );
+//   return getContractObject(ATokenContract, deployRet.address, owner);
+// };
+
+// export const deployVToken = async (
+//   owner: KeyringPair,
+//   symbol: string,
+//   decimal: number,
+//   lendingPoolAddress: string,
+//   underlyingAssetAddress: string,
+// ) => {
+//   const deployRet = await new VTokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+//     'VToken',
+//     symbol,
+//     decimal,
+//     lendingPoolAddress,
+//     underlyingAssetAddress,
+//   );
+//   return getContractObject(VTokenContract, deployRet.address, owner);
+// };
 
 export const deployEmitableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
   const deployRet = await new PSP22EmitableConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
