@@ -1,6 +1,5 @@
 /// PSP22 (PSP55) token representing users deposits(debts) in `LendingPool` contract.
 pub mod abacus_token;
-pub mod account_id_utils;
 /// just for testing
 pub mod block_timestamp_provider;
 /// flash loan receiver

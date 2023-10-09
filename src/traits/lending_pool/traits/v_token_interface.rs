@@ -8,24 +8,24 @@ pub type LendingPoolVTokenInterfaceRef =
 
 #[ink::trait_definition]
 pub trait LendingPoolVTokenInterface {
-    /// Returns LendingPool's total variable debt of users in the context of an underlying asset.
+    /// Returns LendingPool's total debt of users in the context of an underlying asset.
     ///
-    /// * `underlying_asset` - AccountId (aka address) of an asset to look up total variable debt of.
+    /// * `underlying_asset` - AccountId (aka address) of an asset to look up total  debt of.
     #[ink(message)]
-    fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance;
-    /// Returns the specified `user`'s variable debt in the context of an `underlying_asset`.
+    fn total_debt_of(&self, underlying_asset: AccountId) -> Balance;
+    /// Returns the specified `user`'s  debt in the context of an `underlying_asset`.
     ///
-    /// * `underlying_asset` - AccountId (aka address) of an asset to look up user's variable debt of.
-    /// * `user` - AccountId (aka address) of an user to look up variable debt for.
+    /// * `underlying_asset` - AccountId (aka address) of an asset to look up user's  debt of.
+    /// * `user` - AccountId (aka address) of an user to look up  debt for.
     #[ink(message)]
-    fn user_variable_debt_of(
+    fn user_debt_of(
         &self,
         underlying_asset: AccountId,
         user: AccountId,
     ) -> Balance;
-    /// Transfers an `amount` of variable debt on the behalf of `from` to the account `to` in the context of an `underlying_asset`.
+    /// Transfers an `amount` of  debt on the behalf of `from` to the account `to` in the context of an `underlying_asset`.
     ///
-    /// * `underlying_asset` - AccountId (aka address) of an asset to transfer variable debt from/to.
+    /// * `underlying_asset` - AccountId (aka address) of an asset to transfer  debt from/to.
     /// * `from` - AccountId (aka address) of an user to transfer from.
     /// * `to` - AccountId (aka address) of an user to transfer to.
     ///
@@ -41,7 +41,7 @@ pub trait LendingPoolVTokenInterface {
     /// Returns `InsufficientBalance` error if there are not enough tokens on
     /// the the account Balance of `from`.
     #[ink(message)]
-    fn transfer_variable_debt_from_to(
+    fn transfer_debt_from_to(
         &mut self,
         underlying_asset: AccountId,
         from: AccountId,

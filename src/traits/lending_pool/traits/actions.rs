@@ -6,25 +6,6 @@ use crate::{
 };
 use ink::prelude::vec::Vec;
 
-// #[pendzl::wrapper]
-// pub type LendingPoolRef =
-//     dyn LendingPoolDeposit + LendingPoolBorrow + LendingPoolLiquidate;
-
-// #[pendzl::wrapper]
-// pub type LendingPoolDepositRef = dyn LendingPoolDeposit;
-
-// #[pendzl::wrapper]
-// pub type LendingPoolBorrowRef = dyn LendingPoolBorrow;
-
-// #[pendzl::wrapper]
-// pub type LendingPoolLiquidateRef = dyn LendingPoolLiquidate;
-
-// #[pendzl::wrapper]
-// pub type LendingPoolMaintainRef = dyn LendingPoolMaintain;
-
-// #[pendzl::wrapper]
-// pub type LendingPoolFlashRef = dyn LendingPoolFlash;
-
 /// contains `deposit` and `redeem` functions
 #[ink::trait_definition]
 pub trait LendingPoolDeposit {
@@ -88,7 +69,6 @@ pub trait LendingPoolBorrow {
     ) -> Result<(), LendingPoolError>;
     /// is used by a user0, once he made a deposit and chosen users collaterals, to borrow an asset from LendingPool.
     ///
-    ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
     ///     user1 is making borrow. In case user0 != user1 the allowance on appropriate VToken will be decreased.
@@ -103,7 +83,6 @@ pub trait LendingPoolBorrow {
         data: Vec<u8>,
     ) -> Result<(), LendingPoolError>;
     /// is used by a user0, once he made a borrow, to repay a debt taken in the asset from LendingPool.
-    ///
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
@@ -132,7 +111,7 @@ pub trait LendingPoolLiquidate {
     /// * `amount_to_repay` - the number of tokens to be repaid. Pass None to repay all debt or Some in absolute value (1USDT = 1_000_000, 1AZERO = 1_000_000_000_000).
     /// * `minimum_recieved_for_one_repaid_token_e12` - minimum amount of asset_to_take to be received by liquidator per 1 repaid token multiplied by 10^12.
     ///     Notice!!! In the case of AZERO 1 token is 10^-12 of AZERO and in the case of USDT 1 token is 10^-6 of AZERO. The liquidator must be conscious and use absolute values.
-    /// * `data` - additional data to specify liquidate options. Right now it is only used to specify Variable or Stable debts to be liquidated.
+    /// * `data` - additional data currently unused.
     #[ink(message)]
     fn liquidate(
         &mut self,
@@ -171,6 +150,12 @@ pub trait LendingPoolMaintain {
 /// contains `flash_looan` function
 #[ink::trait_definition]
 pub trait LendingPoolFlash {
+    /// is used to perform a flash loan. 1) take a loan. 2) perform actions. 3) repay loan + fee. All in one tx.
+    ///
+    ///  * `receiver_address` - AccountId (aka address) of a contract that takes loan and will perform actions before rapaying loan.
+    ///  * `assets` -  vec of PSP22 AccountId (aka address) that one wants to borrow
+    ///  * `amounts` -  vec of Blancwes that one wants to borrow, in the correspong order to `assets`
+    ///  * `receiver_params` -  additional data passed to receiver.
     #[ink(message)]
     fn flash_loan(
         &mut self,

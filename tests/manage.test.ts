@@ -34,7 +34,7 @@ const replaceRNBNPropsWithStrings = function (obj: any) {
   return tmpObj;
 };
 
-makeSuite.only('Menage tests', (getTestEnv) => {
+makeSuite('Menage tests', (getTestEnv) => {
   const adminOf: Record<string, KeyringPair> = {};
   const ROLES_NAMES = ROLE_NAMES.filter((name) => name !== 'FLASH_BORROWER');
   let testEnv: TestEnv;

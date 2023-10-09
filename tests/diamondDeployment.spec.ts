@@ -110,7 +110,7 @@ describe('Diamond Contract', () => {
     }
     //lending_pool_v0_v_token_interface_facet
     try {
-      const res = await lendingPool.query.totalVariableDebtOf(testEnv.owner.address);
+      const res = await lendingPool.query.totalDebtOf(testEnv.owner.address);
       if (res.value.err) failedFacets.push('lending_pool_v0_v_token_interface_facet');
     } catch (e) {
       if (SHOW_ERRORS) console.log(e);

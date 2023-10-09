@@ -597,36 +597,33 @@ pub mod lending_pool {
     impl LendingPoolVTokenInterfaceImpl for LendingPool {}
     impl LendingPoolVTokenInterface for LendingPool {
         #[ink(message)]
-        fn total_variable_debt_of(
-            &self,
-            underlying_asset: AccountId,
-        ) -> Balance {
-            LendingPoolVTokenInterfaceImpl::total_variable_debt_of(
+        fn total_debt_of(&self, underlying_asset: AccountId) -> Balance {
+            LendingPoolVTokenInterfaceImpl::total_debt_of(
                 self,
                 underlying_asset,
             )
         }
         #[ink(message)]
-        fn user_variable_debt_of(
+        fn user_debt_of(
             &self,
             underlying_asset: AccountId,
             user: AccountId,
         ) -> Balance {
-            LendingPoolVTokenInterfaceImpl::user_variable_debt_of(
+            LendingPoolVTokenInterfaceImpl::user_debt_of(
                 self,
                 underlying_asset,
                 user,
             )
         }
         #[ink(message)]
-        fn transfer_variable_debt_from_to(
+        fn transfer_debt_from_to(
             &mut self,
             underlying_asset: AccountId,
             from: AccountId,
             to: AccountId,
             amount: Balance,
         ) -> Result<(Balance, Balance), LendingPoolError> {
-            LendingPoolVTokenInterfaceImpl::transfer_variable_debt_from_to(
+            LendingPoolVTokenInterfaceImpl::transfer_debt_from_to(
                 self,
                 underlying_asset,
                 from,
