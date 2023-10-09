@@ -2,12 +2,8 @@ use crate::{
     impls::{
         constants::E6_U128,
         lending_pool::{
-            internal::Transfer,
-            manage::FLASH_BORROWER,
-            storage::{
-                lending_pool_storage::LendingPoolStorage,
-                structs::reserve_data::{ReserveData, ReserveIndexes},
-            },
+            internal::Transfer, manage::FLASH_BORROWER,
+            storage::lending_pool_storage::LendingPoolStorage,
         },
     },
     traits::{
@@ -47,8 +43,6 @@ pub trait LendingPoolFlashImpl:
             );
         }
 
-        let mut reserve_data_vec: Vec<ReserveData> = vec![];
-        let mut reserve_indexes_vec: Vec<ReserveIndexes> = vec![];
         let mut fees: Vec<u128> = vec![];
         let flash_fee_e6 = self
             .data::<LendingPoolStorage>()
@@ -57,23 +51,6 @@ pub trait LendingPoolFlashImpl:
             .unwrap();
 
         for i in 0..assets.len() {
-            let asset_id = self
-                .data::<LendingPoolStorage>()
-                .asset_to_id
-                .get(&assets[i])
-                .ok_or(LendingPoolError::AssetNotRegistered)?;
-            reserve_data_vec.push(
-                self.data::<LendingPoolStorage>()
-                    .reserve_datas
-                    .get(&asset_id)
-                    .unwrap(),
-            );
-            reserve_indexes_vec.push(
-                self.data::<LendingPoolStorage>()
-                    .reserve_indexes
-                    .get(&asset_id)
-                    .unwrap(),
-            );
             let fee = match self
                 ._has_role(FLASH_BORROWER, &Some(Self::env().caller()))
             {
