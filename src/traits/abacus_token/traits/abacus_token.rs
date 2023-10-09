@@ -19,13 +19,16 @@ pub struct TransferEventData {
 
 #[ink::trait_definition]
 pub trait AbacusToken {
-    /// called whenever the state of user supply, variable_borrow, stable_borrow (aToken, vToken, sToken) is changed.
+    /// called whenever the state of user deposit or debt (aToken, vToken) is changed.
     #[ink(message)]
     fn emit_transfer_events(
         &mut self,
         transfer_event_data: Vec<TransferEventData>,
     ) -> Result<(), PSP22Error>;
 
+    /// called whenever the state of user deposit or debt (aToken, vToken) is changed caller != on_behalf_of.
+    /// case1: Alice has allowance on Bobs ATokens and Alice makes withdraw on behalf of Bob.
+    /// case2: Alice has allowance on Bobs VTokens and Alice makes borrow on behalf of Bob.
     #[ink(message)]
     fn emit_transfer_event_and_decrease_allowance(
         &mut self,
@@ -35,39 +38,7 @@ pub trait AbacusToken {
         decrease_allowance_by: Balance,
     ) -> Result<(), PSP22Error>;
 
+    /// returns lending_pool AccountId
     #[ink(message)]
     fn get_lending_pool(&self) -> AccountId;
-}
-
-pub trait Internal {
-    /// User must override those methods in their contract.
-    fn _emit_transfer_event(
-        &self,
-        _from: Option<AccountId>,
-        _to: Option<AccountId>,
-        _amount: Balance,
-    );
-    fn _emit_approval_event(
-        &self,
-        _owner: AccountId,
-        _spender: AccountId,
-        _amount: Balance,
-    );
-
-    fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance;
-
-    fn _transfer_from_to(
-        &mut self,
-        from: AccountId,
-        to: AccountId,
-        amount: Balance,
-        data: Vec<u8>,
-    ) -> Result<(), PSP22Error>;
-
-    fn _approve_from_to(
-        &mut self,
-        owner: AccountId,
-        spender: AccountId,
-        amount: Balance,
-    ) -> Result<(), PSP22Error>;
 }

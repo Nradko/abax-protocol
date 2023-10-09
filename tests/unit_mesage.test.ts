@@ -358,7 +358,7 @@ makeSuite('Message', (getTestEnv) => {
           .withSigner(testEnv.users[1])
           .query.transferSupplyFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000)
       ).value.ok;
-      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('WrongCaller'));
+      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
     it('A regular user should not be able to execute transfer supply on VToken', async () => {
       const amountToBorrow = mintedAmount / 2;
@@ -372,9 +372,9 @@ makeSuite('Message', (getTestEnv) => {
       const queryRes = (
         await lendingPool
           .withSigner(testEnv.users[0])
-          .query.transferVariableDebtFromTo(reserveWETH.underlying.address, testEnv.users[1].address, testEnv.users[0].address, amountToBorrow)
+          .query.transferDebtFromTo(reserveWETH.underlying.address, testEnv.users[1].address, testEnv.users[0].address, amountToBorrow)
       ).value.ok;
-      expect(queryRes).to.have.deep.property('err', PSP22ErrorBuilder.Custom('WrongCaller'));
+      expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });
   });
 });

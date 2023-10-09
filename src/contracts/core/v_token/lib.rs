@@ -82,8 +82,7 @@ pub mod v_token {
     fn _balance_of(&self, owner: &AccountId) -> Balance {
         let lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
-        lending_pool
-            .user_variable_debt_of(self.abacus_token.underlying_asset, *owner)
+        lending_pool.user_debt_of(self.abacus_token.underlying_asset, *owner)
     }
 
     #[overrider(psp22::Internal)]
@@ -175,7 +174,7 @@ pub mod v_token {
     fn _total_supply(&self) -> Balance {
         let lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
-        lending_pool.total_variable_debt_of(self.abacus_token.underlying_asset)
+        lending_pool.total_debt_of(self.abacus_token.underlying_asset)
     }
 
     #[overrider(psp22::Internal)]
@@ -190,19 +189,19 @@ pub mod v_token {
         // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
 
         ink::env::debug_println!(
-            "_transfer_from_to before LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call"
+            "_transfer_from_to before LendingPoolVTokenInterfaceRef::transfer_debt_from_to call"
         );
         let mut lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
-            lending_pool.transfer_variable_debt_from_to(
+            lending_pool.transfer_debt_from_to(
                 self.abacus_token.underlying_asset,
                 from,
                 to,
                 amount,
             )?;
         ink::env::debug_println!(
-            "_transfer_from_to after LendingPoolVTokenInterfaceRef::transfer_variable_debt_from_to call"
+            "_transfer_from_to after LendingPoolVTokenInterfaceRef::transfer_debt_from_to call"
         );
         ink::env::debug_println!(
             "mint_from: {} |    mint_to: {}",
