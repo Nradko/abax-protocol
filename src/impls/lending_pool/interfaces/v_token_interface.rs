@@ -60,7 +60,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
         }
 
         let timestamp = self._timestamp();
-        ink::env::debug_println!("v_token transfer| account");
+
         let (
             from_accumulated_deposit_interest,
             from_accumulated_debt_interest,
@@ -77,7 +77,6 @@ pub trait LendingPoolVTokenInterfaceImpl:
             )?;
 
         // check if there ie enought
-        ink::env::debug_println!("v_token transfer| check lending Power");
 
         self.data::<LendingPoolStorage>().check_lending_power(&to)?;
 

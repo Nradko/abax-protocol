@@ -28,18 +28,17 @@ pub trait LendingPoolLiquidateImpl:
         minimum_recieved_for_one_repaid_token_e18: u128,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        ink::env::debug_println!("a1");
         let (collaterized, _) = self
             .data::<LendingPoolStorage>()
             .calculate_user_lending_power_e6(&liquidated_user)?;
-        ink::env::debug_println!("a2");
+
         if collaterized {
             return Err(LendingPoolError::Collaterized);
         }
 
         let timestamp = self._timestamp();
         let caller = Self::env().caller();
-        ink::env::debug_println!("a3");
+
         let (
             amount_to_take,
             user_accumulated_supply_interest_to_repay,
@@ -56,12 +55,10 @@ pub trait LendingPoolLiquidateImpl:
             &mut amount_to_repay,
             &timestamp,
         )?;
-        ink::env::debug_println!("a4");
 
         let recieved_for_one_repaid_token_e18 = {
             let x = U256::try_from(amount_to_take).unwrap();
             let y = U256::try_from(amount_to_repay).unwrap();
-            ink::env::debug_println!("a5");
 
             match u128::try_from(
                 x.checked_mul(E18_U128.into())
@@ -73,7 +70,6 @@ pub trait LendingPoolLiquidateImpl:
                 _ => Err(MathError::Overflow),
             }
         }?;
-        ink::env::debug_println!("a6");
 
         if recieved_for_one_repaid_token_e18
             < minimum_recieved_for_one_repaid_token_e18
@@ -81,13 +77,12 @@ pub trait LendingPoolLiquidateImpl:
             return Err(LendingPoolError::MinimumRecieved);
         }
         //// TOKEN TRANSFERS
-        ink::env::debug_println!("a7");
 
         self._transfer_in(&asset_to_repay, &caller, &amount_to_repay)?;
 
         //// ABACUS TOKEN EVENTS
         //// to_repay_token
-        ink::env::debug_println!("a8");
+
         let abacus_tokens_to_repay = self
             .data::<LendingPoolStorage>()
             .reserve_abacus
@@ -106,8 +101,6 @@ pub trait LendingPoolLiquidateImpl:
             user_accumulated_debt_interest_to_repay as i128
                 - amount_to_repay as i128,
         )?;
-
-        ink::env::debug_println!("a9");
 
         //// to_take_token
         let abacus_tokens_to_take = self
@@ -146,8 +139,6 @@ pub trait LendingPoolLiquidateImpl:
             ],
         )?;
 
-        ink::env::debug_println!("a10");
-
         // EVENT
         self._emit_liquidation_variable_event(
             caller,
@@ -157,7 +148,6 @@ pub trait LendingPoolLiquidateImpl:
             amount_to_repay,
             amount_to_take,
         );
-        ink::env::debug_println!("a11");
 
         Ok((amount_to_repay, amount_to_take))
     }

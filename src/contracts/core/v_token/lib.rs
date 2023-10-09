@@ -122,10 +122,9 @@ pub mod v_token {
         );
 
         if allowance < value {
-            ink::env::debug_println!("gonna return insufficient allowance");
             return Err(PSP22Error::InsufficientAllowance);
         }
-        ink::env::debug_println!("Transfer after allowance < value");
+
         psp22::Internal::_approve_from_to(self, to, from, allowance - value)?;
         psp22::Internal::_transfer_from_to(self, from, to, value, data)?;
         Ok(())
@@ -164,7 +163,6 @@ pub mod v_token {
             value
         );
         if allowance < value {
-            ink::env::debug_println!("gonna return insufficient allowance");
             return Err(PSP22Error::InsufficientAllowance);
         }
 

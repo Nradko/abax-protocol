@@ -201,7 +201,7 @@ impl UserReserveData {
         }
         self.applied_cumulative_debt_index_e18 =
             reserve_indexes.cumulative_debt_index_e18;
-        ink::env::debug_println!("--- accumulate interest ---");
+
         return Ok((delta_user_supply, delta_user_varaible_debt));
     }
 }

@@ -201,7 +201,6 @@ pub mod lending_pool {
             minimum_recieved_for_one_repaid_token_e18: u128,
             #[allow(unused_variables)] data: Vec<u8>,
         ) -> Result<(Balance, Balance), LendingPoolError> {
-            ink::env::debug_println!("x1");
             let res = LendingPoolLiquidateImpl::liquidate(
                 self,
                 liquidated_user,
@@ -211,7 +210,7 @@ pub mod lending_pool {
                 minimum_recieved_for_one_repaid_token_e18,
                 data,
             )?;
-            ink::env::debug_println!("x2");
+
             Ok(res)
         }
     }
@@ -698,7 +697,7 @@ pub mod lending_pool {
                     code_hash, err
                 )
             });
-            ink::env::debug_println!("Switched code hash to {:?}.", code_hash);
+
             Ok(())
         }
     }
@@ -1117,7 +1116,6 @@ pub mod lending_pool {
             amount_repaid: Balance,
             amount_taken: Balance,
         ) {
-            ink::env::debug_println!("y1");
             self.env().emit_event(Liquidation {
                 liquidator,
                 user,
@@ -1126,7 +1124,6 @@ pub mod lending_pool {
                 amount_repaid,
                 amount_taken,
             });
-            ink::env::debug_println!("y2");
         }
     }
 }

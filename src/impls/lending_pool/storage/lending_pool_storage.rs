@@ -628,7 +628,6 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<(u128, u128, u128, u128, u128, u128, u128), LendingPoolError>
     {
-        ink::env::debug_println!("b1");
         let asset_to_repay_id = self.asset_id(&asset_to_repay)?;
         let asset_to_take_id = self.asset_id(&asset_to_take)?;
         let mut reserve_data_to_repay =
@@ -663,8 +662,6 @@ impl LendingPoolStorage {
         let reserve_parameters_to_take =
             self.reserve_parameters.get(&asset_to_take_id);
 
-        ink::env::debug_println!("b2");
-
         if (caller_config.collaterals >> asset_to_take_id) & 1_u128 == 1 {
             return Err(LendingPoolError::RepayingWithACollateral);
         }
@@ -672,8 +669,6 @@ impl LendingPoolStorage {
         if user_reserve_data_to_repay.debt == 0 {
             return Err(LendingPoolError::NothingToRepay);
         }
-
-        ink::env::debug_println!("b3");
 
         // accumulate to repay
         reserve_data_to_repay
@@ -686,11 +681,9 @@ impl LendingPoolStorage {
 
         // accumulate to take
         // accumulate to repay
-        ink::env::debug_println!("b4");
 
         reserve_data_to_take
             .accumulate_interest(&mut reserve_indexes_to_take, &timestamp)?;
-        ink::env::debug_println!("b5");
 
         let (
             user_accumulated_supply_interest_to_take,
@@ -698,7 +691,6 @@ impl LendingPoolStorage {
         ): (Balance, Balance) = user_reserve_data_to_take
             .accumulate_user_interest(&reserve_indexes_to_take)?;
         // caller's
-        ink::env::debug_println!("b6");
 
         let (
             caller_accumulated_supply_interest_to_take,
@@ -706,12 +698,9 @@ impl LendingPoolStorage {
         ): (Balance, Balance) = caller_reserve_data_to_take
             .accumulate_user_interest(&reserve_indexes_to_take)?;
 
-        ink::env::debug_println!("b7");
-
         if *amount_to_repay > user_reserve_data_to_repay.debt {
             *amount_to_repay = user_reserve_data_to_repay.debt;
         }
-        ink::env::debug_println!("b8");
 
         let amount_to_take = self
             .calculate_liquidated_amount_and_check_if_collateral(
@@ -720,13 +709,10 @@ impl LendingPoolStorage {
                 asset_to_take,
                 &amount_to_repay,
             )?;
-        ink::env::debug_println!("b9");
 
         if amount_to_take > user_reserve_data_to_take.deposit {
             return Err(LendingPoolError::InsufficientDeposit);
         }
-
-        ink::env::debug_println!("b10");
 
         user_reserve_data_to_repay.decrease_user_debt(
             &asset_to_repay_id,
@@ -750,7 +736,6 @@ impl LendingPoolStorage {
             )
             .unwrap();
 
-        ink::env::debug_println!("b11");
         match reserve_parameters_to_repay {
             Some(params) => {
                 reserve_data_to_repay.recalculate_current_rates(&params)?
@@ -763,8 +748,6 @@ impl LendingPoolStorage {
             }
             None => (),
         };
-
-        ink::env::debug_println!("b12");
 
         self.reserve_datas
             .insert(&asset_to_repay_id, &reserve_data_to_repay);
@@ -1073,7 +1056,6 @@ impl LendingPoolStorage {
             reserve_indexes
         );
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
-        ink::env::debug_println!("reserve indexes after {:?}", reserve_indexes);
 
         let (from_accumulated_deposit_interest, from_accumulated_debt_interest) =
             from_user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
