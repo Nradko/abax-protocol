@@ -12,7 +12,7 @@ use crate::{
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum LendingPoolError {
-    // PSP22Error(PSP22Error),
+    PSP22Error(PSP22Error),
     FlashLoanReceiverError(FlashLoanReceiverError),
 
     AccessControlError(AccessControlError),
@@ -47,7 +47,6 @@ pub enum LendingPoolError {
     MarketRulePenaltyNotSet,
     PriceMissing,
     AccumulatedAlready,
-    PSP22Error,
 }
 
 impl From<MathError> for LendingPoolError {
@@ -57,8 +56,8 @@ impl From<MathError> for LendingPoolError {
 }
 
 impl From<PSP22Error> for LendingPoolError {
-    fn from(_error: PSP22Error) -> Self {
-        LendingPoolError::PSP22Error
+    fn from(error: PSP22Error) -> Self {
+        LendingPoolError::PSP22Error(error)
     }
 }
 

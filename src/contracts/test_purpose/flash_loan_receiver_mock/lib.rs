@@ -2,7 +2,7 @@
 
 #[ink::contract]
 pub mod flash_loan_receiver_mock {
-    use ink::prelude::{format, vec::Vec};
+    use ink::prelude::vec::Vec;
     use lending_project::traits::flash_loan_receiver::{
         FlashLoanReceiverError, *,
     };
@@ -61,20 +61,14 @@ pub mod flash_loan_receiver_mock {
                 let psp22: PSP22Ref = assets[i].into();
                 let balance = psp22.balance_of(self.env().account_id());
                 if amounts[i] > balance {
-                    return Err(FlashLoanReceiverError::Custom(format!(
-                        "Insufficient balance for the contract for asset {:X?}",
-                        assets[i],
-                    )));
+                    return Err(FlashLoanReceiverError::InsufficientBalance);
                 }
 
                 if self.simulate_balance_to_cover_fee {
                     let mut psp22: PSP22MintableRef = assets[i].into();
 
                     if psp22.mint(self.env().account_id(), fees[i]).is_err() {
-                        return Err(FlashLoanReceiverError::Custom(format!(
-                            "Asset {:X?} is not mintable",
-                            assets[i]
-                        )));
+                        return Err(FlashLoanReceiverError::AssetNotMintable);
                     }
                 }
 
@@ -87,9 +81,7 @@ pub mod flash_loan_receiver_mock {
                 }
                 .is_err()
                 {
-                    return Err(FlashLoanReceiverError::Custom(format!(
-                        "Can't approve"
-                    )));
+                    return Err(FlashLoanReceiverError::CantApprove);
                 }
             }
 

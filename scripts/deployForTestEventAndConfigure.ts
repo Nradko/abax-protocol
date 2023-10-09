@@ -223,7 +223,7 @@ type TokenReserve = {
         address: blockTimestampProvider.address,
       },
     ],
-    deployPath.replace('.json', 'final_v5.json'),
+    deployPath.replace('.json', 'final_v6.json'),
   );
 
   await api.disconnect();
