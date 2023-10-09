@@ -784,7 +784,7 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "pendzl"
-version = "0.1.0"
+version = "4.0.0-beta.1"
 dependencies = [
  "ink",
  "parity-scale-codec",
@@ -795,7 +795,7 @@ dependencies = [
 
 [[package]]
 name = "pendzl_contracts"
-version = "0.1.0"
+version = "4.0.0-beta.1"
 dependencies = [
  "hex",
  "ink",
@@ -806,7 +806,7 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang"
-version = "0.1.0"
+version = "4.0.0-beta.1"
 dependencies = [
  "const_format",
  "ink",
@@ -818,7 +818,7 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang_codegen"
-version = "0.1.0"
+version = "4.0.0-beta.1"
 dependencies = [
  "blake2",
  "cargo_metadata",
@@ -837,7 +837,7 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang_macro"
-version = "0.1.0"
+version = "4.0.0-beta.1"
 dependencies = [
  "pendzl_lang_codegen",
  "proc-macro2",
