@@ -82,7 +82,7 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
 
     it('Alice should NOT be able to transfer more aDai than she has', async () => {
       const queryResult = (await aTokenDaiContract.withSigner(alice).query.transfer(bob.address, initialDaiBalance.addn(1), [])).value.ok;
-      expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.Custom('InsufficientBalance()'));
+      expect(queryResult).to.have.deep.property('err', PSP22ErrorBuilder.InsufficientBalance());
     });
 
     it('Alice should be able to transfer all her balance of aDAI to Bob, and then Bob should be able to transfer all his aDai Balance to Alice', async () => {

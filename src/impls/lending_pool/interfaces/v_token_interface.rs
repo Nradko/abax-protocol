@@ -23,14 +23,14 @@ pub trait LendingPoolVTokenInterfaceImpl:
     + pendzl::contracts::pausable::Internal
     + EmitBorrowEvents
 {
-    fn total_variable_debt_of(&self, underlying_asset: AccountId) -> Balance {
+    fn total_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = self._timestamp();
         self.data::<LendingPoolStorage>()
             .total_debt_of(&underlying_asset, &timestamp)
             .unwrap()
     }
 
-    fn user_variable_debt_of(
+    fn user_debt_of(
         &self,
         underlying_asset: AccountId,
         user: AccountId,
@@ -41,7 +41,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .unwrap()
     }
 
-    fn transfer_variable_debt_from_to(
+    fn transfer_debt_from_to(
         &mut self,
         underlying_asset: AccountId,
         from: AccountId,

@@ -3,15 +3,12 @@ use pendzl::traits::{AccountId, Balance};
 
 use crate::traits::lending_pool::errors::LendingPoolError;
 
-// #[pendzl::wrapper]
-// pub type LendingPoolATokenInterfaceRef = dyn LendingPoolATokenInterface;
-
 pub type LendingPoolATokenInterfaceRef =
     contract_ref!(LendingPoolATokenInterface, DefaultEnvironment);
 
 #[ink::trait_definition]
 pub trait LendingPoolATokenInterface {
-    /// Returns LendingPool's total supply of an underlying asset.
+    /// Returns LendingPool's total deposit of an underlying asset.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up total supply of.
     #[ink(message)]
