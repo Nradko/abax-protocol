@@ -1,7 +1,6 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
-import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool_v0_borrow_facet';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
@@ -9,6 +8,7 @@ import { expect } from './setup/chai';
 import { E18, E6 } from '@abaxfinance/utils';
 import { ReturnNumber } from '@727-ventures/typechain-types';
 import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 
 makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) => {
   let testEnv: TestEnv;
