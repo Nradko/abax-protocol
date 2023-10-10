@@ -56,7 +56,7 @@ export const approve = async (reserveSymbol: string, user: KeyringPair, testEnv:
 
 export const getExpectedError = (errorName: string) => {
   if (Object.getOwnPropertyNames(PSP22ErrorBuilder).includes(errorName)) {
-    return LendingPoolErrorBuilder.PSP22Error();
+    return LendingPoolErrorBuilder.PSP22Error(PSP22ErrorBuilder[errorName]());
   }
 
   if (Object.getOwnPropertyNames(LendingPoolErrorBuilder).includes(errorName)) {
