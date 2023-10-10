@@ -19,7 +19,7 @@ pub struct TransferEventData {
 
 #[ink::trait_definition]
 pub trait AbacusToken {
-    /// called whenever the state of user deposit or debt (aToken, vToken) is changed.
+    /// called by lending protocol whenever the state of user deposit or debt (aToken, vToken) is changed.
     #[ink(message)]
     fn emit_transfer_events(
         &mut self,

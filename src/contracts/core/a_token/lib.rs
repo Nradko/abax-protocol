@@ -82,7 +82,7 @@ pub mod a_token {
     fn _balance_of(&self, owner: &AccountId) -> Balance {
         let lending_pool: LendingPoolATokenInterfaceRef =
             self.abacus_token.lending_pool.into();
-        lending_pool.user_supply_of(self.abacus_token.underlying_asset, *owner)
+        lending_pool.user_deposit_of(self.abacus_token.underlying_asset, *owner)
     }
 
     #[overrider(psp22::Internal)]
@@ -94,7 +94,7 @@ pub mod a_token {
     }
     #[overrider(Internal)]
     fn _total_supply(&self) -> Balance {
-        LendingPoolATokenInterfaceRef::total_supply_of(
+        LendingPoolATokenInterfaceRef::total_deposit_of(
             &self.abacus_token.lending_pool,
             self.abacus_token.underlying_asset,
         )
@@ -139,7 +139,7 @@ pub mod a_token {
         let mut lending_pool: LendingPoolATokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
-            lending_pool.transfer_supply_from_to(
+            lending_pool.transfer_deposit_from_to(
                 self.abacus_token.underlying_asset,
                 from,
                 to,

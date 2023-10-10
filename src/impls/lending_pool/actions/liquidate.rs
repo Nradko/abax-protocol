@@ -41,11 +41,11 @@ pub trait LendingPoolLiquidateImpl:
 
         let (
             amount_to_take,
-            user_accumulated_supply_interest_to_repay,
+            user_accumulated_deposit_interest_to_repay,
             user_accumulated_debt_interest_to_repay,
-            user_accumulated_supply_interest_to_take,
+            user_accumulated_deposit_interest_to_take,
             user_accumulated_debt_interest_to_take,
-            caller_accumulated_supply_interest_to_take,
+            caller_accumulated_deposit_interest_to_take,
             caller_accumulated_debt_interest_to_take,
         ) = self.data::<LendingPoolStorage>().account_for_liquidate(
             &caller,
@@ -92,7 +92,7 @@ pub trait LendingPoolLiquidateImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens_to_repay.a_token_address,
             &liquidated_user,
-            (user_accumulated_supply_interest_to_repay) as i128,
+            (user_accumulated_deposit_interest_to_repay) as i128,
         )?;
         // VTOKEN
         _emit_abacus_token_transfer_event(
@@ -114,12 +114,12 @@ pub trait LendingPoolLiquidateImpl:
             &vec![
                 TransferEventDataSimplified {
                     user: liquidated_user,
-                    amount: user_accumulated_supply_interest_to_take as i128
+                    amount: user_accumulated_deposit_interest_to_take as i128
                         - amount_to_take as i128,
                 },
                 TransferEventDataSimplified {
                     user: caller,
-                    amount: (caller_accumulated_supply_interest_to_take
+                    amount: (caller_accumulated_deposit_interest_to_take
                         + amount_to_take) as i128,
                 },
             ],
@@ -170,7 +170,7 @@ pub trait LendingPoolLiquidateImpl:
     //     }
 
     //     let (
-    //         user_accumulated_supply_interest_to_repay,
+    //         user_accumulated_deposit_interest_to_repay,
     //         user_accumulated_debt_interest_to_repay,
     //     ) = self.data::<LendingPoolStorage>().account_for_repay(
     //         &asset_to_repay,
@@ -190,7 +190,7 @@ pub trait LendingPoolLiquidateImpl:
     //         )?;
 
     //     let (
-    //         user_accumulated_supply_interest_to_take,
+    //         user_accumulated_deposit_interest_to_take,
     //         user_accumulated_debt_interest_to_take,
     //     ) = self.data::<LendingPoolStorage>().account_for_withdraw(
     //         &asset_to_take,
@@ -212,7 +212,7 @@ pub trait LendingPoolLiquidateImpl:
     //     _emit_abacus_token_transfer_event(
     //         &abacus_tokens_to_repay.a_token_address,
     //         &user,
-    //         (user_accumulated_supply_interest_to_repay) as i128,
+    //         (user_accumulated_deposit_interest_to_repay) as i128,
     //     )?;
     //     // VTOKEN
     //     _emit_abacus_token_transfer_event(
@@ -232,7 +232,7 @@ pub trait LendingPoolLiquidateImpl:
     //     _emit_abacus_token_transfer_event(
     //         &abacus_tokens_to_take.a_token_address,
     //         &user,
-    //         (user_accumulated_supply_interest_to_take) as i128,
+    //         (user_accumulated_deposit_interest_to_take) as i128,
     //     )?;
     //     // VTOKEN
     //     _emit_abacus_token_transfer_event(

@@ -626,17 +626,17 @@ export const checkRepayVariable = (
 };
 
 const getUserInterests = (userReserveData: UserReserveData, reserveIndexesAfter: ReserveIndexes): Interests => {
-  const supplyInterest = userReserveData.appliedCumulativeSupplyIndexE18.rawNumber.eqn(0)
+  const supplyInterest = userReserveData.appliedCumulativeDepositIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : userReserveData.deposit.rawNumber
-        .mul(reserveIndexesAfter.cumulativeSupplyIndexE18.rawNumber)
-        .div(userReserveData.appliedCumulativeSupplyIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.cumulativeDepositIndexE18.rawNumber)
+        .div(userReserveData.appliedCumulativeDepositIndexE18.rawNumber)
         .sub(userReserveData.deposit.rawNumber);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = userReserveData.appliedCumulativeSupplyIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = userReserveData.appliedCumulativeDepositIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : userReserveData.debt.rawNumber
         .mul(reserveIndexesAfter.cumulativeDebtIndexE18.rawNumber)
@@ -655,11 +655,11 @@ const getReserveInterests = (
   reserveIndexesBefore: ReserveIndexes,
   reserveIndexesAfter: ReserveIndexes,
 ): Interests => {
-  const supplyInterest = reserveIndexesBefore.cumulativeSupplyIndexE18.rawNumber.eqn(0)
+  const supplyInterest = reserveIndexesBefore.cumulativeDepositIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : reserveDataBefore.totalDeposit.rawNumber
-        .mul(reserveIndexesAfter.cumulativeSupplyIndexE18.rawNumber)
-        .div(reserveIndexesBefore.cumulativeSupplyIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.cumulativeDepositIndexE18.rawNumber)
+        .div(reserveIndexesBefore.cumulativeDepositIndexE18.rawNumber)
         .sub(reserveDataBefore.totalDeposit.rawNumber);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);

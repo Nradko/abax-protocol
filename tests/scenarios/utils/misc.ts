@@ -128,7 +128,7 @@ export const getReserveDefaultObj = (): ReserveData => {
     activated: true,
     freezed: false,
     totalDeposit: new ReturnNumber(0),
-    currentSupplyRateE24: new ReturnNumber(E18),
+    currentDepositRateE24: new ReturnNumber(E18),
     totalDebt: new ReturnNumber(0),
     currentDebtRateE24: new ReturnNumber(E18),
     indexesUpdateTimestamp: 0,
@@ -139,7 +139,7 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
   return {
     deposit: new ReturnNumber(0),
     debt: new ReturnNumber(0),
-    appliedCumulativeSupplyIndexE18: new ReturnNumber(0),
+    appliedCumulativeDepositIndexE18: new ReturnNumber(0),
     appliedCumulativeDebtIndexE18: new ReturnNumber(0),
   };
 };

@@ -265,7 +265,7 @@ pub mod lending_pool {
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
             penalty_e6: Option<u128>,
-            maximal_total_supply: Option<Balance>,
+            maximal_total_deposit: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
             minimal_debt: Balance,
@@ -281,7 +281,7 @@ pub mod lending_pool {
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
                 penalty_e6,
-                maximal_total_supply,
+                maximal_total_deposit,
                 maximal_total_debt,
                 minimal_collateral,
                 minimal_debt,
@@ -300,7 +300,7 @@ pub mod lending_pool {
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
             penalty_e6: Option<u128>,
-            maximal_total_supply: Option<Balance>,
+            maximal_total_deposit: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
             minimal_debt: Balance,
@@ -314,7 +314,7 @@ pub mod lending_pool {
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
                 penalty_e6,
-                maximal_total_supply,
+                maximal_total_deposit,
                 maximal_total_debt,
                 minimal_collateral,
                 minimal_debt,
@@ -360,7 +360,7 @@ pub mod lending_pool {
         fn set_reserve_restrictions(
             &mut self,
             asset: AccountId,
-            maximal_total_supply: Option<Balance>,
+            maximal_total_deposit: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
             minimal_debt: Balance,
@@ -368,7 +368,7 @@ pub mod lending_pool {
             LendingPoolManageImpl::set_reserve_restrictions(
                 self,
                 asset,
-                maximal_total_supply,
+                maximal_total_deposit,
                 maximal_total_debt,
                 minimal_collateral,
                 minimal_debt,
@@ -558,33 +558,33 @@ pub mod lending_pool {
     impl LendingPoolATokenInterfaceImpl for LendingPool {}
     impl LendingPoolATokenInterface for LendingPool {
         #[ink(message)]
-        fn total_supply_of(&self, underlying_asset: AccountId) -> Balance {
-            LendingPoolATokenInterfaceImpl::total_supply_of(
+        fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance {
+            LendingPoolATokenInterfaceImpl::total_deposit_of(
                 self,
                 underlying_asset,
             )
         }
         #[ink(message)]
-        fn user_supply_of(
+        fn user_deposit_of(
             &self,
             underlying_asset: AccountId,
             user: AccountId,
         ) -> Balance {
-            LendingPoolATokenInterfaceImpl::user_supply_of(
+            LendingPoolATokenInterfaceImpl::user_deposit_of(
                 self,
                 underlying_asset,
                 user,
             )
         }
         #[ink(message)]
-        fn transfer_supply_from_to(
+        fn transfer_deposit_from_to(
             &mut self,
             underlying_asset: AccountId,
             from: AccountId,
             to: AccountId,
             amount: Balance,
         ) -> Result<(Balance, Balance), LendingPoolError> {
-            LendingPoolATokenInterfaceImpl::transfer_supply_from_to(
+            LendingPoolATokenInterfaceImpl::transfer_deposit_from_to(
                 self,
                 underlying_asset,
                 from,
@@ -839,7 +839,7 @@ pub mod lending_pool {
     pub struct ReserveRestrictionsChanged {
         #[ink(topic)]
         asset: AccountId,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
@@ -1058,14 +1058,14 @@ pub mod lending_pool {
         fn _emit_reserve_restrictions_changed_event(
             &mut self,
             asset: &AccountId,
-            maximal_total_supply: Option<Balance>,
+            maximal_total_deposit: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
             minimal_debt: Balance,
         ) {
             self.env().emit_event(ReserveRestrictionsChanged {
                 asset: *asset,
-                maximal_total_supply,
+                maximal_total_deposit,
                 maximal_total_debt,
                 minimal_collateral,
                 minimal_debt,

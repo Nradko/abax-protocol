@@ -65,7 +65,7 @@ pub trait LendingPoolBorrowImpl:
 
         let block_timestamp = self._timestamp();
 
-        let (user_accumulated_supply_interest, user_accumulated_debt_interest) =
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             self.data::<LendingPoolStorage>().account_for_borrow(
                 &asset,
                 &on_behalf_of,
@@ -88,7 +88,7 @@ pub trait LendingPoolBorrowImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            user_accumulated_supply_interest as i128,
+            user_accumulated_deposit_interest as i128,
         )?;
         // VTOKEN
         _emit_abacus_token_transfer_event_and_decrease_allowance(
@@ -120,7 +120,7 @@ pub trait LendingPoolBorrowImpl:
         }
 
         let block_timestamp = self._timestamp();
-        let (user_accumulated_supply_interest, user_accumulated_debt_interest) =
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             self.data::<LendingPoolStorage>().account_for_repay(
                 &asset,
                 &on_behalf_of,
@@ -140,7 +140,7 @@ pub trait LendingPoolBorrowImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            user_accumulated_supply_interest as i128,
+            user_accumulated_deposit_interest as i128,
         )?;
         // VTOKEN
         _emit_abacus_token_transfer_event(

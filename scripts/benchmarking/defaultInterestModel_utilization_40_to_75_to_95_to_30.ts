@@ -117,9 +117,9 @@ const getAmountToRepay = async (desiredUtilizationRate: number, reserveAddress: 
     const { userReserveData: borrowerUserData } = await getUserReserveDataWithTimestamp(reserveDAI, borrower, lendingPool, blockTimestampProvider);
     const timestampNum = timestamp.toNumber();
     const normalizeAndPushPoint = dataSetsPointStorageCreator(reserveData, timestamp);
-    normalizeAndPushPoint(userReserveData, 'appliedCumulativeSupplyRateIndexE18');
-    normalizeAndPushPoint(reserveData, 'cumulativeSupplyIndexE18');
-    normalizeAndPushPoint(reserveData, 'currentSupplyRateE24');
+    normalizeAndPushPoint(userReserveData, 'appliedCumulativeDepositRateIndexE18');
+    normalizeAndPushPoint(reserveData, 'cumulativeDepositIndexE18');
+    normalizeAndPushPoint(reserveData, 'currentDepositRateE24');
     normalizeAndPushPoint(borrowerUserData, 'debt');
     normalizeAndPushPoint(reserveData, 'currentDebtRateE24');
     normalizeAndPushPoint(reserveData, 'cumulativeDebtIndexE18');
