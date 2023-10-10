@@ -4,13 +4,13 @@ import { makeSuite, TestEnv, TokenReserve } from './scenarios/utils/make-suite';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import { deployFlashLoanReceiverMock } from './setup/deploymentHelpers';
 import { expect } from './setup/chai';
-import { FlashLoanReceiverErrorBuilder, PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool_v0_flash_facet';
-import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
+import { FlashLoanReceiverError, LendingPoolErrorBuilder, PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool';
 import { E18, E6 } from '@abaxfinance/utils';
 import { ROLES } from './consts';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 
 const FLASH_BORROWER = ROLES['FLASH_BORROWER'];
+
 makeSuite('Flash Loan', (getTestEnv) => {
   const amountWETHToDeposit = new BN((10 * E18).toString());
   let testEnv: TestEnv;
@@ -56,10 +56,7 @@ makeSuite('Flash Loan', (getTestEnv) => {
     await flashLoanReceiver.tx.setFailExecuteOperation(true);
 
     const queryRes = (await lendingPool.query.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], [])).value.ok;
-    expect(queryRes).to.have.deep.property(
-      'err',
-      LendingPoolErrorBuilder.FlashLoanReceiverError(FlashLoanReceiverErrorBuilder.ExecuteOperationFailed()),
-    );
+    expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.FlashLoanReceiverError(FlashLoanReceiverError.executeOperationFailed));
   });
   it('tries to take a flashloan using a non contract address as receiver (revert expected)', async () => {
     const amountToBorrow = amountWETHToDeposit.divn(2);
@@ -82,6 +79,6 @@ makeSuite('Flash Loan', (getTestEnv) => {
   it('Takes WETH flashloan - the amount is bigger than the available liquidity', async () => {
     const amountToBorrow = amountWETHToDeposit.addn(E6);
     const res = (await lendingPool.query.flashLoan(testEnv.users[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).value.ok;
-    await expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.PSP22Error());
+    await expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.PSP22Error(PSP22ErrorBuilder.InsufficientBalance()));
   });
 });
