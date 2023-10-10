@@ -102,7 +102,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       collateralCoefficientE6: '500000',
       borrowCoefficientE6: '3000000',
       penaltyE6: '300000',
-      maximalTotalSupply: '111',
+      maximalTotalDeposit: '111',
       maximalTotalDebt: '222',
       minimalCollateral: '200000',
       minimalDebt: '500000',
@@ -155,7 +155,7 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
-              maximalTotalSupply: PARAMS.maximalTotalSupply,
+              maximalTotalDeposit: PARAMS.maximalTotalDeposit,
               maximalTotalDebt: PARAMS.maximalTotalDebt,
               minimalCollateral: PARAMS.minimalCollateral,
               minimalDebt: PARAMS.minimalDebt,
@@ -183,13 +183,13 @@ makeSuite('Menage tests', (getTestEnv) => {
           activated: true,
           freezed: false,
           totalDeposit: '0',
-          currentSupplyRateE24: '0',
+          currentDepositRateE24: '0',
           totalDebt: '0',
           currentDebtRateE24: '0',
           indexesUpdateTimestamp: timestamp.toString(),
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
-          maximalTotalSupply: PARAMS.maximalTotalSupply,
+          maximalTotalDeposit: PARAMS.maximalTotalDeposit,
           maximalTotalDebt: PARAMS.maximalTotalDebt,
           minimalCollateral: PARAMS.minimalCollateral,
           minimalDebt: PARAMS.minimalDebt,
@@ -199,7 +199,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           incomeForSuppliersPartE6: PARAMS.incomeForSuppliersPartE6,
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
-          cumulativeSupplyIndexE18: '1000000000000000000',
+          cumulativeDepositIndexE18: '1000000000000000000',
           cumulativeDebtIndexE18: '1000000000000000000',
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveTokens)).to.deep.equal({
@@ -231,7 +231,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       collateralCoefficientE6: '500000',
       borrowCoefficientE6: '3000000',
       penaltyE6: '300000',
-      maximalTotalSupply: '111',
+      maximalTotalDeposit: '111',
       maximalTotalDebt: '222',
       minimalCollateral: '200000',
       minimalDebt: '500000',
@@ -266,7 +266,7 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
-              maximalTotalSupply: PARAMS.maximalTotalSupply,
+              maximalTotalDeposit: PARAMS.maximalTotalDeposit,
               maximalTotalDebt: PARAMS.maximalTotalDebt,
               minimalCollateral: PARAMS.minimalCollateral,
               minimalDebt: PARAMS.minimalDebt,
@@ -294,20 +294,20 @@ makeSuite('Menage tests', (getTestEnv) => {
           activated: true,
           freezed: false,
           totalDeposit: '0',
-          currentSupplyRateE24: '0',
+          currentDepositRateE24: '0',
           totalDebt: '0',
           currentDebtRateE24: '0',
           indexesUpdateTimestamp: timestamp.toString(),
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
-          maximalTotalSupply: PARAMS.maximalTotalSupply,
+          maximalTotalDeposit: PARAMS.maximalTotalDeposit,
           maximalTotalDebt: PARAMS.maximalTotalDebt,
           minimalCollateral: PARAMS.minimalCollateral,
           minimalDebt: PARAMS.minimalDebt,
         });
         expect.soft(reserveParameters).to.deep.equal(null);
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
-          cumulativeSupplyIndexE18: '1000000000000000000',
+          cumulativeDepositIndexE18: '1000000000000000000',
           cumulativeDebtIndexE18: '1000000000000000000',
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveTokens)).to.deep.equal({
@@ -494,7 +494,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     type params = Parameters<typeof lendingPool.query.setReserveRestrictions>;
     const PARAMS = {
       asset: '',
-      maximalTotalSupply: '123456789',
+      maximalTotalDeposit: '123456789',
       maximalTotalDebt: '23456789',
       minimalCollateral: '3456789',
       minimalDebt: '456789',
@@ -521,7 +521,7 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
-              maximalTotalSupply: PARAMS.maximalTotalSupply,
+              maximalTotalDeposit: PARAMS.maximalTotalDeposit,
               maximalTotalDebt: PARAMS.maximalTotalDebt,
               minimalCollateral: PARAMS.minimalCollateral,
               minimalDebt: PARAMS.minimalDebt,
@@ -531,7 +531,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
         expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
-          maximalTotalSupply: PARAMS.maximalTotalSupply,
+          maximalTotalDeposit: PARAMS.maximalTotalDeposit,
           maximalTotalDebt: PARAMS.maximalTotalDebt,
           minimalCollateral: PARAMS.minimalCollateral,
           minimalDebt: PARAMS.minimalDebt,

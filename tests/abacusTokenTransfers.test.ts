@@ -106,14 +106,14 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       ]);
       const aliceBalanceAfter = (await aTokenDaiContract.query.balanceOf(alice.address)).value.ok!;
       const bobBalanceAfter = (await aTokenDaiContract.query.balanceOf(bob.address)).value.ok!;
-      const aliceSupplyAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, alice.address)).value.ok!;
-      const bobSupplyAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
+      const aliceDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, alice.address)).value.ok!;
+      const bobDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
 
       expect.soft(aliceBalanceAfter.rawNumber.toString()).to.equal('0');
-      expect.soft(aliceSupplyAfter.deposit.rawNumber.toString()).to.equal('0');
+      expect.soft(aliceDepositAfter.deposit.rawNumber.toString()).to.equal('0');
 
       expect.soft(bobBalanceAfter.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
-      expect.soft(bobSupplyAfter.deposit.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
+      expect.soft(bobDepositAfter.deposit.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.flushSoft();
     });
 
@@ -129,14 +129,14 @@ makeSuite('AbacusToken transfers', (getTestEnv) => {
       const txRes = await tx;
       const aliceBalanceAfter = (await aTokenDaiContract.query.balanceOf(alice.address)).value.ok!;
       const bobBalanceAfter = (await aTokenDaiContract.query.balanceOf(bob.address)).value.ok!;
-      const aliceSupplyAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, alice.address)).value.ok!;
-      const bobSupplyAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
+      const aliceDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, alice.address)).value.ok!;
+      const bobDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
 
       expect.soft(aliceBalanceAfter.rawNumber.toString()).to.equal('0');
-      expect.soft(aliceSupplyAfter.deposit.rawNumber.toString()).to.equal('0');
+      expect.soft(aliceDepositAfter.deposit.rawNumber.toString()).to.equal('0');
 
       expect.soft(bobBalanceAfter.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
-      expect.soft(bobSupplyAfter.deposit.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
+      expect.soft(bobDepositAfter.deposit.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Approval',

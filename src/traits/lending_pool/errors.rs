@@ -40,7 +40,7 @@ pub enum LendingPoolError {
     RepayingWithACollateral,
     TakingNotACollateral,
     FlashLoanAmountsAssetsInconsistentLengths,
-    MaxSupplyReached,
+    MaxDepositReached,
     MaxDebtReached,
     MarketRuleInvalidAssetId,
     MarketRuleInvalidId,

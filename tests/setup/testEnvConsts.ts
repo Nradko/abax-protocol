@@ -22,7 +22,7 @@ export interface ReserveTokenDeploymentData {
   feeD6: number;
   collateralCoefficient: null | number;
   borrowCoefficient: null | number;
-  maximalTotalSupply: null | BN | string;
+  maximalTotalDeposit: null | BN | string;
   maximalTotalDebt: null | BN | string;
   minimalCollateral: number | BN;
   minimalDebt: number | BN;

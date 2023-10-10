@@ -88,7 +88,7 @@ impl LendingPoolStorage {
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
-                cumulative_supply_index_e18: E18_U128,
+                cumulative_deposit_index_e18: E18_U128,
                 cumulative_debt_index_e18: E18_U128,
             },
         );
@@ -120,7 +120,7 @@ impl LendingPoolStorage {
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
-                cumulative_supply_index_e18: E18_U128,
+                cumulative_deposit_index_e18: E18_U128,
                 cumulative_debt_index_e18: E18_U128,
             },
         );
@@ -183,7 +183,7 @@ impl LendingPoolStorage {
             self.user_configs.get(account).unwrap_or_default();
 
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
-        let (user_accumulated_supply_interest, user_accumulated_debt_interest): (Balance, Balance) =
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
 
         user_reserve_data.increase_user_deposit(
@@ -207,7 +207,7 @@ impl LendingPoolStorage {
         self.user_configs.insert(account, &user_config);
 
         Ok((
-            user_accumulated_supply_interest,
+            user_accumulated_deposit_interest,
             user_accumulated_debt_interest,
         ))
     }
@@ -237,7 +237,7 @@ impl LendingPoolStorage {
             self.user_configs.get(account).unwrap_or_default();
 
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
-        let (user_accumulated_supply_interest, user_accumulated_debt_interest): (Balance, Balance) =
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
             user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
 
         if *amount > user_reserve_data.deposit {
@@ -263,7 +263,7 @@ impl LendingPoolStorage {
         self.user_configs.insert(account, &user_config);
 
         Ok((
-            user_accumulated_supply_interest,
+            user_accumulated_deposit_interest,
             user_accumulated_debt_interest,
         ))
     }
@@ -365,7 +365,7 @@ impl LendingPoolStorage {
             self.user_configs.get(account).unwrap_or_default();
 
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
-        let (user_accumulated_supply_interest, user_accumulated_debt_interest): (Balance, Balance) =
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
             user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
 
         user_reserve_data.increase_user_debt(
@@ -389,7 +389,7 @@ impl LendingPoolStorage {
         self.user_configs.insert(account, &user_config);
 
         Ok((
-            user_accumulated_supply_interest,
+            user_accumulated_deposit_interest,
             user_accumulated_debt_interest,
         ))
     }
@@ -419,7 +419,7 @@ impl LendingPoolStorage {
             self.user_configs.get(account).unwrap_or_default();
 
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
-        let (user_accumulated_supply_interest, user_accumulated_debt_interest): (Balance, Balance) =
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
             user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
 
         if *amount > user_reserve_data.debt {
@@ -447,7 +447,7 @@ impl LendingPoolStorage {
         self.user_configs.insert(account, &user_config);
 
         Ok((
-            user_accumulated_supply_interest,
+            user_accumulated_deposit_interest,
             user_accumulated_debt_interest,
         ))
     }
@@ -674,7 +674,7 @@ impl LendingPoolStorage {
         reserve_data_to_repay
             .accumulate_interest(&mut reserve_indexes_to_repay, &timestamp)?;
         let (
-            user_accumulated_supply_interest_to_repay,
+            user_accumulated_deposit_interest_to_repay,
             user_accumulated_debt_interest_to_repay,
         ) = user_reserve_data_to_repay
             .accumulate_user_interest(&reserve_indexes_to_repay)?;
@@ -686,14 +686,14 @@ impl LendingPoolStorage {
             .accumulate_interest(&mut reserve_indexes_to_take, &timestamp)?;
 
         let (
-            user_accumulated_supply_interest_to_take,
+            user_accumulated_deposit_interest_to_take,
             user_accumulated_debt_interest_to_take,
         ): (Balance, Balance) = user_reserve_data_to_take
             .accumulate_user_interest(&reserve_indexes_to_take)?;
         // caller's
 
         let (
-            caller_accumulated_supply_interest_to_take,
+            caller_accumulated_deposit_interest_to_take,
             caller_accumulated_debt_interest_to_take,
         ): (Balance, Balance) = caller_reserve_data_to_take
             .accumulate_user_interest(&reserve_indexes_to_take)?;
@@ -773,11 +773,11 @@ impl LendingPoolStorage {
 
         Ok((
             amount_to_take,
-            user_accumulated_supply_interest_to_repay,
+            user_accumulated_deposit_interest_to_repay,
             user_accumulated_debt_interest_to_repay,
-            user_accumulated_supply_interest_to_take,
+            user_accumulated_deposit_interest_to_take,
             user_accumulated_debt_interest_to_take,
-            caller_accumulated_supply_interest_to_take,
+            caller_accumulated_deposit_interest_to_take,
             caller_accumulated_debt_interest_to_take,
         ))
     }

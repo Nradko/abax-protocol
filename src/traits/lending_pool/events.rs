@@ -115,7 +115,7 @@ pub trait EmitManageEvents {
     fn _emit_reserve_restrictions_changed_event(
         &mut self,
         asset: &AccountId,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
