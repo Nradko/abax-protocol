@@ -6,7 +6,7 @@ import chroma from 'chroma-js';
 import { isNil } from 'lodash';
 import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
 
-export const seriesToMoveToSecondPlot: (keyof UserReserveData | keyof ReserveData)[] = ['currentSupplyRateE24', 'currentDebtRateE24'];
+export const seriesToMoveToSecondPlot: (keyof UserReserveData | keyof ReserveData)[] = ['currentDepositRateE24', 'currentDebtRateE24'];
 export type AnyReserveDataValueMutator = (val: any, reserveData: ReserveData) => number;
 export const geUserReserveDataValueMutator = <TData extends UserReserveData, K extends Extract<keyof TData, string>>(
   seriesName: K,
@@ -16,8 +16,8 @@ export const geUserReserveDataValueMutator = <TData extends UserReserveData, K e
       return (val: UserReserveData['supplied'], reserveData: ReserveData) => val.rawNumber.div(reserveData.decimals.rawNumber).toNumber() / 10_000;
     case 'debt':
       return (val: UserReserveData['debt'], reserveData: ReserveData) => val.rawNumber.div(reserveData.decimals.rawNumber).toNumber() / 10_000;
-    case 'appliedCumulativeSupplyRateIndexE18':
-      return (val: UserReserveData['appliedCumulativeSupplyRateIndexE18']) => fromE12(val.rawNumber);
+    case 'appliedCumulativeDepositRateIndexE18':
+      return (val: UserReserveData['appliedCumulativeDepositRateIndexE18']) => fromE12(val.rawNumber);
     case 'appliedCumulativeDebtRateIndexE18':
       return (val: UserReserveData['appliedCumulativeDebtRateIndexE18']) => fromE12(val.rawNumber);
     default:
@@ -32,10 +32,10 @@ export const getReserveDataValueMutator = <K extends keyof ReserveData>(seriesNa
       return (val: ReserveData['freezed']) => (val ? 1 : 0);
     case 'totalSupplied':
       return (val: ReserveData['totalSupplied']) => fromE12(val.rawNumber);
-    case 'cumulativeSupplyIndexE18':
-      return (val: ReserveData['cumulativeSupplyIndexE18']) => fromE12(val.rawNumber);
-    case 'currentSupplyRateE24':
-      return (val: ReserveData['currentSupplyRateE24']) => fromE18(val.rawNumber);
+    case 'cumulativeDepositIndexE18':
+      return (val: ReserveData['cumulativeDepositIndexE18']) => fromE12(val.rawNumber);
+    case 'currentDepositRateE24':
+      return (val: ReserveData['currentDepositRateE24']) => fromE18(val.rawNumber);
     case 'totalDebt':
       return (val: ReserveData['totalDebt']) => fromE12(val.rawNumber);
     case 'cumulativeDebtIndexE18':

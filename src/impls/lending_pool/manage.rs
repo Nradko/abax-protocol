@@ -94,7 +94,7 @@ pub trait LendingPoolManageImpl:
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
@@ -110,7 +110,7 @@ pub trait LendingPoolManageImpl:
             collateral_coefficient_e6,
             borrow_coefficient_e6,
             penalty_e6,
-            maximal_total_supply,
+            maximal_total_deposit,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
@@ -139,7 +139,7 @@ pub trait LendingPoolManageImpl:
                     income_for_suppliers_part_e6,
                 },
                 &ReserveRestrictions::new(
-                    &maximal_total_supply,
+                    &maximal_total_deposit,
                     &maximal_total_debt,
                     &minimal_collateral,
                     &minimal_debt,
@@ -172,7 +172,7 @@ pub trait LendingPoolManageImpl:
         );
         self._emit_reserve_restrictions_changed_event(
             &asset,
-            maximal_total_supply,
+            maximal_total_deposit,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
@@ -194,7 +194,7 @@ pub trait LendingPoolManageImpl:
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
@@ -217,7 +217,7 @@ pub trait LendingPoolManageImpl:
                 &asset,
                 &ReserveData::new(&timestamp),
                 &ReserveRestrictions::new(
-                    &maximal_total_supply,
+                    &maximal_total_deposit,
                     &maximal_total_debt,
                     &minimal_collateral,
                     &minimal_debt,
@@ -245,7 +245,7 @@ pub trait LendingPoolManageImpl:
         );
         self._emit_reserve_restrictions_changed_event(
             &asset,
-            maximal_total_supply,
+            maximal_total_deposit,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,
@@ -303,7 +303,7 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_restrictions(
         &mut self,
         asset: AccountId,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
@@ -320,7 +320,7 @@ pub trait LendingPoolManageImpl:
             .account_for_reserve_restricitions_change(
                 &asset,
                 &ReserveRestrictions {
-                    maximal_total_supply,
+                    maximal_total_deposit,
                     maximal_total_debt,
                     minimal_collateral,
                     minimal_debt,
@@ -329,7 +329,7 @@ pub trait LendingPoolManageImpl:
 
         self._emit_reserve_restrictions_changed_event(
             &asset,
-            maximal_total_supply,
+            maximal_total_deposit,
             maximal_total_debt,
             minimal_collateral,
             minimal_debt,

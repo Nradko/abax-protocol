@@ -22,6 +22,7 @@ makeSuite('Flash Loan', (getTestEnv) => {
     testEnv = getTestEnv();
     depositor = testEnv.users[0];
     reserveWETH = testEnv.reserves['WETH'];
+    lendingPool = testEnv.lendingPool;
     flashLoanReceiver = await deployFlashLoanReceiverMock(depositor);
     await reserveWETH.underlying.tx.mint(depositor.address, amountWETHToDeposit);
     await reserveWETH.underlying.withSigner(depositor).tx.approve(lendingPool.address, amountWETHToDeposit);

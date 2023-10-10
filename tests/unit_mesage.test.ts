@@ -284,7 +284,7 @@ makeSuite('Message', (getTestEnv) => {
 
         expect(registerAssets[4]).to.equal(users[2].address);
         expect.soft(reservePrices.decimals.toString()).to.equal('100000000');
-        expect.soft(reserveRestrictions.maximalTotalSupply?.toString()).to.equal('99999999');
+        expect.soft(reserveRestrictions.maximalTotalDeposit?.toString()).to.equal('99999999');
         expect.soft(reserveRestrictions.maximalTotalDebt?.toString()).to.equal('11111111');
         expect.soft(resreveParameters.incomeForSuppliersPartE6.toString()).to.equal('900000');
         expect.soft(reserveTokens.aTokenAddress).to.equal(users[3].address);
@@ -356,7 +356,7 @@ makeSuite('Message', (getTestEnv) => {
       const queryRes = (
         await lendingPool
           .withSigner(testEnv.users[1])
-          .query.transferSupplyFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000)
+          .query.transferDepositFromTo(reserveDAI.underlying.address, testEnv.users[0].address, testEnv.users[1].address, 1_000_000)
       ).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
     });

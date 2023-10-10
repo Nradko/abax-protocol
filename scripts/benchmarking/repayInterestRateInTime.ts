@@ -75,8 +75,8 @@ import { createPushDataPoint, getBasicChartConfig, getColorFromName, logProgress
     const timestampNum = timestamp.toNumber();
     const normalizeAndPushPoint = dataSetsPointStorageCreator(reserveData, timestamp);
     normalizeAndPushPoint(userReserveData, 'appliedCumulativeDebtRateIndexE18');
-    normalizeAndPushPoint(reserveData, 'cumulativeSupplyIndexE18');
-    normalizeAndPushPoint(reserveData, 'currentSupplyRateE24');
+    normalizeAndPushPoint(reserveData, 'cumulativeDepositIndexE18');
+    normalizeAndPushPoint(reserveData, 'currentDepositRateE24');
     normalizeAndPushPoint(borrowerUserData, 'debt');
     normalizeAndPushPoint(reserveData, 'currentDebtRateE24');
     normalizeAndPushPoint(reserveData, 'cumulativeDebtIndexE18');

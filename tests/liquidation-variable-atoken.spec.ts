@@ -34,7 +34,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     let wethContract: PSP22Emitable;
     let linkContract: PSP22Emitable;
 
-    let totalDaiSupply: BN;
+    let totalDaiDeposit: BN;
     let collateralWethAmount: BN;
     let debtDaiAmount: BN;
     let depositLinkAmount: BN;
@@ -52,10 +52,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, wethPrice);
       await lendingPool.tx.insertReserveTokenPriceE8(linkContract.address, linkPrice);
       //
-      totalDaiSupply = await convertToCurrencyDecimals(daiContract, 10000);
-      await daiContract.tx.mint(supplier.address, totalDaiSupply);
-      await daiContract.withSigner(supplier).tx.approve(lendingPool.address, totalDaiSupply);
-      await lendingPool.withSigner(supplier).tx.deposit(daiContract.address, supplier.address, totalDaiSupply, []);
+      totalDaiDeposit = await convertToCurrencyDecimals(daiContract, 10000);
+      await daiContract.tx.mint(supplier.address, totalDaiDeposit);
+      await daiContract.withSigner(supplier).tx.approve(lendingPool.address, totalDaiDeposit);
+      await lendingPool.withSigner(supplier).tx.deposit(daiContract.address, supplier.address, totalDaiDeposit, []);
       //
       collateralWethAmount = await convertToCurrencyDecimals(wethContract, 1);
       await wethContract.tx.mint(borrower.address, collateralWethAmount);
@@ -171,7 +171,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     let wethContract: PSP22Emitable;
     let linkContract: PSP22Emitable;
 
-    let totalDaiSupply: BN;
+    let totalDaiDeposit: BN;
     let collateralWethAmount: BN;
     let debtDaiAmount: BN;
     let depositLinkAmount: BN;
@@ -189,10 +189,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, wethPrice);
       await lendingPool.tx.insertReserveTokenPriceE8(linkContract.address, linkPrice);
       //
-      totalDaiSupply = await convertToCurrencyDecimals(daiContract, 10000);
-      await daiContract.tx.mint(supplier.address, totalDaiSupply);
-      await daiContract.withSigner(supplier).tx.approve(lendingPool.address, totalDaiSupply);
-      await lendingPool.withSigner(supplier).tx.deposit(daiContract.address, supplier.address, totalDaiSupply, []);
+      totalDaiDeposit = await convertToCurrencyDecimals(daiContract, 10000);
+      await daiContract.tx.mint(supplier.address, totalDaiDeposit);
+      await daiContract.withSigner(supplier).tx.approve(lendingPool.address, totalDaiDeposit);
+      await lendingPool.withSigner(supplier).tx.deposit(daiContract.address, supplier.address, totalDaiDeposit, []);
       //
       collateralWethAmount = await convertToCurrencyDecimals(wethContract, 1);
       await wethContract.tx.mint(borrower.address, collateralWethAmount);

@@ -23,14 +23,14 @@ pub trait LendingPoolATokenInterfaceImpl:
     + pendzl::contracts::pausable::Internal
     + EmitDepositEvents
 {
-    fn total_supply_of(&self, underlying_asset: AccountId) -> Balance {
+    fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = self._timestamp();
         self.data::<LendingPoolStorage>()
             .total_deposit_of(&underlying_asset, &timestamp)
             .unwrap()
     }
 
-    fn user_supply_of(
+    fn user_deposit_of(
         &self,
         underlying_asset: AccountId,
         user: AccountId,
@@ -41,7 +41,7 @@ pub trait LendingPoolATokenInterfaceImpl:
             .unwrap()
     }
 
-    fn transfer_supply_from_to(
+    fn transfer_deposit_from_to(
         &mut self,
         underlying_asset: AccountId,
         from: AccountId,

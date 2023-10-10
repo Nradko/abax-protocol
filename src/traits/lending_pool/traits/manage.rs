@@ -31,7 +31,7 @@ pub trait LendingPoolManage {
     ///  * `collateral_coefficient_e6' - asset's collateral power. 1 = 10^6. If None asset can NOT be a collateral.
     ///  * `borrow_coefficient_e6' - asset's borrow power. 1 = 10^6. If None asset can NOT be borrowed.
     ///  * `penalty_e6 - penalty taken when taking part inliquidation as collateral or debt. 10^6 = 100%`.
-    ///  * `maximal_total_supply` - maximal allowed total supply, If exceeded no more deposits are accepted. None for uncapped total supply.
+    ///  * `maximal_total_deposit` - maximal allowed total deposit, If exceeded no more deposits are accepted. None for uncapped total deposit.
     ///  * `maximal_total_debt` - maximal allowed total debt, If exceeded no more borrows are accepted. None for uncapped total debt.
     ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
     ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
@@ -47,7 +47,7 @@ pub trait LendingPoolManage {
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
@@ -64,7 +64,7 @@ pub trait LendingPoolManage {
     ///  * `collateral_coefficient_e6' - asset's collateral power. 1 = 10^6. If None asset can NOT be a collateral.
     ///  * `borrow_coefficient_e6' - asset's borrow power. 1 = 10^6. If None asset can NOT be borrowed.
     ///  * `penalty_e6 - penalty taken when taking part inliquidation as collateral or debt. 10^6 = 100%`.
-    ///  * `maximal_total_supply` - maximal allowed total supply, If exceeded no more deposits are accepted. None for uncapped total supply.
+    ///  * `maximal_total_deposit` - maximal allowed total deposit, If exceeded no more deposits are accepted. None for uncapped total deposit.
     ///  * `maximal_total_debt` - maximal allowed total debt, If exceeded no more borrows are accepted. None for uncapped total debt.
     ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
     ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
@@ -78,7 +78,7 @@ pub trait LendingPoolManage {
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
@@ -98,7 +98,7 @@ pub trait LendingPoolManage {
 
     ///  freezes or unfreezes reserv
     ///
-    ///  * `freeze` - true if reserve should be freezed. flase if reserve should be unffreeze. When freezed supplying and borrowing are disabled.
+    ///  * `freeze` - true if reserve should be freezed. flase if reserve should be unffreeze. When freezed depositing and borrowing are disabled.
     #[ink(message)]
     fn set_reserve_is_freezed(
         &mut self,
@@ -122,7 +122,7 @@ pub trait LendingPoolManage {
     /// modifies ReserveRestricion in the `LendingPool`'s storage
     ///
     ///  * `asset` - `AccountId` of the registered asset
-    ///  * `maximal_total_supply` - maximal allowed total supply, If exceeded no more deposits are accepted. None for uncapped total supply.
+    ///  * `maximal_total_deposit` - maximal allowed total deposit, If exceeded no more deposits are accepted. None for uncapped total deposit.
     ///  * `maximal_total_debt` - maximal allowed total debt, If exceeded no more borrows are accepted. None for uncapped total debt.
     ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
     ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
@@ -130,7 +130,7 @@ pub trait LendingPoolManage {
     fn set_reserve_restrictions(
         &mut self,
         asset: AccountId,
-        maximal_total_supply: Option<Balance>,
+        maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
