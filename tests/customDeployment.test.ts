@@ -26,7 +26,7 @@ describe('Custom deployment', () => {
           {
             decimals: 7,
             feeD6: 100,
-            name: 'BOI token',
+            name: 'BOI',
             symbol: 'BOI',
             stableBaseRate: 100,
             collateralCoefficient: 0.9,
@@ -40,8 +40,8 @@ describe('Custom deployment', () => {
           {
             decimals: 9,
             feeD6: 200,
-            name: 'WMN token',
-            symbol: 'BOI',
+            name: 'WMN',
+            symbol: 'WMN',
             stableBaseRate: 200,
             collateralCoefficient: 0.9,
             maximalTotalDeposit: null,
