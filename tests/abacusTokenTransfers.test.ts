@@ -13,7 +13,7 @@ import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-
 import { Transfer } from 'typechain/event-types/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 
-makeSuite('AbacusToken transfers', (getTestEnv) => {
+makeSuite('AbaxToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;

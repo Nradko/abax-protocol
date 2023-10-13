@@ -18,28 +18,23 @@ import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import TestReservesMinter from 'typechain/contracts/test_reserves_minter';
 import VTokenContract from 'typechain/contracts/v_token';
 import BalanceViewer from 'typechain/contracts/balance_viewer';
-// import TestPSP22FacetV1 from 'typechain/contracts/test_psp22_facet_v1';
 
 import FlashLoanReceiverMockConstructor from 'typechain/constructors/flash_loan_receiver_mock';
-import ATokenContractConstructor from 'typechain/constructors/a_token';
 import BlockTimestampProviderConstructor from 'typechain/constructors/block_timestamp_provider';
 import DiamondContractConstructor from 'typechain/constructors/diamond';
-import LendingPoolConstructor from 'typechain/constructors/lending_pool';
-// import TestPSP22FacetV1Constructor from 'typechain/constructors/test_psp22_facet_v1';
 import PSP22EmitableConstructor from 'typechain/constructors/psp22_emitable';
 import PSP22OwnableConstructor from 'typechain/constructors/psp22_ownable';
 import TestReservesMinterConstructor from 'typechain/constructors/test_reserves_minter';
-import VTokenContractConstructor from 'typechain/constructors/v_token';
 import BalanceViewerConstructor from 'typechain/constructors/balance_viewer';
 
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './helpers';
-import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
 import { toE6 } from '@abaxfinance/utils';
 import { getLineSeparator } from 'tests/scenarios/utils/misc';
 import { AbiMessage } from '@polkadot/api-contract/types';
 import { SignAndSendSuccessResponse, _genValidGasLimitAndValue, _signAndSend } from '@727-ventures/typechain-types';
 import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from './defaultInterestRateModel';
+import { saveContractInfoToFileAsJson } from './nodePersistence';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());
@@ -48,17 +43,15 @@ const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   return new CodePromise(api, abi, wasm);
 };
 
-// export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldReturnMockValue = false) => {
-//   const blockTimestampProviderRet = await new BlockTimestampProviderConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(false, owner.address);
-//   const blockTimestampProvider = await getContractObject(BlockTimestampProvider, blockTimestampProviderRet.address, owner);
-//   return blockTimestampProvider;
-// };
 export const setupContract = async (signer: KeyringPair, contractName: string, constructorName: string, ...constructorArgs: any[]) => {
+  // maximum gas to be consumed for the instantiation. if limit is too small the instantiation will fail.\
+  // eslint-disable-next-line no-magic-numbers
+  const MAX_CALL_WEIGHT = new BN(5_000_000_000).isubn(1);
+  // eslint-disable-next-line no-magic-numbers
+  const PROOFSIZE = new BN(3_000_000);
+
   const api = await apiProviderWrapper.getAndWaitForReady();
   const codePromise = getCodePromise(api, contractName);
-  // maximum gas to be consumed for the instantiation. if limit is too small the instantiation will fail.
-  const MAX_CALL_WEIGHT = new BN(5_000_000_000).isubn(1);
-  const PROOFSIZE = new BN(3_000_000);
   const gasLimit = api?.registry.createType('WeightV2', {
     refTime: MAX_CALL_WEIGHT,
     proofSize: PROOFSIZE,
@@ -73,11 +66,11 @@ export const setupContract = async (signer: KeyringPair, contractName: string, c
   // // a limit to how much Balance to be used to pay for the storage created by the instantiation
   // if null is passed, unlimited balance can be used
 
-  const storageDepositLimit = null;
+  // const storageDepositLimit = null;
 
   // used to derive contract address,
   // use null to prevent duplicate contracts
-  const salt = new Uint8Array();
+  // const salt = new Uint8Array();
 
   const deployedContract = await new Promise<ContractPromise>((resolve, reject) => {
     let unsub: () => void;
@@ -139,45 +132,23 @@ export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldRet
   return getContractObject(BlockTimestampProvider, deployRet.address, owner);
 };
 
-export const deployAToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
-  deployWithLog(owner, ATokenContract, 'a_token', 'AToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
+export const deployAToken = async (
+  owner: KeyringPair,
+  name: string,
+  symbol: string,
+  decimal: number,
+  lendingPoolAddress: string,
+  underlyingAssetAddress: string,
+) => deployWithLog(owner, ATokenContract, 'a_token', 'AToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
 
-export const deployVToken = async (owner: KeyringPair, symbol: string, decimal: number, lendingPoolAddress: string, underlyingAssetAddress: string) =>
-  deployWithLog(owner, VTokenContract, 'v_token', 'VToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
-
-// export const deployAToken = async (
-//   owner: KeyringPair,
-//   symbol: string,
-//   decimal: number,
-//   lendingPoolAddress: string,
-//   underlyingAssetAddress: string,
-// ) => {
-//   const deployRet = await new ATokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
-//     'AToken',
-//     symbol,
-//     decimal,
-//     lendingPoolAddress,
-//     underlyingAssetAddress,
-//   );
-//   return getContractObject(ATokenContract, deployRet.address, owner);
-// };
-
-// export const deployVToken = async (
-//   owner: KeyringPair,
-//   symbol: string,
-//   decimal: number,
-//   lendingPoolAddress: string,
-//   underlyingAssetAddress: string,
-// ) => {
-//   const deployRet = await new VTokenContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
-//     'VToken',
-//     symbol,
-//     decimal,
-//     lendingPoolAddress,
-//     underlyingAssetAddress,
-//   );
-//   return getContractObject(VTokenContract, deployRet.address, owner);
-// };
+export const deployVToken = async (
+  owner: KeyringPair,
+  name: string,
+  symbol: string,
+  decimal: number,
+  lendingPoolAddress: string,
+  underlyingAssetAddress: string,
+) => deployWithLog(owner, VTokenContract, 'v_token', 'VToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
 
 export const deployEmitableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
   const deployRet = await new PSP22EmitableConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
@@ -321,7 +292,12 @@ export const getContractObject = async <T>(
   return new constructor(contractAddress, signerPair, await apiProviderWrapper.getAndWaitForReady());
 };
 //reserveDatas: ReserveTokenDeploymentData
-export async function deployCoreContracts(owner: KeyringPair) {
+export async function deployCoreContracts(owner: KeyringPair): Promise<{
+  blockTimestampProvider: BlockTimestampProvider;
+  lendingPool: LendingPool;
+  aTokenCodeHash: any;
+  vTokenCodeHash: any;
+}> {
   if (process.env.DEBUG) {
     console.log(getLineSeparator());
     console.log('Deploying contracts');
@@ -330,7 +306,15 @@ export async function deployCoreContracts(owner: KeyringPair) {
   }
   const blockTimestampProvider = await deployBlockTimestampProvider(owner);
 
-  // fallback:
+  const aTokenContract = await deployAToken(owner, 'Abacus Deposit Token', 'AToken', 0, owner.address, owner.address);
+  const vTokenContract = await deployVToken(owner, 'Abacus Debt Token', 'VToken', 0, owner.address, owner.address);
+
+  const api = await apiProviderWrapper.getAndWaitForReady();
+  const { codeHash: aTokenCodeHashHex } = (await api.query.contracts.contractInfoOf(aTokenContract.address)).toHuman() as { codeHash: string };
+  const { codeHash: vTokenCodeHashHex } = (await api.query.contracts.contractInfoOf(vTokenContract.address)).toHuman() as { codeHash: string };
+  const aTokenCodeHash = aTokenCodeHashHex; //hexToBytes(aTokenCodeHashHex);
+  const vTokenCodeHash = vTokenCodeHashHex; //hexToBytes(vTokenCodeHashHex);
+
   const lendingPool = await deployLendingPool(owner);
 
   // const initFacet = 'lending_pool_v0_initialize_facet';
@@ -346,7 +330,14 @@ export async function deployCoreContracts(owner: KeyringPair) {
   //   'lending_pool_v0_view_facet',
   // ];
   // const lendingPool = await setupDiamondContract(LendingPool, owner, owner, initFacet, functionalFacets);
-  return { blockTimestampProvider, lendingPool };
+  return { blockTimestampProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
+}
+
+function hexToBytes(hex) {
+  hex.replace('0x', '');
+  const bytes: number[] = [];
+  for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
+  return bytes;
 }
 
 export interface ProductionDeploymentParams {
@@ -413,8 +404,12 @@ export const deployAndConfigureSystem = async (
     const { aToken, vToken } = await registerNewAsset(
       owner,
       contracts.lendingPool,
-      reserveData.name,
       reserve.address,
+      contracts.aTokenCodeHash,
+      contracts.vTokenCodeHash,
+      reserveData.name,
+      reserveData.symbol,
+      reserveData.decimals,
       reserveData.collateralCoefficient,
       reserveData.borrowCoefficient,
       reserveData.penalty,
@@ -422,7 +417,6 @@ export const deployAndConfigureSystem = async (
       reserveData.maximalTotalDebt,
       reserveData.minimalCollateral,
       reserveData.minimalDebt,
-      reserveData.decimals,
       reserveData.feeD6,
       interestRateModel,
     );
@@ -443,6 +437,8 @@ export const deployAndConfigureSystem = async (
     owner,
     lendingPool: contracts.lendingPool,
     reserves: reservesWithLendingTokens,
+    aTokenCodeHash: contracts.aTokenCodeHash,
+    vTokenCodeHash: contracts.vTokenCodeHash,
     balanceViewer,
   };
 
@@ -474,6 +470,14 @@ async function saveConfigToFile(testEnv: TestEnv, writePath: string) {
         name: testEnv.balanceViewer.name,
         address: testEnv.balanceViewer.address,
       },
+      {
+        name: 'aTokenCodeHash',
+        codeHash: testEnv.aTokenCodeHash,
+      },
+      {
+        name: 'vTokenCodeHash',
+        codeHash: testEnv.aTokenCodeHash,
+      },
     ],
     writePath,
   );
@@ -482,8 +486,12 @@ async function saveConfigToFile(testEnv: TestEnv, writePath: string) {
 export async function registerNewAsset(
   owner: KeyringPair,
   lendingPool: LendingPool,
-  symbol: string,
   assetAddress: string,
+  aTokenCodeHash: number[],
+  vTokenCodeHash: number[],
+  name: string,
+  symbol: string,
+  decimals: number,
   collateralCoefficient: null | number,
   borrowCoefficient: null | number,
   penalty: null | number,
@@ -491,15 +499,16 @@ export async function registerNewAsset(
   maximalDebt: null | BN | string,
   minimalCollatral: number | BN,
   minimalDebt: number | BN,
-  decimals: number,
   feeD6: number,
   interestRateModel: [number, number, number, number, number, number, number],
-) {
-  const aToken = await deployAToken(owner, symbol, decimals, lendingPool.address, assetAddress);
-  const vToken = await deployVToken(owner, symbol, decimals, lendingPool.address, assetAddress);
+): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
   const registerAssetArgs: Parameters<typeof lendingPool.query.registerAsset> = [
     assetAddress,
-    new BN(Math.pow(10, decimals).toString()),
+    aTokenCodeHash,
+    vTokenCodeHash,
+    name,
+    symbol,
+    decimals,
     collateralCoefficient ? toE6(collateralCoefficient) : null,
     borrowCoefficient ? toE6(borrowCoefficient) : null,
     penalty ? toE6(penalty) : null,
@@ -509,12 +518,17 @@ export async function registerNewAsset(
     minimalDebt,
     toE6(1) - feeD6,
     interestRateModel,
-    aToken.address,
-    vToken.address,
   ];
-  const res = await lendingPool.query.registerAsset(...registerAssetArgs);
-
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  try {
+    const res = await lendingPool.query.registerAsset(...registerAssetArgs);
+  } catch (err) {
+    console.log(err);
+  }
   await lendingPool.withSigner(owner).tx.registerAsset(...registerAssetArgs);
 
+  const tokenAdresses = (await lendingPool.query.viewReserveTokens(assetAddress)).value.ok!;
+  const aToken = await getContractObject(ATokenContract, tokenAdresses.aTokenAddress.toString(), owner);
+  const vToken = await getContractObject(VTokenContract, tokenAdresses.vTokenAddress.toString(), owner);
   return { aToken, vToken };
 }

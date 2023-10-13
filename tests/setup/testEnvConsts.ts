@@ -16,8 +16,9 @@ export const MOCK_CHAINLINK_AGGREGATORS_PRICES = {
 };
 
 export interface ReserveTokenDeploymentData {
-  name: string;
   address: string;
+  name: string;
+  symbol: string;
   decimals: number;
   feeD6: number;
   collateralCoefficient: null | number;

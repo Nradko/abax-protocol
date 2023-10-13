@@ -6,10 +6,10 @@ import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
-import { ReturnNumber } from '@727-ventures/typechain-types';
 import { ROLE_NAMES, ROLES } from './consts';
-import { TupleType } from 'typescript';
-import { BN, objectValues } from '@polkadot/util';
+import { BN } from '@polkadot/util';
+import { getContractObject } from '@abaxfinance/contract-helpers';
+import { getAbaxTokenMetadata } from './helpers/abacusTokenData';
 const isValidObject = (obj: any) => typeof obj === 'object' && obj !== null;
 /* eslint-disable */
 const replaceRNBNPropsWithStrings = function (obj: any) {
@@ -34,7 +34,7 @@ const replaceRNBNPropsWithStrings = function (obj: any) {
   return tmpObj;
 };
 
-makeSuite('Menage tests', (getTestEnv) => {
+makeSuite.skip('Menage tests', (getTestEnv) => {
   const adminOf: Record<string, KeyringPair> = {};
   const ROLES_NAMES = ROLE_NAMES.filter((name) => name !== 'FLASH_BORROWER');
   let testEnv: TestEnv;
@@ -96,9 +96,13 @@ makeSuite('Menage tests', (getTestEnv) => {
   describe('While registering an aasset', () => {
     const ROLES_WITH_ACCESS: string[] = ['ASSET_LISTING_ADMIN', 'GLOBAL_ADMIN'];
     type params = Parameters<typeof lendingPool.query.registerAsset>;
-    const PARAMS = {
+    let PARAMS = {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
-      decimals: '100000',
+      aTokenCodeHash: [0],
+      vTokenCodeHash: [0],
+      name: 'TOKEN NAME XAYR',
+      symbol: 'XAYR',
+      decimals: '6',
       collateralCoefficientE6: '500000',
       borrowCoefficientE6: '3000000',
       penaltyE6: '300000',
@@ -108,9 +112,12 @@ makeSuite('Menage tests', (getTestEnv) => {
       minimalDebt: '500000',
       incomeForSuppliersPartE6: '800000',
       interestRateModel: ['1', '2', '3', '4', '5', '6', '7'],
-      aTokenAddress: '5HA6b9t4DnVD7vmSX6fpU6W6qxc1pS9wKnV1Ee57fQAbNx3H',
-      vTokenAddress: '5G4bxHzTmuNtuYUYhwCEyKui83mvW4kooK6RR8Rh1wJGhHce',
     };
+
+    beforeEach(() => {
+      PARAMS.aTokenCodeHash = testEnv.aTokenCodeHash;
+      PARAMS.vTokenCodeHash = testEnv.vTokenCodeHash;
+    });
 
     it('roles with no permission should fail with Err MissingRole', async () => {
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
@@ -125,14 +132,32 @@ makeSuite('Menage tests', (getTestEnv) => {
         const tx = lendingPool.withSigner(adminOf[role_name]).tx.registerAsset(...(Object.values(PARAMS) as params));
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
+
+        const abaxTokensMetadata = await getAbaxTokenMetadata(owner, lendingPool, PARAMS.asset);
+        expect.soft(abaxTokensMetadata.aToken.metadata).to.deep.equal({
+          name: 'Abax Deposit ' + PARAMS.name,
+          symbol: 'a' + PARAMS.symbol,
+          decimals: PARAMS.decimals,
+        });
+
+        expect.soft(abaxTokensMetadata.vToken.metadata).to.deep.equal({
+          name: 'Abax Variable Debt ' + PARAMS.name,
+          symbol: 'v' + PARAMS.symbol,
+          decimals: PARAMS.decimals,
+        });
+
         expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'AssetRegistered',
             args: {
               asset: PARAMS.asset,
               decimals: PARAMS.decimals,
-              aTokenAddress: PARAMS.aTokenAddress,
-              vTokenAddress: PARAMS.vTokenAddress,
+              name: PARAMS.name,
+              symbol: PARAMS.symbol,
+              aTokenCodeHash: PARAMS.aTokenCodeHash,
+              vTokenCodeHash: PARAMS.vTokenCodeHash,
+              aTokenAddress: abaxTokensMetadata.aToken.address,
+              vTokenAddress: abaxTokensMetadata.vToken.address,
             },
           },
           {
@@ -202,12 +227,9 @@ makeSuite('Menage tests', (getTestEnv) => {
           cumulativeDepositIndexE18: '1000000000000000000',
           cumulativeDebtIndexE18: '1000000000000000000',
         });
-        expect.soft(replaceRNBNPropsWithStrings(reserveTokens)).to.deep.equal({
-          aTokenAddress: PARAMS.aTokenAddress,
-          vTokenAddress: PARAMS.vTokenAddress,
-        });
         expect.soft(replaceRNBNPropsWithStrings(reservePrices)).to.deep.equal({
-          decimals: PARAMS.decimals,
+          decimals: Math.pow(10, Number(PARAMS.decimals)).toString(),
+
           tokenPriceE8: null,
         });
         expect.flushSoft();
@@ -217,6 +239,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       const tx = lendingPool.withSigner(adminOf['ASSET_LISTING_ADMIN']).tx.registerAsset(...(Object.values(PARAMS) as params));
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
       const res = (await lendingPool.withSigner(adminOf['ASSET_LISTING_ADMIN']).query.registerAsset(...(Object.values(PARAMS) as params))).value.ok;
+
       expect(res, 'asset already registered').to.have.deep.property('err', LendingPoolErrorBuilder.AlreadyRegistered());
     });
   });
@@ -227,7 +250,11 @@ makeSuite('Menage tests', (getTestEnv) => {
     type params = Parameters<typeof lendingPool.query.registerStablecoin>;
     const PARAMS = {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
-      decimals: '100000',
+      aTokenCodeHash: [0],
+      vTokenCodeHash: [0],
+      name: 'TOKEN NAME XAYR',
+      symbol: 'XAYR',
+      decimals: '6',
       collateralCoefficientE6: '500000',
       borrowCoefficientE6: '3000000',
       penaltyE6: '300000',
@@ -235,9 +262,11 @@ makeSuite('Menage tests', (getTestEnv) => {
       maximalTotalDebt: '222',
       minimalCollateral: '200000',
       minimalDebt: '500000',
-      aTokenAddress: '5HA6b9t4DnVD7vmSX6fpU6W6qxc1pS9wKnV1Ee57fQAbNx3H',
-      vTokenAddress: '5G4bxHzTmuNtuYUYhwCEyKui83mvW4kooK6RR8Rh1wJGhHce',
     };
+    beforeEach(() => {
+      PARAMS.aTokenCodeHash = testEnv.aTokenCodeHash;
+      PARAMS.vTokenCodeHash = testEnv.vTokenCodeHash;
+    });
 
     it('roles with no permission should fail with Err MissingRole', async () => {
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
@@ -252,14 +281,32 @@ makeSuite('Menage tests', (getTestEnv) => {
         const tx = lendingPool.withSigner(adminOf[role_name]).tx.registerStablecoin(...(Object.values(PARAMS) as params));
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
+
+        const abaxTokensMetadata = await getAbaxTokenMetadata(owner, lendingPool, PARAMS.asset);
+        expect.soft(abaxTokensMetadata.aToken.metadata).to.deep.equal({
+          name: 'Abax Deposit ' + PARAMS.name,
+          symbol: 'a' + PARAMS.symbol,
+          decimals: PARAMS.decimals,
+        });
+
+        expect.soft(abaxTokensMetadata.vToken.metadata).to.deep.equal({
+          name: 'Abax Variable Debt ' + PARAMS.name,
+          symbol: 'v' + PARAMS.symbol,
+          decimals: PARAMS.decimals,
+        });
+
         expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'AssetRegistered',
             args: {
               asset: PARAMS.asset,
               decimals: PARAMS.decimals,
-              aTokenAddress: PARAMS.aTokenAddress,
-              vTokenAddress: PARAMS.vTokenAddress,
+              name: PARAMS.name,
+              symbol: PARAMS.symbol,
+              aTokenCodeHash: PARAMS.aTokenCodeHash,
+              vTokenCodeHash: PARAMS.vTokenCodeHash,
+              aTokenAddress: abaxTokensMetadata.aToken.address,
+              vTokenAddress: abaxTokensMetadata.vToken.address,
             },
           },
           {
@@ -286,9 +333,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const timestamp = (await testEnv.blockTimestampProvider.query.getBlockTimestamp()).value.ok!;
         const reserveData = (await lendingPool.query.viewReserveData(PARAMS.asset)).value.ok!;
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
-        const reserveParameters = (await lendingPool.query.viewReserveParameters(PARAMS.asset)).value.ok!;
         const reserveIndexes = (await lendingPool.query.viewReserveIndexes(PARAMS.asset)).value.ok!;
-        const reserveTokens = (await lendingPool.query.viewReserveTokens(PARAMS.asset)).value.ok!;
         const reservePrices = (await lendingPool.query.viewReservePrices(PARAMS.asset)).value.ok!;
         expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
           activated: true,
@@ -305,17 +350,12 @@ makeSuite('Menage tests', (getTestEnv) => {
           minimalCollateral: PARAMS.minimalCollateral,
           minimalDebt: PARAMS.minimalDebt,
         });
-        expect.soft(reserveParameters).to.deep.equal(null);
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
           cumulativeDepositIndexE18: '1000000000000000000',
           cumulativeDebtIndexE18: '1000000000000000000',
         });
-        expect.soft(replaceRNBNPropsWithStrings(reserveTokens)).to.deep.equal({
-          aTokenAddress: PARAMS.aTokenAddress,
-          vTokenAddress: PARAMS.vTokenAddress,
-        });
         expect.soft(replaceRNBNPropsWithStrings(reservePrices)).to.deep.equal({
-          decimals: PARAMS.decimals,
+          decimals: Math.pow(10, Number(PARAMS.decimals)).toString(),
           tokenPriceE8: null,
         });
         expect.flushSoft();

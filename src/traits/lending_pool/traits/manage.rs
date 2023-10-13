@@ -5,6 +5,7 @@ use crate::{
     traits::lending_pool::errors::LendingPoolError,
 };
 
+use ink::prelude::string::String;
 use ink::prelude::vec::Vec;
 
 // #[pendzl::wrapper]
@@ -43,6 +44,8 @@ pub trait LendingPoolManage {
     fn register_asset(
         &mut self,
         asset: AccountId,
+        a_token_code_hash: [u8; 32],
+        v_token_code_hash: [u8; 32],
         name: String,
         symbol: String,
         decimals: u8,
@@ -74,6 +77,8 @@ pub trait LendingPoolManage {
     fn register_stablecoin(
         &mut self,
         asset: AccountId,
+        a_token_code_hash: [u8; 32],
+        v_token_code_hash: [u8; 32],
         name: String,
         symbol: String,
         decimals: u8,

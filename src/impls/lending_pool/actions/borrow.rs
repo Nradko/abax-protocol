@@ -81,7 +81,7 @@ pub trait LendingPoolBorrowImpl:
         //// ABACUS TOKEN EVENTS
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
-            .reserve_abacus
+            .reserve_abacus_tokens
             .get(&asset)
             .unwrap();
         // ATOKEN
@@ -133,7 +133,7 @@ pub trait LendingPoolBorrowImpl:
         //// ABACUS TOKEN EVENTS
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
-            .reserve_abacus
+            .reserve_abacus_tokens
             .get(&asset)
             .unwrap();
         // ATOKEN

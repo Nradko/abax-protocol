@@ -11,6 +11,7 @@ use crate::{
         lending_pool::{errors::LendingPoolError, events::*},
     },
 };
+use ink::prelude::string::{String, ToString};
 use ink::{
     env::call::ExecutionInput,
     prelude::{vec, vec::Vec},
@@ -99,6 +100,8 @@ pub trait LendingPoolManageImpl:
     fn register_asset(
         &mut self,
         asset: AccountId,
+        a_token_code_hash: [u8; 32],
+        v_token_code_hash: [u8; 32],
         name: String,
         symbol: String,
         decimals: u8,
@@ -113,7 +116,7 @@ pub trait LendingPoolManageImpl:
         interest_rate_model: [u128; 7],
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-
+        ink::env::debug_println!("a1");
         if !self._has_role(ASSET_LISTING_ADMIN, &Some(caller))
             && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
@@ -121,23 +124,12 @@ pub trait LendingPoolManageImpl:
                 AccessControlError::MissingRole,
             ));
         }
+        ink::env::debug_println!("a1");
 
         let timestamp = self._timestamp();
+        ink::env::debug_println!("a1");
 
-        let (a_token_address, v_token_address) = (
-            self._instantiate_a_token_contract(
-                &asset,
-                name.clone(),
-                symbol.clone(),
-                decimals,
-            ),
-            self._instantiate_v_token_contract(
-                &asset,
-                name.clone(),
-                symbol.clone(),
-                decimals,
-            ),
-        );
+        ink::env::debug_println!("a1");
 
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
@@ -154,8 +146,31 @@ pub trait LendingPoolManageImpl:
                     &minimal_debt,
                 ),
                 &ReservePrice::new(&(10_u128.pow(decimals.into()))),
+            )?;
+
+        let (a_token_address, v_token_address) = (
+            self._instantiate_a_token_contract(
+                &a_token_code_hash,
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+            self._instantiate_v_token_contract(
+                &v_token_code_hash,
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+        );
+
+        self.data::<LendingPoolStorage>()
+            .account_for_set_abacus_tokens(
+                &asset,
                 &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
             )?;
+        ink::env::debug_println!("a1");
 
         self.data::<LendingPoolStorage>()
             .account_for_asset_rule_change(
@@ -167,12 +182,15 @@ pub trait LendingPoolManageImpl:
                     penalty_e6,
                 },
             )?;
+        ink::env::debug_println!("a1");
 
         self._emit_asset_registered_event(
             &asset,
             name,
             symbol,
             decimals,
+            &a_token_code_hash,
+            &v_token_code_hash,
             &a_token_address,
             &v_token_address,
         );
@@ -201,6 +219,8 @@ pub trait LendingPoolManageImpl:
     fn register_stablecoin(
         &mut self,
         asset: AccountId,
+        a_token_code_hash: [u8; 32],
+        v_token_code_hash: [u8; 32],
         name: String,
         symbol: String,
         decimals: u8,
@@ -224,21 +244,6 @@ pub trait LendingPoolManageImpl:
 
         let timestamp = self._timestamp();
 
-        let (a_token_address, v_token_address) = (
-            self._instantiate_a_token_contract(
-                &asset,
-                name.clone(),
-                symbol.clone(),
-                decimals,
-            ),
-            self._instantiate_v_token_contract(
-                &asset,
-                name.clone(),
-                symbol.clone(),
-                decimals,
-            ),
-        );
-
         self.data::<LendingPoolStorage>()
             .account_for_register_stablecoin(
                 &asset,
@@ -250,6 +255,28 @@ pub trait LendingPoolManageImpl:
                     &minimal_debt,
                 ),
                 &ReservePrice::new(&(10_u128.pow(decimals.into()))),
+            )?;
+
+        let (a_token_address, v_token_address) = (
+            self._instantiate_a_token_contract(
+                &a_token_code_hash,
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+            self._instantiate_v_token_contract(
+                &v_token_code_hash,
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+        );
+
+        self.data::<LendingPoolStorage>()
+            .account_for_set_abacus_tokens(
+                &asset,
                 &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
             )?;
 
@@ -269,6 +296,8 @@ pub trait LendingPoolManageImpl:
             name,
             symbol,
             decimals,
+            &a_token_code_hash,
+            &v_token_code_hash,
             &a_token_address,
             &v_token_address,
         );
@@ -532,26 +561,19 @@ pub trait LendingPoolManageImpl:
     }
 }
 
-use pendzl::traits::String;
-
 pub trait ManageInternal: Storage<LendingPoolStorage> {
     fn _instantiate_a_token_contract(
         &self,
+        a_token_code_hash: &[u8; 32],
         underlying_asset: &AccountId,
         name: String,
         symbol: String,
         decimals: u8,
     ) -> AccountId {
-        let a_token_code_hash = self
-            .data::<LendingPoolStorage>()
-            .a_token_code_hash
-            .get()
-            .unwrap();
-
         let lending_pool: AccountId = Self::env().account_id();
 
         self._instantiate_abacus_token(
-            &a_token_code_hash,
+            a_token_code_hash,
             &lending_pool,
             underlying_asset,
             "Abax Deposit ".to_string() + &name,
@@ -562,17 +584,12 @@ pub trait ManageInternal: Storage<LendingPoolStorage> {
 
     fn _instantiate_v_token_contract(
         &self,
+        v_token_code_hash: &[u8; 32],
         underlying_asset: &AccountId,
         name: String,
         symbol: String,
         decimals: u8,
     ) -> AccountId {
-        let v_token_code_hash = self
-            .data::<LendingPoolStorage>()
-            .a_token_code_hash
-            .get()
-            .unwrap();
-
         let lending_pool: AccountId = Self::env().account_id();
 
         self._instantiate_abacus_token(

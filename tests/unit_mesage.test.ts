@@ -6,7 +6,7 @@ import { AssetRegistered } from 'typechain/event-types/lending_pool';
 import { ContractsEvents } from 'typechain/events/enum';
 import { AccountId } from 'typechain/types-arguments/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
-import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
+import { LendingPoolErrorBuilder, ReserveAbacusTokens } from 'typechain/types-returns/lending_pool';
 import BlockTimestampProviderContract from '../typechain/contracts/block_timestamp_provider';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { getCheckRedeemParameters, getExpectedError } from './scenarios/utils/actions';
@@ -19,8 +19,12 @@ import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 import { ReturnNumber } from '@727-ventures/typechain-types';
 import { MAX_U128 } from './consts';
 import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import ATokenContract from 'typechain/contracts/a_token';
+import VTokenContract from 'typechain/contracts/v_token';
+import { getContractObject } from 'tests/setup/deploymentHelpers';
+import { getAbaxTokenMetadata } from './helpers/abacusTokenData';
 
-makeSuite('Message', (getTestEnv) => {
+makeSuite('Unit Message', (getTestEnv) => {
   let testEnv: TestEnv;
   let users: KeyringPair[];
   let lendingPool: LendingPoolContract;
@@ -235,6 +239,10 @@ makeSuite('Message', (getTestEnv) => {
             .withSigner(users[1])
             .query.registerAsset(
               users[1].address,
+              testEnv.aTokenCodeHash,
+              testEnv.vTokenCodeHash,
+              'A NAME',
+              'A SYMBOL',
               '1000000',
               null,
               null,
@@ -245,8 +253,6 @@ makeSuite('Message', (getTestEnv) => {
               0,
               '0',
               [0, 0, 0, 0, 0, 0, 0],
-              users[1].address,
-              users[1].address,
             )
         ).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -258,7 +264,11 @@ makeSuite('Message', (getTestEnv) => {
           .withSigner(owner)
           .tx.registerAsset(
             users[2].address,
-            '100000000',
+            testEnv.aTokenCodeHash,
+            testEnv.vTokenCodeHash,
+            'A NAME',
+            'A SYMBOL',
+            '8',
             '111',
             '222',
             '100000',
@@ -268,28 +278,36 @@ makeSuite('Message', (getTestEnv) => {
             0,
             '900000',
             [1, 2, 3, 4, 5, 6, 7],
-            users[3].address,
-            users[4].address,
           );
 
         const registerAssets = (await lendingPool.query.viewRegisteredAssets()).value.ok!;
-        const reserveData = (await lendingPool.query.viewUnupdatedReserveData(users[2].address)).value.ok!;
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(users[2].address)).value.ok!;
         const resreveParameters = (await lendingPool.query.viewReserveParameters(users[2].address)).value.ok!;
-        const reserveTokens = (await lendingPool.query.viewReserveTokens(users[2].address)).value.ok!;
         const reservePrices = (await lendingPool.query.viewReservePrices(users[2].address)).value.ok!;
+
+        const abacusTokensMetadata = await getAbaxTokenMetadata(owner, lendingPool, users[2].address);
 
         const AssetRegisteredEvent = Object.values(txResult.events!).find((e) => e.name === ContractsEvents.LendingPoolEvent.AssetRegistered)
           ?.args as AssetRegistered;
 
         expect(registerAssets[4]).to.equal(users[2].address);
-        expect.soft(reservePrices.decimals.toString()).to.equal('100000000');
+        expect.soft(reservePrices.decimals.toString()).to.equal(Math.pow(10, 8).toString());
         expect.soft(reserveRestrictions.maximalTotalDeposit?.toString()).to.equal('99999999');
         expect.soft(reserveRestrictions.maximalTotalDebt?.toString()).to.equal('11111111');
         expect.soft(resreveParameters.incomeForSuppliersPartE6.toString()).to.equal('900000');
-        expect.soft(reserveTokens.aTokenAddress).to.equal(users[3].address);
-        expect.soft(reserveTokens.vTokenAddress).to.equal(users[4].address);
         expect.soft(replaceRNBNPropsWithStrings(resreveParameters.interestRateModel)).to.deep.equal(['1', '2', '3', '4', '5', '6', '7']);
+
+        expect.soft(abacusTokensMetadata.aToken.metadata).to.deep.equal({
+          name: 'ABAX DEPOSIT A NAME',
+          symbol: 'aA SYMBOL',
+          decimals: '8',
+        });
+
+        expect.soft(abacusTokensMetadata.vToken.metadata).to.deep.equal({
+          name: 'ABAX DEBT A NAME',
+          symbol: 'vA SYMBOL',
+          decimals: '8',
+        });
 
         expect.soft(AssetRegisteredEvent, 'AssetRegisteredEvent | Event | not emitted').not.to.be.undefined;
         expect.flushSoft();

@@ -125,7 +125,9 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
         &self,
         asset: AccountId,
     ) -> Option<ReserveAbacusTokens> {
-        self.data::<LendingPoolStorage>().reserve_abacus.get(&asset)
+        self.data::<LendingPoolStorage>()
+            .reserve_abacus_tokens
+            .get(&asset)
     }
     fn view_reserve_prices(&self, asset: AccountId) -> Option<ReservePrice> {
         match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
