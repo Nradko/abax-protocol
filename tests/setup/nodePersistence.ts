@@ -17,8 +17,9 @@ export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'dep
 
 export interface StoredContractInfo {
   name: string;
-  address: string;
+  address?: string;
   reserveName?: string;
+  codeHash?: number[];
 }
 
 export const saveContractInfoToFileAsJson = async (contractInfos: StoredContractInfo[], writePath = DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH) => {
@@ -94,16 +95,16 @@ export const restartAndRestoreNodeState = async (getOldContractsNodeProcess: () 
   return () => contractsNodeProcess;
 };
 
-export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH) => {
+export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH): Promise<TestEnv> => {
   const contracts = JSON.parse(await fs.readFile(writePath, 'utf8')) as StoredContractInfo[];
 
   const [owner, ...users] = getSigners();
   const lendingPoolContractInfo = contracts.find((c) => c.name === 'lending_pool');
   if (!lendingPoolContractInfo) throw 'lendingPool ContractInfo not found';
-  const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address, owner);
+  const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address!, owner);
   const blockTimestampProviderContractInfo = contracts.find((c) => c.name === 'block_timestamp_provider');
   if (!blockTimestampProviderContractInfo) throw 'BlockTimestampProvider ContractInfo not found';
-  const blockTimestampProvider = await getContractObject(BlockTimestampProvider, blockTimestampProviderContractInfo.address, owner);
+  const blockTimestampProvider = await getContractObject(BlockTimestampProvider, blockTimestampProviderContractInfo.address!, owner);
 
   const reservesContracts = contracts.filter((c) => c.reserveName);
 
@@ -112,17 +113,17 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     if (!contractInfo.reserveName) continue;
     switch (contractInfo.name) {
       case 'psp22_emitable': {
-        const reserve = await getContractObject(PSP22Emitable, contractInfo.address, owner);
+        const reserve = await getContractObject(PSP22Emitable, contractInfo.address!, owner);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve };
         break;
       }
       case 'a_token': {
-        const aToken = await getContractObject(AToken, contractInfo.address, owner);
+        const aToken = await getContractObject(AToken, contractInfo.address!, owner);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], aToken };
         break;
       }
       case 'v_token': {
-        const vToken = await getContractObject(VToken, contractInfo.address, owner);
+        const vToken = await getContractObject(VToken, contractInfo.address!, owner);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], vToken };
         break;
       }
@@ -131,13 +132,15 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
 
   const balanceViewerContractInfo = contracts.find((c) => c.name === 'balance_viewer');
   if (!balanceViewerContractInfo) throw 'BalanceViewer ContractInfo not found';
-  const balanceViewer = await getContractObject(BalanceViewer, balanceViewerContractInfo.address, owner);
+  const balanceViewer = await getContractObject(BalanceViewer, balanceViewerContractInfo.address!, owner);
 
   return {
     users: users,
     owner,
     lendingPool: lendingPool,
     reserves: reservesWithLendingTokens,
+    aTokenCodeHash: contracts.find((c) => c.name === 'aTokenCodeHash')!.codeHash!,
+    vTokenCodeHash: contracts.find((c) => c.name === 'vTokenCodeHash')!.codeHash!,
     blockTimestampProvider,
     balanceViewer,
   };

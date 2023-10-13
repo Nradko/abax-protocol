@@ -85,7 +85,7 @@ pub trait LendingPoolLiquidateImpl:
 
         let abacus_tokens_to_repay = self
             .data::<LendingPoolStorage>()
-            .reserve_abacus
+            .reserve_abacus_tokens
             .get(&asset_to_repay)
             .unwrap();
         // ATOKEN
@@ -105,7 +105,7 @@ pub trait LendingPoolLiquidateImpl:
         //// to_take_token
         let abacus_tokens_to_take = self
             .data::<LendingPoolStorage>()
-            .reserve_abacus
+            .reserve_abacus_tokens
             .get(&asset_to_take)
             .unwrap();
         // ATOKEN
@@ -205,7 +205,7 @@ pub trait LendingPoolLiquidateImpl:
     //     //// to_repay_token
     //     let abacus_tokens_to_repay = self
     //         .data::<LendingPoolStorage>()
-    //         .reserve_abacus
+    //         .reserve_abacus_tokens
     //         .get(&asset_to_repay)
     //         .unwrap();
     //     // ATOKEN
@@ -224,7 +224,7 @@ pub trait LendingPoolLiquidateImpl:
     //     //// to_take_token
     //     let abacus_tokens_to_take = self
     //         .data::<LendingPoolStorage>()
-    //         .reserve_abacus
+    //         .reserve_abacus_tokens
     //         .get(&asset_to_take)
     //         .unwrap();
     //     // ATOKEN

@@ -44,12 +44,13 @@ pub trait LendingPoolATokenInterfaceImpl:
         to: AccountId,
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        let reserve_abacus_tokens = self
+        let reserve_abacus_tokens_tokens = self
             .data::<LendingPoolStorage>()
-            .reserve_abacus
+            .reserve_abacus_tokens
             .get(&underlying_asset)
             .ok_or(LendingPoolError::AssetNotRegistered)?;
-        if Self::env().caller() != reserve_abacus_tokens.a_token_address {
+        if Self::env().caller() != reserve_abacus_tokens_tokens.a_token_address
+        {
             return Err((AccessControlError::MissingRole).into());
         }
 
@@ -80,7 +81,7 @@ pub trait LendingPoolATokenInterfaceImpl:
             || to_accumulated_debt_interest != 0
         {
             let mut abacus_token_contract: AbacusTokenRef =
-                reserve_abacus_tokens.v_token_address.into();
+                reserve_abacus_tokens_tokens.v_token_address.into();
 
             abacus_token_contract.emit_transfer_events(vec![
                 TransferEventData {

@@ -257,6 +257,8 @@ pub mod lending_pool {
         fn register_asset(
             &mut self,
             asset: AccountId,
+            a_token_code_hash: [u8; 32],
+            v_token_code_hash: [u8; 32],
             name: String,
             symbol: String,
             decimals: u8,
@@ -273,6 +275,8 @@ pub mod lending_pool {
             LendingPoolManageImpl::register_asset(
                 self,
                 asset,
+                a_token_code_hash,
+                v_token_code_hash,
                 name,
                 symbol,
                 decimals,
@@ -292,6 +296,8 @@ pub mod lending_pool {
         fn register_stablecoin(
             &mut self,
             asset: AccountId,
+            a_token_code_hash: [u8; 32],
+            v_token_code_hash: [u8; 32],
             name: String,
             symbol: String,
             decimals: u8,
@@ -306,6 +312,8 @@ pub mod lending_pool {
             LendingPoolManageImpl::register_stablecoin(
                 self,
                 asset,
+                a_token_code_hash,
+                v_token_code_hash,
                 name,
                 symbol,
                 decimals,
@@ -779,6 +787,8 @@ pub mod lending_pool {
         decimals: u8,
         name: String,
         symbol: String,
+        a_token_code_hash: [u8; 32],
+        v_token_code_hash: [u8; 32],
         a_token_address: AccountId,
         v_token_address: AccountId,
     }
@@ -987,6 +997,8 @@ pub mod lending_pool {
             name: String,
             symbol: String,
             decimals: u8,
+            a_token_code_hash: &[u8; 32],
+            v_token_code_hash: &[u8; 32],
             a_token_address: &AccountId,
             v_token_address: &AccountId,
         ) {
@@ -995,6 +1007,8 @@ pub mod lending_pool {
                 name,
                 symbol,
                 decimals,
+                a_token_code_hash: *a_token_code_hash,
+                v_token_code_hash: *v_token_code_hash,
                 a_token_address: *a_token_address,
                 v_token_address: *v_token_address,
             })

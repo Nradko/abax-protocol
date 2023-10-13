@@ -23,6 +23,8 @@ export interface TestEnv {
   lendingPool: LendingPoolContract;
   reserves: TestEnvReserves;
   blockTimestampProvider: BlockTimestampProvider;
+  aTokenCodeHash: number[];
+  vTokenCodeHash: number[];
   balanceViewer: BalanceViewer;
 }
 

@@ -1,6 +1,7 @@
 use pendzl::traits::{AccountId, Balance};
 
 use crate::impls::lending_pool::storage::lending_pool_storage::RuleId;
+use ink::prelude::string::String;
 
 pub trait EmitDepositEvents {
     fn _emit_deposit_event(
@@ -96,6 +97,8 @@ pub trait EmitManageEvents {
         name: String,
         symbol: String,
         decimals: u8,
+        a_token_code_hash: &[u8; 32],
+        v_token_code_hash: &[u8; 32],
         a_token_address: &AccountId,
         v_token_address: &AccountId,
     );

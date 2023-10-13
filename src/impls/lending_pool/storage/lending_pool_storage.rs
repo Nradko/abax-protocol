@@ -35,10 +35,6 @@ pub type RuleId = u32;
 pub struct LendingPoolStorage {
     #[lazy]
     pub block_timestamp_provider: AccountId,
-    #[lazy]
-    pub a_token_code_hash: [u8; 32],
-    #[lazy]
-    pub v_token_code_hash: [u8; 32],
 
     #[lazy]
     pub next_asset_id: AssetId,
@@ -49,7 +45,7 @@ pub struct LendingPoolStorage {
     pub next_rule_id: RuleId,
     pub market_rules: Mapping<RuleId, MarketRule>,
 
-    pub reserve_abacus: Mapping<AccountId, ReserveAbacusTokens>,
+    pub reserve_abacus_tokens: Mapping<AccountId, ReserveAbacusTokens>,
 
     pub reserve_restrictions: Mapping<AssetId, ReserveRestrictions>,
     pub reserve_indexes: Mapping<AssetId, ReserveIndexes>,
@@ -74,7 +70,6 @@ impl LendingPoolStorage {
         reserve_parameters: &ReserveParameters,
         reserve_restrictions: &ReserveRestrictions,
         reserve_price: &ReservePrice,
-        reserve_abacus: &ReserveAbacusTokens,
     ) -> Result<(), LendingPoolError> {
         if self.asset_to_id.contains(asset) {
             return Err(LendingPoolError::AlreadyRegistered);
@@ -88,7 +83,6 @@ impl LendingPoolStorage {
         self.reserve_parameters.insert(&id, reserve_parameters);
         self.reserve_restrictions.insert(&id, reserve_restrictions);
         self.reserve_prices.insert(&id, reserve_price);
-        self.reserve_abacus.insert(&asset, reserve_abacus);
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
@@ -101,13 +95,26 @@ impl LendingPoolStorage {
         Ok(())
     }
 
+    pub fn account_for_set_abacus_tokens(
+        &mut self,
+        asset: &AccountId,
+        reserve_abacus_tokens: &ReserveAbacusTokens,
+    ) -> Result<(), LendingPoolError> {
+        if !self.asset_to_id.contains(asset) {
+            return Err(LendingPoolError::AssetNotRegistered);
+        }
+        self.reserve_abacus_tokens
+            .insert(&asset, reserve_abacus_tokens);
+
+        Ok(())
+    }
+
     pub fn account_for_register_stablecoin(
         &mut self,
         asset: &AccountId,
         reserve_data: &ReserveData,
         reserve_restrictions: &ReserveRestrictions,
         reserve_price: &ReservePrice,
-        reserve_abacus: &ReserveAbacusTokens,
     ) -> Result<(), LendingPoolError> {
         if self.asset_to_id.contains(asset) {
             return Err(LendingPoolError::AlreadyRegistered);
@@ -120,7 +127,6 @@ impl LendingPoolStorage {
         self.reserve_datas.insert(&id, reserve_data);
         self.reserve_restrictions.insert(&id, reserve_restrictions);
         self.reserve_prices.insert(&id, reserve_price);
-        self.reserve_abacus.insert(&asset, reserve_abacus);
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
