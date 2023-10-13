@@ -255,7 +255,15 @@ pub mod a_token {
 
             instance.abacus_token.lending_pool = lending_pool;
             instance.abacus_token.underlying_asset = underlying_asset;
+            ink::env::debug_println!("ATOKEN CONSTRUCTOR!!!",);
             instance
+        }
+
+        #[ink(message)]
+        pub fn own_code_hash(&mut self) -> Hash {
+            self.env().own_code_hash().unwrap_or_else(|err| {
+                panic!("contract should have a code hash: {:?}", err)
+            })
         }
     }
 }

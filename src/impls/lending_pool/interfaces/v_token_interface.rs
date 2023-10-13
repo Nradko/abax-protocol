@@ -18,10 +18,7 @@ use crate::{
 };
 
 pub trait LendingPoolVTokenInterfaceImpl:
-    Storage<LendingPoolStorage>
-    + Storage<pendzl::contracts::pausable::Data>
-    + pendzl::contracts::pausable::Internal
-    + EmitBorrowEvents
+    Storage<LendingPoolStorage> + EmitBorrowEvents
 {
     fn total_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = self._timestamp();
@@ -48,7 +45,6 @@ pub trait LendingPoolVTokenInterfaceImpl:
         to: AccountId,
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        self._ensure_not_paused()?;
         // pull reserve_data
         let reserve_abacus_tokens = self
             .data::<LendingPoolStorage>()

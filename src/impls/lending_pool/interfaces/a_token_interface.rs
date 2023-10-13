@@ -17,11 +17,7 @@ use pendzl::{
 };
 
 pub trait LendingPoolATokenInterfaceImpl:
-    Storage<LendingPoolStorage>
-    + TimestampMock
-    + Storage<pendzl::contracts::pausable::Data>
-    + pendzl::contracts::pausable::Internal
-    + EmitDepositEvents
+    Storage<LendingPoolStorage> + TimestampMock + EmitDepositEvents
 {
     fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = self._timestamp();
@@ -48,7 +44,6 @@ pub trait LendingPoolATokenInterfaceImpl:
         to: AccountId,
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        self._ensure_not_paused()?;
         let reserve_abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus
