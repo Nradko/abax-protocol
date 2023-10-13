@@ -7,7 +7,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[pendzl::implementation(Pausable, AccessControl)]
+#[pendzl::implementation(AccessControl)]
 #[ink::contract]
 pub mod lending_pool {
     use ink::{
@@ -27,7 +27,7 @@ pub mod lending_pool {
                 a_token_interface::LendingPoolATokenInterfaceImpl,
                 v_token_interface::LendingPoolVTokenInterfaceImpl,
             },
-            manage::{LendingPoolManageImpl, EMERGENCY_ADMIN, GLOBAL_ADMIN},
+            manage::{LendingPoolManageImpl, ManageInternal, GLOBAL_ADMIN},
             storage::{
                 lending_pool_storage::{
                     LendingPoolStorage, MarketRule, RuleId,
@@ -60,18 +60,13 @@ pub mod lending_pool {
     // use pendzl::storage::Mapping;
     use lending_project::traits::lending_pool::events::*;
     use pendzl::{
-        contracts::{
-            access_control::{self, *},
-            pausable::{self, *},
-        },
-        traits::Storage,
+        contracts::access_control::{self, *},
+        traits::{Storage, String},
     };
     /// storage of the contract
     #[ink(storage)]
     #[derive(Default, Storage)]
     pub struct LendingPool {
-        #[storage_field]
-        pause: pausable::Data,
         #[storage_field]
         access: access_control::Data,
         #[storage_field]
@@ -234,6 +229,7 @@ pub mod lending_pool {
             )
         }
     }
+    impl ManageInternal for LendingPool {}
     impl LendingPoolManageImpl for LendingPool {}
     impl LendingPoolManage for LendingPool {
         #[ink(message)]
@@ -261,7 +257,9 @@ pub mod lending_pool {
         fn register_asset(
             &mut self,
             asset: AccountId,
-            decimals: u128,
+            name: String,
+            symbol: String,
+            decimals: u8,
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
             penalty_e6: Option<u128>,
@@ -271,12 +269,12 @@ pub mod lending_pool {
             minimal_debt: Balance,
             income_for_suppliers_part_e6: u128,
             interest_rate_model: [u128; 7],
-            a_token_address: AccountId,
-            v_token_address: AccountId,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::register_asset(
                 self,
                 asset,
+                name,
+                symbol,
                 decimals,
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
@@ -287,8 +285,6 @@ pub mod lending_pool {
                 minimal_debt,
                 income_for_suppliers_part_e6,
                 interest_rate_model,
-                a_token_address,
-                v_token_address,
             )
         }
 
@@ -296,7 +292,9 @@ pub mod lending_pool {
         fn register_stablecoin(
             &mut self,
             asset: AccountId,
-            decimals: u128,
+            name: String,
+            symbol: String,
+            decimals: u8,
             collateral_coefficient_e6: Option<u128>,
             borrow_coefficient_e6: Option<u128>,
             penalty_e6: Option<u128>,
@@ -304,12 +302,12 @@ pub mod lending_pool {
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
             minimal_debt: Balance,
-            a_token_address: AccountId,
-            v_token_address: AccountId,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::register_stablecoin(
                 self,
                 asset,
+                name,
+                symbol,
                 decimals,
                 collateral_coefficient_e6,
                 borrow_coefficient_e6,
@@ -318,8 +316,6 @@ pub mod lending_pool {
                 maximal_total_debt,
                 minimal_collateral,
                 minimal_debt,
-                a_token_address,
-                v_token_address,
             )
         }
 
@@ -656,29 +652,6 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        pub fn pause(&mut self) -> Result<(), LendingPoolError> {
-            access_control::Internal::_ensure_has_role(
-                self,
-                EMERGENCY_ADMIN,
-                Some(Self::env().caller()),
-            )?;
-            pausable::Internal::_ensure_not_paused(self)?;
-            pausable::Internal::_pause(self)?;
-            Ok(())
-        }
-
-        #[ink(message)]
-        pub fn unpause(&mut self) -> Result<(), LendingPoolError> {
-            access_control::Internal::_ensure_has_role(
-                self,
-                EMERGENCY_ADMIN,
-                Some(Self::env().caller()),
-            )?;
-            pausable::Internal::_unpause(self)?;
-            Ok(())
-        }
-
-        #[ink(message)]
         pub fn set_code(
             &mut self,
             code_hash: [u8; 32],
@@ -803,7 +776,9 @@ pub mod lending_pool {
     pub struct AssetRegistered {
         #[ink(topic)]
         asset: AccountId,
-        decimals: u128,
+        decimals: u8,
+        name: String,
+        symbol: String,
         a_token_address: AccountId,
         v_token_address: AccountId,
     }
@@ -1009,12 +984,16 @@ pub mod lending_pool {
         fn _emit_asset_registered_event(
             &mut self,
             asset: &AccountId,
-            decimals: u128,
+            name: String,
+            symbol: String,
+            decimals: u8,
             a_token_address: &AccountId,
             v_token_address: &AccountId,
         ) {
             self.env().emit_event(AssetRegistered {
                 asset: *asset,
+                name,
+                symbol,
                 decimals,
                 a_token_address: *a_token_address,
                 v_token_address: *v_token_address,
@@ -1071,7 +1050,7 @@ pub mod lending_pool {
                 minimal_debt,
             })
         }
-        fn _emit_asset_rules_changed(
+        fn _emit_asset_rules_changed_event(
             &mut self,
             market_rule_id: &u32,
             asset: &AccountId,

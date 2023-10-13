@@ -6,13 +6,21 @@ use crate::{
             structs::reserve_data::ReserveData,
         },
     },
-    traits::lending_pool::{errors::LendingPoolError, events::*},
+    traits::{
+        dummy::DummyRef,
+        lending_pool::{errors::LendingPoolError, events::*},
+    },
 };
-use ink::prelude::{vec, vec::Vec};
+use ink::{
+    env::call::ExecutionInput,
+    prelude::{vec, vec::Vec},
+    primitives::{AccountId, Hash},
+    ToAccountId,
+};
 use pendzl::contracts::psp22::PSP22;
 use pendzl::{
     contracts::{access_control::*, psp22::PSP22Ref},
-    traits::{AccountId, Balance, Storage},
+    traits::{Balance, Storage},
 };
 
 use super::{
@@ -50,7 +58,8 @@ pub const ROLE_ADMIN: RoleType = 0; // 0
 pub const TREASURY: RoleType = ink::selector_id!("TREASURY"); // 2_434_241_257_u32
 
 pub trait LendingPoolManageImpl:
-    Storage<LendingPoolStorage>
+    ManageInternal
+    + Storage<LendingPoolStorage>
     + Storage<access_control::Data>
     + InternalIncome
     + EmitManageEvents
@@ -90,7 +99,9 @@ pub trait LendingPoolManageImpl:
     fn register_asset(
         &mut self,
         asset: AccountId,
-        decimals: u128,
+        name: String,
+        symbol: String,
+        decimals: u8,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
@@ -100,26 +111,9 @@ pub trait LendingPoolManageImpl:
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
         interest_rate_model: [u128; 7],
-        a_token_address: AccountId,
-        v_token_address: AccountId,
     ) -> Result<(), LendingPoolError> {
-        ink::env::debug_println!(
-            "{:X?}\n{}\n{:?}\n{:?}\n{:?}\n{:?}\n{:?}\n{}\n{}\n{}\n{:?}\n{:X?}\n{:X?}\n",
-            asset,
-            decimals,
-            collateral_coefficient_e6,
-            borrow_coefficient_e6,
-            penalty_e6,
-            maximal_total_deposit,
-            maximal_total_debt,
-            minimal_collateral,
-            minimal_debt,
-            income_for_suppliers_part_e6,
-            interest_rate_model,
-            a_token_address,
-            v_token_address
-        );
         let caller = Self::env().caller();
+
         if !self._has_role(ASSET_LISTING_ADMIN, &Some(caller))
             && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
@@ -129,6 +123,21 @@ pub trait LendingPoolManageImpl:
         }
 
         let timestamp = self._timestamp();
+
+        let (a_token_address, v_token_address) = (
+            self._instantiate_a_token_contract(
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+            self._instantiate_v_token_contract(
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+        );
 
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
@@ -144,7 +153,7 @@ pub trait LendingPoolManageImpl:
                     &minimal_collateral,
                     &minimal_debt,
                 ),
-                &ReservePrice::new(&decimals),
+                &ReservePrice::new(&(10_u128.pow(decimals.into()))),
                 &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
             )?;
 
@@ -161,6 +170,8 @@ pub trait LendingPoolManageImpl:
 
         self._emit_asset_registered_event(
             &asset,
+            name,
+            symbol,
             decimals,
             &a_token_address,
             &v_token_address,
@@ -177,7 +188,7 @@ pub trait LendingPoolManageImpl:
             minimal_collateral,
             minimal_debt,
         );
-        self._emit_asset_rules_changed(
+        self._emit_asset_rules_changed_event(
             &0,
             &asset,
             &collateral_coefficient_e6,
@@ -190,7 +201,9 @@ pub trait LendingPoolManageImpl:
     fn register_stablecoin(
         &mut self,
         asset: AccountId,
-        decimals: u128,
+        name: String,
+        symbol: String,
+        decimals: u8,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
@@ -198,10 +211,9 @@ pub trait LendingPoolManageImpl:
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        a_token_address: AccountId,
-        v_token_address: AccountId,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
+
         if !self._has_role(ASSET_LISTING_ADMIN, &Some(caller))
             && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
@@ -211,6 +223,21 @@ pub trait LendingPoolManageImpl:
         }
 
         let timestamp = self._timestamp();
+
+        let (a_token_address, v_token_address) = (
+            self._instantiate_a_token_contract(
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+            self._instantiate_v_token_contract(
+                &asset,
+                name.clone(),
+                symbol.clone(),
+                decimals,
+            ),
+        );
 
         self.data::<LendingPoolStorage>()
             .account_for_register_stablecoin(
@@ -222,7 +249,7 @@ pub trait LendingPoolManageImpl:
                     &minimal_collateral,
                     &minimal_debt,
                 ),
-                &ReservePrice::new(&decimals),
+                &ReservePrice::new(&(10_u128.pow(decimals.into()))),
                 &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
             )?;
 
@@ -239,6 +266,8 @@ pub trait LendingPoolManageImpl:
 
         self._emit_asset_registered_event(
             &asset,
+            name,
+            symbol,
             decimals,
             &a_token_address,
             &v_token_address,
@@ -250,7 +279,7 @@ pub trait LendingPoolManageImpl:
             minimal_collateral,
             minimal_debt,
         );
-        self._emit_asset_rules_changed(
+        self._emit_asset_rules_changed_event(
             &0,
             &asset,
             &collateral_coefficient_e6,
@@ -416,7 +445,7 @@ pub trait LendingPoolManageImpl:
         for asset_id in 0..market_rule.len() {
             match market_rule[asset_id] {
                 Some(asset_rules) => {
-                    self._emit_asset_rules_changed(
+                    self._emit_asset_rules_changed_event(
                         &market_rule_id,
                         &registerd_assets[asset_id],
                         &asset_rules.collateral_coefficient_e6,
@@ -459,7 +488,7 @@ pub trait LendingPoolManageImpl:
                 },
             )?;
 
-        self._emit_asset_rules_changed(
+        self._emit_asset_rules_changed_event(
             &market_rule_id,
             &asset,
             &collateral_coefficient_e6,
@@ -500,5 +529,94 @@ pub trait LendingPoolManageImpl:
         }
 
         Ok(assets_and_amounts)
+    }
+}
+
+use pendzl::traits::String;
+
+pub trait ManageInternal: Storage<LendingPoolStorage> {
+    fn _instantiate_a_token_contract(
+        &self,
+        underlying_asset: &AccountId,
+        name: String,
+        symbol: String,
+        decimals: u8,
+    ) -> AccountId {
+        let a_token_code_hash = self
+            .data::<LendingPoolStorage>()
+            .a_token_code_hash
+            .get()
+            .unwrap();
+
+        let lending_pool: AccountId = Self::env().account_id();
+
+        self._instantiate_abacus_token(
+            &a_token_code_hash,
+            &lending_pool,
+            underlying_asset,
+            "Abax Deposit ".to_string() + &name,
+            "a".to_string() + &symbol,
+            decimals,
+        )
+    }
+
+    fn _instantiate_v_token_contract(
+        &self,
+        underlying_asset: &AccountId,
+        name: String,
+        symbol: String,
+        decimals: u8,
+    ) -> AccountId {
+        let v_token_code_hash = self
+            .data::<LendingPoolStorage>()
+            .a_token_code_hash
+            .get()
+            .unwrap();
+
+        let lending_pool: AccountId = Self::env().account_id();
+
+        self._instantiate_abacus_token(
+            &v_token_code_hash,
+            &lending_pool,
+            underlying_asset,
+            "Abax Variable Debt ".to_string() + &name,
+            "v".to_string() + &symbol,
+            decimals,
+        )
+    }
+
+    fn _instantiate_abacus_token(
+        &self,
+        abacus_token_code_hash: &[u8; 32],
+        lending_pool: &AccountId,
+        underlying_asset: &AccountId,
+        name: String,
+        symbol: String,
+        decimals: u8,
+    ) -> AccountId {
+        let create_params = ink::env::call::build_create::<DummyRef>()
+            .code_hash(Hash::from(*abacus_token_code_hash))
+            .gas_limit(1000000000000)
+            .endowment(0)
+            .exec_input(
+                ExecutionInput::new(ink::env::call::Selector::new(
+                    ink::selector_bytes!("new"),
+                ))
+                .push_arg(name)
+                .push_arg(symbol)
+                .push_arg(decimals)
+                .push_arg(*lending_pool)
+                .push_arg(*underlying_asset),
+            )
+            .salt_bytes(underlying_asset)
+            .returns::<DummyRef>()
+            .params();
+        let contract = Self::env()
+            .instantiate_contract(&create_params)
+            .unwrap_or_else(|error| {
+                panic!("Contract pallet error: {:?}", error)
+            })
+            .unwrap_or_else(|error| panic!("LangError: {:?}", error));
+        contract.to_account_id()
     }
 }

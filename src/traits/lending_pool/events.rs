@@ -93,7 +93,9 @@ pub trait EmitManageEvents {
     fn _emit_asset_registered_event(
         &mut self,
         asset: &AccountId,
-        decimals: u128,
+        name: String,
+        symbol: String,
+        decimals: u8,
         a_token_address: &AccountId,
         v_token_address: &AccountId,
     );
@@ -121,7 +123,7 @@ pub trait EmitManageEvents {
         minimal_debt: Balance,
     );
 
-    fn _emit_asset_rules_changed(
+    fn _emit_asset_rules_changed_event(
         &mut self,
         market_rule_id: &u32,
         asset: &AccountId,

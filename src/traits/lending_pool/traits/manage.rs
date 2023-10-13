@@ -43,7 +43,9 @@ pub trait LendingPoolManage {
     fn register_asset(
         &mut self,
         asset: AccountId,
-        decimals: u128,
+        name: String,
+        symbol: String,
+        decimals: u8,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
@@ -53,8 +55,6 @@ pub trait LendingPoolManage {
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
         interest_rate_model: [u128; 7],
-        a_token_address: AccountId,
-        v_token_address: AccountId,
     ) -> Result<(), LendingPoolError>;
 
     /// Registers new asset in the `LendingPool`'s storage
@@ -74,7 +74,9 @@ pub trait LendingPoolManage {
     fn register_stablecoin(
         &mut self,
         asset: AccountId,
-        decimals: u128,
+        name: String,
+        symbol: String,
+        decimals: u8,
         collateral_coefficient_e6: Option<u128>,
         borrow_coefficient_e6: Option<u128>,
         penalty_e6: Option<u128>,
@@ -82,8 +84,6 @@ pub trait LendingPoolManage {
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
         minimal_debt: Balance,
-        a_token_address: AccountId,
-        v_token_address: AccountId,
     ) -> Result<(), LendingPoolError>;
 
     ///  activates or disactivates reserv
