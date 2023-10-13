@@ -35,6 +35,10 @@ pub type RuleId = u32;
 pub struct LendingPoolStorage {
     #[lazy]
     pub block_timestamp_provider: AccountId,
+    #[lazy]
+    pub a_token_code_hash: [u8; 32],
+    #[lazy]
+    pub v_token_code_hash: [u8; 32],
 
     #[lazy]
     pub next_asset_id: AssetId,

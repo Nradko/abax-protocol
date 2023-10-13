@@ -2,6 +2,8 @@
 pub mod abacus_token;
 /// just for testing
 pub mod block_timestamp_provider;
+/// dummy trait
+pub mod dummy;
 /// flash loan receiver
 pub mod flash_loan_receiver;
 /// core protocol contract `LendingPool`
