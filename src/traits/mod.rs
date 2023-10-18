@@ -8,3 +8,5 @@ pub mod dummy;
 pub mod flash_loan_receiver;
 /// core protocol contract `LendingPool`
 pub mod lending_pool;
+
+pub mod dia_oracle;
