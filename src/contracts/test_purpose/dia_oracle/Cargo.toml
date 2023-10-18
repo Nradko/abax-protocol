@@ -1,0 +1,38 @@
+[package]
+name = "dia_oracle"
+version = "0.1.1"
+authors = [""]
+edition = "2021"
+
+[dependencies]
+ink = { version = "4.2.1", default-features = false }
+scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = [
+    "derive",
+] }
+scale-info = { version = "2.7", default-features = false, features = [
+    "derive",
+], optional = true }
+
+pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
+] }
+
+lending_project = { path = "../../..", default-features = false }
+
+[lib]
+name = "dia_oracle"
+path = "lib.rs"
+
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "scale/std",
+    "scale-info",
+    "scale-info/std",
+
+    # These dependencies
+    "lending_project/std",
+    "pendzl/std",
+]
+ink-as-dependency = []
