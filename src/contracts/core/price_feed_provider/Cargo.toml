@@ -1,7 +1,7 @@
 [package]
-name = "lending_pool"
+name = "price_feed_provider"
 version = "0.1.1"
-authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
+authors = [""]
 edition = "2021"
 
 [dependencies]
@@ -14,16 +14,12 @@ scale-info = { version = "2.7", default-features = false, features = [
 ], optional = true }
 
 pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
-    "psp22",
-    "ownable",
-    "pausable",
-    "access_control",
 ] }
 
 lending_project = { path = "../../..", default-features = false }
 
 [lib]
-name = "lending_pool"
+name = "price_feed_provider"
 path = "lib.rs"
 
 
@@ -40,10 +36,3 @@ std = [
     "pendzl/std",
 ]
 ink-as-dependency = []
-
-[profile.dev]
-codegen-units = 16      # Use slightly better optimizations.
-overflow-checks = false
-
-[profile.release]
-overflow-checks = false
