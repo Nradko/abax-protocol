@@ -255,7 +255,6 @@ pub mod a_token {
 
             instance.abacus_token.lending_pool = lending_pool;
             instance.abacus_token.underlying_asset = underlying_asset;
-            ink::env::debug_println!("ATOKEN CONSTRUCTOR!!!",);
             instance
         }
 

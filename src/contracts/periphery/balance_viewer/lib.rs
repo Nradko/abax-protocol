@@ -6,9 +6,9 @@ pub mod balance_viewer {
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveAbacusTokens;
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveData;
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveParameters;
-    use lending_project::impls::lending_pool::storage::structs::reserve_data::ReservePrice;
     use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveRestrictions;
     use lending_project::impls::lending_pool::storage::structs::user_reserve_data::UserReserveData;
+    use lending_project::impls::types::DecimalMultiplier;
     // use lending_project::traits::managing::*;
     use pendzl::{contracts::psp22::*, traits::Storage};
 
@@ -22,7 +22,7 @@ pub mod balance_viewer {
         pub data: Option<ReserveData>,
         pub parameters: Option<ReserveParameters>,
         pub restriction: Option<ReserveRestrictions>,
-        pub price: Option<ReservePrice>,
+        pub decimal_multiplier: Option<DecimalMultiplier>,
         pub tokens: Option<ReserveAbacusTokens>,
     }
 
@@ -138,7 +138,9 @@ pub mod balance_viewer {
                 data: self.lending_pool.view_reserve_data(asset),
                 parameters: self.lending_pool.view_reserve_parameters(asset),
                 restriction: self.lending_pool.view_reserve_restrictions(asset),
-                price: self.lending_pool.view_reserve_prices(asset),
+                decimal_multiplier: self
+                    .lending_pool
+                    .view_reserve_decimal_multiplier(asset),
                 tokens: self.lending_pool.view_reserve_tokens(asset),
             }
         }

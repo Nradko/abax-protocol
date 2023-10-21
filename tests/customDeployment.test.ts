@@ -52,7 +52,7 @@ describe('Custom deployment', () => {
             penalty: 0.05,
           },
         ],
-        priceOverridesE8: { BOI: 500 * E6, WMN: 0.5 * E6 },
+        priceOverridesE18: { BOI: '5000000000000000000', WMN: '50000000000000000' },
         shouldUseMockTimestamp: false,
         users: getSignersWithoutOwner(signers, 5),
         owner: signers[5],
@@ -75,16 +75,16 @@ describe('Custom deployment', () => {
 
   describe('Partial overrides', () => {
     it('Price override', async () => {
-      const priceToOverride = 50 * E6;
+      const priceToOverride = '500000000000000000';
       const reserveSymbol = 'WETH';
       //Arrange
       const customDeploymentConfig: Partial<DeploymentConfig> = {
-        priceOverridesE8: { [reserveSymbol]: priceToOverride },
+        priceOverridesE18: { [reserveSymbol]: priceToOverride },
       };
-      const testEnv = await deployAndConfigureSystem(customDeploymentConfig);
+      const testEnv: TestEnv = await deployAndConfigureSystem(customDeploymentConfig);
 
-      const price = (await testEnv.lendingPool.query.getReserveTokenPriceE8(testEnv.reserves['WETH'].underlying.address)).value.ok!;
-      expect(price.toString()).to.equal(priceToOverride.toString());
+      const price = (await testEnv.oracle.query.getLatestPrice(reserveSymbol + '/USD')).value.ok!;
+      expect(price[1].rawNumber.toString()).to.equal(priceToOverride);
     });
   });
 });

@@ -6,6 +6,8 @@ import LendingPoolContract from '../../../typechain/contracts/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
 import VTokenContract from '../../../typechain/contracts/v_token';
+import PriceFeedProvider from '../../../typechain/contracts/price_feed_provider';
+import DiaOracleContract from '../../../typechain/contracts/dia_oracle';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 
@@ -23,6 +25,8 @@ export interface TestEnv {
   lendingPool: LendingPoolContract;
   reserves: TestEnvReserves;
   blockTimestampProvider: BlockTimestampProvider;
+  priceFeedProvider: PriceFeedProvider;
+  oracle: DiaOracleContract;
   aTokenCodeHash: number[];
   vTokenCodeHash: number[];
   balanceViewer: BalanceViewer;

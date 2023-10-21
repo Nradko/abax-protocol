@@ -9,10 +9,10 @@ const mutliplyBy = (b: BN, amount: string | number) => {
 };
 export const MOCK_CHAINLINK_AGGREGATORS_PRICES = {
   // Update to USD-based price feeds
-  DAI: E8,
-  USDC: E8,
-  WETH: 270 * E8,
-  LINK: 100 * E8,
+  DAI: '1000000000000000000',
+  USDC: '1000000000000000000',
+  WETH: '270000000000000000000',
+  LINK: '100000000000000000000',
 };
 
 export interface ReserveTokenDeploymentData {

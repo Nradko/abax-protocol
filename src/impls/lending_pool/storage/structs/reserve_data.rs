@@ -111,46 +111,6 @@ impl ReserveIndexes {
         Ok(())
     }
 }
-
-#[derive(Debug, Encode, Decode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
-pub struct ReservePrice {
-    /// decimals multiplier of an underlying token. If token has n decimal places then it is 10^n.
-    pub decimals: u128,
-    /// underlying asset price in USD. 10^8 = 1 USD/per_1.
-    pub token_price_e8: Option<u128>,
-}
-
-impl ReservePrice {
-    pub fn new(decimals: &u128) -> Self {
-        ReservePrice {
-            decimals: *decimals,
-            token_price_e8: None,
-        }
-    }
-
-    pub fn amount_to_value_e8(
-        &self,
-        amount: &Balance,
-    ) -> Result<u128, LendingPoolError> {
-        let price_e8 = self
-            .token_price_e8
-            .ok_or(LendingPoolError::AssetPriceNotInitialized)?;
-        let x = U256::try_from(price_e8).unwrap();
-        let y = U256::try_from(*amount).unwrap();
-        let z = U256::try_from(self.decimals).unwrap();
-
-        match u128::try_from(x.checked_mul(y).unwrap().checked_div(z).unwrap())
-        {
-            Ok(v) => Ok(v),
-            _ => Err(LendingPoolError::from(MathError::Overflow)),
-        }
-    }
-}
-
 #[derive(Debug, Encode, Decode, Clone)]
 #[cfg_attr(
     feature = "std",

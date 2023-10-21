@@ -135,16 +135,6 @@ pub trait LendingPoolMaintain {
         &mut self,
         asset: AccountId,
     ) -> Result<(), LendingPoolError>;
-    /// is used by anyone to update reserve's asset price //TODO: we need to get oracle API first!
-    ///
-    ///  * `reserve_token_address` - AccountId (aka address) of an asset to update price for
-    ///  * `price_e8` - price of the token in E8 notation (multiplied by 10^8)
-    #[ink(message)]
-    fn insert_reserve_token_price_e8(
-        &mut self,
-        asset: AccountId,
-        price_e8: u128,
-    ) -> Result<(), LendingPoolError>;
 }
 
 /// contains `flash_looan` function

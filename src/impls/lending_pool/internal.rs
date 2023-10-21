@@ -11,6 +11,7 @@ use crate::{
             BlockTimestampProviderInterface, BlockTimestampProviderRef,
         },
         lending_pool::errors::LendingPoolError,
+        price_feed::price_feed::{PriceFeed, PriceFeedRef},
     },
 };
 use ink::{
@@ -215,5 +216,24 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
             result.push((*asset, income));
         }
         Ok(result)
+    }
+}
+
+pub trait AssetPrices {
+    fn _get_assets_prices_e18(
+        &self,
+        assets: Vec<AccountId>,
+    ) -> Result<Vec<u128>, LendingPoolError>;
+}
+
+impl<T: Storage<LendingPoolStorage>> AssetPrices for T {
+    fn _get_assets_prices_e18(
+        &self,
+        assets: Vec<AccountId>,
+    ) -> Result<Vec<u128>, LendingPoolError> {
+        let price_feeder: PriceFeedRef =
+            self.data().price_feed_provider.get().unwrap().into();
+
+        Ok(price_feeder.get_latest_prices(assets)?)
     }
 }

@@ -31,8 +31,7 @@ use super::{
         structs::{
             asset_rules::AssetRules,
             reserve_data::{
-                ReserveAbacusTokens, ReserveParameters, ReservePrice,
-                ReserveRestrictions,
+                ReserveAbacusTokens, ReserveParameters, ReserveRestrictions,
             },
         },
     },
@@ -78,6 +77,24 @@ pub trait LendingPoolManageImpl:
         Ok(())
     }
 
+    fn set_price_feed_provider(
+        &mut self,
+        price_feed_provider: AccountId,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        if !self._has_role(PARAMETERS_ADMIN, &Some(caller))
+            && !self._has_role(GLOBAL_ADMIN, &Some(caller))
+        {
+            return Err(LendingPoolError::from(
+                AccessControlError::MissingRole,
+            ));
+        }
+        self.data::<LendingPoolStorage>()
+            .account_for_price_feed_provider_change(&price_feed_provider);
+        self._emit_price_feed_provider_changed_event(&price_feed_provider);
+        Ok(())
+    }
+
     fn set_flash_loan_fee_e6(
         &mut self,
         flash_loan_fee_e6: u128,
@@ -93,7 +110,7 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .flash_loan_fee_e6
             .set(&flash_loan_fee_e6);
-        self._emit_flash_loan_fee_e6_changed(&flash_loan_fee_e6);
+        self._emit_flash_loan_fee_e6_changed_event(&flash_loan_fee_e6);
         Ok(())
     }
 
@@ -116,7 +133,7 @@ pub trait LendingPoolManageImpl:
         interest_rate_model: [u128; 7],
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
-        ink::env::debug_println!("a1");
+
         if !self._has_role(ASSET_LISTING_ADMIN, &Some(caller))
             && !self._has_role(GLOBAL_ADMIN, &Some(caller))
         {
@@ -124,12 +141,8 @@ pub trait LendingPoolManageImpl:
                 AccessControlError::MissingRole,
             ));
         }
-        ink::env::debug_println!("a1");
 
         let timestamp = self._timestamp();
-        ink::env::debug_println!("a1");
-
-        ink::env::debug_println!("a1");
 
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
@@ -145,7 +158,7 @@ pub trait LendingPoolManageImpl:
                     &minimal_collateral,
                     &minimal_debt,
                 ),
-                &ReservePrice::new(&(10_u128.pow(decimals.into()))),
+                &10_u128.pow(decimals.into()),
             )?;
 
         let (a_token_address, v_token_address) = (
@@ -170,7 +183,6 @@ pub trait LendingPoolManageImpl:
                 &asset,
                 &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
             )?;
-        ink::env::debug_println!("a1");
 
         self.data::<LendingPoolStorage>()
             .account_for_asset_rule_change(
@@ -182,7 +194,6 @@ pub trait LendingPoolManageImpl:
                     penalty_e6,
                 },
             )?;
-        ink::env::debug_println!("a1");
 
         self._emit_asset_registered_event(
             &asset,
@@ -254,7 +265,7 @@ pub trait LendingPoolManageImpl:
                     &minimal_collateral,
                     &minimal_debt,
                 ),
-                &ReservePrice::new(&(10_u128.pow(decimals.into()))),
+                &10_u128.pow(decimals.into()),
             )?;
 
         let (a_token_address, v_token_address) = (

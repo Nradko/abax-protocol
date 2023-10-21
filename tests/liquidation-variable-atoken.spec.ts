@@ -2,6 +2,7 @@ import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
+import DiaOracle from '../typechain/contracts/dia_oracle';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
@@ -9,10 +10,12 @@ import { E18, E6 } from '@abaxfinance/utils';
 import { ReturnNumber } from '@727-ventures/typechain-types';
 import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
+import { toE18String } from './helpers/converters';
 
 makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
+  let oracle: DiaOracle;
   let reserves: TestEnvReserves;
   let users: KeyringPair[];
   let supplier: KeyringPair;
@@ -23,6 +26,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     testEnv = getTestEnv();
     lendingPool = testEnv.lendingPool;
     reserves = testEnv.reserves;
+    oracle = testEnv.oracle;
     users = testEnv.users;
     supplier = users[0];
     borrower = users[1];
@@ -39,18 +43,18 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     let debtDaiAmount: BN;
     let depositLinkAmount: BN;
 
-    const daiPrice = E6;
-    const wethPrice = 1500 * E6;
-    const linkPrice = 10 * E6;
+    const daiPrice = toE18String(1);
+    const wethPrice = toE18String(1500);
+    const linkPrice = toE18String(10);
 
     beforeEach('make deposit and make borrow', async () => {
       daiContract = reserves['DAI'].underlying;
       wethContract = reserves['WETH'].underlying;
       linkContract = reserves['LINK'].underlying;
       // initial token prices
-      await lendingPool.tx.insertReserveTokenPriceE8(daiContract.address, daiPrice);
-      await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, wethPrice);
-      await lendingPool.tx.insertReserveTokenPriceE8(linkContract.address, linkPrice);
+      await oracle.tx.setPrice('DAI/USD', daiPrice);
+      await oracle.tx.setPrice('WETH/USD', wethPrice);
+      await oracle.tx.setPrice('LINK/USD', linkPrice);
       //
       totalDaiDeposit = await convertToCurrencyDecimals(daiContract, 10000);
       await daiContract.tx.mint(supplier.address, totalDaiDeposit);
@@ -85,7 +89,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
     describe('WETH price changes to 1290$, borrower remains collateralized. Then ...', () => {
       beforeEach('', async () => {
-        await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, (wethPrice * 1290) / 1500);
+        await oracle.tx.setPrice('WETH/USD', toE18String(1290));
       });
 
       it('liquidation fails because the borrower is collaterized', async () => {
@@ -98,7 +102,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
     describe('WETH price changes to 1280$, borrower gets undercollateralized. Then ...', () => {
       beforeEach('', async () => {
-        await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, (wethPrice * 1280) / 1500);
+        await oracle.tx.setPrice('WETH/USD', toE18String(1280));
       });
 
       it('liquidator choses wrong asset to repay - liquidation fails', async () => {
@@ -176,18 +180,18 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     let debtDaiAmount: BN;
     let depositLinkAmount: BN;
 
-    const daiPrice = E6;
-    const wethPrice = 1500 * E6;
-    const linkPrice = 10 * E6;
+    const daiPrice = toE18String(1);
+    const wethPrice = toE18String(1500);
+    const linkPrice = toE18String(10);
 
     beforeEach('make deposit and make borrow', async () => {
       daiContract = reserves['DAI'].underlying;
       wethContract = reserves['WETH'].underlying;
       linkContract = reserves['LINK'].underlying;
       // initial token prices
-      await lendingPool.tx.insertReserveTokenPriceE8(daiContract.address, daiPrice);
-      await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, wethPrice);
-      await lendingPool.tx.insertReserveTokenPriceE8(linkContract.address, linkPrice);
+      await oracle.tx.setPrice('DAI/USD', daiPrice);
+      await oracle.tx.setPrice('WETH/USD', wethPrice);
+      await oracle.tx.setPrice('LINK/USD', linkPrice);
       //
       totalDaiDeposit = await convertToCurrencyDecimals(daiContract, 10000);
       await daiContract.tx.mint(supplier.address, totalDaiDeposit);
@@ -222,7 +226,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
     describe('WETH price changes to 1290$, borrower remains collateralized. Then ...', () => {
       beforeEach('', async () => {
-        await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, (wethPrice * 1290) / 1500);
+        await oracle.tx.setPrice('WETH/USD', toE18String(1290));
       });
 
       it('liquidation fails because the borrower is collaterized', async () => {
@@ -235,7 +239,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
 
     describe('WETH price changes to 1280$, borrower gets undercollateralized. Then ...', () => {
       beforeEach('', async () => {
-        await lendingPool.tx.insertReserveTokenPriceE8(wethContract.address, (wethPrice * 1280) / 1500);
+        await oracle.tx.setPrice('WETH/USD', toE18String(1280));
       });
 
       it('liquidator choses wrong asset to repay - liquidation fails', async () => {

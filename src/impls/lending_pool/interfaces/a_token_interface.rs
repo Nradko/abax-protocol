@@ -1,6 +1,6 @@
 use crate::{
     impls::lending_pool::{
-        internal::TimestampMock,
+        internal::{AssetPrices, TimestampMock},
         storage::lending_pool_storage::LendingPoolStorage,
     },
     traits::{
@@ -71,8 +71,12 @@ pub trait LendingPoolATokenInterfaceImpl:
             )?;
 
         // check if there ie enought collateral
+        let all_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power(&from)?;
+            .check_lending_power(&from, &prices_e18)?;
 
         //// ABACUS TOKEN EVENTS
         // AToken interests are returned.

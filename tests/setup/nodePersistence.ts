@@ -9,6 +9,8 @@ import BalanceViewer from '../../typechain/contracts/balance_viewer';
 import BlockTimestampProvider from '../../typechain/contracts/block_timestamp_provider';
 import LendingPool from '../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
+import DiaOracle from '../../typechain/contracts/dia_oracle';
+import PriceFeedProvider from '../../typechain/contracts/price_feed_provider';
 import VToken from '../../typechain/contracts/v_token';
 import { getContractObject } from './deploymentHelpers';
 import { apiProviderWrapper, getSigners } from './helpers';
@@ -99,12 +101,22 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
   const contracts = JSON.parse(await fs.readFile(writePath, 'utf8')) as StoredContractInfo[];
 
   const [owner, ...users] = getSigners();
+
   const lendingPoolContractInfo = contracts.find((c) => c.name === 'lending_pool');
   if (!lendingPoolContractInfo) throw 'lendingPool ContractInfo not found';
   const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address!, owner);
+
   const blockTimestampProviderContractInfo = contracts.find((c) => c.name === 'block_timestamp_provider');
   if (!blockTimestampProviderContractInfo) throw 'BlockTimestampProvider ContractInfo not found';
   const blockTimestampProvider = await getContractObject(BlockTimestampProvider, blockTimestampProviderContractInfo.address!, owner);
+
+  const priceFeedProviderContractInfo = contracts.find((c) => c.name === 'price_feed_provider');
+  if (!priceFeedProviderContractInfo) throw 'BlockTimestampProvider ContractInfo not found';
+  const priceFeedProvider = await getContractObject(PriceFeedProvider, priceFeedProviderContractInfo.address!, owner);
+
+  const oracleInfo = contracts.find((c) => c.name === 'dia_oracle');
+  if (!oracleInfo) throw 'BlockTimestampProvider ContractInfo not found';
+  const oracle = await getContractObject(DiaOracle, oracleInfo.address!, owner);
 
   const reservesContracts = contracts.filter((c) => c.reserveName);
 
@@ -138,6 +150,8 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     users: users,
     owner,
     lendingPool: lendingPool,
+    oracle: oracle,
+    priceFeedProvider: priceFeedProvider,
     reserves: reservesWithLendingTokens,
     aTokenCodeHash: contracts.find((c) => c.name === 'aTokenCodeHash')!.codeHash!,
     vTokenCodeHash: contracts.find((c) => c.name === 'vTokenCodeHash')!.codeHash!,
