@@ -16,32 +16,36 @@ pub mod lending_pool {
     };
 
     use lending_project::{
-        impls::lending_pool::{
-            actions::{
-                borrow::LendingPoolBorrowImpl, deposit::LendingPoolDepositImpl,
-                flash::LendingPoolFlashImpl,
-                liquidate::LendingPoolLiquidateImpl,
-                maintain::LendingPoolMaintainImpl,
-            },
-            interfaces::{
-                a_token_interface::LendingPoolATokenInterfaceImpl,
-                v_token_interface::LendingPoolVTokenInterfaceImpl,
-            },
-            manage::{LendingPoolManageImpl, ManageInternal, GLOBAL_ADMIN},
-            storage::{
-                lending_pool_storage::{
-                    LendingPoolStorage, MarketRule, RuleId,
+        impls::{
+            lending_pool::{
+                actions::{
+                    borrow::LendingPoolBorrowImpl,
+                    deposit::LendingPoolDepositImpl,
+                    flash::LendingPoolFlashImpl,
+                    liquidate::LendingPoolLiquidateImpl,
+                    maintain::LendingPoolMaintainImpl,
                 },
-                structs::{
-                    reserve_data::{
-                        ReserveAbacusTokens, ReserveData, ReserveIndexes,
-                        ReserveParameters, ReservePrice, ReserveRestrictions,
+                interfaces::{
+                    a_token_interface::LendingPoolATokenInterfaceImpl,
+                    v_token_interface::LendingPoolVTokenInterfaceImpl,
+                },
+                manage::{LendingPoolManageImpl, ManageInternal, GLOBAL_ADMIN},
+                storage::{
+                    lending_pool_storage::{
+                        LendingPoolStorage, MarketRule, RuleId,
                     },
-                    user_config::UserConfig,
-                    user_reserve_data::UserReserveData,
+                    structs::{
+                        reserve_data::{
+                            ReserveAbacusTokens, ReserveData, ReserveIndexes,
+                            ReserveParameters, ReserveRestrictions,
+                        },
+                        user_config::UserConfig,
+                        user_reserve_data::UserReserveData,
+                    },
                 },
+                view::LendingPoolViewImpl,
             },
-            view::LendingPoolViewImpl,
+            types::DecimalMultiplier,
         },
         traits::lending_pool::{
             errors::LendingPoolError,
@@ -218,20 +222,21 @@ pub mod lending_pool {
         ) -> Result<(), LendingPoolError> {
             LendingPoolMaintainImpl::accumulate_interest(self, asset)
         }
-        #[ink(message)]
-        fn insert_reserve_token_price_e8(
-            &mut self,
-            asset: AccountId,
-            price_e8: u128,
-        ) -> Result<(), LendingPoolError> {
-            LendingPoolMaintainImpl::insert_reserve_token_price_e8(
-                self, asset, price_e8,
-            )
-        }
     }
     impl ManageInternal for LendingPool {}
     impl LendingPoolManageImpl for LendingPool {}
     impl LendingPoolManage for LendingPool {
+        #[ink(message)]
+        fn set_price_feed_provider(
+            &mut self,
+            price_feed_provider: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_price_feed_provider(
+                self,
+                price_feed_provider,
+            )
+        }
+
         #[ink(message)]
         fn set_flash_loan_fee_e6(
             &mut self,
@@ -483,11 +488,11 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_reserve_tokens(self, asset)
         }
         #[ink(message)]
-        fn view_reserve_prices(
+        fn view_reserve_decimal_multiplier(
             &self,
             asset: AccountId,
-        ) -> Option<ReservePrice> {
-            LendingPoolViewImpl::view_reserve_prices(self, asset)
+        ) -> Option<DecimalMultiplier> {
+            LendingPoolViewImpl::view_reserve_decimal_multiplier(self, asset)
         }
         #[ink(message)]
         fn view_reserve_indexes(
@@ -538,16 +543,6 @@ pub mod lending_pool {
         #[ink(message)]
         fn get_block_timestamp_provider_address(&self) -> AccountId {
             LendingPoolViewImpl::get_block_timestamp_provider_address(self)
-        }
-        #[ink(message)]
-        fn get_reserve_token_price_e8(
-            &self,
-            reserve_token_address: AccountId,
-        ) -> Option<u128> {
-            LendingPoolViewImpl::get_reserve_token_price_e8(
-                self,
-                reserve_token_address,
-            )
         }
 
         #[ink(message)]
@@ -645,7 +640,7 @@ pub mod lending_pool {
             instance.lending_pool.next_asset_id.set(&0);
             instance.lending_pool.next_rule_id.set(&0);
             instance.lending_pool.flash_loan_fee_e6.set(&1000);
-            instance._emit_flash_loan_fee_e6_changed(&1000);
+            instance._emit_flash_loan_fee_e6_changed_event(&1000);
             access_control::Internal::_init_with_admin(
                 &mut instance,
                 caller.into(),
@@ -793,6 +788,10 @@ pub mod lending_pool {
         v_token_address: AccountId,
     }
 
+    #[ink(event)]
+    pub struct PriceFeedProviderChanged {
+        price_feed_provider: AccountId,
+    }
     #[ink(event)]
     pub struct FlashLoanFeeChanged {
         flash_loan_fee_e6: u128,
@@ -983,7 +982,15 @@ pub mod lending_pool {
     }
 
     impl EmitManageEvents for LendingPool {
-        fn _emit_flash_loan_fee_e6_changed(
+        fn _emit_price_feed_provider_changed_event(
+            &mut self,
+            price_feed_provider: &AccountId,
+        ) {
+            self.env().emit_event(PriceFeedProviderChanged {
+                price_feed_provider: *price_feed_provider,
+            })
+        }
+        fn _emit_flash_loan_fee_e6_changed_event(
             &mut self,
             flash_loan_fee_e6: &u128,
         ) {

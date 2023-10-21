@@ -6,7 +6,10 @@ use pendzl::contracts::{
 
 use crate::{
     library::math::MathError,
-    traits::flash_loan_receiver::FlashLoanReceiverError,
+    traits::{
+        flash_loan_receiver::FlashLoanReceiverError,
+        price_feed::price_feed::PriceFeedError,
+    },
 };
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -18,6 +21,7 @@ pub enum LendingPoolError {
     AccessControlError(AccessControlError),
     PausableError(PausableError),
     MathError(MathError),
+    PriceFeedError(PriceFeedError),
     Inactive,
     AlreadySet,
     Freezed,
@@ -58,6 +62,12 @@ impl From<MathError> for LendingPoolError {
 impl From<PSP22Error> for LendingPoolError {
     fn from(error: PSP22Error) -> Self {
         LendingPoolError::PSP22Error(error)
+    }
+}
+
+impl From<PriceFeedError> for LendingPoolError {
+    fn from(error: PriceFeedError) -> Self {
+        LendingPoolError::PriceFeedError(error)
     }
 }
 

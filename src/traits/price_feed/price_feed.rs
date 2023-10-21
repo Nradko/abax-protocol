@@ -10,7 +10,7 @@ pub trait PriceFeed {
     #[ink(message)]
     fn get_latest_prices(
         &self,
-        pairs: Vec<AccountId>,
+        assets: Vec<AccountId>,
     ) -> Result<Vec<u128>, PriceFeedError>;
 }
 

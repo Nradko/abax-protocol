@@ -1,13 +1,16 @@
-use crate::impls::lending_pool::storage::{
-    lending_pool_storage::{MarketRule, RuleId},
-    structs::{
-        reserve_data::{
-            ReserveAbacusTokens, ReserveData, ReserveIndexes,
-            ReserveParameters, ReservePrice, ReserveRestrictions,
+use crate::impls::{
+    lending_pool::storage::{
+        lending_pool_storage::{MarketRule, RuleId},
+        structs::{
+            reserve_data::{
+                ReserveAbacusTokens, ReserveData, ReserveIndexes,
+                ReserveParameters, ReserveRestrictions,
+            },
+            user_config::UserConfig,
+            user_reserve_data::UserReserveData,
         },
-        user_config::UserConfig,
-        user_reserve_data::UserReserveData,
     },
+    types::DecimalMultiplier,
 };
 
 use pendzl::traits::AccountId;
@@ -57,7 +60,10 @@ pub trait LendingPoolView {
         asset: AccountId,
     ) -> Option<ReserveAbacusTokens>;
     #[ink(message)]
-    fn view_reserve_prices(&self, asset: AccountId) -> Option<ReservePrice>;
+    fn view_reserve_decimal_multiplier(
+        &self,
+        asset: AccountId,
+    ) -> Option<DecimalMultiplier>;
     #[ink(message)]
     fn view_unupdated_user_reserve_data(
         &self,
@@ -81,11 +87,6 @@ pub trait LendingPoolView {
     ) -> (bool, u128);
     #[ink(message)]
     fn get_block_timestamp_provider_address(&self) -> AccountId;
-    #[ink(message)]
-    fn get_reserve_token_price_e8(
-        &self,
-        reserve_token_address: AccountId,
-    ) -> Option<u128>;
 
     #[ink(message)]
     fn view_protocol_income(

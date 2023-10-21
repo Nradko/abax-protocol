@@ -196,7 +196,6 @@ pub mod oracle_anchor {
                     "Failed to `set_code_hash` to {code_hash:?} due to {err:?}"
                 )
             });
-            ink::env::debug_println!("Switched code hash to {:?}.", code_hash);
         }
     }
 }

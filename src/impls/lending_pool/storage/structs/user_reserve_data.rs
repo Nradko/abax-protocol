@@ -165,14 +165,6 @@ impl UserReserveData {
             && self.applied_cumulative_debt_index_e18
                 < reserve_indexes.cumulative_debt_index_e18
         {
-            ink::env::debug_println!(
-                "applied_cumulative_debt_index_e18 {}",
-                self.applied_cumulative_debt_index_e18
-            );
-            ink::env::debug_println!(
-                "cumulative_debt_index_e18 {}",
-                reserve_indexes.cumulative_debt_index_e18
-            );
             let updated_borrow = {
                 let updated_borrow_rounded_down = match u128::try_from({
                     let x = U256::try_from(self.debt).unwrap();
@@ -194,10 +186,6 @@ impl UserReserveData {
                     .expect(MATH_ERROR_MESSAGE)
             };
             delta_user_varaible_debt = updated_borrow - self.debt;
-            ink::env::debug_println!(
-                "delta_user_varaible_debt {}",
-                delta_user_varaible_debt
-            );
             self.debt = updated_borrow;
         }
         self.applied_cumulative_debt_index_e18 =

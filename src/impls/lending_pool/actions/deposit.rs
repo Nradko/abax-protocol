@@ -85,9 +85,14 @@ pub trait LendingPoolDepositImpl:
                 &mut amount,
                 &block_timestamp,
             )?;
+
         // check if there ie enought collateral
+        let all_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power(&on_behalf_of)?;
+            .check_lending_power(&on_behalf_of, &prices_e18)?;
 
         //// TOKEN TRANSFERS
         self._transfer_out(&asset, &Self::env().caller(), &amount)?;

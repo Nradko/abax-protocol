@@ -73,9 +73,13 @@ pub trait LendingPoolVTokenInterfaceImpl:
                 &timestamp,
             )?;
 
-        // check if there ie enought
-
-        self.data::<LendingPoolStorage>().check_lending_power(&to)?;
+        // check if there ie enought collateral
+        let all_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
+        self.data::<LendingPoolStorage>()
+            .check_lending_power(&to, &prices_e18)?;
 
         //// ABACUS TOKEN EVENTS
         // AToken interests

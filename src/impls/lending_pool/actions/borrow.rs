@@ -19,8 +19,13 @@ pub trait LendingPoolBorrowImpl:
         self.data::<LendingPoolStorage>()
             .account_for_market_rule_change(&caller, market_rule_id)?;
 
+        // check if there ie enought collateral
+        let all_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power(&caller)?;
+            .check_lending_power(&caller, &prices_e18)?;
 
         self._emit_market_rule_chosen(&caller, &market_rule_id);
         Ok(())
@@ -40,8 +45,13 @@ pub trait LendingPoolBorrowImpl:
             )?;
 
         if use_as_collateral_to_set == false {
+            // check if there ie enought collateral
+            let all_assets = self
+                .data::<LendingPoolStorage>()
+                .get_all_registered_assets();
+            let prices_e18 = self._get_assets_prices_e18(all_assets)?;
             self.data::<LendingPoolStorage>()
-                .check_lending_power(&caller)?;
+                .check_lending_power(&caller, &prices_e18)?;
         }
 
         self._emit_collateral_set_event(
@@ -72,9 +82,15 @@ pub trait LendingPoolBorrowImpl:
                 &amount,
                 &block_timestamp,
             )?;
+
         // check if there ie enought collateral
+        let all_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power(&on_behalf_of)?;
+            .check_lending_power(&on_behalf_of, &prices_e18)?;
+
         //// TOKEN TRANSFER
         self._transfer_out(&asset, &Self::env().caller(), &amount)?;
 

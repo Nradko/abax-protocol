@@ -203,7 +203,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveParameters = (await lendingPool.query.viewReserveParameters(PARAMS.asset)).value.ok!;
         const reserveIndexes = (await lendingPool.query.viewReserveIndexes(PARAMS.asset)).value.ok!;
         const reserveTokens = (await lendingPool.query.viewReserveTokens(PARAMS.asset)).value.ok!;
-        const reservePrices = (await lendingPool.query.viewReservePrices(PARAMS.asset)).value.ok!;
+        const reserveDecimalMultiplier = (await lendingPool.query.viewReserveDecimalMultiplier(PARAMS.asset)).value.ok!.rawNumber.toString();
         expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
           activated: true,
           freezed: false,
@@ -227,11 +227,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           cumulativeDepositIndexE18: '1000000000000000000',
           cumulativeDebtIndexE18: '1000000000000000000',
         });
-        expect.soft(replaceRNBNPropsWithStrings(reservePrices)).to.deep.equal({
-          decimals: Math.pow(10, Number(PARAMS.decimals)).toString(),
-
-          tokenPriceE8: null,
-        });
+        expect.soft(reserveDecimalMultiplier).to.equal(Math.pow(10, Number(PARAMS.decimals)).toString());
         expect.flushSoft();
       });
     }
@@ -334,7 +330,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveData = (await lendingPool.query.viewReserveData(PARAMS.asset)).value.ok!;
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
         const reserveIndexes = (await lendingPool.query.viewReserveIndexes(PARAMS.asset)).value.ok!;
-        const reservePrices = (await lendingPool.query.viewReservePrices(PARAMS.asset)).value.ok!;
+        const reserveDecimalMultiplier = (await lendingPool.query.viewReserveDecimalMultiplier(PARAMS.asset)).value.ok!.rawNumber.toString();
         expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
           activated: true,
           freezed: false,
@@ -354,10 +350,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           cumulativeDepositIndexE18: '1000000000000000000',
           cumulativeDebtIndexE18: '1000000000000000000',
         });
-        expect.soft(replaceRNBNPropsWithStrings(reservePrices)).to.deep.equal({
-          decimals: Math.pow(10, Number(PARAMS.decimals)).toString(),
-          tokenPriceE8: null,
-        });
+        expect.soft(reserveDecimalMultiplier).to.equal(Math.pow(10, Number(PARAMS.decimals)).toString());
         expect.flushSoft();
       });
     }

@@ -28,9 +28,14 @@ pub trait LendingPoolLiquidateImpl:
         minimum_recieved_for_one_repaid_token_e18: u128,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(Balance, Balance), LendingPoolError> {
+        // check if there ie enought collateral
+        let all_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         let (collaterized, _) = self
             .data::<LendingPoolStorage>()
-            .calculate_user_lending_power_e6(&liquidated_user)?;
+            .calculate_user_lending_power_e6(&liquidated_user, &prices_e18)?;
 
         if collaterized {
             return Err(LendingPoolError::Collaterized);
@@ -50,6 +55,7 @@ pub trait LendingPoolLiquidateImpl:
         ) = self.data::<LendingPoolStorage>().account_for_liquidate(
             &caller,
             &liquidated_user,
+            &prices_e18,
             &asset_to_repay,
             &asset_to_take,
             &mut amount_to_repay,

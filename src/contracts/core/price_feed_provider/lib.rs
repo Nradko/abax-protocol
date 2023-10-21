@@ -4,6 +4,8 @@
 #[ink::contract]
 pub mod price_feed_provider {
     use ink::prelude::string::String;
+    use ink::prelude::{vec::Vec, *};
+
     use ink::storage::{Lazy, Mapping};
 
     use lending_project::traits::dia_oracle::getter::{OracleGettersRef, *};

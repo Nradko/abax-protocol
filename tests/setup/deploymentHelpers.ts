@@ -18,6 +18,8 @@ import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import TestReservesMinter from 'typechain/contracts/test_reserves_minter';
 import VTokenContract from 'typechain/contracts/v_token';
 import BalanceViewer from 'typechain/contracts/balance_viewer';
+import DiaOracleContract from 'typechain/contracts/dia_oracle';
+import PriceFeedProviderContract from 'typechain/contracts/price_feed_provider';
 
 import FlashLoanReceiverMockConstructor from 'typechain/constructors/flash_loan_receiver_mock';
 import BlockTimestampProviderConstructor from 'typechain/constructors/block_timestamp_provider';
@@ -122,6 +124,11 @@ export const deployLendingPool = async (owner: KeyringPair) => await deployWithL
 //   const deployRet = await new LendingPoolConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
 //   return getContractObject(LendingPool, deployRet.address, owner);
 // };
+
+export const deployDiaOracle = async (owner: KeyringPair) => deployWithLog(owner, DiaOracleContract, 'dia_oracle');
+
+export const deployPriceFeedProvider = async (owner: KeyringPair, oracle: string) =>
+  deployWithLog(owner, PriceFeedProviderContract, 'price_feed_provider', oracle);
 
 export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldReturnMockValue = false, speedMultiplier = 1) => {
   const deployRet = await new BlockTimestampProviderConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
@@ -292,8 +299,12 @@ export const getContractObject = async <T>(
   return new constructor(contractAddress, signerPair, await apiProviderWrapper.getAndWaitForReady());
 };
 //reserveDatas: ReserveTokenDeploymentData
-export async function deployCoreContracts(owner: KeyringPair): Promise<{
+export async function deployCoreContracts(
+  owner: KeyringPair,
+  oracle: string,
+): Promise<{
   blockTimestampProvider: BlockTimestampProvider;
+  priceFeedProvider: PriceFeedProviderContract;
   lendingPool: LendingPool;
   aTokenCodeHash: any;
   vTokenCodeHash: any;
@@ -305,6 +316,7 @@ export async function deployCoreContracts(owner: KeyringPair): Promise<{
     console.log(`Deployer: ${owner.address}`);
   }
   const blockTimestampProvider = await deployBlockTimestampProvider(owner);
+  const priceFeedProvider = await deployPriceFeedProvider(owner, oracle);
 
   const aTokenContract = await deployAToken(owner, 'Abacus Deposit Token', 'AToken', 0, owner.address, owner.address);
   const vTokenContract = await deployVToken(owner, 'Abacus Debt Token', 'VToken', 0, owner.address, owner.address);
@@ -330,7 +342,7 @@ export async function deployCoreContracts(owner: KeyringPair): Promise<{
   //   'lending_pool_v0_view_facet',
   // ];
   // const lendingPool = await setupDiamondContract(LendingPool, owner, owner, initFacet, functionalFacets);
-  return { blockTimestampProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
+  return { blockTimestampProvider, priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
 }
 
 function hexToBytes(hex) {
@@ -355,7 +367,7 @@ const getEntryOrThrow = <T>(record: Record<string, T>, key: string) => {
 export type DeploymentConfig = {
   testReserveTokensToDeploy: Omit<ReserveTokenDeploymentData, 'address'>[];
   interestRateModel: [number, number, number, number, number, number, number];
-  priceOverridesE8: Record<string, number>;
+  priceOverridesE18: Record<string, string>;
   shouldUseMockTimestamp: boolean;
   owner: KeyringPair;
   users: KeyringPair[];
@@ -363,7 +375,7 @@ export type DeploymentConfig = {
 export const defaultDeploymentConfig: DeploymentConfig = {
   testReserveTokensToDeploy: fs.readJSONSync(path.join(__dirname, 'reserveTokensToDeploy.json')) as Omit<ReserveTokenDeploymentData, 'address'>[],
   interestRateModel: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-  priceOverridesE8: MOCK_CHAINLINK_AGGREGATORS_PRICES,
+  priceOverridesE18: MOCK_CHAINLINK_AGGREGATORS_PRICES,
   shouldUseMockTimestamp: true,
   owner: getSigners()[0],
   users: getSignersWithoutOwner(getSigners(), 0),
@@ -376,17 +388,20 @@ export const deployAndConfigureSystem = async (
   const config: DeploymentConfig = {
     ...defaultDeploymentConfig,
     ...deploymentConfigOverrides,
-    priceOverridesE8: {
+    priceOverridesE18: {
       ...MOCK_CHAINLINK_AGGREGATORS_PRICES,
-      ...deploymentConfigOverrides.priceOverridesE8,
+      ...deploymentConfigOverrides.priceOverridesE18,
     },
   };
 
-  const { owner, users, testReserveTokensToDeploy, priceOverridesE8: prices, shouldUseMockTimestamp, interestRateModel } = config;
+  const { owner, users, testReserveTokensToDeploy, priceOverridesE18: prices, shouldUseMockTimestamp, interestRateModel } = config;
 
-  const contracts = await deployCoreContracts(owner);
+  const oracle = await deployDiaOracle(owner);
 
+  const contracts = await deployCoreContracts(owner, oracle.address);
   await contracts.lendingPool.withSigner(owner).tx.setBlockTimestampProvider(contracts.blockTimestampProvider.address);
+  await contracts.lendingPool.withSigner(owner).tx.setPriceFeedProvider(contracts.priceFeedProvider.address);
+
   const timestampToSet = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
   await contracts.blockTimestampProvider.withSigner(owner).tx.setBlockTimestamp(timestampToSet.toString());
 
@@ -420,7 +435,8 @@ export const deployAndConfigureSystem = async (
       reserveData.feeD6,
       interestRateModel,
     );
-    await contracts.lendingPool.tx.insertReserveTokenPriceE8(reserve.address, prices[reserveData.name]);
+    await contracts.priceFeedProvider.tx.setAccountSymbol(reserve.address, reserveData.name + '/USD');
+    await oracle.tx.setPrice(reserveData.name + '/USD', prices[reserveData.name]);
     reservesWithLendingTokens[reserveData.name] = {
       underlying: reserve,
       aToken,
@@ -433,6 +449,8 @@ export const deployAndConfigureSystem = async (
   const balanceViewer = await deployBalanceViewer(owner, contracts.lendingPool.address);
   const testEnv = {
     blockTimestampProvider: contracts.blockTimestampProvider,
+    priceFeedProvider: contracts.priceFeedProvider,
+    oracle: oracle,
     users: users,
     owner,
     lendingPool: contracts.lendingPool,
@@ -454,6 +472,14 @@ async function saveConfigToFile(testEnv: TestEnv, writePath: string) {
       {
         name: testEnv.lendingPool.name,
         address: testEnv.lendingPool.address,
+      },
+      {
+        name: testEnv.priceFeedProvider.name,
+        address: testEnv.priceFeedProvider.address,
+      },
+      {
+        name: testEnv.oracle.name,
+        address: testEnv.oracle.address,
       },
       {
         name: testEnv.blockTimestampProvider.name,

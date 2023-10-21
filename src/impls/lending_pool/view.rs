@@ -4,6 +4,7 @@ use crate::impls::{
         lending_pool_storage::LendingPoolStorage,
         structs::{reserve_data::ReserveData, user_reserve_data::*},
     },
+    types::DecimalMultiplier,
 };
 
 use pendzl::traits::{AccountId, Storage};
@@ -11,13 +12,13 @@ use pendzl::traits::{AccountId, Storage};
 use ink::prelude::vec::Vec;
 
 use super::{
-    internal::{InternalIncome, TimestampMock},
+    internal::{AssetPrices, InternalIncome, TimestampMock},
     storage::{
         lending_pool_storage::{MarketRule, RuleId},
         structs::{
             reserve_data::{
                 ReserveAbacusTokens, ReserveIndexes, ReserveParameters,
-                ReservePrice, ReserveRestrictions,
+                ReserveRestrictions,
             },
             user_config::UserConfig,
         },
@@ -32,11 +33,6 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             .unwrap()
     }
     fn view_asset_id(&self, asset: AccountId) -> Option<RuleId> {
-        ink::env::debug_println!(
-            "view asset: {:X?} | {:?}",
-            asset,
-            self.data::<LendingPoolStorage>().asset_to_id.get(&asset)
-        );
         self.data::<LendingPoolStorage>().asset_to_id.get(&asset)
     }
     fn view_registered_assets(&self) -> Vec<AccountId> {
@@ -129,14 +125,19 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             .reserve_abacus_tokens
             .get(&asset)
     }
-    fn view_reserve_prices(&self, asset: AccountId) -> Option<ReservePrice> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
-            Some(asset_id) => self
-                .data::<LendingPoolStorage>()
-                .reserve_prices
-                .get(&asset_id),
-            None => None,
-        }
+    fn view_reserve_decimal_multiplier(
+        &self,
+        reserve_token_address: AccountId,
+    ) -> Option<DecimalMultiplier> {
+        self.data::<LendingPoolStorage>()
+            .reserve_decimal_multiplier
+            .get(
+                &self
+                    .data::<LendingPoolStorage>()
+                    .asset_to_id
+                    .get(&reserve_token_address)
+                    .unwrap(),
+            )
     }
 
     fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes> {
@@ -244,8 +245,13 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
         &self,
         user: AccountId,
     ) -> (bool, u128) {
+        let registered_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 =
+            self._get_assets_prices_e18(registered_assets).unwrap();
         self.data::<LendingPoolStorage>()
-            .calculate_user_lending_power_e6(&user)
+            .calculate_user_lending_power_e6(&user, &prices_e18)
             .unwrap()
     }
 
@@ -254,22 +260,6 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             .block_timestamp_provider
             .get()
             .unwrap()
-    }
-
-    fn get_reserve_token_price_e8(
-        &self,
-        reserve_token_address: AccountId,
-    ) -> Option<u128> {
-        match self.data::<LendingPoolStorage>().reserve_prices.get(
-            &self
-                .data::<LendingPoolStorage>()
-                .asset_to_id
-                .get(&reserve_token_address)
-                .unwrap(),
-        ) {
-            Some(v) => v.token_price_e8,
-            _ => None,
-        }
     }
 
     fn view_protocol_income(

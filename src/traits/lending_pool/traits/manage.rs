@@ -14,6 +14,12 @@ use ink::prelude::vec::Vec;
 #[ink::trait_definition]
 pub trait LendingPoolManage {
     #[ink(message)]
+    fn set_price_feed_provider(
+        &mut self,
+        price_feed_provider: AccountId,
+    ) -> Result<(), LendingPoolError>;
+
+    #[ink(message)]
     fn set_flash_loan_fee_e6(
         &mut self,
         flash_loan_fee_e6: u128,

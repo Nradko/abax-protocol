@@ -115,11 +115,6 @@ pub mod v_token {
     ) -> Result<(), PSP22Error> {
         let from: AccountId = self.env().caller();
         let allowance = psp22::Internal::_allowance(self, &to, &from);
-        ink::env::debug_println!(
-            "Transfer before allowance < value {}",
-            allowance
-        );
-
         if allowance < value {
             return Err(PSP22Error::InsufficientAllowance);
         }
@@ -154,13 +149,6 @@ pub mod v_token {
     ) -> Result<(), PSP22Error> {
         let caller = self.env().caller();
         let allowance = psp22::Internal::_allowance(self, &from, &caller);
-
-        ink::env::debug_println!(
-            "Transfer VToken\n from: {:X?} \n to: {:X?}\n value {:?}",
-            from,
-            to,
-            value
-        );
         if allowance < value {
             return Err(PSP22Error::InsufficientAllowance);
         }
@@ -187,10 +175,6 @@ pub mod v_token {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
         // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
-
-        ink::env::debug_println!(
-            "_transfer_from_to before LendingPoolVTokenInterfaceRef::transfer_debt_from_to call"
-        );
         let mut lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
@@ -200,14 +184,6 @@ pub mod v_token {
                 to,
                 amount,
             )?;
-        ink::env::debug_println!(
-            "_transfer_from_to after LendingPoolVTokenInterfaceRef::transfer_debt_from_to call"
-        );
-        ink::env::debug_println!(
-            "mint_from: {} |    mint_to: {}",
-            mint_from_amount,
-            mint_to_amount
-        );
         // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
         if mint_from_amount > 0 {
             psp22::Internal::_emit_transfer_event(

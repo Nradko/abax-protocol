@@ -9,15 +9,17 @@ use crate::{
         constants::E18_U128,
         lending_pool::storage::structs::{
             reserve_data::{
-                ReserveAbacusTokens, ReserveData, ReserveIndexes, ReservePrice,
+                ReserveAbacusTokens, ReserveData, ReserveIndexes,
                 ReserveRestrictions,
             },
             user_config::UserConfig,
             user_reserve_data::UserReserveData,
         },
+        types::DecimalMultiplier,
     },
     library::math::{
-        calculate_amount_to_take, e8_mul_e6_to_e6_rdown, MathError,
+        calculate_amount_to_take, calculate_asset_amount_value_e8,
+        e8_mul_e6_to_e6_rdown, MathError,
     },
     traits::lending_pool::errors::LendingPoolError,
 };
@@ -37,6 +39,9 @@ pub struct LendingPoolStorage {
     pub block_timestamp_provider: AccountId,
 
     #[lazy]
+    pub price_feed_provider: AccountId,
+
+    #[lazy]
     pub next_asset_id: AssetId,
     pub asset_to_id: Mapping<AccountId, AssetId>,
     pub id_to_asset: Mapping<AssetId, AccountId>,
@@ -49,7 +54,7 @@ pub struct LendingPoolStorage {
 
     pub reserve_restrictions: Mapping<AssetId, ReserveRestrictions>,
     pub reserve_indexes: Mapping<AssetId, ReserveIndexes>,
-    pub reserve_prices: Mapping<AssetId, ReservePrice>,
+    pub reserve_decimal_multiplier: Mapping<AssetId, DecimalMultiplier>,
     pub reserve_datas: Mapping<AssetId, ReserveData>,
     pub reserve_parameters: Mapping<AssetId, ReserveParameters>,
 
@@ -62,6 +67,13 @@ pub struct LendingPoolStorage {
 }
 
 impl LendingPoolStorage {
+    pub fn account_for_price_feed_provider_change(
+        &mut self,
+        price_feed_provider: &AccountId,
+    ) {
+        self.price_feed_provider.set(price_feed_provider);
+    }
+
     // registered_asset
     pub fn account_for_register_asset(
         &mut self,
@@ -69,7 +81,7 @@ impl LendingPoolStorage {
         reserve_data: &ReserveData,
         reserve_parameters: &ReserveParameters,
         reserve_restrictions: &ReserveRestrictions,
-        reserve_price: &ReservePrice,
+        decimal_multiplier: &DecimalMultiplier,
     ) -> Result<(), LendingPoolError> {
         if self.asset_to_id.contains(asset) {
             return Err(LendingPoolError::AlreadyRegistered);
@@ -82,7 +94,8 @@ impl LendingPoolStorage {
         self.reserve_datas.insert(&id, reserve_data);
         self.reserve_parameters.insert(&id, reserve_parameters);
         self.reserve_restrictions.insert(&id, reserve_restrictions);
-        self.reserve_prices.insert(&id, reserve_price);
+        self.reserve_decimal_multiplier
+            .insert(&id, decimal_multiplier);
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
@@ -114,7 +127,7 @@ impl LendingPoolStorage {
         asset: &AccountId,
         reserve_data: &ReserveData,
         reserve_restrictions: &ReserveRestrictions,
-        reserve_price: &ReservePrice,
+        decimal_multiplier: &DecimalMultiplier,
     ) -> Result<(), LendingPoolError> {
         if self.asset_to_id.contains(asset) {
             return Err(LendingPoolError::AlreadyRegistered);
@@ -126,7 +139,8 @@ impl LendingPoolStorage {
 
         self.reserve_datas.insert(&id, reserve_data);
         self.reserve_restrictions.insert(&id, reserve_restrictions);
-        self.reserve_prices.insert(&id, reserve_price);
+        self.reserve_decimal_multiplier
+            .insert(&id, decimal_multiplier);
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
@@ -141,10 +155,6 @@ impl LendingPoolStorage {
 
     pub fn get_all_registered_assets(&self) -> Vec<AccountId> {
         let mut assets: Vec<AccountId> = Vec::new();
-        ink::env::debug_println!(
-            "get_registered_assets; next_asset_id: {} ",
-            self.next_asset_id.get_or_default()
-        );
         for u in 0..self.next_asset_id.get().unwrap_or(0) {
             assets.push(self.id_to_asset.get(&u).unwrap())
         }
@@ -306,17 +316,8 @@ impl LendingPoolStorage {
             .get(&(asset_id, *user))
             .unwrap_or_default();
         let mut user_config = self.user_configs.get(user).unwrap_or_default();
-        ink::env::debug_println!(
-            "account_for_Set_as_coollateral, asset_id {}",
-            asset_id
-        );
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
-        ink::env::debug_println!(
-            "user_rule: {}, next_rule {}",
-            user_config.market_rule_id,
-            self.next_rule_id.get().unwrap()
-        );
         let market_rule =
             self.market_rules.get(&user_config.market_rule_id).unwrap();
 
@@ -465,6 +466,7 @@ impl LendingPoolStorage {
     pub fn calculate_user_lending_power_e6(
         &self,
         user: &AccountId,
+        prices_e18: &Vec<u128>,
     ) -> Result<(bool, u128), LendingPoolError> {
         let mut total_collateral_power_e6: u128 = 0;
         let mut total_debt_power_e6: u128 = 0;
@@ -476,11 +478,6 @@ impl LendingPoolStorage {
         let collaterals = user_config.deposits & user_config.collaterals;
         let debts = user_config.borrows;
         let active_user_assets = collaterals | debts;
-        ink::env::debug_println!(
-            "lending power| colalterals: {}, debts: {}",
-            collaterals,
-            debts
-        );
 
         let mut asset_id = 0;
         loop {
@@ -496,12 +493,15 @@ impl LendingPoolStorage {
             let reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
             let mut user_reserve_data =
                 self.user_reserve_datas.get(&(asset_id, *user)).unwrap();
-            let reserve_price = self.reserve_prices.get(&asset_id).unwrap();
+
             user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
 
             if ((collaterals >> asset_id) & 1) == 1 {
-                let collateral_value_e8 = reserve_price
-                    .amount_to_value_e8(&user_reserve_data.deposit)?;
+                let collateral_value_e8 = calculate_asset_amount_value_e8(
+                    &user_reserve_data.deposit,
+                    &prices_e18[asset_id as usize],
+                    &self.reserve_decimal_multiplier.get(&asset_id).unwrap(),
+                );
 
                 let collateral_coefficient_e6 = market_rule
                     .get(asset_id as usize)
@@ -510,21 +510,6 @@ impl LendingPoolStorage {
                     .collateral_coefficient_e6
                     .ok_or(LendingPoolError::RuleCollateralDisable)?;
 
-                ink::env::debug_println!(
-                    "col_calue {} | col coef {}",
-                    collateral_value_e8,
-                    collateral_coefficient_e6,
-                );
-
-                ink::env::debug_println!(
-                    "tot_col {} plus {}",
-                    total_collateral_power_e6,
-                    e8_mul_e6_to_e6_rdown(
-                        collateral_value_e8,
-                        collateral_coefficient_e6,
-                    )
-                    .unwrap()
-                );
                 total_collateral_power_e6 = total_collateral_power_e6
                     .checked_add(e8_mul_e6_to_e6_rdown(
                         collateral_value_e8,
@@ -534,8 +519,12 @@ impl LendingPoolStorage {
             }
 
             if ((debts >> asset_id) & 1) == 1 {
-                let debt_value_e8 = reserve_price
-                    .amount_to_value_e8(&user_reserve_data.debt)?;
+                let debt_value_e8 = calculate_asset_amount_value_e8(
+                    &user_reserve_data.debt,
+                    &prices_e18[asset_id as usize],
+                    &self.reserve_decimal_multiplier.get(&asset_id).unwrap(),
+                );
+
                 let debt_coefficient_e6 = market_rule
                     .get(asset_id as usize)
                     .ok_or(LendingPoolError::RuleBorrowDisable)?
@@ -563,8 +552,9 @@ impl LendingPoolStorage {
     pub fn check_lending_power(
         &self,
         user: &AccountId,
+        prices_e18: &Vec<u128>,
     ) -> Result<(), LendingPoolError> {
-        if !self.calculate_user_lending_power_e6(user)?.0 {
+        if !self.calculate_user_lending_power_e6(user, prices_e18)?.0 {
             return Err(LendingPoolError::InsufficientCollateral);
         }
         Ok(())
@@ -573,22 +563,12 @@ impl LendingPoolStorage {
     pub fn calculate_liquidated_amount_and_check_if_collateral(
         &self,
         user: &AccountId,
-        asset_to_repay: &AccountId,
-        asset_to_take: &AccountId,
+        asset_to_repay_id: u32,
+        asset_to_take_id: u32,
+        asset_to_repay_price_e18: &u128,
+        asset_to_take_price_e18: &u128,
         amount_to_repay: &Balance,
     ) -> Result<Balance, LendingPoolError> {
-        let asset_to_repay_id = self.asset_id(asset_to_repay)?;
-        let asset_to_take_id = self.asset_id(asset_to_take)?;
-
-        let reserve_prices_to_repay = self
-            .reserve_prices
-            .get(&asset_to_repay_id)
-            .ok_or(LendingPoolError::PriceMissing)?;
-        let reserve_prices_to_take = self
-            .reserve_prices
-            .get(&asset_to_take_id)
-            .ok_or(LendingPoolError::PriceMissing)?;
-
         let user_config = &self
             .user_configs
             .get(user)
@@ -596,6 +576,16 @@ impl LendingPoolStorage {
         if (user_config.collaterals >> asset_to_take_id) & 1_u128 != 1 {
             return Err(LendingPoolError::TakingNotACollateral);
         }
+
+        let reserve_to_repay_decimal_multiplier = self
+            .reserve_decimal_multiplier
+            .get(&asset_to_repay_id)
+            .unwrap();
+
+        let reserve_to_take_decimal_multiplier = self
+            .reserve_decimal_multiplier
+            .get(&asset_to_take_id)
+            .unwrap();
 
         let market_rule =
             self.market_rules.get(&user_config.market_rule_id).unwrap();
@@ -614,14 +604,10 @@ impl LendingPoolStorage {
 
         let amount_to_take = calculate_amount_to_take(
             amount_to_repay,
-            &reserve_prices_to_repay
-                .token_price_e8
-                .ok_or(LendingPoolError::PriceMissing)?,
-            &reserve_prices_to_take
-                .token_price_e8
-                .ok_or(LendingPoolError::PriceMissing)?,
-            &reserve_prices_to_repay.decimals,
-            &reserve_prices_to_take.decimals,
+            &asset_to_repay_price_e18,
+            &asset_to_take_price_e18,
+            &reserve_to_repay_decimal_multiplier,
+            &reserve_to_take_decimal_multiplier,
             &penalty_to_repay_e6,
             &penalty_to_take_e6,
         )?;
@@ -632,6 +618,7 @@ impl LendingPoolStorage {
         &mut self,
         caller: &AccountId,
         liquidated_user: &AccountId,
+        prices_e18: &Vec<u128>,
         asset_to_repay: &AccountId,
         asset_to_take: &AccountId,
         amount_to_repay: &mut Balance,
@@ -715,8 +702,10 @@ impl LendingPoolStorage {
         let amount_to_take = self
             .calculate_liquidated_amount_and_check_if_collateral(
                 &liquidated_user,
-                asset_to_repay,
-                asset_to_take,
+                asset_to_repay_id,
+                asset_to_take_id,
+                &prices_e18[asset_to_repay_id as usize],
+                &prices_e18[asset_to_take_id as usize],
                 &amount_to_repay,
             )?;
 
@@ -790,18 +779,6 @@ impl LendingPoolStorage {
             caller_accumulated_deposit_interest_to_take,
             caller_accumulated_debt_interest_to_take,
         ))
-    }
-
-    pub fn account_for_token_price_change(
-        &mut self,
-        asset: &AccountId,
-        new_price_e8: &u128,
-    ) -> Result<(), LendingPoolError> {
-        let asset_id = self.asset_id(asset)?;
-        let mut reserve_price = self.reserve_prices.get(&asset_id).unwrap();
-        reserve_price.token_price_e8 = Some(*new_price_e8);
-        self.reserve_prices.insert(&asset_id, &reserve_price);
-        Ok(())
     }
 
     pub fn account_for_accumulate_interest(
@@ -1034,11 +1011,6 @@ impl LendingPoolStorage {
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.check_activeness()?;
         reserve_data.check_is_freezed()?;
-        ink::env::debug_println!(
-            "DEBT TRANSFER ACCOUNT| reserve_data.timestamp {}, timestamp {}",
-            reserve_data.indexes_update_timestamp,
-            *timestamp
-        );
 
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
@@ -1061,22 +1033,13 @@ impl LendingPoolStorage {
             .user_reserve_datas
             .get(&(asset_id, *to))
             .unwrap_or_default();
-        ink::env::debug_println!(
-            "reserve indexes before {:?}",
-            reserve_indexes
-        );
+
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
 
         let (from_accumulated_deposit_interest, from_accumulated_debt_interest) =
             from_user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
         let (to_accumulated_deposit_interest, to_accumulated_debt_interest) =
             to_user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
-
-        ink::env::debug_println!(
-                "DEBT TRANSFER ACCOUNT| from_accumulated_debt_interest {}, to_accumulated_debt_interest {}",
-                from_accumulated_debt_interest,
-                to_accumulated_debt_interest
-            );
 
         from_user_reserve_data.decrease_user_debt(
             &asset_id,
