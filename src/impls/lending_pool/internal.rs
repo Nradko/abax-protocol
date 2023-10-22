@@ -1,15 +1,9 @@
-use pendzl::{
-    contracts::psp22::{PSP22Error, PSP22Ref},
-    traits::{Balance, Storage, Timestamp},
-};
-
+use crate::traits::block_timestamp_provider::BlockTimestampProviderInterface;
 use crate::{
     impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
     traits::{
         abacus_token::traits::abacus_token::*,
-        block_timestamp_provider::{
-            BlockTimestampProviderInterface, BlockTimestampProviderRef,
-        },
+        block_timestamp_provider::BlockTimestampProviderRef,
         lending_pool::errors::LendingPoolError,
         price_feed::price_feed::{PriceFeed, PriceFeedRef},
     },
@@ -19,6 +13,10 @@ use ink::{
     primitives::AccountId,
 };
 use pendzl::contracts::psp22::PSP22;
+use pendzl::{
+    contracts::psp22::{PSP22Error, PSP22Ref},
+    traits::{Balance, Storage, Timestamp},
+};
 
 pub fn _check_amount_not_zero(amount: u128) -> Result<(), LendingPoolError> {
     if amount == 0 {
@@ -124,12 +122,15 @@ pub trait TimestampMock {
 
 impl<T: Storage<LendingPoolStorage>> TimestampMock for T {
     fn _timestamp(&self) -> Timestamp {
-        let provider: BlockTimestampProviderRef = (self
+        let provider_account_id = self
             .data::<LendingPoolStorage>()
             .block_timestamp_provider
-            .get()
-            .unwrap())
-        .into();
+            .get();
+        if provider_account_id.is_none() {
+            return Self::env().block_timestamp();
+        }
+        let provider: BlockTimestampProviderRef =
+            provider_account_id.unwrap().into();
 
         provider.get_block_timestamp()
     }
