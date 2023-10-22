@@ -624,7 +624,7 @@ pub trait ManageInternal: Storage<LendingPoolStorage> {
     ) -> AccountId {
         let create_params = ink::env::call::build_create::<DummyRef>()
             .code_hash(Hash::from(*abacus_token_code_hash))
-            .gas_limit(1000000000000)
+            .gas_limit(10000000000)
             .endowment(0)
             .exec_input(
                 ExecutionInput::new(ink::env::call::Selector::new(
