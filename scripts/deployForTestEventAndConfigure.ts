@@ -11,7 +11,7 @@ import {
   getContractObject,
   registerNewAsset,
 } from 'tests/setup/deploymentHelpers';
-import { apiProviderWrapper } from 'tests/setup/helpers';
+import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
 import { StoredContractInfo, saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
 import { ReserveTokenDeploymentData } from 'tests/setup/testEnvConsts';
 import ATokenContract from 'typechain/contracts/a_token';
@@ -24,9 +24,9 @@ import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/defaultInte
 const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = [
   {
     name: 'DAI_TEST',
+    symbol: 'DAI',
     decimals: 6,
     feeD6: 100_000,
-    stableBaseRate: 50000000000,
     collateralCoefficient: 0.97,
     borrowCoefficient: 1.03,
     maximalTotalDeposit: null,
@@ -37,9 +37,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
   },
   {
     name: 'USDC_TEST',
+    symbol: 'USDC',
     decimals: 6,
     feeD6: 100_000,
-    stableBaseRate: 50000000000,
     collateralCoefficient: 0.98,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
@@ -50,9 +50,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
   },
   {
     name: 'WETH_TEST',
+    symbol: 'WETH',
     decimals: 18,
     feeD6: 100_000,
-    stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
@@ -63,9 +63,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
   },
   {
     name: 'BTC_TEST',
+    symbol: 'BTC',
     decimals: 8,
     feeD6: 100_000,
-    stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
@@ -76,9 +76,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
   },
   {
     name: 'AZERO_TEST',
+    symbol: 'AZERO',
     decimals: 12,
     feeD6: 100_000,
-    stableBaseRate: 50000000000,
     collateralCoefficient: 0.8,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
@@ -89,9 +89,9 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
   },
   {
     name: 'DOT_TEST',
+    symbol: 'DOT',
     decimals: 12,
     feeD6: 100_000,
-    stableBaseRate: null,
     collateralCoefficient: 0.7,
     borrowCoefficient: 1.3,
     maximalTotalDeposit: '1000000000000000000000000000',
@@ -102,17 +102,7 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
   },
 ];
 
-const LENDING_POOL_ADDRESS = '5C9MoPeD8rEATyW77U6fmUcnzGpvoLvqQ9QTMiA9oByGwffx';
-
-const PRICES_E8 = {
-  // Update to USD-based price feeds
-  DAI_TEST: E8,
-  AZERO_TEST: E8 * 1.5,
-  USDC_TEST: E8,
-  WETH_TEST: 270 * E8,
-  DOT_TEST: 6 * E8,
-  BTC_TEST: 29_000 * E8,
-};
+const ORACLE_ADDRESS = '5F5z8pZoLgkGapEksFWc2h7ZxH2vdh1A9agnhXvfdCeAfS9b';
 
 type TokenReserve = {
   underlying: PSP22Ownable;
@@ -135,18 +125,21 @@ type TokenReserve = {
   console.log(new Date(parseInt(timestamp.toString())));
 
   const keyring = new Keyring();
-  const signer = keyring.createFromUri(seed, {}, 'sr25519');
+  const signer = keyring.createFromUri(seed, {}, 'sr25519'); // getSigners()[0];
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.azero.testnet.json');
 
-  // const lendingPool = await getContractObject(LendingPool, LENDING_POOL_ADDRESS, signer);
-  const { lendingPool, blockTimestampProvider } = await deployCoreContracts(signer);
+  const deployedContracts = await deployCoreContracts(signer, ORACLE_ADDRESS);
+  const lendingPool = deployedContracts.lendingPool;
+  const priceFeedProvider = deployedContracts.priceFeedProvider;
 
-  await lendingPool.withSigner(signer).tx.setBlockTimestampProvider(blockTimestampProvider.address);
-  await blockTimestampProvider.tx.setShouldReturnMockValue(false);
+  await lendingPool.withSigner(signer).tx.setPriceFeedProvider(priceFeedProvider.address);
+
   await lendingPool.withSigner(signer).tx.addMarketRule([]);
-
   console.log(`signer: ${signer.address}`);
   console.log(`lendingPool: ${lendingPool.address}`);
+  console.log(`priceFeedProvider: ${priceFeedProvider.address}`);
+  console.log('a_token code hash:', deployedContracts.aTokenCodeHash);
+  console.log('v_token code hash:', deployedContracts.vTokenCodeHash);
 
   const testReservesMinter = await deployTestReservesMinter(signer);
 
@@ -157,8 +150,12 @@ type TokenReserve = {
     const { aToken, vToken } = await registerNewAsset(
       signer,
       lendingPool,
-      reserveData.name,
       reserve.address,
+      deployedContracts.aTokenCodeHash,
+      deployedContracts.vTokenCodeHash,
+      reserveData.name,
+      reserveData.symbol,
+      reserveData.decimals,
       reserveData.collateralCoefficient,
       reserveData.borrowCoefficient,
       reserveData.penalty,
@@ -166,13 +163,12 @@ type TokenReserve = {
       reserveData.maximalTotalDebt,
       reserveData.minimalCollateral,
       reserveData.minimalDebt,
-      reserveData.decimals,
       reserveData.feeD6,
       DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
     );
     console.log('inserting token price');
-    const tokenPriceQueryRes = await lendingPool.query.insertReserveTokenPriceE8(reserve.address, PRICES_E8[reserveData.name]);
-    await lendingPool.tx.insertReserveTokenPriceE8(reserve.address, PRICES_E8[reserveData.name]);
+    const setSymbolQuey = await priceFeedProvider.query.setAccountSymbol(reserve.address, reserveData.symbol + '/USD');
+    await priceFeedProvider.tx.setAccountSymbol(reserve.address, reserveData.symbol + '/USD');
     reservesWithLendingTokens[reserveData.name] = {
       underlying: reserve,
       aToken,
@@ -219,8 +215,8 @@ type TokenReserve = {
         address: lendingPool.address,
       },
       {
-        name: blockTimestampProvider.name,
-        address: blockTimestampProvider.address,
+        name: priceFeedProvider.name,
+        address: priceFeedProvider.address,
       },
     ],
     deployPath.replace('.json', 'final_v6.json'),
