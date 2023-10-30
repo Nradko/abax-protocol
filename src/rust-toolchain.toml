@@ -5,7 +5,7 @@
 #   - Find the latest nightly release that matches RUST_VERSION here: https://github.com/oxalica/rust-overlay/tree/master/manifests/nightly/2023
 #   - update `channel = "nightly-OLD_DATE"` below
 
-channel = "1.69.0" # "nightly-2023-03-21" # 1.69.0 nightly for unstable features and no sign-ext
+channel = "stable" # "nightly-2023-03-21" # 1.69.0 nightly for unstable features and no sign-ext
 # for more on the sign-ext issue: https://github.com/paritytech/cargo-contract/issues/1139
 targets = [
     "wasm32-unknown-unknown",

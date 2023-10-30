@@ -1,25 +1,21 @@
+import { getArgvObj } from '@abaxfinance/utils';
 import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
-import fs from 'fs-extra';
 import path from 'path';
-import { E8 } from '@abaxfinance/utils';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/defaultInterestRateModel';
 import {
   deployBalanceViewer,
   deployCoreContracts,
   deployOwnableToken,
   deployTestReservesMinter,
-  getContractObject,
   registerNewAsset,
 } from 'tests/setup/deploymentHelpers';
-import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
-import { StoredContractInfo, saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
+import { apiProviderWrapper } from 'tests/setup/helpers';
+import { saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
 import { ReserveTokenDeploymentData } from 'tests/setup/testEnvConsts';
 import ATokenContract from 'typechain/contracts/a_token';
-import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import VTokenContract from 'typechain/contracts/v_token';
-import { getArgvObj } from '@abaxfinance/utils';
-import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/defaultInterestRateModel';
 
 const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = [
   {
@@ -27,65 +23,65 @@ const RESERVE_TOKENS_TO_DEPLOY: Omit<ReserveTokenDeploymentData, 'address'>[] = 
     symbol: 'DAI',
     decimals: 6,
     feeD6: 100_000,
-    collateralCoefficient: 0.97,
-    borrowCoefficient: 1.03,
+    collateralCoefficient: 0.92,
+    borrowCoefficient: 1.08,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
     minimalCollateral: 2000000,
     minimalDebt: 1000000,
-    penalty: 0.015,
+    penalty: 0.04,
   },
   {
     name: 'USDC_TEST',
     symbol: 'USDC',
     decimals: 6,
     feeD6: 100_000,
-    collateralCoefficient: 0.98,
+    collateralCoefficient: 0.95,
+    borrowCoefficient: 1.05,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
-    borrowCoefficient: 1.02,
     minimalCollateral: 2000,
     minimalDebt: 1000,
-    penalty: 0.01,
+    penalty: 0.025,
   },
   {
     name: 'WETH_TEST',
-    symbol: 'WETH',
+    symbol: 'ETH',
     decimals: 18,
     feeD6: 100_000,
-    collateralCoefficient: 0.8,
+    collateralCoefficient: 0.75,
+    borrowCoefficient: 1.25,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
-    borrowCoefficient: 1.2,
     minimalCollateral: 2000,
     minimalDebt: 1000,
-    penalty: 0.1,
+    penalty: 0.125,
   },
   {
     name: 'BTC_TEST',
     symbol: 'BTC',
     decimals: 8,
     feeD6: 100_000,
-    collateralCoefficient: 0.8,
+    collateralCoefficient: 0.75,
+    borrowCoefficient: 1.25,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
-    borrowCoefficient: 1.2,
     minimalCollateral: 2000,
     minimalDebt: 1000,
-    penalty: 0.1,
+    penalty: 0.125,
   },
   {
     name: 'AZERO_TEST',
     symbol: 'AZERO',
     decimals: 12,
     feeD6: 100_000,
-    collateralCoefficient: 0.8,
+    collateralCoefficient: 0.63,
+    borrowCoefficient: 1.42,
     maximalTotalDeposit: null,
     maximalTotalDebt: null,
-    borrowCoefficient: 1.2,
     minimalCollateral: 2000,
     minimalDebt: 1000,
-    penalty: 0.1,
+    penalty: 0.2,
   },
   {
     name: 'DOT_TEST',
@@ -177,18 +173,21 @@ type TokenReserve = {
     };
   }
 
+  // stable
   await lendingPool.tx.addMarketRule([
-    { collateralCoefficientE6: 970000, borrowCoefficientE6: 1020000, penaltyE6: 50000 },
-    { collateralCoefficientE6: 980000, borrowCoefficientE6: 1010000, penaltyE6: 50000 },
+    { collateralCoefficientE6: 980000, borrowCoefficientE6: 1020000, penaltyE6: 10000 },
+    { collateralCoefficientE6: 990000, borrowCoefficientE6: 1010000, penaltyE6: 5000 },
     null,
   ]);
+
+  // crypto
   await lendingPool.tx.addMarketRule([
     null,
     null,
-    null,
-    null,
-    { collateralCoefficientE6: 900000, borrowCoefficientE6: 1020000, penaltyE6: 50000 },
-    { collateralCoefficientE6: 910000, borrowCoefficientE6: 1030000, penaltyE6: 50000 },
+    { collateralCoefficientE6: 900000, borrowCoefficientE6: 1100000, penaltyE6: 50000 },
+    { collateralCoefficientE6: 900000, borrowCoefficientE6: 1100000, penaltyE6: 50000 },
+    { collateralCoefficientE6: 800000, borrowCoefficientE6: 1200000, penaltyE6: 100000 },
+    { collateralCoefficientE6: 850000, borrowCoefficientE6: 1150000, penaltyE6: 75000 },
   ]);
 
   const balanceViewer = await deployBalanceViewer(signer, lendingPool.address);
