@@ -211,32 +211,29 @@ impl ReserveData {
         utilization_rate_e6: u128,
         reserve_parameters: &ReserveParameters,
     ) -> u128 {
-        let [t50, t60, t70, t80, t90, t95, t100]: [u128; 7] =
+        let [t68, t84, t92, t96, t98, t99, t100]: [u128; 7] =
             reserve_parameters.interest_rate_model;
         match utilization_rate_e6 {
             0 => 0,
-            1..=499_999 => t50 * utilization_rate_e6 / 500_000 + 1,
-            500_000..=599_999 => {
-                t50 + (t60 - t50) * (utilization_rate_e6 - 500_000) / 100_000
+            1..=680_000 => t68 * utilization_rate_e6 / 680_000 + 1,
+            680_001..=840_000 => {
+                t68 + (t84 - t68) * (utilization_rate_e6 - 680_000) / 160_000
                     + 1
             }
-            600_000..=699_999 => {
-                t60 + (t70 - t60) * (utilization_rate_e6 - 600_000) / 100_000
-                    + 1
+            840_001..=920_000 => {
+                t84 + (t92 - t84) * (utilization_rate_e6 - 840_000) / 80_000 + 1
             }
-            700_000..=799_999 => {
-                t70 + (t80 - t70) * (utilization_rate_e6 - 700_000) / 100_000
-                    + 1
+            920_001..=960_000 => {
+                t92 + (t96 - t92) * (utilization_rate_e6 - 920_000) / 40_000 + 1
             }
-            800_000..=899_999 => {
-                t80 + (t90 - t80) * (utilization_rate_e6 - 800_000) / 100_000
-                    + 1
+            960_001..=980_000 => {
+                t96 + (t98 - t96) * (utilization_rate_e6 - 960_000) / 20_000 + 1
             }
-            900_000..=949_999 => {
-                t90 + (t95 - t90) * (utilization_rate_e6 - 900_000) / 50_000 + 1
+            980_001..=990_000 => {
+                t98 + (t99 - t98) * (utilization_rate_e6 - 980_000) / 10_000 + 1
             }
-            950_000..=999_999 => {
-                t95 + (t100 - t95) * (utilization_rate_e6 - 950_000) / 50_000
+            990_001..=1_000_000 => {
+                t99 + (t100 - t99) * (utilization_rate_e6 - 990_000) / 10_000
                     + 1
             }
             _ => t100 * utilization_rate_e6 / E6_U128 + 1,
