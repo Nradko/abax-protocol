@@ -12,6 +12,10 @@ use ink::{
     prelude::{vec::Vec, *},
     primitives::AccountId,
 };
+use pendzl::contracts::psp22::extensions::burnable::PSP22Burnable;
+use pendzl::contracts::psp22::extensions::burnable::PSP22BurnableRef;
+use pendzl::contracts::psp22::extensions::mintable::PSP22Mintable;
+use pendzl::contracts::psp22::extensions::mintable::PSP22MintableRef;
 use pendzl::contracts::psp22::PSP22;
 use pendzl::{
     contracts::psp22::{PSP22Error, PSP22Ref},
@@ -161,13 +165,22 @@ impl<T: Storage<LendingPoolStorage>> Transfer for T {
         from: &AccountId,
         amount: &Balance,
     ) -> Result<(), LendingPoolError> {
-        let mut psp22: PSP22Ref = (*asset).into();
-        psp22.transfer_from(
-            *from,
-            Self::env().account_id(),
-            *amount,
-            Vec::<u8>::new(),
-        )?;
+        if self
+            .data()
+            .reserve_parameters
+            .contains(&self.data().asset_id(asset)?)
+        {
+            let mut psp22: PSP22Ref = (*asset).into();
+            psp22.transfer_from(
+                *from,
+                Self::env().account_id(),
+                *amount,
+                Vec::<u8>::new(),
+            )?;
+        } else {
+            let mut psp22: PSP22BurnableRef = (*asset).into();
+            psp22.burn(*from, *amount)?
+        }
         Ok(())
     }
 
@@ -178,8 +191,17 @@ impl<T: Storage<LendingPoolStorage>> Transfer for T {
         to: &AccountId,
         amount: &Balance,
     ) -> Result<(), LendingPoolError> {
-        let mut psp22: PSP22Ref = (*asset).into();
-        psp22.transfer(*to, *amount, vec![])?;
+        if self
+            .data()
+            .reserve_parameters
+            .contains(&self.data().asset_id(asset)?)
+        {
+            let mut psp22: PSP22Ref = (*asset).into();
+            psp22.transfer(*to, *amount, vec![])?;
+        } else {
+            let mut psp22: PSP22MintableRef = (*asset).into();
+            psp22.mint(*to, *amount)?
+        }
         Ok(())
     }
 }
