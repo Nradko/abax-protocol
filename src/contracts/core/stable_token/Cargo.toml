@@ -1,0 +1,40 @@
+[package]
+name = "stable_token"
+version = "0.1.1"
+authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
+edition = "2021"
+
+[dependencies]
+ink = { version = "4.3", default-features = false }
+scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = [
+    "derive",
+] }
+scale-info = { version = "2.7", default-features = false, features = [
+    "derive",
+], optional = true }
+
+pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
+    "psp22",
+    "access_control",
+] }
+
+lending_project = { path = "../../..", default-features = false }
+
+[lib]
+name = "stable_token"
+path = "lib.rs"
+
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "scale/std",
+    "scale-info",
+    "scale-info/std",
+
+    # These dependencies
+    "lending_project/std",
+    "pendzl/std",
+]
+ink-as-dependency = []
