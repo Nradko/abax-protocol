@@ -17,6 +17,7 @@ pub mod lending_pool {
 
     use lending_project::{
         impls::{
+            constants::GLOBAL_ADMIN,
             lending_pool::{
                 actions::{
                     borrow::LendingPoolBorrowImpl,
@@ -29,7 +30,7 @@ pub mod lending_pool {
                     a_token_interface::LendingPoolATokenInterfaceImpl,
                     v_token_interface::LendingPoolVTokenInterfaceImpl,
                 },
-                manage::{LendingPoolManageImpl, ManageInternal, GLOBAL_ADMIN},
+                manage::{LendingPoolManageImpl, ManageInternal},
                 storage::{
                     lending_pool_storage::{
                         LendingPoolStorage, MarketRule, RuleId,

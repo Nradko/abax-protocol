@@ -1,8 +1,8 @@
 use crate::{
     impls::{
-        constants::E6_U128,
+        constants::{E6_U128, FLASH_BORROWER},
         lending_pool::{
-            internal::Transfer, manage::FLASH_BORROWER,
+            internal::Transfer,
             storage::lending_pool_storage::LendingPoolStorage,
         },
     },
