@@ -65,7 +65,7 @@
 //       if (SHOW_ERRORS) console.log(e);
 //       failedFacets.push('lending_pool_v0_deposit_facet');
 //     }
-//     //lending_pool_v0_flash_facet //TODO
+//     //lending_pool_v0_flash_facet
 //     // try {
 //     //   const reserveWETH = testEnv.reserves['WETH'];
 //     //   const res = await lendingPool.query.flashLoan(testEnv.owner.address, [reserveWETH.underlying.address], [1], []);

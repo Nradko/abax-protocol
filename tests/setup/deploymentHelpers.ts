@@ -119,11 +119,6 @@ const deployWithLog = async <T>(
 };
 
 export const deployLendingPool = async (owner: KeyringPair) => await deployWithLog(owner, LendingPool, 'lending_pool');
-//TODO currently deployment using typechain fails
-// export const deployLendingPool = async (owner: KeyringPair) => {
-//   const deployRet = await new LendingPoolConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
-//   return getContractObject(LendingPool, deployRet.address, owner);
-// };
 
 export const deployDiaOracle = async (owner: KeyringPair) => deployWithLog(owner, DiaOracleContract, 'dia_oracle');
 
