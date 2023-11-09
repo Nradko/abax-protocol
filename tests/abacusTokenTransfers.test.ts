@@ -294,7 +294,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: alice.address,
-                    value: `1911081600031539`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                    value: `1405207058842083`, // ~ [(3 * 10^11) * 101 / 680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
                   },
                 },
                 {
@@ -302,7 +302,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: bob.address,
-                    value: `19110816000316`, // 1/100 of the above
+                    value: `14052070588421`, // 1/100 of the above
                   },
                 },
                 {
@@ -357,7 +357,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: charlie.address,
-                    value: '1930173114075840', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                    value: '1419244936801920', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
                   },
                 },
                 {
@@ -391,7 +391,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 {
                   from: null,
                   to: alice.address,
-                  value: `1911081600031539`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                  value: `1405207058842083`, // ~ (3 * 10^11)* 101/680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
                 },
               ]);
             });
@@ -431,7 +431,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                     args: {
                       from: null,
                       to: alice.address,
-                      value: `1911081600031539`, // ~ ((3 * 10^11)/4.95 +1) * Year / 10^6 [(current_debt_rate_e24)* year /10^6]
+                      value: `1405207058842083`, // ~ [(3 * 10^11) * 101/ 680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
                     },
                   },
                   {
@@ -465,7 +465,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   {
                     from: null,
                     to: charlie.address,
-                    value: '1930173114075840', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                    value: '1419244936801920', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
                   },
                 ]);
               });
