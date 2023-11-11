@@ -1,4 +1,3 @@
-// TODO: once protocol stablecoin is added to default deploy add test to changing stablecoin rates
 import { KeyringPair } from '@polkadot/keyring/types';
 
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
@@ -47,12 +46,11 @@ makeSuite('Menage tests', (getTestEnv) => {
     owner = testEnv.owner;
     users = testEnv.users;
     adminOf['ROLE_ADMIN'] = users[0];
-    adminOf['GLOBAL_ADMIN'] = users[1];
-    adminOf['ASSET_LISTING_ADMIN'] = users[2];
-    adminOf['PARAMETERS_ADMIN'] = users[3];
-    adminOf['STABLECOIN_RATE_ADMIN'] = users[4];
-    adminOf['EMERGENCY_ADMIN'] = users[5];
-    adminOf['TREASURY'] = users[6];
+    adminOf['ASSET_LISTING_ADMIN'] = users[1];
+    adminOf['PARAMETERS_ADMIN'] = users[2];
+    adminOf['STABLECOIN_RATE_ADMIN'] = users[3];
+    adminOf['EMERGENCY_ADMIN'] = users[4];
+    adminOf['TREASURY'] = users[5];
 
     for (const role_name of ROLES_NAMES.filter((role) => role !== 'ROLE_ADMIN')) {
       const role = ROLES[role_name];
@@ -62,7 +60,7 @@ makeSuite('Menage tests', (getTestEnv) => {
   });
   // assetListingAdmin, globalAdmin are allowed to
   describe('While changing a flash loan fee', () => {
-    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
     const flashLoanFeeE6 = '123456';
     it('roles with no permission should fail with Err MissingRole', async () => {
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
@@ -94,7 +92,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
   // assetListingAdmin, globalAdmin are allowed to
   describe('While registering an aasset', () => {
-    const ROLES_WITH_ACCESS: string[] = ['ASSET_LISTING_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['ASSET_LISTING_ADMIN'];
     type params = Parameters<typeof lendingPool.query.registerAsset>;
     let PARAMS = {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
@@ -242,7 +240,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
   // assetListingAdmin, globalAdmin are allowed to
   describe('While registering a protocol stablecoin', () => {
-    const ROLES_WITH_ACCESS: string[] = ['ASSET_LISTING_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['ASSET_LISTING_ADMIN'];
     type params = Parameters<typeof lendingPool.query.registerStablecoin>;
     const PARAMS = {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
@@ -365,7 +363,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
   // emergencyAdmin, globalAdmin are allowed to
   describe('While changing reserve activness', () => {
-    const ROLES_WITH_ACCESS: string[] = ['EMERGENCY_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['EMERGENCY_ADMIN'];
     type params = Parameters<typeof lendingPool.query.setReserveIsActive>;
     const PARAMS = {
       asset: '',
@@ -420,7 +418,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
   // emergencyAdmin, globalAdmin are allowed to
   describe('While changing reserve is freezed', () => {
-    const ROLES_WITH_ACCESS: string[] = ['EMERGENCY_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['EMERGENCY_ADMIN'];
     type params = Parameters<typeof lendingPool.query.setReserveIsFreezed>;
     const PARAMS = {
       asset: '',
@@ -474,9 +472,8 @@ makeSuite('Menage tests', (getTestEnv) => {
   });
 
   // parametersAdmin, globalAdmin are allowed
-  // TODO: once protocol stablecoin is added to default deploy add test to check that parameters can not be changed
   describe('While changing reserve parameters', () => {
-    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
     type params = Parameters<typeof lendingPool.query.setReserveParameters>;
     const PARAMS = {
       asset: '',
@@ -519,11 +516,17 @@ makeSuite('Menage tests', (getTestEnv) => {
 
         expect.flushSoft();
       });
+
+      it(role_name + 'should fail if asset is a stableToken', async () => {
+        PARAMS.asset = testEnv.stables['USDax'].underlying.address;
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveParameters(...(Object.values(PARAMS) as params))).value.ok;
+        expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AssetIsProtocolStablecoin());
+      });
     }
   });
   // parametersAdmin, globalAdmin are allowed to
   describe('While changing reserve restrictions', () => {
-    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
     type params = Parameters<typeof lendingPool.query.setReserveRestrictions>;
     const PARAMS = {
       asset: '',
@@ -607,7 +610,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
   // parametersAdmin, globalAdmin are allowed to
   describe('While modyfing asset rules', () => {
-    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
     type params = Parameters<typeof lendingPool.query.modifyAssetRule>;
     const PARAMS = {
       marketRuleId: '0',
@@ -659,7 +662,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
   // parametersAdmin, globalAdmin are allowed to
   describe('While adding market rules', () => {
-    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN', 'GLOBAL_ADMIN'];
+    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
     type params = Parameters<typeof lendingPool.query.addMarketRule>;
     const marketRule: any[] = [
       { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
@@ -716,6 +719,47 @@ makeSuite('Menage tests', (getTestEnv) => {
 
         const queryMarketRule = (await lendingPool.query.viewMarketRule('1')).value.ok!;
         expect.soft(replaceRNBNPropsWithStrings(queryMarketRule!)).to.deep.equal(marketRule);
+        expect.flushSoft();
+      });
+    }
+  });
+
+  // stablecoin rate admin is allowed to
+  describe('While changing stablecoin rate', () => {
+    const ROLES_WITH_ACCESS: string[] = ['STABLECOIN_RATE_ADMIN'];
+    type params = Parameters<typeof lendingPool.query.setStablecoinDebtRateE24>;
+    const debtRateE24: BN = new BN('123456789');
+
+    it('roles with no permission should fail with Err MissingRole', async () => {
+      const stableAddress = testEnv.stables['USDax'].underlying.address;
+      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      for (const role_name of ROLES_WITH_NO_ACCESS) {
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setStablecoinDebtRateE24(stableAddress, debtRateE24)).value.ok;
+        expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+      }
+      expect.flushSoft();
+    });
+    for (const role_name of ROLES_WITH_ACCESS) {
+      it(role_name + ' should succeed', async () => {
+        const stableAddress = testEnv.stables['USDax'].underlying.address;
+
+        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setStablecoinDebtRateE24(stableAddress, debtRateE24);
+        await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+        const txRes = await tx;
+        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+          {
+            name: 'StablecoinDebtRateChanged',
+            args: {
+              asset: stableAddress,
+              debtRateE24: debtRateE24.toString(),
+            },
+          },
+        ]);
+
+        const reserveData = (await lendingPool.query.viewReserveData(stableAddress)).value.ok!;
+        expect.soft(reserveData.currentDebtRateE24.rawNumber.toString()).to.deep.equal(debtRateE24.toString());
+        expect.soft(reserveData.currentDepositRateE24.rawNumber.toString()).to.deep.equal('0');
+
         expect.flushSoft();
       });
     }

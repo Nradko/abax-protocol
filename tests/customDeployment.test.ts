@@ -5,6 +5,7 @@ import { E6 } from '@abaxfinance/utils';
 import { expect } from './setup/chai';
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './setup/helpers';
 import { restartAndRestoreNodeState } from './setup/nodePersistence';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from './setup/tokensToDeployForTesting';
 
 describe('Custom deployment', () => {
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
@@ -22,34 +23,55 @@ describe('Custom deployment', () => {
       const signers = getSigners();
       //Arrange
       const customDeploymentConfig: Partial<DeploymentConfig> = {
-        testReserveTokensToDeploy: [
-          {
-            decimals: 7,
-            feeD6: 100,
-            name: 'BOI',
-            symbol: 'BOI',
-            collateralCoefficient: 0.9,
-            maximalTotalDeposit: null,
-            maximalTotalDebt: null,
-            borrowCoefficient: 1.1,
-            minimalCollateral: 0,
-            minimalDebt: 0,
-            penalty: 0.05,
-          },
-          {
-            decimals: 9,
-            feeD6: 200,
-            name: 'WMN',
-            symbol: 'WMN',
-            collateralCoefficient: 0.9,
-            maximalTotalDeposit: null,
-            maximalTotalDebt: null,
-            borrowCoefficient: 1.1,
-            minimalCollateral: 0,
-            minimalDebt: 0,
-            penalty: 0.05,
-          },
-        ],
+        testTokensToDeploy: {
+          reserveTokens: [
+            {
+              metadata: {
+                name: 'BOI',
+                symbol: 'BOI',
+                decimals: 7,
+              },
+              parameters: {
+                incomeForSuppliersPartE6: 1000000 - 100,
+                interestRateModelE24: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+              },
+              defaultRule: {
+                collateralCoefficientE6: 0.9 * E6,
+                borrowCoefficientE6: 1.1 * E6,
+                penaltyE6: 0.05 * E6,
+              },
+              restrictions: {
+                maximalSupply: null,
+                maximalDebt: null,
+                minimalCollateral: '0',
+                minimalDebt: '0',
+              },
+            },
+            {
+              metadata: {
+                name: 'WMN',
+                symbol: 'WMN',
+                decimals: 9,
+              },
+              parameters: {
+                incomeForSuppliersPartE6: 1000000 - 200,
+                interestRateModelE24: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+              },
+              defaultRule: {
+                collateralCoefficientE6: 0.9 * E6,
+                borrowCoefficientE6: 1.1 * E6,
+                penaltyE6: 0.05 * E6,
+              },
+              restrictions: {
+                maximalSupply: null,
+                maximalDebt: null,
+                minimalCollateral: '0',
+                minimalDebt: '0',
+              },
+            },
+          ],
+          stableTokens: [],
+        },
         priceOverridesE18: { BOI: '5000000000000000000', WMN: '50000000000000000' },
         shouldUseMockTimestamp: false,
         users: getSignersWithoutOwner(signers, 5),

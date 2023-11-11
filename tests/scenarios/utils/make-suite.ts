@@ -5,6 +5,7 @@ import BalanceViewer from '../../../typechain/contracts/balance_viewer';
 import LendingPoolContract from '../../../typechain/contracts/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
+import StableToken from '../../../typechain/contracts/stable_token';
 import VTokenContract from '../../../typechain/contracts/v_token';
 import PriceFeedProvider from '../../../typechain/contracts/price_feed_provider';
 import DiaOracleContract from '../../../typechain/contracts/dia_oracle';
@@ -18,12 +19,21 @@ export type TokenReserve = {
   decimals: number;
 };
 
+export type StableReserve = {
+  underlying: StableToken;
+  aToken: ATokenContract;
+  vToken: VTokenContract;
+  decimals: number;
+};
+
 export type TestEnvReserves = Record<string, TokenReserve>;
+export type TestEnvStables = Record<string, StableReserve>;
 export interface TestEnv {
   users: KeyringPair[];
   owner: KeyringPair;
   lendingPool: LendingPoolContract;
   reserves: TestEnvReserves;
+  stables: TestEnvStables;
   blockTimestampProvider: BlockTimestampProvider;
   priceFeedProvider: PriceFeedProvider;
   oracle: DiaOracleContract;

@@ -151,12 +151,6 @@ pub struct ReserveData {
     pub indexes_update_timestamp: Timestamp,
 }
 
-#[derive(Debug)]
-pub struct AssetReserveData {
-    pub data: ReserveData,
-    pub parameters: ReserveParameters,
-}
-
 impl ReserveData {
     pub fn new(timestamp: &Timestamp) -> Self {
         ReserveData {

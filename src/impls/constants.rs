@@ -15,10 +15,10 @@ pub const MATH_ERROR_MESSAGE: &'static str =
     "An unexpected math error occured!";
 
 // can mint given asset
-pub const MINTER: RoleType = ink::selector_id!("MINTER");
+pub const MINTER: RoleType = ink::selector_id!("MINTER"); // 4_254_773_782_u32
 
 // can burn given asset
-pub const BURNER: RoleType = ink::selector_id!("BURNER");
+pub const BURNER: RoleType = ink::selector_id!("BURNER"); // 1_711_057_910_u32;
 
 /// pays only 10% of standard flash loan fee
 pub const FLASH_BORROWER: RoleType = ink::selector_id!("FLASH_BORROWER"); // 1_112_475_474_u32
@@ -36,9 +36,6 @@ pub const STABLECOIN_RATE_ADMIN: RoleType =
 
 /// can pause/unpause freeze/unfreeze reserves
 pub const EMERGENCY_ADMIN: RoleType = ink::selector_id!("EMERGENCY_ADMIN"); // 297_099_943_u32
-
-/// can do what ASSET_LISTING_ADMIN, PARAMETERS_ADMIN and EMERGANCY_ADMIN can do
-pub const GLOBAL_ADMIN: RoleType = ink::selector_id!("GLOBAL_ADMIN"); // 2_459_877_095_u32
 
 /// can assign all the roles
 pub const ROLE_ADMIN: RoleType = 0; // 0
