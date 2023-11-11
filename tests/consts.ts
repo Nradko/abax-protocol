@@ -12,11 +12,11 @@ export enum LendingToken {
 }
 export const ONE_YEAR = new BN(365 * 24 * 60 * 60 * 1000);
 
-export const MINTER = 4254773782;
+export const MINTER = 4_254_773_782;
+export const BURNER = 1_711_057_910;
 
 export const ROLE_NAMES = [
   'ROLE_ADMIN',
-  'GLOBAL_ADMIN',
   'ASSET_LISTING_ADMIN',
   'PARAMETERS_ADMIN',
   'STABLECOIN_RATE_ADMIN',
@@ -27,7 +27,6 @@ export const ROLE_NAMES = [
 
 export const ROLES: Record<(typeof ROLE_NAMES)[number], number> = {
   ROLE_ADMIN: 0,
-  GLOBAL_ADMIN: 2459877095,
   ASSET_LISTING_ADMIN: 1094072439,
   PARAMETERS_ADMIN: 368001360,
   STABLECOIN_RATE_ADMIN: 2742621032,

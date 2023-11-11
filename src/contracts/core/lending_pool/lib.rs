@@ -17,7 +17,7 @@ pub mod lending_pool {
 
     use lending_project::{
         impls::{
-            constants::GLOBAL_ADMIN,
+            constants::ROLE_ADMIN,
             lending_pool::{
                 actions::{
                     borrow::LendingPoolBorrowImpl,
@@ -642,16 +642,7 @@ pub mod lending_pool {
             instance.lending_pool.next_rule_id.set(&0);
             instance.lending_pool.flash_loan_fee_e6.set(&1000);
             instance._emit_flash_loan_fee_e6_changed_event(&1000);
-            access_control::Internal::_init_with_admin(
-                &mut instance,
-                caller.into(),
-            );
-            access_control::AccessControl::grant_role(
-                &mut instance,
-                GLOBAL_ADMIN,
-                caller.into(),
-            )
-            .unwrap();
+            instance._init_with_admin(caller.into());
             instance
         }
 
@@ -662,7 +653,7 @@ pub mod lending_pool {
         ) -> Result<(), LendingPoolError> {
             access_control::Internal::_ensure_has_role(
                 self,
-                GLOBAL_ADMIN,
+                ROLE_ADMIN,
                 Some(Self::env().caller()),
             )?;
             ink::env::set_code_hash(&code_hash).unwrap_or_else(|err| {

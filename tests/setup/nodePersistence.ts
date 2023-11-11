@@ -12,6 +12,7 @@ import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
 import DiaOracle from '../../typechain/contracts/dia_oracle';
 import PriceFeedProvider from '../../typechain/contracts/price_feed_provider';
 import VToken from '../../typechain/contracts/v_token';
+import StableToken from '../../typechain/contracts/stable_token';
 import { getContractObject } from './deploymentHelpers';
 import { apiProviderWrapper, getSigners } from './helpers';
 
@@ -21,6 +22,7 @@ export interface StoredContractInfo {
   name: string;
   address?: string;
   reserveName?: string;
+  stableName?: string;
   codeHash?: number[];
 }
 
@@ -142,6 +144,30 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     }
   }
 
+  const stableContracts = contracts.filter((c) => c.stableName);
+
+  const stablesWithLendingTokens = {} as TestEnv['stables'];
+  for (const contractInfo of stableContracts) {
+    if (!contractInfo.stableName) continue;
+    switch (contractInfo.name) {
+      case 'stable_token': {
+        const reserve = await getContractObject(StableToken, contractInfo.address!, owner);
+        stablesWithLendingTokens[contractInfo.stableName] = { ...stablesWithLendingTokens[contractInfo.stableName], underlying: reserve };
+        break;
+      }
+      case 'a_token': {
+        const aToken = await getContractObject(AToken, contractInfo.address!, owner);
+        stablesWithLendingTokens[contractInfo.stableName] = { ...stablesWithLendingTokens[contractInfo.stableName], aToken };
+        break;
+      }
+      case 'v_token': {
+        const vToken = await getContractObject(VToken, contractInfo.address!, owner);
+        stablesWithLendingTokens[contractInfo.stableName] = { ...stablesWithLendingTokens[contractInfo.stableName], vToken };
+        break;
+      }
+    }
+  }
+
   const balanceViewerContractInfo = contracts.find((c) => c.name === 'balance_viewer');
   if (!balanceViewerContractInfo) throw 'BalanceViewer ContractInfo not found';
   const balanceViewer = await getContractObject(BalanceViewer, balanceViewerContractInfo.address!, owner);
@@ -153,6 +179,7 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     oracle: oracle,
     priceFeedProvider: priceFeedProvider,
     reserves: reservesWithLendingTokens,
+    stables: stablesWithLendingTokens,
     aTokenCodeHash: contracts.find((c) => c.name === 'aTokenCodeHash')!.codeHash!,
     vTokenCodeHash: contracts.find((c) => c.name === 'vTokenCodeHash')!.codeHash!,
     blockTimestampProvider,
