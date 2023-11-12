@@ -523,8 +523,8 @@ export async function registerNewAsset(
   penaltyE6: null | number | string,
   maximalTotalDeposit: null | BN | string,
   maximalDebt: null | BN | string,
-  minimalCollatral: string | BN,
-  minimalDebt: string | BN,
+  minimalCollatral: string | BN | number,
+  minimalDebt: string | BN | number,
   incomeForSuppliersPartE6: number | string,
   interestRateModel: [number | string, number | string, number | string, number | string, number | string, number | string, number | string],
 ): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {

@@ -2,17 +2,11 @@ import { getArgvObj } from '@abaxfinance/utils';
 import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
 import path from 'path';
-import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/defaultInterestRateModel';
-import {
-  deployBalanceViewer,
-  deployCoreContracts,
-  deployOwnableToken,
-  deployTestReservesMinter,
-  registerNewAsset,
-} from 'tests/setup/deploymentHelpers';
+import { deployBalanceViewer, deployCoreContracts, deployTestReservesMinter, registerNewAsset } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
 import { ReserveTokenDeploymentData } from 'tests/setup/testEnvConsts';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/tokensToDeployForTesting';
 import ATokenContract from 'typechain/contracts/a_token';
 import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import VTokenContract from 'typechain/contracts/v_token';
@@ -141,6 +135,7 @@ type TokenReserve = {
 
   const reservesWithLendingTokens = {} as Record<string, TokenReserve>;
   for (const reserveData of RESERVE_TOKENS_TO_DEPLOY) {
+    //TODO
     const reserve = await deployOwnableToken(signer, reserveData.name, reserveData.decimals, testReservesMinter.address);
     if (process.env.DEBUG) console.log(`${reserveData.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
     const { aToken, vToken } = await registerNewAsset(
