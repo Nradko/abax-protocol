@@ -916,6 +916,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "psp22_ownable"
+version = "0.1.1"
+dependencies = [
+ "ink",
+ "lending_project",
+ "parity-scale-codec",
+ "pendzl",
+ "scale-info",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
