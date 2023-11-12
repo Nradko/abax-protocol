@@ -10,5 +10,5 @@ pub mod dummy;
 pub mod flash_loan_receiver;
 /// core protocol contract `LendingPool`
 pub mod lending_pool;
-/// the trait used by LeningPool to get prices.
+/// the trait called by `LeningPool` to get prices.
 pub mod price_feed;

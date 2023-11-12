@@ -1,11 +1,11 @@
 use crate::traits::block_timestamp_provider::BlockTimestampProviderInterface;
 use crate::{
-    impls::lending_pool::storage::lending_pool_storage::LendingPoolStorage,
+    impls::lending_pool::storage::LendingPoolStorage,
     traits::{
-        abacus_token::traits::abacus_token::*,
+        abacus_token::*,
         block_timestamp_provider::BlockTimestampProviderRef,
         lending_pool::errors::LendingPoolError,
-        price_feed::price_feed::{PriceFeed, PriceFeedRef},
+        price_feed::{PriceFeed, PriceFeedRef},
     },
 };
 use ink::{

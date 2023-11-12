@@ -11,8 +11,7 @@ pub const E18_U128: u128 = 10_u128.pow(18);
 pub const E24_U128: u128 = 10_u128.pow(24);
 pub const ONE_HOUR: u128 = 60 * 60 * 1000;
 pub const DAY: u128 = 24 * ONE_HOUR;
-pub const MATH_ERROR_MESSAGE: &'static str =
-    "An unexpected math error occured!";
+pub const MATH_ERROR_MESSAGE: &str = "An unexpected math error occured!";
 
 // can mint given asset
 pub const MINTER: RoleType = ink::selector_id!("MINTER"); // 4_254_773_782_u32
