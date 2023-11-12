@@ -9,13 +9,12 @@ pub mod v_token {
     };
 
     use lending_project::impls::abacus_token::{
-        abacus_token::AbacusTokenImpl, data::AbacusTokenData,
+        storage::AbacusTokenStorage, AbacusTokenImpl,
     };
     use lending_project::traits::{
-        abacus_token::traits::abacus_token::AbacusToken,
-        abacus_token::traits::abacus_token::*,
-        lending_pool::traits::v_token_interface::LendingPoolVTokenInterface,
-        lending_pool::traits::v_token_interface::LendingPoolVTokenInterfaceRef,
+        abacus_token::AbacusToken, abacus_token::*,
+        lending_pool::v_token_interface::LendingPoolVTokenInterface,
+        lending_pool::v_token_interface::LendingPoolVTokenInterfaceRef,
     };
     use pendzl::{
         contracts::psp22::{extensions::metadata::*, PSP22Error},
@@ -28,7 +27,7 @@ pub mod v_token {
         #[storage_field]
         psp22: psp22::Data,
         #[storage_field]
-        abacus_token: AbacusTokenData,
+        abacus_token: AbacusTokenStorage,
         #[storage_field]
         metadata: metadata::Data,
     }

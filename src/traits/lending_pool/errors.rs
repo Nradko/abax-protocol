@@ -6,10 +6,7 @@ use pendzl::contracts::{
 
 use crate::{
     library::math::MathError,
-    traits::{
-        flash_loan_receiver::FlashLoanReceiverError,
-        price_feed::price_feed::PriceFeedError,
-    },
+    traits::{flash_loan_receiver::FlashLoanReceiverError, price_feed::*},
 };
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]

@@ -19,46 +19,40 @@ pub mod lending_pool {
         impls::{
             constants::ROLE_ADMIN,
             lending_pool::{
-                actions::{
-                    borrow::LendingPoolBorrowImpl,
-                    deposit::LendingPoolDepositImpl,
-                    flash::LendingPoolFlashImpl,
-                    liquidate::LendingPoolLiquidateImpl,
-                    maintain::LendingPoolMaintainImpl,
-                },
-                interfaces::{
-                    a_token_interface::LendingPoolATokenInterfaceImpl,
-                    v_token_interface::LendingPoolVTokenInterfaceImpl,
-                },
+                a_token_interface::LendingPoolATokenInterfaceImpl,
+                borrow::LendingPoolBorrowImpl,
+                deposit::LendingPoolDepositImpl,
+                flash::LendingPoolFlashImpl,
+                liquidate::LendingPoolLiquidateImpl,
+                maintain::LendingPoolMaintainImpl,
                 manage::{LendingPoolManageImpl, ManageInternal},
-                storage::{
-                    lending_pool_storage::{
-                        LendingPoolStorage, MarketRule, RuleId,
-                    },
-                    structs::{
-                        reserve_data::{
-                            ReserveAbacusTokens, ReserveData, ReserveIndexes,
-                            ReserveParameters, ReserveRestrictions,
-                        },
-                        user_config::UserConfig,
-                        user_reserve_data::UserReserveData,
-                    },
-                },
+                storage::LendingPoolStorage,
+                v_token_interface::LendingPoolVTokenInterfaceImpl,
                 view::LendingPoolViewImpl,
             },
             types::DecimalMultiplier,
         },
         traits::lending_pool::{
             errors::LendingPoolError,
-            traits::{
+            structs::{
+                reserve_abacus_tokens::ReserveAbacusTokens,
+                reserve_data::ReserveData, reserve_indexes::ReserveIndexes,
+                reserve_parameters::ReserveParameters,
+                reserve_restrictions::ReserveRestrictions,
+                user_config::UserConfig, user_reserve_data::UserReserveData,
+            },
+            types::{MarketRule, RuleId},
+            {
                 a_token_interface::LendingPoolATokenInterface,
-                actions::{
-                    LendingPoolBorrow, LendingPoolDeposit, LendingPoolFlash,
-                    LendingPoolLiquidate, LendingPoolMaintain,
-                },
                 manage::LendingPoolManage,
                 v_token_interface::LendingPoolVTokenInterface,
                 view::LendingPoolView,
+                {
+                    borrow::LendingPoolBorrow, deposit::LendingPoolDeposit,
+                    flash_loan::LendingPoolFlash,
+                    liquidate::LendingPoolLiquidate,
+                    maintain::LendingPoolMaintain,
+                },
             },
         },
     };

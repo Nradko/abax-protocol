@@ -1,7 +1,8 @@
 use pendzl::traits::{AccountId, Balance};
 
-use crate::impls::lending_pool::storage::lending_pool_storage::RuleId;
 use ink::prelude::string::String;
+
+use super::types::RuleId;
 
 pub trait EmitDepositEvents {
     fn _emit_deposit_event(

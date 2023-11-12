@@ -3,18 +3,18 @@
 #[ink::contract]
 pub mod balance_viewer {
 
-    use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveAbacusTokens;
-    use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveData;
-    use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveParameters;
-    use lending_project::impls::lending_pool::storage::structs::reserve_data::ReserveRestrictions;
-    use lending_project::impls::lending_pool::storage::structs::user_reserve_data::UserReserveData;
     use lending_project::impls::types::DecimalMultiplier;
+    use lending_project::traits::lending_pool::structs::reserve_abacus_tokens::ReserveAbacusTokens;
+    use lending_project::traits::lending_pool::structs::reserve_data::ReserveData;
+    use lending_project::traits::lending_pool::structs::reserve_parameters::ReserveParameters;
+    use lending_project::traits::lending_pool::structs::reserve_restrictions::ReserveRestrictions;
+    use lending_project::traits::lending_pool::structs::user_reserve_data::UserReserveData;
     // use lending_project::traits::managing::*;
     use pendzl::{contracts::psp22::*, traits::Storage};
 
     use ink::prelude::{vec::Vec, *};
-    use lending_project::traits::lending_pool::traits::view::LendingPoolView;
-    use lending_project::traits::lending_pool::traits::view::LendingPoolViewRef;
+    use lending_project::traits::lending_pool::view::LendingPoolView;
+    use lending_project::traits::lending_pool::view::LendingPoolViewRef;
 
     #[derive(Debug, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]

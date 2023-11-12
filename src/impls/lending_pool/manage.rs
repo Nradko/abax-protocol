@@ -4,19 +4,26 @@ use crate::{
             ASSET_LISTING_ADMIN, EMERGENCY_ADMIN, PARAMETERS_ADMIN,
             STABLECOIN_RATE_ADMIN, TREASURY,
         },
-        lending_pool::{
-            internal::InternalIncome,
-            storage::{
-                lending_pool_storage::LendingPoolStorage,
-                structs::reserve_data::ReserveData,
-            },
-        },
+        lending_pool::{internal::InternalIncome, storage::LendingPoolStorage},
     },
     traits::{
         dummy::DummyRef,
-        lending_pool::{errors::LendingPoolError, events::*},
+        lending_pool::{
+            errors::LendingPoolError,
+            events::*,
+            structs::{
+                asset_rules::AssetRules,
+                reserve_abacus_tokens::ReserveAbacusTokens,
+                reserve_data::ReserveData,
+                reserve_parameters::ReserveParameters,
+                reserve_restrictions::ReserveRestrictions,
+            },
+            types::MarketRule,
+        },
     },
 };
+
+use crate::impls::lending_pool::internal::TimestampMock;
 use ink::prelude::string::{String, ToString};
 use ink::{
     env::call::ExecutionInput,
@@ -28,19 +35,6 @@ use pendzl::contracts::psp22::PSP22;
 use pendzl::{
     contracts::{access_control::*, psp22::PSP22Ref},
     traits::{Balance, Storage},
-};
-
-use super::{
-    internal::TimestampMock,
-    storage::{
-        lending_pool_storage::MarketRule,
-        structs::{
-            asset_rules::AssetRules,
-            reserve_data::{
-                ReserveAbacusTokens, ReserveParameters, ReserveRestrictions,
-            },
-        },
-    },
 };
 
 pub trait LendingPoolManageImpl:
@@ -547,7 +541,7 @@ pub trait ManageInternal: Storage<LendingPoolStorage> {
     ) -> AccountId {
         let create_params = ink::env::call::build_create::<DummyRef>()
             .code_hash(Hash::from(*abacus_token_code_hash))
-            .gas_limit(10000000000)
+            .gas_limit(10_000_000_000)
             .endowment(0)
             .exec_input(
                 ExecutionInput::new(ink::env::call::Selector::new(
