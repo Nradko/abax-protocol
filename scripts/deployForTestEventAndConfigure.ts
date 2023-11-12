@@ -2,7 +2,13 @@ import { getArgvObj } from '@abaxfinance/utils';
 import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
 import path from 'path';
-import { deployBalanceViewer, deployCoreContracts, deployTestReservesMinter, registerNewAsset } from 'tests/setup/deploymentHelpers';
+import {
+  deployBalanceViewer,
+  deployCoreContracts,
+  deployOwnableToken,
+  deployTestReservesMinter,
+  registerNewAsset,
+} from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
 import { ReserveTokenDeploymentData } from 'tests/setup/testEnvConsts';

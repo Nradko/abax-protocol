@@ -14,6 +14,7 @@ import BlockTimestampProvider from 'typechain/contracts/block_timestamp_provider
 import DiamondContract from 'typechain/contracts/diamond';
 import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import StableToken from 'typechain/contracts/stable_token';
 import TestReservesMinter from 'typechain/contracts/test_reserves_minter';
 import VTokenContract from 'typechain/contracts/v_token';
@@ -25,6 +26,7 @@ import FlashLoanReceiverMockConstructor from 'typechain/constructors/flash_loan_
 import BlockTimestampProviderConstructor from 'typechain/constructors/block_timestamp_provider';
 import DiamondContractConstructor from 'typechain/constructors/diamond';
 import PSP22EmitableConstructor from 'typechain/constructors/psp22_emitable';
+import PSP22OwnableConstructor from 'typechain/constructors/psp22_ownable';
 import StableTokenConstructor from 'typechain/constructors/stable_token';
 import TestReservesMinterConstructor from 'typechain/constructors/test_reserves_minter';
 import BalanceViewerConstructor from 'typechain/constructors/balance_viewer';
@@ -161,6 +163,16 @@ export const deployEmitableToken = async (owner: KeyringPair, name: string, deci
     decimals,
   );
   return getContractObject(PSP22Emitable, deployRet.address, owner);
+};
+
+export const deployOwnableToken = async (owner: KeyringPair, name: string, decimals: number = 6, tokenOwnerAddress: string) => {
+  const deployRet = await new PSP22OwnableConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    name,
+    `Reserve ${name} token `,
+    decimals,
+    tokenOwnerAddress,
+  );
+  return getContractObject(PSP22Ownable, deployRet.address, owner);
 };
 
 export const deployStableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
