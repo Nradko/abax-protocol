@@ -39,7 +39,7 @@ const SET_RESERVES_IS_ACTIVE = false;
 
   const contracts = JSON.parse(await fs.readFile(deployPath, 'utf8')) as StoredContractInfo[];
   const lendingPoolContractInfo = contracts.find((c) => c.name === 'lending_pool');
-  if (!lendingPoolContractInfo) throw 'lendingPool ContractInfo not found';
+  if (!lendingPoolContractInfo?.address) throw 'lendingPool ContractInfo not found';
   const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address, signer);
 
   for (const reserveAddress of RESERVE_TOKEN_ADDRESSES) {
