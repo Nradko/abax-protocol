@@ -1,3 +1,5 @@
+use core::cmp::Ordering;
+
 use crate::traits::block_timestamp_provider::BlockTimestampProviderInterface;
 use crate::{
     impls::lending_pool::storage::LendingPoolStorage,
@@ -34,20 +36,22 @@ pub fn _emit_abacus_token_transfer_event(
     amount_transferred: i128,
 ) -> Result<(), PSP22Error> {
     let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
-    if amount_transferred > 0 {
-        abacus_token_contract.emit_transfer_events(vec![TransferEventData {
-            from: None,
-            to: Some(*user),
-            amount: amount_transferred as u128,
-        }])
-    } else if amount_transferred < 0 {
-        abacus_token_contract.emit_transfer_events(vec![TransferEventData {
-            from: Some(*user),
-            to: None,
-            amount: (-amount_transferred) as u128,
-        }])
-    } else {
-        Ok(())
+    match amount_transferred.cmp(&0) {
+        Ordering::Greater => abacus_token_contract.emit_transfer_events(vec![
+            TransferEventData {
+                from: None,
+                to: Some(*user),
+                amount: amount_transferred as u128,
+            },
+        ]),
+        Ordering::Less => abacus_token_contract.emit_transfer_events(vec![
+            TransferEventData {
+                from: Some(*user),
+                to: None,
+                amount: (-amount_transferred) as u128,
+            },
+        ]),
+        Ordering::Equal => Ok(()),
     }
 }
 
@@ -95,20 +99,19 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
             amount_transferred,
         )
     } else {
-        let event: TransferEventData;
-        if amount_transferred > 0 {
-            event = TransferEventData {
+        let event = if amount_transferred > 0 {
+            TransferEventData {
                 from: None,
                 to: Some(*user),
                 amount: amount_transferred as u128,
             }
         } else {
-            event = TransferEventData {
+            TransferEventData {
                 from: Some(*user),
                 to: None,
                 amount: amount_transferred as u128,
             }
-        }
+        };
         let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
 
         abacus_token_contract.emit_transfer_event_and_decrease_allowance(
@@ -223,10 +226,10 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
         for asset in assets.iter() {
             let total_deposit = self
                 .data::<LendingPoolStorage>()
-                .total_deposit_of(&asset, &timestamp)?;
+                .total_deposit_of(asset, &timestamp)?;
             let total_debt = self
                 .data::<LendingPoolStorage>()
-                .total_debt_of(&asset, &timestamp)?;
+                .total_debt_of(asset, &timestamp)?;
             let psp22: PSP22Ref = (*asset).into();
             let balance = psp22.balance_of(Self::env().account_id());
             let income = {

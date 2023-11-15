@@ -2,7 +2,7 @@
 pub mod abacus_token;
 /// just for testing
 pub mod block_timestamp_provider;
-/// DIA_DATA oracle interface
+/// `DIA_DATA` oracle interface
 pub mod dia_oracle;
 /// dummy trait
 pub mod dummy;

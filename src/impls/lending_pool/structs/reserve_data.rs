@@ -225,7 +225,7 @@ impl ReserveData {
             Some(max_total_deposit)
                 if self.total_deposit > max_total_deposit =>
             {
-                return Err(LendingPoolError::MaxDepositReached);
+                Err(LendingPoolError::MaxDepositReached)
             }
             _ => Ok(()),
         }
@@ -252,7 +252,7 @@ impl ReserveData {
     ) -> Result<(), LendingPoolError> {
         match reserve_restrictions.maximal_total_debt {
             Some(max_total_debt) if self.total_debt > max_total_debt => {
-                return Err(LendingPoolError::MaxDebtReached);
+                Err(LendingPoolError::MaxDebtReached)
             }
             _ => Ok(()),
         }

@@ -175,7 +175,7 @@ impl UserReserveData {
         self.applied_cumulative_debt_index_e18 =
             reserve_indexes.cumulative_debt_index_e18;
 
-        return Ok((delta_user_deposit, delta_user_varaible_debt));
+        Ok((delta_user_deposit, delta_user_varaible_debt))
     }
 }
 

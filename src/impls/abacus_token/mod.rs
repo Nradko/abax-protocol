@@ -23,9 +23,7 @@ pub trait AbacusTokenImpl:
         let lending_pool: AccountId = self.get_lending_pool();
 
         if lending_pool != Self::env().caller() {
-            return Err(From::from(PSP22Error::Custom(
-                String::from("NotLendingPool").into(),
-            )));
+            return Err(PSP22Error::Custom(String::from("NotLendingPool")));
         }
         for event in &events {
             if event.amount != 0 {
@@ -50,9 +48,7 @@ pub trait AbacusTokenImpl:
         let lending_pool: AccountId = self.get_lending_pool();
 
         if lending_pool != Self::env().caller() {
-            return Err(From::from(PSP22Error::Custom(
-                String::from("NotLendingPool").into(),
-            )));
+            return Err(PSP22Error::Custom(String::from("NotLendingPool")));
         }
         if event.amount != 0 {
             self._emit_transfer_event(event.from, event.to, event.amount);

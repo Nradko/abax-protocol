@@ -6,6 +6,7 @@ use crate::{
     traits::lending_pool::structs::reserve_indexes::ReserveIndexes,
 };
 
+#[allow(clippy::new_without_default)]
 impl ReserveIndexes {
     pub fn new() -> Self {
         ReserveIndexes {

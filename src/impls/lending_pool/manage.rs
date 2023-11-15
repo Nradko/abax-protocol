@@ -409,17 +409,14 @@ pub trait LendingPoolManageImpl:
             .get_all_registered_assets();
 
         for asset_id in 0..market_rule.len() {
-            match market_rule[asset_id] {
-                Some(asset_rules) => {
-                    self._emit_asset_rules_changed_event(
-                        &market_rule_id,
-                        &registerd_assets[asset_id],
-                        &asset_rules.collateral_coefficient_e6,
-                        &asset_rules.borrow_coefficient_e6,
-                        &asset_rules.penalty_e6,
-                    );
-                }
-                None => (),
+            if let Some(asset_rules) = market_rule[asset_id] {
+                self._emit_asset_rules_changed_event(
+                    &market_rule_id,
+                    &registerd_assets[asset_id],
+                    &asset_rules.collateral_coefficient_e6,
+                    &asset_rules.borrow_coefficient_e6,
+                    &asset_rules.penalty_e6,
+                );
             }
         }
 
@@ -521,7 +518,7 @@ pub trait ManageInternal: Storage<LendingPoolStorage> {
         let lending_pool: AccountId = Self::env().account_id();
 
         self._instantiate_abacus_token(
-            &v_token_code_hash,
+            v_token_code_hash,
             &lending_pool,
             underlying_asset,
             "Abax Variable Debt ".to_string() + &name,
