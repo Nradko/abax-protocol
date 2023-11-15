@@ -1,12 +1,13 @@
 use ink::prelude::format;
 use pendzl::contracts::{
-    access_control::AccessControlError, pausable::PausableError,
-    psp22::PSP22Error,
+    access_control::AccessControlError, psp22::PSP22Error,
 };
 
 use crate::{
     library::math::MathError,
-    traits::{flash_loan_receiver::FlashLoanReceiverError, price_feed::*},
+    traits::{
+        flash_loan_receiver::FlashLoanReceiverError, price_feed::PriceFeedError,
+    },
 };
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
@@ -16,7 +17,6 @@ pub enum LendingPoolError {
     FlashLoanReceiverError(FlashLoanReceiverError),
 
     AccessControlError(AccessControlError),
-    PausableError(PausableError),
     MathError(MathError),
     PriceFeedError(PriceFeedError),
     Inactive,
@@ -74,19 +74,13 @@ impl From<AccessControlError> for LendingPoolError {
     }
 }
 
-impl From<PausableError> for LendingPoolError {
-    fn from(error: PausableError) -> Self {
-        LendingPoolError::PausableError(error)
-    }
-}
-
 impl From<LendingPoolError> for PSP22Error {
     fn from(error: LendingPoolError) -> Self {
         match error {
             LendingPoolError::MathError(MathError::Underflow) => {
                 PSP22Error::InsufficientBalance
             }
-            e => PSP22Error::Custom(format!("{:?}", e).into()),
+            e => PSP22Error::Custom(format!("{e:?}")),
         }
     }
 }

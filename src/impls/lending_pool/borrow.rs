@@ -43,7 +43,7 @@ pub trait LendingPoolBorrowImpl:
                 use_as_collateral_to_set,
             )?;
 
-        if use_as_collateral_to_set == false {
+        if !use_as_collateral_to_set {
             // check if there ie enought collateral
             let all_assets = self
                 .data::<LendingPoolStorage>()

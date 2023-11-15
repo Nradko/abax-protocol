@@ -3,7 +3,7 @@ use scale::{Decode, Encode};
 use crate::impls::types::Bitmap128;
 
 /// stores configuration of the user for each reserve in Bitmap
-/// the order of reserve is the order from registered_asset list in LendingPoolStorage
+/// the order of reserve is the order from `registered_asset` list in `LendingPoolStorage`
 #[derive(Debug, Default, Encode, Decode)]
 #[cfg_attr(
     feature = "std",
