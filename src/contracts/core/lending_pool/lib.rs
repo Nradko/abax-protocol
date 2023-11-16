@@ -182,7 +182,7 @@ pub mod lending_pool {
         #[ink(message)]
         fn liquidate(
             &mut self,
-            liquidated_user: AccountId,
+            liquidated_account: AccountId,
             asset_to_repay: AccountId,
             asset_to_take: AccountId,
             amount_to_repay: Balance,
@@ -191,7 +191,7 @@ pub mod lending_pool {
         ) -> Result<(Balance, Balance), LendingPoolError> {
             let res = LendingPoolLiquidateImpl::liquidate(
                 self,
-                liquidated_user,
+                liquidated_account,
                 asset_to_repay,
                 asset_to_take,
                 amount_to_repay,

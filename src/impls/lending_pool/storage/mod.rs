@@ -602,7 +602,7 @@ impl LendingPoolStorage {
     pub fn account_for_liquidate(
         &mut self,
         caller: &AccountId,
-        liquidated_user: &AccountId,
+        liquidated_account: &AccountId,
         prices_e18: &[u128],
         asset_to_repay: &AccountId,
         asset_to_take: &AccountId,
@@ -622,15 +622,15 @@ impl LendingPoolStorage {
             self.reserve_indexes.get(&asset_to_take_id).unwrap();
         let mut user_config = self
             .user_configs
-            .get(liquidated_user)
+            .get(liquidated_account)
             .ok_or(LendingPoolError::NothingToRepay)?;
         let mut user_reserve_data_to_repay = self
             .user_reserve_datas
-            .get(&(asset_to_repay_id, *liquidated_user))
+            .get(&(asset_to_repay_id, *liquidated_account))
             .ok_or(LendingPoolError::NothingToRepay)?;
         let mut user_reserve_data_to_take = self
             .user_reserve_datas
-            .get(&(asset_to_take_id, *liquidated_user))
+            .get(&(asset_to_take_id, *liquidated_account))
             .ok_or(LendingPoolError::NothingToCompensateWith)?;
         let mut caller_config =
             self.user_configs.get(caller).unwrap_or_default();
@@ -679,7 +679,7 @@ impl LendingPoolStorage {
 
         let mut amount_to_take = self
             .calculate_liquidated_amount_and_check_if_collateral(
-                liquidated_user,
+                liquidated_account,
                 asset_to_repay_id,
                 asset_to_take_id,
                 &prices_e18[asset_to_repay_id as usize],
@@ -705,13 +705,11 @@ impl LendingPoolStorage {
             &self.reserve_restrictions.get(&asset_to_take_id).unwrap(),
             &amount_to_take,
         )?;
-        caller_reserve_data_to_take
-            .increase_user_deposit(
-                &asset_to_take_id,
-                &mut caller_config,
-                &amount_to_take,
-            )
-            .unwrap();
+        caller_reserve_data_to_take.increase_user_deposit(
+            &asset_to_take_id,
+            &mut caller_config,
+            &amount_to_take,
+        )?;
 
         if let Some(params) = reserve_parameters_to_repay {
             reserve_data_to_repay.recalculate_current_rates(&params)?
@@ -729,13 +727,13 @@ impl LendingPoolStorage {
         self.reserve_indexes
             .insert(&asset_to_take_id, &reserve_indexes_to_take);
 
-        self.user_configs.insert(liquidated_user, &user_config);
+        self.user_configs.insert(liquidated_account, &user_config);
         self.user_reserve_datas.insert(
-            &(asset_to_repay_id, *liquidated_user),
+            &(asset_to_repay_id, *liquidated_account),
             &user_reserve_data_to_repay,
         );
         self.user_reserve_datas.insert(
-            &(asset_to_take_id, *liquidated_user),
+            &(asset_to_take_id, *liquidated_account),
             &user_reserve_data_to_take,
         );
         self.user_configs.insert(caller, &caller_config);
