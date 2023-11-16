@@ -51,8 +51,6 @@ pub enum LendingPoolError {
     NothingToRepay,
     /// returned if there is nothing (in an asset) to to recompensate the liquidation.
     NothingToCompensateWith,
-    /// returned if a liquidator ties to repay the debt of an asset the liquidator is using as a collateral.
-    RepayingWithACollateral,
     /// returned if a liquidator tries to take an asset that is not a collateral as a compensation.
     TakingNotACollateral,
     /// returned if len of vector of assets that should be borrowed is different then lenght of vector of amounts.
@@ -61,13 +59,13 @@ pub enum LendingPoolError {
     MinimalCollateralDeposit,
     /// returned if after the action minimal debt restricion would be no satisfied.
     MinimalDebt,
-    ///
+    /// returned if after the action total deposit of an asset is grreater then the maximal total deposit restriction.
     MaxDepositReached,
+    /// returned if after the action total debt of an asset is freater than the maximal total debt restriocion.
     MaxDebtReached,
-    MarketRuleInvalidAssetId,
+    /// returned if passed 'market_rule_id' that is not used.
     MarketRuleInvalidId,
-    MarketRulePenaltyNotSet,
-    PriceMissing,
+    /// returned if the `accumulate_interest` is called manually on a reserve that was already accumulated this block
     AccumulatedAlready,
 }
 
