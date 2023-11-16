@@ -37,7 +37,7 @@ impl UserReserveData {
         user_config: &mut UserConfig,
         reserve_restrictions: &ReserveRestrictions,
         amount: &u128,
-    ) -> Result<(), MathError> {
+    ) -> Result<bool, MathError> {
         if *amount == self.deposit {
             user_config.deposits &= !(1_u128 << asset_id);
         }
@@ -45,11 +45,13 @@ impl UserReserveData {
             .deposit
             .checked_sub(*amount)
             .ok_or(MathError::Underflow)?;
+        let is_asset_a_collateral =
+            (user_config.collaterals & (1_u128 << asset_id)) > 0;
 
         if self.deposit < reserve_restrictions.minimal_collateral {
             user_config.collaterals &= !(1_u128 << asset_id);
         }
-        Ok(())
+        Ok(is_asset_a_collateral)
     }
 
     pub fn increase_user_debt(
