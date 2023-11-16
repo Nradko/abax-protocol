@@ -35,13 +35,9 @@ pub trait LendingPoolATokenInterface {
     /// The number of events and their type/values depend on the interests that may be accrued both for `from` and `to` accounts.
     ///
     /// # Errors
-    ///
-    /// Returns `TransfersDisabled` error if deposit for given `underlying_asset` is disabled.
-    ///
-    /// Returns `WrongCaller` error if the caller is not an `underlying_asset`'s AToken contract.
-    ///
-    /// Returns `InsufficientBalance` error if there are not enough tokens on
-    /// the the account Balance of `from`.
+    /// * `TransfersDisabled` returned if deposit for given `underlying_asset` is disabled.
+    /// * `WrongCaller` returned if the caller is not an `underlying_asset`'s AToken contract.
+    /// * `InsufficientBalance` returned if tdeposit of an `underlying_asset` of `from` is smaller than `amount`.
     #[ink(message)]
     fn transfer_deposit_from_to(
         &mut self,
