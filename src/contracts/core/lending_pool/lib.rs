@@ -163,14 +163,14 @@ pub mod lending_pool {
         #[ink(message)]
         fn flash_loan(
             &mut self,
-            receiver_address: AccountId,
+            receiver: AccountId,
             assets: Vec<AccountId>,
             amounts: Vec<Balance>,
             receiver_params: Vec<u8>,
         ) -> Result<(), LendingPoolError> {
             LendingPoolFlashImpl::flash_loan(
                 self,
-                receiver_address,
+                receiver,
                 assets,
                 amounts,
                 receiver_params,
@@ -712,7 +712,7 @@ pub mod lending_pool {
     #[ink(event)]
     pub struct FlashLoan {
         #[ink(topic)]
-        receiver_address: AccountId,
+        receiver: AccountId,
         #[ink(topic)]
         caller: AccountId,
         #[ink(topic)]
@@ -918,14 +918,14 @@ pub mod lending_pool {
     impl EmitFlashEvents for LendingPool {
         fn _emit_flash_loan_event(
             &mut self,
-            receiver_address: AccountId,
+            receiver: AccountId,
             caller: AccountId,
             asset: AccountId,
             amount: u128,
             fee: u128,
         ) {
             self.env().emit_event(FlashLoan {
-                receiver_address,
+                receiver,
                 caller,
                 asset,
                 amount,

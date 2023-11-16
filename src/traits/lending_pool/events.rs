@@ -51,7 +51,7 @@ pub trait EmitConfigureEvents {
 pub trait EmitFlashEvents {
     fn _emit_flash_loan_event(
         &mut self,
-        receiver_address: AccountId,
+        receiver: AccountId,
         caller: AccountId,
         asset: AccountId,
         amount: u128,
