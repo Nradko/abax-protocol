@@ -76,21 +76,26 @@ pub trait LendingPoolDepositImpl:
         //// PULL DATA
         let block_timestamp = self._timestamp();
 
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
-            self.data::<LendingPoolStorage>().account_for_withdraw(
-                &asset,
-                &on_behalf_of,
-                &mut amount,
-                &block_timestamp,
-            )?;
+        let (
+            user_accumulated_deposit_interest,
+            user_accumulated_debt_interest,
+            was_asset_a_collateral,
+        ) = self.data::<LendingPoolStorage>().account_for_withdraw(
+            &asset,
+            &on_behalf_of,
+            &mut amount,
+            &block_timestamp,
+        )?;
 
         // check if there ie enought collateral
-        let all_assets = self
-            .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
-        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
-        self.data::<LendingPoolStorage>()
-            .check_lending_power(&on_behalf_of, &prices_e18)?;
+        if was_asset_a_collateral {
+            let all_assets = self
+                .data::<LendingPoolStorage>()
+                .get_all_registered_assets();
+            let prices_e18 = self._get_assets_prices_e18(all_assets)?;
+            self.data::<LendingPoolStorage>()
+                .check_lending_power(&on_behalf_of, &prices_e18)?;
+        }
 
         //// TOKEN TRANSFERS
         self._transfer_out(&asset, &Self::env().caller(), &amount)?;

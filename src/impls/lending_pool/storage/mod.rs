@@ -229,7 +229,7 @@ impl LendingPoolStorage {
         account: &AccountId,
         amount: &mut Balance,
         timestamp: &Timestamp,
-    ) -> Result<(u128, u128), LendingPoolError> {
+    ) -> Result<(u128, u128, bool), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
 
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
@@ -254,7 +254,7 @@ impl LendingPoolStorage {
         if *amount > user_reserve_data.deposit {
             *amount = user_reserve_data.deposit;
         }
-        user_reserve_data.decrease_user_deposit(
+        let was_asset_a_collateral = user_reserve_data.decrease_user_deposit(
             &asset_id,
             &mut user_config,
             &reserve_restrictions,
@@ -275,6 +275,7 @@ impl LendingPoolStorage {
         Ok((
             user_accumulated_deposit_interest,
             user_accumulated_debt_interest,
+            was_asset_a_collateral,
         ))
     }
 
