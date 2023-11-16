@@ -29,7 +29,7 @@ pub trait LendingPoolFlashImpl:
 {
     fn flash_loan(
         &mut self,
-        receiver_address: AccountId,
+        receiver: AccountId,
         assets: Vec<AccountId>,
         amounts: Vec<Balance>,
         receiver_params: Vec<u8>,
@@ -55,11 +55,11 @@ pub trait LendingPoolFlashImpl:
                 true => amounts[i] * flash_fee_e6 / E6_U128 / 10,
             };
             fees.push(fee);
-            self._transfer_out(&assets[i], &receiver_address, &amounts[i])?;
+            self._transfer_out(&assets[i], &receiver, &amounts[i])?;
         }
 
         build_call::<DefaultEnvironment>()
-            .call(receiver_address)
+            .call(receiver)
             .call_flags(CallFlags::default().set_allow_reentry(true))
             .exec_input(
                 ExecutionInput::new(ink::env::call::Selector::new(
@@ -80,12 +80,12 @@ pub trait LendingPoolFlashImpl:
         for i in 0..assets.len() {
             self._transfer_in(
                 &assets[i],
-                &receiver_address,
+                &receiver,
                 &amounts[i].checked_add(fees[i]).unwrap(),
             )?;
 
             self._emit_flash_loan_event(
-                receiver_address,
+                receiver,
                 Self::env().account_id(),
                 assets[i],
                 amounts[i],
