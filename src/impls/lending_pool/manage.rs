@@ -87,9 +87,7 @@ pub trait LendingPoolManageImpl:
         name: String,
         symbol: String,
         decimals: u8,
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
-        penalty_e6: Option<u128>,
+        asset_rules: AssetRules,
         maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -143,15 +141,7 @@ pub trait LendingPoolManageImpl:
             )?;
 
         self.data::<LendingPoolStorage>()
-            .account_for_asset_rule_change(
-                &0,
-                &asset,
-                &AssetRules {
-                    collateral_coefficient_e6,
-                    borrow_coefficient_e6,
-                    penalty_e6,
-                },
-            )?;
+            .account_for_asset_rule_change(&0, &asset, &asset_rules)?;
 
         self._emit_asset_registered_event(
             &asset,
@@ -175,13 +165,7 @@ pub trait LendingPoolManageImpl:
             minimal_collateral,
             minimal_debt,
         );
-        self._emit_asset_rules_changed_event(
-            &0,
-            &asset,
-            &collateral_coefficient_e6,
-            &borrow_coefficient_e6,
-            &penalty_e6,
-        );
+        self._emit_asset_rules_changed_event(&0, &asset, &asset_rules);
         Ok(())
     }
 
@@ -193,9 +177,7 @@ pub trait LendingPoolManageImpl:
         name: String,
         symbol: String,
         decimals: u8,
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
-        penalty_e6: Option<u128>,
+        asset_rules: AssetRules,
         maximal_total_deposit: Option<Balance>,
         maximal_total_debt: Option<Balance>,
         minimal_collateral: Balance,
@@ -243,15 +225,7 @@ pub trait LendingPoolManageImpl:
             )?;
 
         self.data::<LendingPoolStorage>()
-            .account_for_asset_rule_change(
-                &0,
-                &asset,
-                &AssetRules {
-                    collateral_coefficient_e6,
-                    borrow_coefficient_e6,
-                    penalty_e6,
-                },
-            )?;
+            .account_for_asset_rule_change(&0, &asset, &asset_rules)?;
 
         self._emit_asset_registered_event(
             &asset,
@@ -270,13 +244,7 @@ pub trait LendingPoolManageImpl:
             minimal_collateral,
             minimal_debt,
         );
-        self._emit_asset_rules_changed_event(
-            &0,
-            &asset,
-            &collateral_coefficient_e6,
-            &borrow_coefficient_e6,
-            &penalty_e6,
-        );
+        self._emit_asset_rules_changed_event(&0, &asset, &asset_rules);
         Ok(())
     }
 
@@ -395,9 +363,15 @@ pub trait LendingPoolManageImpl:
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
 
+        for asset_rule in &market_rule {
+            if let Some(asset_rule_unwrapped) = asset_rule {
+                asset_rule_unwrapped.verify_new_rule(&None)?
+            }
+        }
+
         let market_rule_id = self
             .data::<LendingPoolStorage>()
-            .account_for_add_market_rule(&market_rule)?;
+            .account_for_add_market_rule(&market_rule);
 
         let registerd_assets = self
             .data::<LendingPoolStorage>()
@@ -408,9 +382,7 @@ pub trait LendingPoolManageImpl:
                 self._emit_asset_rules_changed_event(
                     &market_rule_id,
                     &registerd_assets[asset_id],
-                    &asset_rules.collateral_coefficient_e6,
-                    &asset_rules.borrow_coefficient_e6,
-                    &asset_rules.penalty_e6,
+                    &asset_rules,
                 );
             }
         }
@@ -422,9 +394,7 @@ pub trait LendingPoolManageImpl:
         &mut self,
         market_rule_id: u32,
         asset: AccountId,
-        collateral_coefficient_e6: Option<u128>,
-        borrow_coefficient_e6: Option<u128>,
-        penalty_e6: Option<u128>,
+        asset_rules: AssetRules,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
@@ -433,19 +403,13 @@ pub trait LendingPoolManageImpl:
             .account_for_asset_rule_change(
                 &market_rule_id,
                 &asset,
-                &AssetRules {
-                    collateral_coefficient_e6,
-                    borrow_coefficient_e6,
-                    penalty_e6,
-                },
+                &asset_rules,
             )?;
 
         self._emit_asset_rules_changed_event(
             &market_rule_id,
             &asset,
-            &collateral_coefficient_e6,
-            &borrow_coefficient_e6,
-            &penalty_e6,
+            &asset_rules,
         );
 
         Ok(())
