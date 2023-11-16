@@ -32,6 +32,8 @@ pub enum LendingPoolError {
     AssetNotRegistered,
     /// returned if Abax native Stable Tokens AccountId is passed as argument to the message where these tokens are not supported.
     AssetIsProtocolStablecoin,
+    /// returned if an operation reserved only to abax stable tokens is calles on normal asset.
+    AssetIsNotProtocolStablecoin,
     /// returned if one tries to borrow an asset that id not allowed to be borrowed based on the market rule chosen by one.
     RuleBorrowDisable,
     /// returned if one tries to use as colalteral an asset that id not allowed to be borrowed based on the market rule chosen by one.
@@ -68,6 +70,8 @@ pub enum LendingPoolError {
     MarketRuleInvalidId,
     /// returned if the `accumulate_interest` is called manually on a reserve that was already accumulated this block
     AccumulatedAlready,
+    /// returned if the asset_rule to be set is invalid.
+    InvalidAssetRule,
 }
 
 impl From<MathError> for LendingPoolError {

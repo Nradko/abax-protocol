@@ -131,9 +131,7 @@ pub trait EmitManageEvents {
         &mut self,
         market_rule_id: &u32,
         asset: &AccountId,
-        collateral_coefficient_e6: &Option<u128>,
-        borrow_coefficient_e6: &Option<u128>,
-        penalty_e6: &Option<u128>,
+        asset_rules: &AssetRules,
     );
 
     fn _emit_stablecoin_debt_rate_changed(

@@ -7,6 +7,9 @@ pub trait LendingPoolMaintain {
     /// is used by anyone to accumulate deposit and variable rate interests
     ///
     ///  * `asset` - AccountId (aka address) of asset of which interests should be accumulated
+    ///
+    /// # Errors
+    /// * `AccumulatedAlready` returned if the interest of `asset` was already accumulated in this block.
     #[ink(message)]
     fn accumulate_interest(
         &mut self,

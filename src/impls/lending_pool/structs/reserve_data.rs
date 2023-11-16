@@ -117,9 +117,6 @@ impl ReserveData {
         reserve_indexes: &mut ReserveIndexes,
         new_timestamp: &Timestamp,
     ) -> Result<(), MathError> {
-        let mut deposit_index_multiplier_e18: u128 = E18_U128;
-        let mut debt_index_multiplier_e18: u128 = E18_U128;
-
         // time that have passed in miliseconds
         let delta_timestamp: u128 =
             (*new_timestamp - self.indexes_update_timestamp) as u128;
@@ -127,6 +124,9 @@ impl ReserveData {
         if delta_timestamp == 0 {
             return Ok(());
         }
+
+        let mut deposit_index_multiplier_e18: u128 = E18_U128;
+        let mut debt_index_multiplier_e18: u128 = E18_U128;
 
         if self.current_deposit_rate_e24 != 0 {
             deposit_index_multiplier_e18 = deposit_index_multiplier_e18

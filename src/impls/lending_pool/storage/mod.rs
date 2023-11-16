@@ -1047,11 +1047,11 @@ impl LendingPoolStorage {
     pub fn account_for_add_market_rule(
         &mut self,
         market_rule: &MarketRule,
-    ) -> Result<u32, LendingPoolError> {
+    ) -> u32 {
         let rule_id = self.next_rule_id.get().unwrap_or(0);
         self.market_rules.insert(&rule_id, market_rule);
         self.next_rule_id.set(&(rule_id + 1));
-        Ok(rule_id)
+        rule_id
     }
 
     pub fn account_for_asset_rule_change(
@@ -1069,6 +1069,8 @@ impl LendingPoolStorage {
             market_rule.push(None);
         }
         market_rule[asset_id as usize] = Some(*asset_rules);
+        let old_asset_rule = market_rule.get(asset_id as usize).unwrap();
+        asset_rules.verify_new_rule(&old_asset_rule)?;
         self.market_rules.insert(market_rule_id, &market_rule);
         Ok(())
     }
@@ -1080,7 +1082,7 @@ impl LendingPoolStorage {
     ) -> Result<(), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
         if self.reserve_parameters.contains(&asset_id) {
-            return Err(LendingPoolError::AssetIsProtocolStablecoin);
+            return Err(LendingPoolError::AssetIsNotProtocolStablecoin);
         }
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.current_debt_rate_e24 = *debt_rate_e24;

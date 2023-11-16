@@ -32,7 +32,7 @@ pub mod lending_pool {
             },
         },
         traits::lending_pool::{
-            DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
+            AssetRules, DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
             EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
             EmitManageEvents, LendingPoolError,
             {
@@ -256,9 +256,7 @@ pub mod lending_pool {
             name: String,
             symbol: String,
             decimals: u8,
-            collateral_coefficient_e6: Option<u128>,
-            borrow_coefficient_e6: Option<u128>,
-            penalty_e6: Option<u128>,
+            asset_rules: AssetRules,
             maximal_total_deposit: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
@@ -274,9 +272,7 @@ pub mod lending_pool {
                 name,
                 symbol,
                 decimals,
-                collateral_coefficient_e6,
-                borrow_coefficient_e6,
-                penalty_e6,
+                asset_rules,
                 maximal_total_deposit,
                 maximal_total_debt,
                 minimal_collateral,
@@ -295,9 +291,7 @@ pub mod lending_pool {
             name: String,
             symbol: String,
             decimals: u8,
-            collateral_coefficient_e6: Option<u128>,
-            borrow_coefficient_e6: Option<u128>,
-            penalty_e6: Option<u128>,
+            asset_rules: AssetRules,
             maximal_total_deposit: Option<Balance>,
             maximal_total_debt: Option<Balance>,
             minimal_collateral: Balance,
@@ -311,9 +305,7 @@ pub mod lending_pool {
                 name,
                 symbol,
                 decimals,
-                collateral_coefficient_e6,
-                borrow_coefficient_e6,
-                penalty_e6,
+                asset_rules,
                 maximal_total_deposit,
                 maximal_total_debt,
                 minimal_collateral,
@@ -386,17 +378,13 @@ pub mod lending_pool {
             &mut self,
             market_rule_id: RuleId,
             asset: AccountId,
-            collateral_coefficient_e6: Option<u128>,
-            borrow_coefficient_e6: Option<u128>,
-            penalty_e6: Option<u128>,
+            asset_rules: AssetRules,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::modify_asset_rule(
                 self,
                 market_rule_id,
                 asset,
-                collateral_coefficient_e6,
-                borrow_coefficient_e6,
-                penalty_e6,
+                asset_rules,
             )
         }
 
@@ -1055,16 +1043,15 @@ pub mod lending_pool {
             &mut self,
             market_rule_id: &u32,
             asset: &AccountId,
-            collateral_coefficient_e6: &Option<u128>,
-            borrow_coefficient_e6: &Option<u128>,
-            penalty_e6: &Option<u128>,
+            asset_rules: &AssetRules,
         ) {
             self.env().emit_event(AssetRulesChanged {
                 market_rule_id: *market_rule_id,
                 asset: *asset,
-                collateral_coefficient_e6: *collateral_coefficient_e6,
-                borrow_coefficient_e6: *borrow_coefficient_e6,
-                penalty_e6: *penalty_e6,
+                collateral_coefficient_e6: asset_rules
+                    .collateral_coefficient_e6,
+                borrow_coefficient_e6: asset_rules.borrow_coefficient_e6,
+                penalty_e6: asset_rules.penalty_e6,
             })
         }
 
