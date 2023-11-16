@@ -17,7 +17,7 @@ pub trait LendingPoolLiquidateImpl:
 {
     fn liquidate(
         &mut self,
-        liquidated_user: AccountId,
+        liquidated_account: AccountId,
         asset_to_repay: AccountId,
         asset_to_take: AccountId,
         mut amount_to_repay: Balance,
@@ -31,7 +31,10 @@ pub trait LendingPoolLiquidateImpl:
         let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         let (collaterized, _) = self
             .data::<LendingPoolStorage>()
-            .calculate_user_lending_power_e6(&liquidated_user, &prices_e18)?;
+            .calculate_user_lending_power_e6(
+                &liquidated_account,
+                &prices_e18,
+            )?;
 
         if collaterized {
             return Err(LendingPoolError::Collaterized);
@@ -50,7 +53,7 @@ pub trait LendingPoolLiquidateImpl:
             caller_accumulated_debt_interest_to_take,
         ) = self.data::<LendingPoolStorage>().account_for_liquidate(
             &caller,
-            &liquidated_user,
+            &liquidated_account,
             &prices_e18,
             &asset_to_repay,
             &asset_to_take,
@@ -93,13 +96,13 @@ pub trait LendingPoolLiquidateImpl:
         // ATOKEN
         _emit_abacus_token_transfer_event(
             &abacus_tokens_to_repay.a_token_address,
-            &liquidated_user,
+            &liquidated_account,
             (user_accumulated_deposit_interest_to_repay) as i128,
         )?;
         // VTOKEN
         _emit_abacus_token_transfer_event(
             &abacus_tokens_to_repay.v_token_address,
-            &liquidated_user,
+            &liquidated_account,
             user_accumulated_debt_interest_to_repay as i128
                 - amount_to_repay as i128,
         )?;
@@ -115,7 +118,7 @@ pub trait LendingPoolLiquidateImpl:
             &abacus_tokens_to_take.a_token_address,
             &vec![
                 TransferEventDataSimplified {
-                    user: liquidated_user,
+                    user: liquidated_account,
                     amount: user_accumulated_deposit_interest_to_take as i128
                         - amount_to_take as i128,
                 },
@@ -131,7 +134,7 @@ pub trait LendingPoolLiquidateImpl:
             &abacus_tokens_to_take.v_token_address,
             &vec![
                 TransferEventDataSimplified {
-                    user: liquidated_user,
+                    user: liquidated_account,
                     amount: user_accumulated_debt_interest_to_take as i128,
                 },
                 TransferEventDataSimplified {
@@ -144,7 +147,7 @@ pub trait LendingPoolLiquidateImpl:
         // EVENT
         self._emit_liquidation_variable_event(
             caller,
-            liquidated_user,
+            liquidated_account,
             asset_to_repay,
             asset_to_take,
             amount_to_repay,
