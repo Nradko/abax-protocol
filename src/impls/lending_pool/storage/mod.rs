@@ -580,16 +580,16 @@ impl LendingPoolStorage {
             self.market_rules.get(&user_config.market_rule_id).unwrap();
         let penalty_to_repay_e6 = market_rule
             .get(asset_to_repay_id as usize)
-            .ok_or(LendingPoolError::MarketRuleInvalidAssetId)?
-            .ok_or(LendingPoolError::MarketRuleInvalidAssetId)?
+            .unwrap()
+            .unwrap()
             .penalty_e6
-            .ok_or(LendingPoolError::MarketRulePenaltyNotSet)?;
+            .unwrap();
         let penalty_to_take_e6 = market_rule
             .get(asset_to_take_id as usize)
-            .ok_or(LendingPoolError::MarketRuleInvalidAssetId)?
-            .ok_or(LendingPoolError::MarketRuleInvalidAssetId)?
+            .unwrap()
+            .unwrap()
             .penalty_e6
-            .ok_or(LendingPoolError::MarketRulePenaltyNotSet)?;
+            .unwrap();
 
         let amount_to_take = calculate_amount_to_take(
             amount_to_repay,
@@ -648,10 +648,6 @@ impl LendingPoolStorage {
         let reserve_parameters_to_take =
             self.reserve_parameters.get(&asset_to_take_id);
 
-        if (caller_config.collaterals >> asset_to_take_id) & 1_u128 == 1 {
-            return Err(LendingPoolError::RepayingWithACollateral);
-        }
-
         if user_reserve_data_to_repay.debt == 0 {
             return Err(LendingPoolError::NothingToRepay);
         }
@@ -666,18 +662,15 @@ impl LendingPoolStorage {
             .accumulate_user_interest(&reserve_indexes_to_repay)?;
 
         // accumulate to take
-        // accumulate to repay
-
         reserve_data_to_take
             .accumulate_interest(&mut reserve_indexes_to_take, timestamp)?;
-
+        // accumulate to take
         let (
             user_accumulated_deposit_interest_to_take,
             user_accumulated_debt_interest_to_take,
         ): (Balance, Balance) = user_reserve_data_to_take
             .accumulate_user_interest(&reserve_indexes_to_take)?;
         // caller's
-
         let (
             caller_accumulated_deposit_interest_to_take,
             caller_accumulated_debt_interest_to_take,
