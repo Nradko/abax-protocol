@@ -1,5 +1,3 @@
-use scale::{Decode, Encode};
-
 /// Defines rules on which asset can be borrowed and used as collateral.
 #[derive(Debug, Default, Encode, Decode, Clone, Copy)]
 #[cfg_attr(

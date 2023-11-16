@@ -1,9 +1,3 @@
-use ink::prelude::string::String;
-use ink::prelude::vec::Vec;
-use ink::primitives::AccountId;
-
-use ink::contract_ref;
-use ink::env::DefaultEnvironment;
 pub type OracleSettersRef = contract_ref!(OracleSetters, DefaultEnvironment);
 
 #[ink::trait_definition]

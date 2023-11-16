@@ -1,11 +1,7 @@
-use ink::{contract_ref, env::DefaultEnvironment};
-use pendzl::traits::{AccountId, Balance};
-
-use crate::traits::lending_pool::errors::LendingPoolError;
-
 pub type LendingPoolATokenInterfaceRef =
     contract_ref!(LendingPoolATokenInterface, DefaultEnvironment);
 
+/// Trait containing messages that are accessible to **AToken** - the PSP22 wrapeer of deposits.
 #[ink::trait_definition]
 pub trait LendingPoolATokenInterface {
     /// Returns LendingPool's total deposit of an underlying asset.

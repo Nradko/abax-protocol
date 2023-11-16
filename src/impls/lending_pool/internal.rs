@@ -6,7 +6,7 @@ use crate::{
     traits::{
         abacus_token::*,
         block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::errors::LendingPoolError,
+        lending_pool::LendingPoolError,
         price_feed::{PriceFeed, PriceFeedRef},
     },
 };

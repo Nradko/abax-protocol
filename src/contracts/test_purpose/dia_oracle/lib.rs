@@ -8,8 +8,8 @@ pub mod oracle_anchor {
     use ink::prelude::vec::Vec;
     use ink::storage::{traits::ManualKey, Lazy, Mapping};
 
-    use lending_project::traits::dia_oracle::getter::OracleGetters;
-    use lending_project::traits::dia_oracle::setter::OracleSetters;
+    use lending_project::traits::dia_oracle::OracleGetters;
+    use lending_project::traits::dia_oracle::OracleSetters;
 
     #[ink::storage_item]
     struct TokenPriceStruct {

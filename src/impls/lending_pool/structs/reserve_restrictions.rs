@@ -1,6 +1,6 @@
 use pendzl::traits::Balance;
 
-use crate::traits::lending_pool::structs::reserve_restrictions::ReserveRestrictions;
+use crate::traits::lending_pool::ReserveRestrictions;
 
 impl ReserveRestrictions {
     pub fn new(

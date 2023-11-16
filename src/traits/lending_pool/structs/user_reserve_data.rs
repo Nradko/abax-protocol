@@ -1,6 +1,3 @@
-use pendzl::traits::Balance;
-use scale::{Decode, Encode};
-
 /// stores data of user
 #[derive(Debug, Default, Encode, Decode, Clone, Copy)]
 #[cfg_attr(

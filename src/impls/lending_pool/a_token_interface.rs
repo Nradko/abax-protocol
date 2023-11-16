@@ -5,7 +5,7 @@ use crate::{
     },
     traits::{
         abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
-        lending_pool::{errors::LendingPoolError, events::EmitDepositEvents},
+        lending_pool::{EmitDepositEvents, LendingPoolError},
     },
 };
 use ink::prelude::*;

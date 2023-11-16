@@ -1,6 +1,4 @@
-use scale::{Decode, Encode};
-
-/// Stores parameters used to calculate current_debt_rate and current_deposit_rate.
+/// Stores parameters used to calculate `current_debt_rate` and `current_deposit_rate`.
 /// The Abax native stable tokens do not use it!
 #[derive(Debug, Encode, Decode, Clone)]
 #[cfg_attr(

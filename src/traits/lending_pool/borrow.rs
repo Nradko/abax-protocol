@@ -1,13 +1,7 @@
-use pendzl::traits::{AccountId, Balance};
-
-use crate::traits::lending_pool::errors::LendingPoolError;
-use ink::{contract_ref, env::DefaultEnvironment, prelude::vec::Vec};
-
-use super::types::RuleId;
-
 pub type LendingPoolBorrowRef =
     contract_ref!(LendingPoolBorrow, DefaultEnvironment);
 
+/// Trait containing messges that are used by **borrowers**.
 #[ink::trait_definition]
 pub trait LendingPoolBorrow {
     /// Callers choses a market rule caller want to use.

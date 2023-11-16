@@ -1,8 +1,8 @@
 use primitive_types::U256;
 
-use crate::impls::{
-    constants::{E10_U128, E18_U128, E6_U128, E8_U128},
-    types::DecimalMultiplier,
+use crate::{
+    impls::constants::{E10_U128, E18_U128, E6_U128, E8_U128},
+    traits::lending_pool::DecimalMultiplier,
 };
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]

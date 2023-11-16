@@ -9,7 +9,7 @@ use crate::{
     impls::lending_pool::{internal::*, storage::LendingPoolStorage},
     traits::{
         abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
-        lending_pool::{errors::LendingPoolError, events::EmitBorrowEvents},
+        lending_pool::{EmitBorrowEvents, LendingPoolError},
     },
 };
 

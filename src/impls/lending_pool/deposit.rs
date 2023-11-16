@@ -3,9 +3,7 @@ use pendzl::traits::{AccountId, Balance, Storage};
 
 use crate::{
     impls::lending_pool::{internal::*, storage::LendingPoolStorage},
-    traits::lending_pool::{
-        errors::LendingPoolError, events::EmitDepositEvents,
-    },
+    traits::lending_pool::{EmitDepositEvents, LendingPoolError},
 };
 
 pub trait LendingPoolDepositImpl:

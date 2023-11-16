@@ -1,9 +1,4 @@
-use pendzl::traits::{AccountId, Balance};
-
 use ink::prelude::string::String;
-
-use super::types::RuleId;
-
 pub trait EmitDepositEvents {
     fn _emit_deposit_event(
         &mut self,

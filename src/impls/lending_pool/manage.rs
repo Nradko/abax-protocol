@@ -9,16 +9,11 @@ use crate::{
     traits::{
         dummy::DummyRef,
         lending_pool::{
-            errors::LendingPoolError,
-            events::*,
-            structs::{
-                asset_rules::AssetRules,
-                reserve_abacus_tokens::ReserveAbacusTokens,
-                reserve_data::ReserveData,
-                reserve_parameters::ReserveParameters,
-                reserve_restrictions::ReserveRestrictions,
+            EmitManageEvents, LendingPoolError, MarketRule,
+            {
+                AssetRules, ReserveAbacusTokens, ReserveData,
+                ReserveParameters, ReserveRestrictions,
             },
-            types::MarketRule,
         },
     },
 };

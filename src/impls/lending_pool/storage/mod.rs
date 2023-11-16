@@ -5,22 +5,18 @@ use pendzl::{
 };
 
 use crate::{
-    impls::{constants::E18_U128, types::DecimalMultiplier},
+    impls::constants::E18_U128,
     library::math::{
         calculate_amount_to_take, calculate_asset_amount_value_e8,
         e8_mul_e6_to_e6_rdown, MathError,
     },
     traits::lending_pool::{
-        errors::LendingPoolError,
-        structs::{
-            asset_rules::AssetRules,
-            reserve_abacus_tokens::ReserveAbacusTokens,
-            reserve_data::ReserveData, reserve_indexes::ReserveIndexes,
-            reserve_parameters::ReserveParameters,
-            reserve_restrictions::ReserveRestrictions, user_config::UserConfig,
-            user_reserve_data::UserReserveData,
+        DecimalMultiplier, LendingPoolError, {AssetId, MarketRule, RuleId},
+        {
+            AssetRules, ReserveAbacusTokens, ReserveData, ReserveIndexes,
+            ReserveParameters, ReserveRestrictions, UserConfig,
+            UserReserveData,
         },
-        types::{AssetId, MarketRule, RuleId},
     },
 };
 

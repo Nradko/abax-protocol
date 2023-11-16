@@ -30,34 +30,28 @@ pub mod lending_pool {
                 v_token_interface::LendingPoolVTokenInterfaceImpl,
                 view::LendingPoolViewImpl,
             },
-            types::DecimalMultiplier,
         },
         traits::lending_pool::{
-            errors::LendingPoolError,
-            structs::{
-                reserve_abacus_tokens::ReserveAbacusTokens,
-                reserve_data::ReserveData, reserve_indexes::ReserveIndexes,
-                reserve_parameters::ReserveParameters,
-                reserve_restrictions::ReserveRestrictions,
-                user_config::UserConfig, user_reserve_data::UserReserveData,
-            },
-            types::{MarketRule, RuleId},
+            DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
+            EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
+            EmitManageEvents, LendingPoolError,
             {
-                a_token_interface::LendingPoolATokenInterface,
-                manage::LendingPoolManage,
-                v_token_interface::LendingPoolVTokenInterface,
-                view::LendingPoolView,
+                LendingPoolATokenInterface, LendingPoolManage,
+                LendingPoolVTokenInterface, LendingPoolView,
                 {
-                    borrow::LendingPoolBorrow, deposit::LendingPoolDeposit,
-                    flash_loan::LendingPoolFlash,
-                    liquidate::LendingPoolLiquidate,
-                    maintain::LendingPoolMaintain,
+                    LendingPoolBorrow, LendingPoolDeposit, LendingPoolFlash,
+                    LendingPoolLiquidate, LendingPoolMaintain,
                 },
+            },
+            {MarketRule, RuleId},
+            {
+                ReserveAbacusTokens, ReserveData, ReserveIndexes,
+                ReserveParameters, ReserveRestrictions, UserConfig,
+                UserReserveData,
             },
         },
     };
     // use pendzl::storage::Mapping;
-    use lending_project::traits::lending_pool::events::*;
     use pendzl::{
         contracts::access_control::{self, *},
         traits::{Storage, String},

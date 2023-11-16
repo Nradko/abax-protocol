@@ -1,6 +1,3 @@
-pub use pendzl::traits::{Balance, Timestamp};
-use scale::{Decode, Encode};
-
 /// Contains most often used data of a reserve
 #[derive(Debug, Encode, Decode)]
 #[cfg_attr(

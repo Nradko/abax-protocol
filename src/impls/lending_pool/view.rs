@@ -1,17 +1,12 @@
 use crate::{
-    impls::{
-        constants::E18_U128, lending_pool::storage::LendingPoolStorage,
-        types::DecimalMultiplier,
-    },
+    impls::{constants::E18_U128, lending_pool::storage::LendingPoolStorage},
     traits::lending_pool::{
-        structs::{
-            reserve_abacus_tokens::ReserveAbacusTokens,
-            reserve_data::ReserveData, reserve_indexes::ReserveIndexes,
-            reserve_parameters::ReserveParameters,
-            reserve_restrictions::ReserveRestrictions, user_config::UserConfig,
-            user_reserve_data::UserReserveData,
+        DecimalMultiplier, {MarketRule, RuleId},
+        {
+            ReserveAbacusTokens, ReserveData, ReserveIndexes,
+            ReserveParameters, ReserveRestrictions, UserConfig,
+            UserReserveData,
         },
-        types::{MarketRule, RuleId},
     },
 };
 

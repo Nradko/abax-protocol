@@ -1,6 +1,3 @@
-pub use ink::primitives::AccountId;
-use scale::{Decode, Encode};
-
 /// Stores AccountIds of PSP22(PSP55) contracts that are wrappers of deposit(debt).
 #[derive(Debug, Encode, Decode, Clone, Copy)]
 #[cfg_attr(
