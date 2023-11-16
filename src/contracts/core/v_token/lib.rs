@@ -13,8 +13,8 @@ pub mod v_token {
     };
     use lending_project::traits::{
         abacus_token::AbacusToken, abacus_token::*,
-        lending_pool::v_token_interface::LendingPoolVTokenInterface,
-        lending_pool::v_token_interface::LendingPoolVTokenInterfaceRef,
+        lending_pool::LendingPoolVTokenInterface,
+        lending_pool::LendingPoolVTokenInterfaceRef,
     };
     use pendzl::{
         contracts::psp22::{extensions::metadata::*, PSP22Error},

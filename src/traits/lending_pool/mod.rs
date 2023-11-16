@@ -1,26 +1,24 @@
-/// Trait containing messages that are accessible to **AToken** - the PSP22 wrapeer of deposits.
-pub mod a_token_interface;
-/// Trait containing messges that are used by **borrowers**.
-pub mod borrow;
-/// Trait containing messages that are used by **depositors**.
-pub mod deposit;
-/// Possible errors returned by `LendingPool` messages.
-pub mod errors;
-/// Possible events emitted by `LendingPool` messages.
-pub mod events;
-/// Trait containing flash_loan message. Used by **flash loaners**.
-pub mod flash_loan;
-/// Trait containing liquidate message. Used by **liquidators**.
-pub mod liquidate;
-/// Trait containing messages that are used to maintain inetrest accumulation. Used by **maintainers**.
-pub mod maintain;
-/// Trait containing `AccessControl` messages used to manage 'LendingPool' parameters. USed by **managers**.
-pub mod manage;
-/// Structs used in traits and storage
-pub mod structs;
-/// types used in traits and storage
-pub mod types;
-/// Trait containing messages that are accessible to **VToken** - the PSP22 Wrapper of debts.
-pub mod v_token_interface;
-/// Trait containing non-mutable messages.
-pub mod view;
+include!("imports.rs");
+
+include!("types.rs");
+
+include!("structs/asset_rules.rs");
+include!("structs/reserve_abacus_tokens.rs");
+include!("structs/reserve_data.rs");
+include!("structs/reserve_indexes.rs");
+include!("structs/reserve_parameters.rs");
+include!("structs/reserve_restrictions.rs");
+include!("structs/user_config.rs");
+include!("structs/user_reserve_data.rs");
+
+include!("a_token_interface.rs");
+include!("borrow.rs");
+include!("deposit.rs");
+include!("errors.rs");
+include!("events.rs");
+include!("flash_loan.rs");
+include!("liquidate.rs");
+include!("maintain.rs");
+include!("manage.rs");
+include!("v_token_interface.rs");
+include!("view.rs");

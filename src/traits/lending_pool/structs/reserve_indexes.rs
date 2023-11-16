@@ -1,5 +1,3 @@
-use scale::{Decode, Encode};
-
 /// Stores data used to accumulate deposit and debt interest rates.
 #[derive(Debug, Encode, Decode)]
 #[cfg_attr(

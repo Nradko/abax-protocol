@@ -1,2 +1,3 @@
-pub mod getter;
-pub mod setter;
+include!("imports.rs");
+include!("getter.rs");
+include!("setter.rs");

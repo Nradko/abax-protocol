@@ -3,7 +3,7 @@ use crate::{
     library::math::{
         e18_mul_e18_to_e18_rdown, e18_mul_e18_to_e18_rup, MathError,
     },
-    traits::lending_pool::structs::reserve_indexes::ReserveIndexes,
+    traits::lending_pool::ReserveIndexes,
 };
 
 #[allow(clippy::new_without_default)]

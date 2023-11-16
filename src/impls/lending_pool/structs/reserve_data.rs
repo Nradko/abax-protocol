@@ -7,11 +7,10 @@ use crate::library::math::{
     e18_mul_e0_to_e0_rdown, e24_mul_e0_to_e18_rdown, e24_mul_e0_to_e18_rup,
     e24_mul_e6_div_e0_to_e24_rdown, MathError,
 };
-use crate::traits::lending_pool::errors::LendingPoolError;
-use crate::traits::lending_pool::structs::reserve_data::*;
-use crate::traits::lending_pool::structs::reserve_indexes::ReserveIndexes;
-use crate::traits::lending_pool::structs::reserve_parameters::ReserveParameters;
-use crate::traits::lending_pool::structs::reserve_restrictions::ReserveRestrictions;
+use crate::traits::lending_pool::{
+    LendingPoolError, ReserveData, ReserveIndexes, ReserveParameters,
+    ReserveRestrictions,
+};
 
 impl ReserveData {
     pub fn new(timestamp: &Timestamp) -> Self {

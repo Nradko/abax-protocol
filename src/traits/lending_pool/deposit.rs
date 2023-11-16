@@ -1,12 +1,7 @@
-use pendzl::traits::{AccountId, Balance};
-
-use crate::traits::lending_pool::errors::LendingPoolError;
-use ink::{contract_ref, env::DefaultEnvironment, prelude::vec::Vec};
-
 pub type LendingPoolDepositRef =
     contract_ref!(LendingPoolDeposit, DefaultEnvironment);
 
-/// contains `deposit` and `redeem` functions
+/// Trait containing messages that are used by **depositors**.
 #[ink::trait_definition]
 pub trait LendingPoolDeposit {
     /// Caller make deposits `amount` of an `asset` `on_behalf_of`.

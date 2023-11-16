@@ -5,13 +5,8 @@ use crate::{
     impls::constants::{E18_U128, MATH_ERROR_MESSAGE},
     library::math::MathError,
     traits::lending_pool::{
-        errors::LendingPoolError,
-        structs::{
-            reserve_indexes::ReserveIndexes,
-            reserve_restrictions::ReserveRestrictions, user_config::UserConfig,
-            user_reserve_data::UserReserveData,
-        },
-        types::AssetId,
+        AssetId, LendingPoolError,
+        {ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData},
     },
 };
 

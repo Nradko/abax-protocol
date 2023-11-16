@@ -2,9 +2,7 @@ use crate::{
     impls::lending_pool::{
         internal::TimestampMock, storage::LendingPoolStorage,
     },
-    traits::lending_pool::{
-        errors::LendingPoolError, events::EmitMaintainEvents,
-    },
+    traits::lending_pool::{EmitMaintainEvents, LendingPoolError},
 };
 use pendzl::traits::{AccountId, Storage};
 

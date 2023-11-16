@@ -9,9 +9,7 @@ use crate::{
         lending_pool::{internal::*, storage::LendingPoolStorage},
     },
     library::math::MathError,
-    traits::lending_pool::{
-        errors::LendingPoolError, events::EmitLiquidateEvents,
-    },
+    traits::lending_pool::{EmitLiquidateEvents, LendingPoolError},
 };
 
 pub trait LendingPoolLiquidateImpl:

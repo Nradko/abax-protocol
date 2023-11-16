@@ -8,7 +8,9 @@ pub mod price_feed_provider {
 
     use ink::storage::{Lazy, Mapping};
 
-    use lending_project::traits::dia_oracle::getter::{OracleGettersRef, *};
+    use lending_project::traits::dia_oracle::{
+        OracleGetters, OracleGettersRef,
+    };
     use lending_project::traits::price_feed::{PriceFeed, PriceFeedError};
     use pendzl::contracts::ownable::{OwnableError, OwnableImpl};
     use pendzl::traits::Storage;

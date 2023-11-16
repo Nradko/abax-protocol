@@ -1,11 +1,7 @@
-use ink::{contract_ref, env::DefaultEnvironment};
-use pendzl::traits::{AccountId, Balance};
-
-use crate::traits::lending_pool::errors::LendingPoolError;
-
 pub type LendingPoolVTokenInterfaceRef =
     contract_ref!(LendingPoolVTokenInterface, DefaultEnvironment);
 
+/// Trait containing messages that are accessible to **VToken** - the PSP22 Wrapper of debts.
 #[ink::trait_definition]
 pub trait LendingPoolVTokenInterface {
     /// Returns LendingPool's total debt of users in the context of an underlying asset.

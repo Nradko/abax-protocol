@@ -1,4 +1,6 @@
-use crate::traits::lending_pool::structs::reserve_abacus_tokens::*;
+use ink::primitives::AccountId;
+
+use crate::traits::lending_pool::ReserveAbacusTokens;
 
 impl ReserveAbacusTokens {
     pub fn new(

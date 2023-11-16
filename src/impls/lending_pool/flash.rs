@@ -5,7 +5,7 @@ use crate::{
     },
     traits::{
         flash_loan_receiver::FlashLoanReceiverError,
-        lending_pool::{errors::LendingPoolError, events::EmitFlashEvents},
+        lending_pool::{EmitFlashEvents, LendingPoolError},
     },
 };
 use ink::{

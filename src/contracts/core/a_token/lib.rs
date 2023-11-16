@@ -11,10 +11,10 @@ pub mod a_token {
         impls::abacus_token::AbacusTokenImpl, traits::abacus_token::*,
     };
 
-    use lending_project::traits::lending_pool::a_token_interface::LendingPoolATokenInterface;
+    use lending_project::traits::lending_pool::LendingPoolATokenInterface;
     use lending_project::{
         impls::abacus_token::storage::AbacusTokenStorage,
-        traits::lending_pool::a_token_interface::LendingPoolATokenInterfaceRef,
+        traits::lending_pool::LendingPoolATokenInterfaceRef,
     };
     use pendzl::{
         contracts::psp22::{extensions::metadata::*, PSP22Error},

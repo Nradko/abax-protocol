@@ -1,7 +1,4 @@
-use pendzl::traits::Balance;
-use scale::{Decode, Encode};
-
-// Stores restrictions made on the reserve
+/// Stores restrictions made on the reserve
 #[derive(Debug, Encode, Decode, Default)]
 #[cfg_attr(
     feature = "std",

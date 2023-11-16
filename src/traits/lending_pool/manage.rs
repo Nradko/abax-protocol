@@ -1,15 +1,7 @@
-use pendzl::traits::{AccountId, Balance};
-
-use crate::traits::lending_pool::errors::LendingPoolError;
-
-use ink::{contract_ref, prelude::string::String};
-use ink::{env::DefaultEnvironment, prelude::vec::Vec};
-
-use super::types::{MarketRule, RuleId};
-
 pub type LendingPoolManageRef =
     contract_ref!(LendingPoolManage, DefaultEnvironment);
 
+/// Trait containing `AccessControl` messages used to manage 'LendingPool' parameters. USed by **managers**.
 #[ink::trait_definition]
 pub trait LendingPoolManage {
     #[ink(message)]

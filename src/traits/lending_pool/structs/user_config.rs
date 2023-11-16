@@ -1,7 +1,3 @@
-use scale::{Decode, Encode};
-
-use crate::impls::types::Bitmap128;
-
 /// stores information about which asset is deposited, used as collatearl and borrowed by an user and which `market_rule_id` the user has chosen.
 #[derive(Debug, Default, Encode, Decode)]
 #[cfg_attr(

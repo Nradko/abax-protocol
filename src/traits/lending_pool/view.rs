@@ -1,24 +1,7 @@
-use crate::impls::types::DecimalMultiplier;
-
-use pendzl::traits::AccountId;
-
-use ink::prelude::vec::Vec;
-
-use ink::contract_ref;
-use ink::env::DefaultEnvironment;
-
-use super::structs::reserve_abacus_tokens::ReserveAbacusTokens;
-use super::structs::reserve_data::ReserveData;
-use super::structs::reserve_indexes::ReserveIndexes;
-use super::structs::reserve_parameters::ReserveParameters;
-use super::structs::reserve_restrictions::ReserveRestrictions;
-use super::structs::user_config::UserConfig;
-use super::structs::user_reserve_data::UserReserveData;
-use super::types::{MarketRule, RuleId};
-
 pub type LendingPoolViewRef =
     contract_ref!(LendingPoolView, DefaultEnvironment);
 
+/// Trait containing non-mutable messages.
 #[ink::trait_definition]
 pub trait LendingPoolView {
     #[ink(message)]

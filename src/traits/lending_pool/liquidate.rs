@@ -1,12 +1,6 @@
-use pendzl::traits::{AccountId, Balance};
-
-use crate::traits::lending_pool::errors::LendingPoolError;
-use ink::{contract_ref, env::DefaultEnvironment, prelude::vec::Vec};
-
 pub type LendingPoolLiquidateRef =
     contract_ref!(LendingPoolLiquidate, DefaultEnvironment);
-
-/// contains `liquidate` function
+/// Trait containing liquidate message. Used by **liquidators**.
 #[ink::trait_definition]
 pub trait LendingPoolLiquidate {
     /// is used by a liquidator to liquidate the uncollateralized position of another user

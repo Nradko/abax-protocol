@@ -1,8 +1,6 @@
 use crate::{
     impls::lending_pool::{internal::*, storage::LendingPoolStorage},
-    traits::lending_pool::{
-        errors::LendingPoolError, events::*, types::RuleId,
-    },
+    traits::lending_pool::{EmitBorrowEvents, LendingPoolError, RuleId},
 };
 use ink::prelude::vec::Vec;
 use pendzl::traits::{AccountId, Balance, Storage};
