@@ -19,28 +19,49 @@ pub enum LendingPoolError {
     AccessControlError(AccessControlError),
     MathError(MathError),
     PriceFeedError(PriceFeedError),
+    /// returned if reserve is inactive
     Inactive,
+    /// returned if activating, disactivating, freezing, unfreezing action is redundant.
     AlreadySet,
+    /// returned if reserve is frozen
     Freezed,
+    /// returned if asset that is alerady registered is tried to be registered again.
     AlreadyRegistered,
+    /// returned if an asset that is not registered is passed as an argument to message.
     AssetNotRegistered,
+    /// returned if Abax native Stable Tokens AccountId is passed as argument to the message where these tokens are not supported.
     AssetIsProtocolStablecoin,
+    /// returned if one tries to borrow an asset that id not allowed to be borrowed based on the market rule chosen by one.
     RuleBorrowDisable,
+    /// returned if one tries to use as colalteral an asset that id not allowed to be borrowed based on the market rule chosen by one.
     RuleCollateralDisable,
+    /// returned if after the action user would become undercollaterized
     InsufficientCollateral,
-    MinimalCollateralDeposit,
-    MinimalDebt,
+    /// returned if one is trying to transfer a debt one doesn't have.
     InsufficientDebt,
+    /// returned if one is trying to liquidate collaterized account.
     Collaterized,
+    /// returned if one is trying to transfer a deposit one doesn't have.
     InsufficientDeposit,
+    /// returned if the liquidation would result in not enough recompensation per repaid token.
     MinimumRecieved,
+    /// returned if the `amount` argument is zero.
     AmountNotGreaterThanZero,
-    AssetPriceNotInitialized,
+    /// returned if there is nothing to be repaid (in an asset) during liquidation.
     NothingToRepay,
+    /// returned if there is nothing (in an asset) to to recompensate the liquidation.
     NothingToCompensateWith,
+    /// returned if a liquidator ties to repay the debt of an asset the liquidator is using as a collateral.
     RepayingWithACollateral,
+    /// returned if a liquidator tries to take an asset that is not a collateral as a compensation.
     TakingNotACollateral,
+    /// returned if len of vector of assets that should be borrowed is different then lenght of vector of amounts.
     FlashLoanAmountsAssetsInconsistentLengths,
+    /// returned if after the action minimal collaetral restricion would be no satisfied.
+    MinimalCollateralDeposit,
+    /// returned if after the action minimal debt restricion would be no satisfied.
+    MinimalDebt,
+    ///
     MaxDepositReached,
     MaxDebtReached,
     MarketRuleInvalidAssetId,

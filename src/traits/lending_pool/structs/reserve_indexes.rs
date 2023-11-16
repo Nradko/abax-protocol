@@ -1,5 +1,6 @@
 use scale::{Decode, Encode};
 
+/// Stores data used to accumulate deposit and debt interest rates.
 #[derive(Debug, Encode, Decode)]
 #[cfg_attr(
     feature = "std",
@@ -8,6 +9,6 @@ use scale::{Decode, Encode};
 pub struct ReserveIndexes {
     /// index used to calculate deposit accumulated interest
     pub cumulative_deposit_index_e18: u128,
-    // index used to calculate borrow accumulated interest
+    // index used to calculate debt accumulated interest
     pub cumulative_debt_index_e18: u128,
 }

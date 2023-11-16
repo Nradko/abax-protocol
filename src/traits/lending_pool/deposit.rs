@@ -9,14 +9,19 @@ pub type LendingPoolDepositRef =
 /// contains `deposit` and `redeem` functions
 #[ink::trait_definition]
 pub trait LendingPoolDeposit {
-    /// is used by a user0, to deposit on an account of on_behalf_of an asset to LendingPool.
-    /// Then, within the possibilities, a deposit can be marked as collateral and used to back a loan.
+    /// Caller make deposits `amount` of an `asset` `on_behalf_of`.
     ///
-    /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
-    /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
-    ///     user0 is making a deposit.
+    /// * `asset` - AccountId (aka address) of PSP22 that is deposited.
+    /// * `on_behalf_of` - AccountId (aka address) on behalf of which deposit is done.
     /// * `amount` - the number of tokens to be deposited in an absolute value (1USDT = 1_000_000, 1AZERO = 1_000_000_000_000).
-    /// * `data` - additional data currently unused.
+    /// * `data` - additional data, currently unused.
+    ///
+    /// # Errors
+    /// * `AmountNotGreaterThanZero` returned if `amount` returned  == 0.
+    /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool` returned.
+    /// * `Inactive` returned if the reserve coresponding to the `asset` returned  is inactive.
+    /// * `MaxDepositReached` returned if the total deposit after this deposit is higher than maximal_deposit.
+    /// * `PSP22Error` returned if transfer of `asset`fails.
     #[ink(message)]
     fn deposit(
         &mut self,

@@ -687,7 +687,7 @@ impl LendingPoolStorage {
             *amount_to_repay = user_reserve_data_to_repay.debt;
         }
 
-        let amount_to_take = self
+        let mut amount_to_take = self
             .calculate_liquidated_amount_and_check_if_collateral(
                 liquidated_user,
                 asset_to_repay_id,
@@ -698,7 +698,7 @@ impl LendingPoolStorage {
             )?;
 
         if amount_to_take > user_reserve_data_to_take.deposit {
-            return Err(LendingPoolError::InsufficientDeposit);
+            amount_to_take = user_reserve_data_to_take.deposit;
         }
 
         user_reserve_data_to_repay.decrease_user_debt(

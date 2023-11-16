@@ -1,24 +1,26 @@
-/// contains function that are used by `AToken` to interact with `LendingPool`
+/// Trait containing messages that are accessible to **AToken** - the PSP22 wrapeer of deposits.
 pub mod a_token_interface;
+/// Trait containing messges that are used by **borrowers**.
 pub mod borrow;
-/// contains functions that are used by users with no special access to interact and use `LendingPool`
+/// Trait containing messages that are used by **depositors**.
 pub mod deposit;
-pub mod flash_loan;
-pub mod liquidate;
-pub mod maintain;
-
-/// contains functions that are used by users with special acces to manage `LendingPool`
-pub mod manage;
-/// contains function that are used by `VToken` to interact with `LendingPool`
-pub mod v_token_interface;
-/// contains view functions that can be used by anyone to view `LendingPool` state
-pub mod view;
-
-/// list of possible errors
+/// Possible errors returned by `LendingPool` messages.
 pub mod errors;
-/// list of possible events
+/// Possible events emitted by `LendingPool` messages.
 pub mod events;
-
-pub mod types;
-
+/// Trait containing flash_loan message. Used by **flash loaners**.
+pub mod flash_loan;
+/// Trait containing liquidate message. Used by **liquidators**.
+pub mod liquidate;
+/// Trait containing messages that are used to maintain inetrest accumulation. Used by **maintainers**.
+pub mod maintain;
+/// Trait containing `AccessControl` messages used to manage 'LendingPool' parameters. USed by **managers**.
+pub mod manage;
+/// Structs used in traits and storage
 pub mod structs;
+/// types used in traits and storage
+pub mod types;
+/// Trait containing messages that are accessible to **VToken** - the PSP22 Wrapper of debts.
+pub mod v_token_interface;
+/// Trait containing non-mutable messages.
+pub mod view;

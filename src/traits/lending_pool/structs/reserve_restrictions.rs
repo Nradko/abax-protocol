@@ -1,7 +1,7 @@
 use pendzl::traits::Balance;
 use scale::{Decode, Encode};
 
-// Parameters that are quite commonly used
+// Stores restrictions made on the reserve
 #[derive(Debug, Encode, Decode, Default)]
 #[cfg_attr(
     feature = "std",
@@ -16,8 +16,7 @@ pub struct ReserveRestrictions {
     /// if user's collateral drops below this value (during redeem) then it will be automatically turned off (as collateral).
     /// it may happen during liquidation that users collateral will drop below this value.
     pub minimal_collateral: Balance,
-    /// minimal debt that can be taken and maintain by each user.
+    /// minimal debt that can be taken and maintained by each user.
     /// At any time user's debt can not bee smaller than minimal debt.
-    /// Exception! it may happen during liquidation that users debt will drop below this value.
     pub minimal_debt: Balance,
 }
