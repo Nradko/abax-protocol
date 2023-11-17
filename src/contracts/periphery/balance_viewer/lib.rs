@@ -3,17 +3,16 @@
 #[ink::contract]
 pub mod balance_viewer {
 
-    use lending_project::traits::lending_pool::DecimalMultiplier;
-    use lending_project::traits::lending_pool::ReserveAbacusTokens;
-    use lending_project::traits::lending_pool::ReserveData;
-    use lending_project::traits::lending_pool::ReserveParameters;
-    use lending_project::traits::lending_pool::ReserveRestrictions;
-    use lending_project::traits::lending_pool::UserReserveData;
+    use abax_library::structs::{
+        ReserveAbacusTokens, ReserveData, ReserveParameters,
+        ReserveRestrictions, UserReserveData,
+    };
+    use abax_traits::lending_pool::{
+        DecimalMultiplier, LendingPoolView, LendingPoolViewRef,
+    };
     use pendzl::{contracts::psp22::*, traits::Storage};
 
     use ink::prelude::{vec::Vec, *};
-    use lending_project::traits::lending_pool::LendingPoolView;
-    use lending_project::traits::lending_pool::LendingPoolViewRef;
 
     #[derive(Debug, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]

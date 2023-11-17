@@ -1,20 +1,19 @@
-use crate::{
-    impls::{constants::E18_U128, lending_pool::storage::LendingPoolStorage},
-    traits::lending_pool::{
-        DecimalMultiplier, {MarketRule, RuleId},
-        {
-            ReserveAbacusTokens, ReserveData, ReserveIndexes,
-            ReserveParameters, ReserveRestrictions, UserConfig,
-            UserReserveData,
-        },
+use abax_library::{
+    math::E18_U128,
+    structs::{
+        ReserveAbacusTokens, ReserveData, ReserveIndexes, ReserveParameters,
+        ReserveRestrictions, UserConfig, UserReserveData,
     },
 };
-
+use abax_traits::lending_pool::{DecimalMultiplier, MarketRule, RuleId};
 use pendzl::traits::{AccountId, Storage};
 
 use ink::prelude::vec::Vec;
 
-use super::internal::{AssetPrices, InternalIncome, TimestampMock};
+use super::{
+    internal::{AssetPrices, InternalIncome, TimestampMock},
+    storage::LendingPoolStorage,
+};
 
 pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
     fn view_flash_loan_fee_e6(&self) -> u128 {

@@ -3,15 +3,13 @@
 #[pendzl::implementation(Ownable)]
 #[ink::contract]
 pub mod price_feed_provider {
+    use abax_traits::dia_oracle::{OracleGetters, OracleGettersRef};
+    use abax_traits::price_feed::{PriceFeed, PriceFeedError};
     use ink::prelude::string::String;
     use ink::prelude::{vec::Vec, *};
 
     use ink::storage::{Lazy, Mapping};
 
-    use lending_project::traits::dia_oracle::{
-        OracleGetters, OracleGettersRef,
-    };
-    use lending_project::traits::price_feed::{PriceFeed, PriceFeedError};
     use pendzl::contracts::ownable::{OwnableError, OwnableImpl};
     use pendzl::traits::Storage;
 

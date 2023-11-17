@@ -1,10 +1,5 @@
 use primitive_types::U256;
 
-use crate::{
-    impls::constants::{E10_U128, E18_U128, E6_U128, E8_U128},
-    traits::lending_pool::DecimalMultiplier,
-};
-
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum MathError {
@@ -168,8 +163,8 @@ pub fn calculate_amount_to_take(
     amount_to_repay: &u128,
     asset_to_repay_price_e18: &u128,
     asset_to_take_price_e18: &u128,
-    reserve_to_repay_decimal_multiplier: &DecimalMultiplier,
-    reserve_to_take_decimal_multiplier: &DecimalMultiplier,
+    reserve_to_repay_decimal_multiplier: &u128,
+    reserve_to_take_decimal_multiplier: &u128,
     penalty_to_repay_e6: &u128,
     penalty_to_take_e6: &u128,
 ) -> Result<u128, MathError> {
@@ -209,7 +204,7 @@ pub fn calculate_amount_to_take(
 pub fn calculate_asset_amount_value_e8(
     amount: &u128,
     price_e18: &u128,
-    decimal_multplier: &DecimalMultiplier,
+    decimal_multplier: &u128,
 ) -> u128 {
     let a = U256::try_from(*amount).unwrap();
     let b = U256::try_from(*price_e18).unwrap();

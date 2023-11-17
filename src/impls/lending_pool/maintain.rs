@@ -1,10 +1,8 @@
-use crate::{
-    impls::lending_pool::{
-        internal::TimestampMock, storage::LendingPoolStorage,
-    },
-    traits::lending_pool::{EmitMaintainEvents, LendingPoolError},
-};
-use pendzl::traits::{AccountId, Storage};
+use abax_traits::lending_pool::{EmitMaintainEvents, LendingPoolError};
+use ink::primitives::AccountId;
+use pendzl::traits::Storage;
+
+use super::{internal::TimestampMock, storage::LendingPoolStorage};
 
 pub trait LendingPoolMaintainImpl:
     Storage<LendingPoolStorage> + EmitMaintainEvents

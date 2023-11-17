@@ -6,8 +6,49 @@ version = 3
 name = "a_token"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
+ "parity-scale-codec",
+ "pendzl",
+ "scale-info",
+]
+
+[[package]]
+name = "abax_impls"
+version = "0.1.1"
+dependencies = [
+ "abax_library",
+ "abax_traits",
+ "ink",
+ "itertools",
+ "num-traits",
+ "parity-scale-codec",
+ "pendzl",
+ "primitive-types",
+ "scale-info",
+]
+
+[[package]]
+name = "abax_library"
+version = "0.1.1"
+dependencies = [
+ "ink",
+ "itertools",
+ "num-traits",
+ "parity-scale-codec",
+ "pendzl",
+ "primitive-types",
+ "scale-info",
+]
+
+[[package]]
+name = "abax_traits"
+version = "0.1.1"
+dependencies = [
+ "abax_library",
+ "ink",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -50,8 +91,10 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 name = "balance_viewer"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -97,8 +140,10 @@ dependencies = [
 name = "block_timestamp_provider"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -258,8 +303,10 @@ dependencies = [
 name = "dia_oracle"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -284,9 +331,9 @@ checksum = "a26ae43d7bcc3b814de94796a5e736d4029efb0ee900c12e2d54c993ad1a1e07"
 
 [[package]]
 name = "env_logger"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85cdab6a89accf66733ad5a1693a4dcced6aeff64602b634530dd73c1f3ee9f0"
+checksum = "95b3f3e67048839cb0d0781f445682a35113da7121f7c949db0e2be96a4fbece"
 dependencies = [
  "humantime",
  "is-terminal",
@@ -303,9 +350,9 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "errno"
-version = "0.3.5"
+version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac3e13f66a2f95e32a39eaa81f6b95d42878ca0e1db0c7543723dfe12557e860"
+checksum = "f258a7194e7f7c2a7837a8913aeab7fd8c383457034fa20ce4dd3dcb813e8eb8"
 dependencies = [
  "libc",
  "windows-sys",
@@ -327,8 +374,10 @@ dependencies = [
 name = "flash_loan_receiver_mock"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -368,9 +417,9 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.10"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be4136b2a15dd319360be1c07d9933517ccf0be8f16bf62a3bee4f0d618df427"
+checksum = "fe9006bed769170c11f845cf00c7c1e9092aeb3f268e007c3e760ac68008070f"
 dependencies = [
  "cfg-if",
  "libc",
@@ -507,7 +556,7 @@ dependencies = [
  "quote",
  "serde",
  "serde_json",
- "syn 2.0.38",
+ "syn 2.0.39",
 ]
 
 [[package]]
@@ -564,7 +613,7 @@ dependencies = [
  "itertools",
  "proc-macro2",
  "quote",
- "syn 2.0.38",
+ "syn 2.0.39",
 ]
 
 [[package]]
@@ -579,7 +628,7 @@ dependencies = [
  "parity-scale-codec",
  "proc-macro2",
  "quote",
- "syn 2.0.38",
+ "syn 2.0.39",
  "synstructure 0.13.0",
 ]
 
@@ -691,37 +740,26 @@ dependencies = [
 name = "lending_pool"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
- "scale-info",
-]
-
-[[package]]
-name = "lending_project"
-version = "0.1.1"
-dependencies = [
- "ink",
- "itertools",
- "num-traits",
- "parity-scale-codec",
- "pendzl",
- "primitive-types",
  "scale-info",
 ]
 
 [[package]]
 name = "libc"
-version = "0.2.149"
+version = "0.2.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a08173bc88b7955d1b3145aa561539096c421ac8debde8cbc3612ec635fee29b"
+checksum = "89d92a4743f9a61002fae18374ed11e7973f530cb3a3255fb354818118b2203c"
 
 [[package]]
 name = "linux-raw-sys"
-version = "0.4.10"
+version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da2479e8c062e40bf0066ffa0bc823de0a9368974af99c9f6df941d2c231e03f"
+checksum = "969488b55f8ac402214f3f5fd243ebb7206cf82de60d3172994707a4bcc2b829"
 
 [[package]]
 name = "log"
@@ -866,8 +904,10 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 name = "price_feed_provider"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -908,8 +948,10 @@ dependencies = [
 name = "psp22_emitable"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -919,8 +961,10 @@ dependencies = [
 name = "psp22_ownable"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -1014,9 +1058,9 @@ checksum = "3e75f6a532d0fd9f7f13144f392b6ad56a32696bfcd9c78f797f16bbb6f072d6"
 
 [[package]]
 name = "rustix"
-version = "0.38.21"
+version = "0.38.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b426b0506e5d50a7d8dafcf2e81471400deb602392c7dd110815afb4eaf02a3"
+checksum = "9ad981d6c340a49cdc40a1028d9c6084ec7e9fa33fcb839cab656a267071e234"
 dependencies = [
  "bitflags",
  "errno",
@@ -1159,22 +1203,22 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.190"
+version = "1.0.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91d3c334ca1ee894a2c6f6ad698fe8c435b76d504b13d436f0685d648d6d96f7"
+checksum = "bca2a08484b285dcb282d0f67b26cadc0df8b19f8c12502c13d966bf9482f001"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.190"
+version = "1.0.192"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67c5609f394e5c2bd7fc51efda478004ea80ef42fee983d5c67a65e34f32c0e3"
+checksum = "d6c7207fbec9faa48073f3e3074cbe553af6ea512d7c21ba46e434e70ea9fbc1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.38",
+ "syn 2.0.39",
 ]
 
 [[package]]
@@ -1211,16 +1255,18 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.11.1"
+version = "1.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "942b4a808e05215192e39f4ab80813e599068285906cc91aa64f923db842bd5a"
+checksum = "4dccd0940a2dcdf68d092b8cbab7dc0ad8fa938bf95787e1b916b0e3d0e8e970"
 
 [[package]]
 name = "stable_token"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -1257,9 +1303,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.38"
+version = "2.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e96b79aaa137db8f61e26363a0c9b47d8b4ec75da28b7d1d614c2303e232408b"
+checksum = "23e78b90f2fcf45d3e842032ce32e3f2d1545ba6636271dcbf24fa306d87be7a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1286,7 +1332,7 @@ checksum = "285ba80e733fac80aa4270fbcdf83772a79b80aa35c97075320abfee4a915b06"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.38",
+ "syn 2.0.39",
  "unicode-xid",
 ]
 
@@ -1298,9 +1344,9 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "termcolor"
-version = "1.3.0"
+version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6093bad37da69aab9d123a8091e4be0aa4a03e4d601ec641c327398315f62b64"
+checksum = "ff1bc3d3f05aff0403e8ac0d92ced918ec05b666a43f83297ccef5bea8a3d449"
 dependencies = [
  "winapi-util",
 ]
@@ -1309,8 +1355,10 @@ dependencies = [
 name = "test_reserves_minter"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -1333,7 +1381,7 @@ checksum = "266b2e40bc00e5a6c09c3584011e08b06f123c00362c92b975ba9843aaaa14b8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.38",
+ "syn 2.0.39",
 ]
 
 [[package]]
@@ -1405,8 +1453,10 @@ checksum = "7e33648dd74328e622c7be51f3b40a303c63f93e6fa5f08778b6203a4c25c20f"
 name = "v_token"
 version = "0.1.1"
 dependencies = [
+ "abax_impls",
+ "abax_library",
+ "abax_traits",
  "ink",
- "lending_project",
  "parity-scale-codec",
  "pendzl",
  "scale-info",
@@ -1523,9 +1573,9 @@ checksum = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538"
 
 [[package]]
 name = "winnow"
-version = "0.5.18"
+version = "0.5.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "176b6138793677221d420fd2f0aeeced263f197688b36484660da767bca2fa32"
+checksum = "829846f3e3db426d4cee4510841b71a8e58aa2a76b1132579487ae430ccd9c7b"
 dependencies = [
  "memchr",
 ]

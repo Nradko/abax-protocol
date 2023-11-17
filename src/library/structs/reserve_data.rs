@@ -1,16 +1,38 @@
-use pendzl::traits::{Balance, Timestamp};
-use primitive_types::U256;
+/// Contains most often used data of a reserve
+#[derive(Debug, Encode, Decode)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct ReserveData {
+    /// are any actions allowed?
+    pub activated: bool,
+    /// are borrows and deposits frozen?
+    pub freezed: bool,
 
-use crate::impls::constants::{E18_U128, E6_U128};
+    /// total deposit of underlying asset. It is sum of deposits and  of accumulated interests. Total deposit of aToken.
+    pub total_deposit: Balance,
+    /// current interest rate for deposited tokens per millisecond. 10^24 = 100%  millisecond Percentage Rate.
+    pub current_deposit_rate_e24: u128,
 
-use crate::library::math::{
-    e18_mul_e0_to_e0_rdown, e24_mul_e0_to_e18_rdown, e24_mul_e0_to_e18_rup,
-    e24_mul_e6_div_e0_to_e24_rdown, MathError,
-};
-use crate::traits::lending_pool::{
-    LendingPoolError, ReserveData, ReserveIndexes, ReserveParameters,
-    ReserveRestrictions,
-};
+    /// total debt. It is sum of debts with accumulated interests. Total supply of vToken.
+    pub total_debt: Balance,
+    // current interest rate for debt per millisecond. 10^24 = 100%  millisecond Percentage Rate.
+    pub current_debt_rate_e24: u128,
+
+    /// timestamp of the last update of the rate indexes
+    pub indexes_update_timestamp: Timestamp,
+}
+
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum ReserveDataError {
+    AlreadySet,
+    Inactive,
+    Freezed,
+    MaxDebtReached,
+    MaxDepositReached,
+}
 
 impl ReserveData {
     pub fn new(timestamp: &Timestamp) -> Self {
@@ -28,9 +50,9 @@ impl ReserveData {
     pub fn set_is_active(
         &mut self,
         active: bool,
-    ) -> Result<(), LendingPoolError> {
+    ) -> Result<(), ReserveDataError> {
         if self.activated == active {
-            return Err(LendingPoolError::AlreadySet);
+            return Err(ReserveDataError::AlreadySet);
         }
         self.activated = active;
         Ok(())
@@ -39,24 +61,24 @@ impl ReserveData {
     pub fn set_is_freezed(
         &mut self,
         freeze: bool,
-    ) -> Result<(), LendingPoolError> {
+    ) -> Result<(), ReserveDataError> {
         if self.freezed == freeze {
-            return Err(LendingPoolError::AlreadySet);
+            return Err(ReserveDataError::AlreadySet);
         }
         self.activated = freeze;
         Ok(())
     }
 
-    pub fn check_activeness(&self) -> Result<(), LendingPoolError> {
+    pub fn check_activeness(&self) -> Result<(), ReserveDataError> {
         if !self.activated {
-            return Err(LendingPoolError::Inactive);
+            return Err(ReserveDataError::Inactive);
         }
         Ok(())
     }
 
-    pub fn check_is_freezed(&self) -> Result<(), LendingPoolError> {
+    pub fn check_is_freezed(&self) -> Result<(), ReserveDataError> {
         if self.freezed {
-            return Err(LendingPoolError::Freezed);
+            return Err(ReserveDataError::Freezed);
         }
         Ok(())
     }
@@ -219,12 +241,12 @@ impl ReserveData {
     pub fn check_max_total_deposit(
         &self,
         reserve_restrictions: &ReserveRestrictions,
-    ) -> Result<(), LendingPoolError> {
+    ) -> Result<(), ReserveDataError> {
         match reserve_restrictions.maximal_total_deposit {
             Some(max_total_deposit)
                 if self.total_deposit > max_total_deposit =>
             {
-                Err(LendingPoolError::MaxDepositReached)
+                Err(ReserveDataError::MaxDepositReached)
             }
             _ => Ok(()),
         }
@@ -248,10 +270,10 @@ impl ReserveData {
     pub fn check_max_total_debt(
         &self,
         reserve_restrictions: &ReserveRestrictions,
-    ) -> Result<(), LendingPoolError> {
+    ) -> Result<(), ReserveDataError> {
         match reserve_restrictions.maximal_total_debt {
             Some(max_total_debt) if self.total_debt > max_total_debt => {
-                Err(LendingPoolError::MaxDebtReached)
+                Err(ReserveDataError::MaxDebtReached)
             }
             _ => Ok(()),
         }

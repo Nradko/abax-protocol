@@ -2,10 +2,10 @@
 
 #[ink::contract]
 pub mod flash_loan_receiver_mock {
-    use ink::prelude::vec::Vec;
-    use lending_project::traits::flash_loan_receiver::{
-        FlashLoanReceiverError, *,
+    use abax_traits::flash_loan_receiver::{
+        FlashLoanReceiver, FlashLoanReceiverError,
     };
+    use ink::prelude::vec::Vec;
 
     use pendzl::contracts::psp22::extensions::mintable::PSP22Mintable;
     use pendzl::{

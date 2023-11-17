@@ -1,7 +1,7 @@
 [package]
-name = "lending_pool"
+name = "abax_impls"
 version = "0.1.1"
-authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
+authors = []
 edition = "2021"
 
 [dependencies]
@@ -13,41 +13,41 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
+pendzl = { path = "../../../pendzl-contracts", default-features = false, features = [
     "psp22",
+    "psp34",
     "ownable",
     "pausable",
     "access_control",
 ] }
 
-abax_impls = { path = "../../../impls", default-features = false }
-abax_traits = { path = "../../../traits", default-features = false }
-abax_library = { path = "../../../library", default-features = false }
+abax_library = { path = "../library", default-features = false }
+abax_traits = { path = "../traits", default-features = false }
+
+
+primitive-types = { version = "0.12.1", default-features = false, features = [
+    "codec",
+] }
+
+num-traits = { version = "0.2.15", default-features = false }
+itertools = { version = "0.10.5", default-features = false }
 
 [lib]
-name = "lending_pool"
+name = "abax_impls"
 path = "lib.rs"
-
+crate-type = ["rlib"]
 
 [features]
 default = ["std"]
 std = [
     "ink/std",
     "scale/std",
-    "scale-info",
     "scale-info/std",
 
     # These dependencies
     "abax_traits/std",
     "abax_library/std",
-    "abax_impls/std",
     "pendzl/std",
+    "primitive-types/std",
+    "primitive-types/scale-info",
 ]
-ink-as-dependency = []
-
-[profile.dev]
-codegen-units = 16      # Use slightly better optimizations.
-overflow-checks = false
-
-[profile.release]
-overflow-checks = false

@@ -21,7 +21,10 @@ pendzl = { path = "../../../../../pendzl-contracts", default-features = false, f
     "access_control",
 ] }
 
-lending_project = { path = "../../..", default-features = false }
+abax_traits = { path = "../../../traits", default-features = false }
+abax_impls = { path = "../../../impls", default-features = false }
+abax_library = { path = "../../../library", default-features = false }
+
 
 [lib]
 name = "flash_loan_receiver_mock"
@@ -37,7 +40,9 @@ std = [
     "scale-info/std",
 
     # These dependencies
-    "lending_project/std",
+    "abax_traits/std",
+    "abax_impls/std",
+    "abax_library/std",
     "pendzl/std",
 ]
 ink-as-dependency = []

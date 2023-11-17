@@ -3,7 +3,7 @@
 #[pendzl::implementation(Ownable)]
 #[ink::contract]
 pub mod block_timestamp_provider {
-    use lending_project::traits::block_timestamp_provider::*;
+    use abax_traits::block_timestamp_provider::BlockTimestampProviderInterface;
     use pendzl::{
         contracts::ownable::{OwnableError, *},
         traits::{DefaultEnv, Storage},

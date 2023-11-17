@@ -1,24 +1,12 @@
-use crate::{
-    impls::{
-        constants::{
-            ASSET_LISTING_ADMIN, EMERGENCY_ADMIN, PARAMETERS_ADMIN,
-            STABLECOIN_RATE_ADMIN, TREASURY,
-        },
-        lending_pool::{internal::InternalIncome, storage::LendingPoolStorage},
-    },
-    traits::{
-        dummy::DummyRef,
-        lending_pool::{
-            EmitManageEvents, LendingPoolError, MarketRule,
-            {
-                AssetRules, ReserveAbacusTokens, ReserveData,
-                ReserveParameters, ReserveRestrictions,
-            },
-        },
-    },
+use abax_library::structs::{
+    AssetRules, ReserveAbacusTokens, ReserveData, ReserveParameters,
+    ReserveRestrictions,
 };
-
-use crate::impls::lending_pool::internal::TimestampMock;
+use abax_traits::dummy::DummyRef;
+use abax_traits::lending_pool::{
+    EmitManageEvents, LendingPoolError, MarketRule, ASSET_LISTING_ADMIN,
+    EMERGENCY_ADMIN, PARAMETERS_ADMIN, STABLECOIN_RATE_ADMIN, TREASURY,
+};
 use ink::prelude::string::{String, ToString};
 use ink::{
     env::call::ExecutionInput,
@@ -31,6 +19,9 @@ use pendzl::{
     contracts::{access_control::*, psp22::PSP22Ref},
     traits::{Balance, Storage},
 };
+
+use super::internal::{InternalIncome, TimestampMock};
+use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolManageImpl:
     ManageInternal

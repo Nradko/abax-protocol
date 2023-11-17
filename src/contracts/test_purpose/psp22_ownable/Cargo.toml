@@ -17,7 +17,10 @@ pendzl = { path = "../../../../../pendzl-contracts", default-features = false, f
     "psp22",
 ] }
 
-lending_project = { path = "../../..", default-features = false }
+abax_traits = { path = "../../../traits", default-features = false }
+abax_impls = { path = "../../../impls", default-features = false }
+abax_library = { path = "../../../library", default-features = false }
+
 
 [lib]
 name = "psp22_ownable"
@@ -32,7 +35,9 @@ std = [
     "scale-info/std",
 
     # These dependencies
-    "lending_project/std",
+    "abax_traits/std",
+    "abax_impls/std",
+    "abax_library/std",
     "pendzl/std",
 ]
 ink-as-dependency = []

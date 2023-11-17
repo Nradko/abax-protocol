@@ -1,14 +1,28 @@
-use pendzl::traits::Balance;
-use primitive_types::U256;
+/// stores data of user
+#[derive(Debug, Default, Encode, Decode, Clone, Copy)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct UserReserveData {
+    /// underlying asset amount of deposit plus accumulated interest.
+    pub deposit: Balance,
+    /// underlying asset amount of debt plus accumulated interest.
+    pub debt: Balance,
+    /// index that is used to accumulate deposit interest.
+    pub applied_cumulative_deposit_index_e18: u128,
+    /// index that is used to accumulate debt interest.
+    pub applied_cumulative_debt_index_e18: u128,
+}
+/// type used to identify asset
+pub type AssetId = u32;
 
-use crate::{
-    impls::constants::{E18_U128, MATH_ERROR_MESSAGE},
-    library::math::MathError,
-    traits::lending_pool::{
-        AssetId, LendingPoolError,
-        {ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData},
-    },
-};
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum UserReserveDataError {
+    MinimalDebt,
+    MinimalCollateral,
+}
 
 impl UserReserveData {
     pub fn increase_user_deposit(
@@ -79,9 +93,9 @@ impl UserReserveData {
     pub fn check_debt_restrictions(
         &self,
         reserve_restrictions: &ReserveRestrictions,
-    ) -> Result<(), LendingPoolError> {
+    ) -> Result<(), UserReserveDataError> {
         if self.debt != 0 && self.debt < reserve_restrictions.minimal_debt {
-            return Err(LendingPoolError::MinimalDebt);
+            return Err(UserReserveDataError::MinimalDebt);
         }
         Ok(())
     }
@@ -89,11 +103,11 @@ impl UserReserveData {
     pub fn check_collateral_restrictions(
         &self,
         reserve_restrictions: &ReserveRestrictions,
-    ) -> Result<(), LendingPoolError> {
+    ) -> Result<(), UserReserveDataError> {
         if self.deposit != 0
             && self.deposit < reserve_restrictions.minimal_collateral
         {
-            return Err(LendingPoolError::MinimalCollateralDeposit);
+            return Err(UserReserveDataError::MinimalCollateral);
         }
         Ok(())
     }
@@ -164,7 +178,7 @@ impl UserReserveData {
                 }?;
                 updated_borrow_rounded_down
                     .checked_add(1)
-                    .expect(MATH_ERROR_MESSAGE)
+                    .ok_or(MathError::Overflow)?
             };
             delta_user_varaible_debt = updated_borrow - self.debt;
             self.debt = updated_borrow;
