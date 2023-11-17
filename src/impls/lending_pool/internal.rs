@@ -1,28 +1,30 @@
 use core::cmp::Ordering;
 
-use crate::traits::block_timestamp_provider::BlockTimestampProviderInterface;
-use crate::{
-    impls::lending_pool::storage::LendingPoolStorage,
-    traits::{
-        abacus_token::*,
-        block_timestamp_provider::BlockTimestampProviderRef,
-        lending_pool::LendingPoolError,
-        price_feed::{PriceFeed, PriceFeedRef},
+use abax_traits::{
+    abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
+    block_timestamp_provider::{
+        BlockTimestampProviderInterface, BlockTimestampProviderRef,
     },
+    lending_pool::LendingPoolError,
+    price_feed::{PriceFeed, PriceFeedRef},
 };
 use ink::{
     prelude::{vec::Vec, *},
     primitives::AccountId,
 };
-use pendzl::contracts::psp22::extensions::burnable::PSP22Burnable;
-use pendzl::contracts::psp22::extensions::burnable::PSP22BurnableRef;
-use pendzl::contracts::psp22::extensions::mintable::PSP22Mintable;
-use pendzl::contracts::psp22::extensions::mintable::PSP22MintableRef;
-use pendzl::contracts::psp22::PSP22;
+
 use pendzl::{
-    contracts::psp22::{PSP22Error, PSP22Ref},
+    contracts::psp22::{
+        extensions::{
+            burnable::{PSP22Burnable, PSP22BurnableRef},
+            mintable::{PSP22Mintable, PSP22MintableRef},
+        },
+        {PSP22Error, PSP22Ref, PSP22},
+    },
     traits::{Balance, Storage, Timestamp},
 };
+
+use super::storage::LendingPoolStorage;
 
 pub fn _check_amount_not_zero(amount: u128) -> Result<(), LendingPoolError> {
     if amount == 0 {

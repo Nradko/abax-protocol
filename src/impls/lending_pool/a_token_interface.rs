@@ -1,17 +1,16 @@
-use crate::{
-    impls::lending_pool::{
-        internal::{AssetPrices, TimestampMock},
-        storage::LendingPoolStorage,
-    },
-    traits::{
-        abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
-        lending_pool::{EmitDepositEvents, LendingPoolError},
-    },
+use abax_traits::{
+    abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
+    lending_pool::{EmitDepositEvents, LendingPoolError},
 };
 use ink::prelude::*;
 use pendzl::{
     contracts::access_control::AccessControlError,
     traits::{AccountId, Balance, Storage},
+};
+
+use super::{
+    internal::{AssetPrices, TimestampMock},
+    storage::LendingPoolStorage,
 };
 
 pub trait LendingPoolATokenInterfaceImpl:

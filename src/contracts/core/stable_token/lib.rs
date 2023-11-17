@@ -14,7 +14,7 @@ pub mod stable_token {
         prelude::string::String,
     };
 
-    use lending_project::impls::constants::{BURNER, MINTER};
+    use abax_traits::lending_pool::{BURNER, MINTER};
     use pendzl::{
         contracts::{
             access_control,

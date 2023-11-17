@@ -1,25 +1,18 @@
-use ink::prelude::format;
-use pendzl::contracts::{
-    access_control::AccessControlError, psp22::PSP22Error,
-};
-
-use crate::{
-    library::math::MathError,
-    traits::{
-        flash_loan_receiver::FlashLoanReceiverError, price_feed::PriceFeedError,
-    },
-};
-
 /// Possible errors returned by `LendingPool` messages.
-#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum LendingPoolError {
     PSP22Error(PSP22Error),
-    FlashLoanReceiverError(FlashLoanReceiverError),
-
     AccessControlError(AccessControlError),
+
     MathError(MathError),
+
+    AssetRulesError(AssetRulesError),
+    ReserveDataError(ReserveDataError),
+    UserReserveDataError(UserReserveDataError),
+
     PriceFeedError(PriceFeedError),
+    FlashLoanReceiverError(FlashLoanReceiverError),
     /// returned if reserve is inactive
     Inactive,
     /// returned if activating, disactivating, freezing, unfreezing action is redundant.
@@ -72,6 +65,22 @@ pub enum LendingPoolError {
     AccumulatedAlready,
     /// returned if the asset_rule to be set is invalid.
     InvalidAssetRule,
+}
+
+impl From<AssetRulesError> for LendingPoolError {
+    fn from(error: AssetRulesError) -> Self {
+        LendingPoolError::AssetRulesError(error)
+    }
+}
+impl From<ReserveDataError> for LendingPoolError {
+    fn from(error: ReserveDataError) -> Self {
+        LendingPoolError::ReserveDataError(error)
+    }
+}
+impl From<UserReserveDataError> for LendingPoolError {
+    fn from(error: UserReserveDataError) -> Self {
+        LendingPoolError::UserReserveDataError(error)
+    }
 }
 
 impl From<MathError> for LendingPoolError {

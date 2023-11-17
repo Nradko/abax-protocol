@@ -1,9 +1,15 @@
-use crate::{
-    impls::lending_pool::{internal::*, storage::LendingPoolStorage},
-    traits::lending_pool::{EmitBorrowEvents, LendingPoolError, RuleId},
-};
+use abax_traits::lending_pool::{EmitBorrowEvents, LendingPoolError, RuleId};
 use ink::prelude::vec::Vec;
 use pendzl::traits::{AccountId, Balance, Storage};
+
+use super::{
+    internal::{
+        AssetPrices, TimestampMock, Transfer, _check_amount_not_zero,
+        _emit_abacus_token_transfer_event,
+        _emit_abacus_token_transfer_event_and_decrease_allowance,
+    },
+    storage::LendingPoolStorage,
+};
 
 pub trait LendingPoolBorrowImpl:
     Storage<LendingPoolStorage> + TimestampMock + EmitBorrowEvents

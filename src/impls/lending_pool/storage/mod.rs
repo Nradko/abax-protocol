@@ -1,23 +1,20 @@
+use abax_library::{
+    math::{
+        calculate_amount_to_take, calculate_asset_amount_value_e8,
+        e8_mul_e6_to_e6_rdown, MathError, E18_U128,
+    },
+    structs::{
+        AssetId, AssetRules, ReserveAbacusTokens, ReserveData, ReserveIndexes,
+        ReserveParameters, ReserveRestrictions, UserConfig, UserReserveData,
+    },
+};
+use abax_traits::lending_pool::{
+    DecimalMultiplier, LendingPoolError, MarketRule, RuleId,
+};
 use ink::prelude::vec::Vec;
 use pendzl::{
     storage::Mapping,
     traits::{AccountId, Balance, Timestamp},
-};
-
-use crate::{
-    impls::constants::E18_U128,
-    library::math::{
-        calculate_amount_to_take, calculate_asset_amount_value_e8,
-        e8_mul_e6_to_e6_rdown, MathError,
-    },
-    traits::lending_pool::{
-        DecimalMultiplier, LendingPoolError, {AssetId, MarketRule, RuleId},
-        {
-            AssetRules, ReserveAbacusTokens, ReserveData, ReserveIndexes,
-            ReserveParameters, ReserveRestrictions, UserConfig,
-            UserReserveData,
-        },
-    },
 };
 
 #[derive(Default, Debug)]

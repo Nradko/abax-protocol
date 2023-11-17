@@ -1,7 +1,7 @@
 [package]
-name = "test_reserves_minter"
+name = "abax_traits"
 version = "0.1.1"
-authors = [""]
+authors = []
 edition = "2021"
 
 [dependencies]
@@ -9,35 +9,34 @@ ink = { version = "4.3", default-features = false }
 scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = [
     "derive",
 ] }
+
+abax_library = { path = "../library", default-features = false }
+
 scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
+pendzl = { path = "../../../pendzl-contracts", default-features = false, features = [
     "psp22",
+    "psp34",
+    "ownable",
+    "pausable",
+    "access_control",
 ] }
 
-abax_traits = { path = "../../../traits", default-features = false }
-abax_impls = { path = "../../../impls", default-features = false }
-abax_library = { path = "../../../library", default-features = false }
-
-
 [lib]
-name = "test_reserves_minter"
+name = "abax_traits"
 path = "lib.rs"
+crate-type = ["rlib"]
 
 [features]
 default = ["std"]
 std = [
     "ink/std",
     "scale/std",
-    "scale-info",
     "scale-info/std",
 
     # These dependencies
-    "abax_traits/std",
-    "abax_impls/std",
     "abax_library/std",
     "pendzl/std",
 ]
-ink-as-dependency = []

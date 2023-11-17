@@ -1,12 +1,7 @@
-use crate::{
-    impls::{
-        constants::{E6_U128, FLASH_BORROWER},
-        lending_pool::{internal::Transfer, storage::LendingPoolStorage},
-    },
-    traits::{
-        flash_loan_receiver::FlashLoanReceiverError,
-        lending_pool::{EmitFlashEvents, LendingPoolError},
-    },
+use abax_library::math::E6_U128;
+use abax_traits::{
+    flash_loan_receiver::FlashLoanReceiverError,
+    lending_pool::{EmitFlashEvents, LendingPoolError, FLASH_BORROWER},
 };
 use ink::{
     env::{
@@ -20,6 +15,8 @@ use pendzl::{
     contracts::access_control::*,
     traits::{AccountId, Balance, Storage},
 };
+
+use super::{internal::Transfer, storage::LendingPoolStorage};
 
 pub trait LendingPoolFlashImpl:
     Storage<LendingPoolStorage>

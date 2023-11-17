@@ -1,5 +1,6 @@
 pub mod storage;
 
+use abax_traits::abacus_token::TransferEventData;
 use ink::{
     prelude::{string::String, vec::Vec},
     primitives::AccountId,
@@ -9,9 +10,7 @@ use pendzl::{
     traits::{Balance, Storage},
 };
 
-use crate::traits::abacus_token::TransferEventData;
-
-use crate::impls::abacus_token::storage::AbacusTokenStorage;
+use self::storage::AbacusTokenStorage;
 
 pub trait AbacusTokenImpl:
     Storage<AbacusTokenStorage> + psp22::Internal

@@ -3,19 +3,20 @@
 #[pendzl::implementation(PSP22, PSP22Metadata)]
 #[ink::contract]
 pub mod v_token {
+    use abax_impls::abacus_token::{
+        storage::AbacusTokenStorage, AbacusTokenImpl,
+    };
+    use abax_traits::{
+        abacus_token::{AbacusToken, TransferEventData},
+        lending_pool::{
+            LendingPoolVTokenInterface, LendingPoolVTokenInterfaceRef,
+        },
+    };
     use ink::{
         codegen::{EmitEvent, Env},
         prelude::string::String,
     };
 
-    use lending_project::impls::abacus_token::{
-        storage::AbacusTokenStorage, AbacusTokenImpl,
-    };
-    use lending_project::traits::{
-        abacus_token::AbacusToken, abacus_token::*,
-        lending_pool::LendingPoolVTokenInterface,
-        lending_pool::LendingPoolVTokenInterfaceRef,
-    };
     use pendzl::{
         contracts::psp22::{extensions::metadata::*, PSP22Error},
         traits::Storage,

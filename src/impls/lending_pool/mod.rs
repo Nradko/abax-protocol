@@ -7,6 +7,5 @@ pub mod liquidate;
 pub mod maintain;
 pub mod manage;
 pub mod storage;
-pub mod structs;
 pub mod v_token_interface;
 pub mod view;

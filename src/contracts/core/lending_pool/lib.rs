@@ -10,47 +10,36 @@
 #[pendzl::implementation(AccessControl)]
 #[ink::contract]
 pub mod lending_pool {
+    use abax_impls::lending_pool::{
+        a_token_interface::LendingPoolATokenInterfaceImpl,
+        borrow::LendingPoolBorrowImpl,
+        deposit::LendingPoolDepositImpl,
+        flash::LendingPoolFlashImpl,
+        liquidate::LendingPoolLiquidateImpl,
+        maintain::LendingPoolMaintainImpl,
+        manage::{LendingPoolManageImpl, ManageInternal},
+        storage::LendingPoolStorage,
+        v_token_interface::LendingPoolVTokenInterfaceImpl,
+        view::LendingPoolViewImpl,
+    };
+    use abax_library::structs::{
+        AssetRules, ReserveAbacusTokens, ReserveData, ReserveIndexes,
+        ReserveParameters, ReserveRestrictions, UserConfig, UserReserveData,
+    };
+    use abax_traits::lending_pool::{
+        DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
+        EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
+        EmitManageEvents, LendingPoolATokenInterface, LendingPoolBorrow,
+        LendingPoolDeposit, LendingPoolError, LendingPoolFlash,
+        LendingPoolLiquidate, LendingPoolMaintain, LendingPoolManage,
+        LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
+        ROLE_ADMIN,
+    };
     use ink::{
         codegen::{EmitEvent, Env},
         prelude::vec::Vec,
     };
 
-    use lending_project::{
-        impls::{
-            constants::ROLE_ADMIN,
-            lending_pool::{
-                a_token_interface::LendingPoolATokenInterfaceImpl,
-                borrow::LendingPoolBorrowImpl,
-                deposit::LendingPoolDepositImpl,
-                flash::LendingPoolFlashImpl,
-                liquidate::LendingPoolLiquidateImpl,
-                maintain::LendingPoolMaintainImpl,
-                manage::{LendingPoolManageImpl, ManageInternal},
-                storage::LendingPoolStorage,
-                v_token_interface::LendingPoolVTokenInterfaceImpl,
-                view::LendingPoolViewImpl,
-            },
-        },
-        traits::lending_pool::{
-            AssetRules, DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
-            EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
-            EmitManageEvents, LendingPoolError,
-            {
-                LendingPoolATokenInterface, LendingPoolManage,
-                LendingPoolVTokenInterface, LendingPoolView,
-                {
-                    LendingPoolBorrow, LendingPoolDeposit, LendingPoolFlash,
-                    LendingPoolLiquidate, LendingPoolMaintain,
-                },
-            },
-            {MarketRule, RuleId},
-            {
-                ReserveAbacusTokens, ReserveData, ReserveIndexes,
-                ReserveParameters, ReserveRestrictions, UserConfig,
-                UserReserveData,
-            },
-        },
-    };
     // use pendzl::storage::Mapping;
     use pendzl::{
         contracts::access_control::{self, *},
