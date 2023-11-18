@@ -1,3 +1,5 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
 /// `DIA_DATA` oracle interface
 pub mod dia_oracle;
 /// core protocol contract `LendingPool`
