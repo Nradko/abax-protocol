@@ -101,9 +101,11 @@ makeSuite('Menage tests', (getTestEnv) => {
       name: 'TOKEN NAME XAYR',
       symbol: 'XAYR',
       decimals: '6',
-      collateralCoefficientE6: '500000',
-      borrowCoefficientE6: '3000000',
-      penaltyE6: '300000',
+      assetRules: {
+        collateralCoefficientE6: '500000',
+        borrowCoefficientE6: '3000000',
+        penaltyE6: '300000',
+      },
       maximalTotalDeposit: '111',
       maximalTotalDebt: '222',
       minimalCollateral: '200000',
@@ -189,9 +191,9 @@ makeSuite('Menage tests', (getTestEnv) => {
             args: {
               marketRuleId: '0',
               asset: PARAMS.asset,
-              collateralCoefficientE6: PARAMS.collateralCoefficientE6,
-              borrowCoefficientE6: PARAMS.borrowCoefficientE6,
-              penaltyE6: PARAMS.penaltyE6,
+              collateralCoefficientE6: PARAMS.assetRules.collateralCoefficientE6,
+              borrowCoefficientE6: PARAMS.assetRules.borrowCoefficientE6,
+              penaltyE6: PARAMS.assetRules.penaltyE6,
             },
           },
         ]);
@@ -249,9 +251,11 @@ makeSuite('Menage tests', (getTestEnv) => {
       name: 'TOKEN NAME XAYR',
       symbol: 'XAYR',
       decimals: '6',
-      collateralCoefficientE6: '500000',
-      borrowCoefficientE6: '3000000',
-      penaltyE6: '300000',
+      assetRules: {
+        collateralCoefficientE6: '500000',
+        borrowCoefficientE6: '3000000',
+        penaltyE6: '300000',
+      },
       maximalTotalDeposit: '111',
       maximalTotalDebt: '222',
       minimalCollateral: '200000',
@@ -318,9 +322,9 @@ makeSuite('Menage tests', (getTestEnv) => {
             args: {
               marketRuleId: '0',
               asset: PARAMS.asset,
-              collateralCoefficientE6: PARAMS.collateralCoefficientE6,
-              borrowCoefficientE6: PARAMS.borrowCoefficientE6,
-              penaltyE6: PARAMS.penaltyE6,
+              collateralCoefficientE6: PARAMS.assetRules.collateralCoefficientE6,
+              borrowCoefficientE6: PARAMS.assetRules.borrowCoefficientE6,
+              penaltyE6: PARAMS.assetRules.penaltyE6,
             },
           },
         ]);
@@ -410,7 +414,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const queryRes = (
           await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsActive(...(Object.values({ ...PARAMS, active: true }) as params))
         ).value.ok;
-        expect.soft(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AlreadySet());
+        expect.soft(queryRes).to.have.deep.property('err', { reserveDataError: 'AlreadySet' });
       }
       expect.flushSoft();
     });
@@ -465,7 +469,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const queryRes = (
           await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsFreezed(...(Object.values({ ...PARAMS, active: false }) as params))
         ).value.ok;
-        expect.soft(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.AlreadySet());
+        expect.soft(queryRes).to.have.deep.property('err', { reserveDataError: 'AlreadySet' });
       }
       expect.flushSoft();
     });
@@ -615,9 +619,11 @@ makeSuite('Menage tests', (getTestEnv) => {
     const PARAMS = {
       marketRuleId: '0',
       asset: '',
-      collateralCoefficientE6: '500000',
-      borrowCoefficientE6: '1750000',
-      penaltyE6: '400000',
+      assetRules: {
+        collateralCoefficientE6: '500000',
+        borrowCoefficientE6: '1750000',
+        penaltyE6: '400000',
+      },
     };
     beforeEach(() => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
@@ -641,9 +647,9 @@ makeSuite('Menage tests', (getTestEnv) => {
             args: {
               marketRuleId: PARAMS.marketRuleId,
               asset: PARAMS.asset,
-              collateralCoefficientE6: PARAMS.collateralCoefficientE6,
-              borrowCoefficientE6: PARAMS.borrowCoefficientE6,
-              penaltyE6: PARAMS.penaltyE6,
+              collateralCoefficientE6: PARAMS.assetRules.collateralCoefficientE6,
+              borrowCoefficientE6: PARAMS.assetRules.borrowCoefficientE6,
+              penaltyE6: PARAMS.assetRules.penaltyE6,
             },
           },
         ]);
@@ -651,9 +657,9 @@ makeSuite('Menage tests', (getTestEnv) => {
         const marketRules = (await lendingPool.query.viewMarketRule(PARAMS.marketRuleId)).value.ok!;
         const assetId = (await lendingPool.query.viewAssetId(PARAMS.asset)).value.ok!;
         expect.soft(replaceRNBNPropsWithStrings(marketRules[assetId]!)).to.deep.equal({
-          collateralCoefficientE6: PARAMS.collateralCoefficientE6,
-          borrowCoefficientE6: PARAMS.borrowCoefficientE6,
-          penaltyE6: PARAMS.penaltyE6,
+          collateralCoefficientE6: PARAMS.assetRules.collateralCoefficientE6,
+          borrowCoefficientE6: PARAMS.assetRules.borrowCoefficientE6,
+          penaltyE6: PARAMS.assetRules.penaltyE6,
         });
         expect.flushSoft();
       });
@@ -665,7 +671,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
     type params = Parameters<typeof lendingPool.query.addMarketRule>;
     const marketRule: any[] = [
-      { collateralCoefficientE6: null, borrowCoefficientE6: null, penaltyE6: null },
+      null,
       { collateralCoefficientE6: '900000', borrowCoefficientE6: null, penaltyE6: '500000' },
       null,
       { collateralCoefficientE6: null, borrowCoefficientE6: '1100000', penaltyE6: '500000' },
@@ -685,16 +691,6 @@ makeSuite('Menage tests', (getTestEnv) => {
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
         expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
-          {
-            name: 'AssetRulesChanged',
-            args: {
-              marketRuleId: '1',
-              asset: testEnv.reserves['DAI'].underlying.address,
-              collateralCoefficientE6: marketRule[0].collateralCoefficientE6,
-              borrowCoefficientE6: marketRule[0].borrowCoefficientE6,
-              penaltyE6: marketRule[0].penaltyE6,
-            },
-          },
           {
             name: 'AssetRulesChanged',
             args: {

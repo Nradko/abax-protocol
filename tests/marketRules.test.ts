@@ -111,7 +111,9 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
             await lendingPool.withSigner(user).tx.chooseMarketRule(1);
           });
           it(`After user chooses stablecoin market ParametersAdmin decreases collateralCoefficient of USDC to 0. User gets undercollateralized`, async () => {
-            const txRes = await lendingPool.withSigner(parametersAdmin).tx.modifyAssetRule(1, usdcContract.address, 0, 1030000, 15000);
+            const txRes = await lendingPool
+              .withSigner(parametersAdmin)
+              .tx.modifyAssetRule(1, usdcContract.address, { collateralCoefficientE6: 0, borrowCoefficientE6: 1030000, penaltyE6: 15000 });
             expect(txRes.events).to.deep.equal([
               {
                 name: 'AssetRulesChanged',
