@@ -29,13 +29,9 @@ pub trait LendingPoolVTokenInterface {
     /// The number of events and their type/values depend on the interests that may be accrued both for `from` and `to` accounts.
     ///
     /// # Errors
-    ///
-    /// Returns `TransfersDisabled` error if deposit for given `underlying_asset` is disabled.
-    ///
-    /// Returns `WrongCaller` error if the caller is not an `underlying_asset`'s VToken contract.
-    ///
-    /// Returns `InsufficientBalance` error if there are not enough tokens on
-    /// the the account Balance of `from`.
+    /// * `TransfersDisabled` returned if deposit for given `underlying_asset` is disabled.
+    /// * `WrongCaller` returned if the caller is not an `underlying_asset`'s VToken contract.
+    /// * `InsufficientBalance` returned if there are not enough tokens on the the account Balance of `from`.
     #[ink(message)]
     fn transfer_debt_from_to(
         &mut self,
