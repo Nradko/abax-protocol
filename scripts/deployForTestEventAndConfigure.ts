@@ -2,6 +2,7 @@ import { getArgvObj } from '@abaxfinance/utils';
 import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
 import path from 'path';
+import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
 import {
   deployBalanceViewer,
   deployCoreContracts,
@@ -123,7 +124,6 @@ type TokenReserve = {
   const keyring = new Keyring();
   const signer = keyring.createFromUri(seed, {}, 'sr25519'); // getSigners()[0];
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.azero.testnet.json');
-
   const deployedContracts = await deployCoreContracts(signer, ORACLE_ADDRESS);
   const lendingPool = deployedContracts.lendingPool;
   const priceFeedProvider = deployedContracts.priceFeedProvider;

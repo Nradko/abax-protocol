@@ -11,8 +11,9 @@ import { ONE_YEAR } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves, TestEnvStables } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
+import { apiProviderWrapper } from 'tests/setup/helpers';
 
-makeSuite.only('AbaxStableToken', (getTestEnv) => {
+makeSuite('AbaxStableToken', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
@@ -99,8 +100,11 @@ makeSuite.only('AbaxStableToken', (getTestEnv) => {
       const initialUsdaxDebt: BN = new BN(10_000 * 1_000_000);
       let timestamp: number;
       beforeEach('Alice takes loan', async () => {
+        const timestampPre = parseInt((await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now()).toString());
+        console.log({ timestampPre });
         await lendingPool.withSigner(alice).tx.borrow(usdaxContract.address, alice.address, initialUsdaxDebt, []);
         timestamp = await increaseBlockTimestamp(ONE_YEAR.toNumber());
+        console.log({ timestampPost: timestamp });
       });
 
       it('Alice repays 10 000 USDax, debt should be accumulated', async () => {
@@ -109,7 +113,6 @@ makeSuite.only('AbaxStableToken', (getTestEnv) => {
           capturedTransferEvents.push(event);
         });
         const query = await lendingPool.withSigner(alice).query.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
-        console.log(query.value);
         const tx = lendingPool.withSigner(alice).tx.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
         await expect(tx).to.eventually.be.fulfilled;
         const txRes = await tx;
