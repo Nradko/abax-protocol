@@ -1,20 +1,18 @@
+import { LendingPoolErrorBuilder, replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
+import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
 import AToken from 'typechain/contracts/a_token';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
-import VToken from 'typechain/contracts/v_token';
 import StableToken from 'typechain/contracts/stable_token';
+import { Transfer } from 'typechain/event-types/a_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
+import { ONE_YEAR } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves, TestEnvStables } from './scenarios/utils/make-suite';
-import { LendingPoolErrorBuilder, replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { expect } from './setup/chai';
-import { ONE_YEAR } from './consts';
-import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
-import { Transfer } from 'typechain/event-types/a_token';
-import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 
-makeSuite('AbaxStableToken', (getTestEnv) => {
+makeSuite.only('AbaxStableToken', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
@@ -102,8 +100,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
       let timestamp: number;
       beforeEach('Alice takes loan', async () => {
         await lendingPool.withSigner(alice).tx.borrow(usdaxContract.address, alice.address, initialUsdaxDebt, []);
-        await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR);
-        timestamp = (await testEnv.blockTimestampProvider.query.getBlockTimestamp()).value.ok!;
+        timestamp = await increaseBlockTimestamp(ONE_YEAR.toNumber());
       });
 
       it('Alice repays 10 000 USDax, debt should be accumulated', async () => {
@@ -111,6 +108,8 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         usdaxContract.events.subscribeOnTransferEvent((event) => {
           capturedTransferEvents.push(event);
         });
+        const query = await lendingPool.withSigner(alice).query.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
+        console.log(query.value);
         const tx = lendingPool.withSigner(alice).tx.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
         await expect(tx).to.eventually.be.fulfilled;
         const txRes = await tx;

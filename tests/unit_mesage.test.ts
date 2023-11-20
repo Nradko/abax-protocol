@@ -12,7 +12,7 @@ import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { getCheckRedeemParameters, getExpectedError } from './scenarios/utils/actions';
 import { checkRedeem } from './scenarios/utils/comparisons';
 import { makeSuite, TestEnv, TokenReserve } from './scenarios/utils/make-suite';
-import { subscribeOnEvents } from './scenarios/utils/misc';
+import { increaseBlockTimestamp, subscribeOnEvents } from './scenarios/utils/misc';
 import { ValidateEventParameters } from './scenarios/utils/validateEvents';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
@@ -28,12 +28,10 @@ makeSuite('Unit Message', (getTestEnv) => {
   let testEnv: TestEnv;
   let users: KeyringPair[];
   let lendingPool: LendingPoolContract;
-  let blockTimestampProvider: BlockTimestampProviderContract;
   beforeEach(async () => {
     testEnv = getTestEnv();
     users = testEnv.users;
     lendingPool = testEnv.lendingPool;
-    blockTimestampProvider = testEnv.blockTimestampProvider;
   });
 
   describe('Actions', () => {
@@ -101,7 +99,7 @@ makeSuite('Unit Message', (getTestEnv) => {
         await lendingPool.withSigner(testUser).tx.deposit(reserve.underlying.address, testUser.address, depositAmount, []);
         const DAY = 24 * 60 * 60 * 1000;
         //Act
-        await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(DAY);
+        await increaseBlockTimestamp(DAY);
         await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
@@ -121,12 +119,11 @@ makeSuite('Unit Message', (getTestEnv) => {
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
-          blockTimestampProvider,
           testUser,
           testUser,
         );
         //Act
-        await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(DAY);
+        await increaseBlockTimestamp(DAY);
 
         const capturedEvents: ValidateEventParameters[] = [];
         const unsubscribePromises = await subscribeOnEvents(testEnv, 'DAI', (eventName, event, sourceContract, timestamp) => {
@@ -148,7 +145,6 @@ makeSuite('Unit Message', (getTestEnv) => {
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
-          blockTimestampProvider,
           testUser,
           testUser,
         );
@@ -178,12 +174,11 @@ makeSuite('Unit Message', (getTestEnv) => {
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
-          blockTimestampProvider,
           testUser,
           testUser,
         );
         //Act
-        await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(DAY);
+        await increaseBlockTimestamp(DAY);
 
         const capturedEvents: ValidateEventParameters[] = [];
         const unsubscribePromises = await subscribeOnEvents(testEnv, 'DAI', (eventName, event, sourceContract, timestamp) => {
@@ -205,7 +200,6 @@ makeSuite('Unit Message', (getTestEnv) => {
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
-          blockTimestampProvider,
           testUser,
           testUser,
         );

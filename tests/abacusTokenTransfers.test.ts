@@ -12,6 +12,7 @@ import { ONE_YEAR } from './consts';
 import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
+import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
 
 makeSuite('AbaxToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -261,7 +262,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
             beforeEach('time passes', async () => {
               bobDebt = await convertToCurrencyDecimals(wethContract, 0.01);
               await lendingPool.withSigner(bob).tx.borrow(wethContract.address, bob.address, bobDebt, []);
-              await testEnv.blockTimestampProvider.tx.increaseBlockTimestamp(ONE_YEAR);
+              await increaseBlockTimestamp(ONE_YEAR.toNumber());
             });
             it('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedRepayEvents: RepayVariable[] = [];

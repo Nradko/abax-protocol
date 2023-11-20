@@ -26,7 +26,7 @@ import {
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
 import { ValidateEventParameters } from './validateEvents';
-import { advanceBlockTimestamp, subscribeOnEvents } from './misc';
+import { increaseBlockTimestamp, subscribeOnEvents } from './misc';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 
 export const convertToCurrencyDecimals = async (token: any, amount: BN | number | string) => {
@@ -139,21 +139,14 @@ export const deposit = async (
   testEnv: TestEnv,
   expectedErrorName?: string,
 ) => {
-  const { lendingPool, reserves, blockTimestampProvider } = testEnv;
+  const { lendingPool, reserves } = testEnv;
   const reserve: TokenReserve = reserves[reserveSymbol];
 
   const amountToDeposit = await convertToCurrencyDecimals(reserve.underlying, amount);
   const args: Parameters<typeof lendingPool.tx.deposit> = [reserve.underlying.address, onBehalfOf.address, amountToDeposit, []];
 
   if (expectedResult === 'success') {
-    const parametersBefore = await getCheckDepositParameters(
-      lendingPool,
-      reserve.underlying,
-      reserve.aToken,
-      blockTimestampProvider,
-      caller,
-      onBehalfOf,
-    );
+    const parametersBefore = await getCheckDepositParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
 
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.deposit(...args);
@@ -168,14 +161,7 @@ export const deposit = async (
 
     const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
     const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
-    const parametersAfter = await getCheckDepositParameters(
-      lendingPool,
-      reserve.underlying,
-      reserve.aToken,
-      blockTimestampProvider,
-      caller,
-      onBehalfOf,
-    );
+    const parametersAfter = await getCheckDepositParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
     checkDeposit(
       lendingPool.address,
       reserve,
@@ -209,17 +195,10 @@ export const redeem = async (
   testEnv: TestEnv,
   expectedErrorName?: string,
 ) => {
-  const { lendingPool, reserves, blockTimestampProvider } = testEnv;
+  const { lendingPool, reserves } = testEnv;
   const reserve: TokenReserve = reserves[reserveSymbol];
 
-  const parametersBefore = await getCheckRedeemParameters(
-    lendingPool,
-    reserve.underlying,
-    reserve.aToken,
-    blockTimestampProvider,
-    caller,
-    onBehalfOf,
-  );
+  const parametersBefore = await getCheckRedeemParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
   let amountToWithdraw: BN;
   if (amount) {
     amountToWithdraw = await convertToCurrencyDecimals(reserve.underlying, amount);
@@ -242,14 +221,7 @@ export const redeem = async (
     const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
     const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
 
-    const parametersAfter = await getCheckRedeemParameters(
-      lendingPool,
-      reserve.underlying,
-      reserve.aToken,
-      blockTimestampProvider,
-      caller,
-      onBehalfOf,
-    );
+    const parametersAfter = await getCheckRedeemParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
 
     checkRedeem(
       lendingPool.address,
@@ -298,17 +270,10 @@ export const borrowVariable = async (
   testEnv: TestEnv,
   expectedErrorName?: string,
 ) => {
-  const { lendingPool, reserves, blockTimestampProvider } = testEnv;
+  const { lendingPool, reserves } = testEnv;
   const reserve: TokenReserve = reserves[reserveSymbol];
 
-  const parametersBefore = await getCheckBorrowVariableParameters(
-    lendingPool,
-    reserve.underlying,
-    reserve.vToken,
-    blockTimestampProvider,
-    caller,
-    onBehalfOf,
-  );
+  const parametersBefore = await getCheckBorrowVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
   const amountToBorrow = await convertToCurrencyDecimals(reserve.underlying, amount);
   const args: Parameters<typeof lendingPool.tx.borrow> = [reserve.underlying.address, onBehalfOf.address, amountToBorrow, [0]];
@@ -329,17 +294,10 @@ export const borrowVariable = async (
 
     if (timeTravelInDays) {
       const secondsToTravel = new BN(timeTravelInDays).mul(ONE_YEAR).div(new BN(365)).toNumber();
-      await advanceBlockTimestamp(testEnv.blockTimestampProvider, secondsToTravel);
+      await increaseBlockTimestamp(secondsToTravel);
     }
 
-    const parametersAfter = await getCheckBorrowVariableParameters(
-      lendingPool,
-      reserve.underlying,
-      reserve.vToken,
-      blockTimestampProvider,
-      caller,
-      onBehalfOf,
-    );
+    const parametersAfter = await getCheckBorrowVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
     checkBorrowVariable(
       lendingPool.address,
@@ -387,17 +345,10 @@ export const repayVariable = async (
   testEnv: TestEnv,
   expectedErrorName?: string,
 ) => {
-  const { lendingPool, reserves, blockTimestampProvider } = testEnv;
+  const { lendingPool, reserves } = testEnv;
   const reserve: TokenReserve = reserves[reserveSymbol];
 
-  const parametersBefore = await getCheckRepayVariableParameters(
-    lendingPool,
-    reserve.underlying,
-    reserve.vToken,
-    blockTimestampProvider,
-    caller,
-    onBehalfOf,
-  );
+  const parametersBefore = await getCheckRepayVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
   let amountToRepay: BN;
   if (amount) {
     amountToRepay = await convertToCurrencyDecimals(reserve.underlying, amount);
@@ -419,14 +370,7 @@ export const repayVariable = async (
     const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
     const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
 
-    const parametersAfter = await getCheckRepayVariableParameters(
-      lendingPool,
-      reserve.underlying,
-      reserve.vToken,
-      blockTimestampProvider,
-      caller,
-      onBehalfOf,
-    );
+    const parametersAfter = await getCheckRepayVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
     checkRepayVariable(
       lendingPool.address,
@@ -456,7 +400,7 @@ export const setUseAsCollateral = async (
   testEnv: TestEnv,
   expectedErrorName?: string,
 ) => {
-  const { lendingPool, reserves, blockTimestampProvider } = testEnv;
+  const { lendingPool, reserves } = testEnv;
   const underlying = reserves[reserveSymbol].underlying;
 
   const assetId = (await testEnv.lendingPool.query.viewAssetId(underlying.address)).value.ok;
@@ -464,12 +408,12 @@ export const setUseAsCollateral = async (
   if (assetId === undefined || assetId === null) {
     throw new Error(`ERROR READING ASSET ID (asset: ${underlying.address})`);
   }
-  const { reserveData: reserveDataBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool, blockTimestampProvider);
+  const { reserveData: reserveDataBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool);
 
   const useAsCollateralToSet = useAsCollateral.toLowerCase() === 'true';
   const args: Parameters<typeof lendingPool.tx.setAsCollateral> = [underlying.address, useAsCollateralToSet];
   if (expectedResult === 'success') {
-    const { userConfig: userConfigBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool, blockTimestampProvider);
+    const { userConfig: userConfigBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool);
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.setAsCollateral(...args);
     }
@@ -477,7 +421,7 @@ export const setUseAsCollateral = async (
     const txQuery = await lendingPool.withSigner(caller).query.setAsCollateral(...args);
     const txResult = await lendingPool.withSigner(caller).tx.setAsCollateral(...args);
 
-    const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool, blockTimestampProvider);
+    const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool);
 
     if (userConfigBefore.collaterals.rawNumber !== userConfigAfter.collaterals.rawNumber) {
       expect(txResult.events).to.deep.equal([
@@ -530,13 +474,8 @@ export const getReserveAndUserReserveData = async <R extends { address: string }
   return result;
 };
 
-export const getUserReserveDataWithTimestamp = async <R extends { address: string }>(
-  reserve: R,
-  user: KeyringPair,
-  lendingPool: LendingPool,
-  blockTimestampProvider: BlockTimestampProvider,
-) => {
-  const timestamp = (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap();
+export const getUserReserveDataWithTimestamp = async <R extends { address: string }>(reserve: R, user: KeyringPair, lendingPool: LendingPool) => {
+  const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(reserve, user, lendingPool)),
     timestamp: new BN(timestamp.toString()),
@@ -547,16 +486,16 @@ export const getCheckDepositParameters = async (
   lendingPool: LendingPool,
   reserve: PSP22Emitable,
   aToken: AToken,
-  blockTimestampProvider: BlockTimestampProvider,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
 ): Promise<CheckDepositParameters> => {
+  const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
     poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
     callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
     aBalance: new BN((await aToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.ok!,
+    timestamp,
   };
 };
 
@@ -564,10 +503,10 @@ export const getCheckRedeemParameters = async (
   lendingPool: LendingPool,
   underlying: PSP22Emitable,
   aToken: AToken,
-  blockTimestampProvider: BlockTimestampProvider,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
 ): Promise<CheckRedeemParameters> => {
+  const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
     poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.ok!.toString()),
@@ -577,7 +516,7 @@ export const getCheckRedeemParameters = async (
       caller.address !== onBehalfOf.address
         ? new BN((await aToken.query.allowance(onBehalfOf.address, caller.address)).value.ok!.toString())
         : undefined,
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.ok!,
+    timestamp,
   };
 };
 
@@ -585,10 +524,10 @@ export const getCheckBorrowVariableParameters = async (
   lendingPool: LendingPool,
   underlying: PSP22Emitable,
   vToken: VToken,
-  blockTimestampProvider: BlockTimestampProvider,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
 ): Promise<CheckBorrowVariableParameters> => {
+  const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
     poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.ok!.toString()),
@@ -598,7 +537,7 @@ export const getCheckBorrowVariableParameters = async (
       caller.address !== onBehalfOf.address
         ? new BN((await vToken.query.allowance(onBehalfOf.address, caller.address)).value.ok!.toString())
         : undefined,
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
+    timestamp,
   };
 };
 
@@ -606,15 +545,15 @@ export const getCheckRepayVariableParameters = async (
   lendingPool: LendingPool,
   reserve: PSP22Emitable,
   vToken: VToken,
-  blockTimestampProvider: BlockTimestampProvider,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
 ): Promise<CheckRepayVariableParameters> => {
+  const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
     poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
     callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
     vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
-    timestamp: (await blockTimestampProvider.query.getBlockTimestamp()).value.unwrap(),
+    timestamp,
   };
 };

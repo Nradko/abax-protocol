@@ -1,7 +1,7 @@
 import { getArgvObj } from '@abaxfinance/utils';
 import { ApiPromise } from '@polkadot/api';
 import chalk from 'chalk';
-import { deployBlockTimestampProvider, deployDiaOracle } from 'tests/setup/deploymentHelpers';
+import { deployDiaOracle } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
 
 export async function getLatestBlockNumber(api: ApiPromise) {
@@ -25,18 +25,23 @@ export async function getLatestBlockNumber(api: ApiPromise) {
   const res2 = await api.tx.timestamp.setTime(1500).signAndSend(signer);
   // await deployDiaOracle(signer);
   const res3 = await api.tx.timestamp.setTime(1500).signAndSend(signer);
-  const res4 = await api.tx.timestamp.setTime(0).signAndSend(signer);
-  // await deployDiaOracle(signer);
-  const res5 = await api.tx.timestamp.setTime(0).signAndSend(signer);
   console.log(res2.toHuman());
   console.log(res3.toHuman());
-  console.log(res4.toHuman());
-  console.log(res5.toHuman());
-
   const blockNumberPostSet = await getLatestBlockNumber(api);
   const postChangeTimestamp = await api.query.timestamp.now();
   console.log('blockNumberPostSet', blockNumberPostSet.toString());
   console.log('postChangeTimestamp', postChangeTimestamp.toString());
+
+  const res4 = await api.tx.timestamp.setTime(0).signAndSend(signer);
+  // await deployDiaOracle(signer);
+  const res5 = await api.tx.timestamp.setTime(0).signAndSend(signer);
+  console.log(res4.toHuman());
+  console.log(res5.toHuman());
+
+  const blockNumberPostReset = await getLatestBlockNumber(api);
+  const timestampPostReset = await api.query.timestamp.now();
+  console.log('blockNumberPostReset', blockNumberPostReset.toString());
+  console.log('timestampPostReset', timestampPostReset.toString());
   process.exit(0);
 })(getArgvObj()).catch((e) => {
   console.log(e);

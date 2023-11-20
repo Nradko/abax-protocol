@@ -1,7 +1,7 @@
 import { handleEventReturn, ReturnNumber } from '@727-ventures/typechain-types';
 import { E18, E6 } from '@abaxfinance/utils';
 import { VoidFn } from '@polkadot/api/types';
-import { apiProviderWrapper } from 'tests/setup/helpers';
+import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
 import AToken from 'typechain/contracts/a_token';
 import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
@@ -11,6 +11,9 @@ import { getEventTypeDescription } from 'typechain/shared/utils';
 import { ReserveData, ReserveParameters, UserReserveData } from 'typechain/types-returns/lending_pool';
 import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import { TestEnv } from './make-suite';
+import { ApiPromise } from '@polkadot/api';
+import { KeyringPair } from '@polkadot/keyring/types';
+import { deployDiaOracle } from 'tests/setup/deploymentHelpers';
 
 export const getLineSeparator = () => '='.repeat(process.stdout.columns ?? 60);
 
@@ -19,11 +22,6 @@ async function printTimestamp() {
   console.log({ timestamp: timestamp.toString() });
   return timestamp;
 }
-export const advanceBlockTimestamp = async function (timestampProvider: BlockTimestampProvider, forwardTime: number) {
-  await timestampProvider.tx.setShouldReturnMockValue(true);
-  const { value } = await timestampProvider.query.getBlockTimestamp();
-  await timestampProvider.tx.setBlockTimestamp(value.unwrap() + forwardTime);
-};
 
 export const createEnumChecker = <T extends string, TEnumValue extends string>(enumVariable: { [key in T]: TEnumValue }) => {
   const enumValues = Object.values(enumVariable);
@@ -143,3 +141,21 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
     appliedCumulativeDebtIndexE18: new ReturnNumber(0),
   };
 };
+
+export async function increaseBlockTimestamp(deltaTimestamp: number) {
+  const api = await apiProviderWrapper.getAndWaitForReady();
+  const signer = getSigners()[0];
+  const timestampNow = await api.query.timestamp.now();
+  const timestampToSet = parseInt(timestampNow.toString()) + deltaTimestamp;
+  const res2 = await api.tx.timestamp.setTime(timestampToSet).signAndSend(signer);
+  const res3 = await api.tx.timestamp.setTime(timestampToSet).signAndSend(signer);
+  await deployDiaOracle(signer);
+  const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
+
+  console.log({
+    timestampNow: timestampNow.toString(),
+    timestampToSet: timestampToSet.toString(),
+    timestampNowPostChange: timestampNowPostChange.toString(),
+  });
+  return timestampToSet;
+}

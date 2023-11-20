@@ -108,10 +108,6 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
   if (!lendingPoolContractInfo) throw 'lendingPool ContractInfo not found';
   const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address!, owner);
 
-  const blockTimestampProviderContractInfo = contracts.find((c) => c.name === 'block_timestamp_provider');
-  if (!blockTimestampProviderContractInfo) throw 'BlockTimestampProvider ContractInfo not found';
-  const blockTimestampProvider = await getContractObject(BlockTimestampProvider, blockTimestampProviderContractInfo.address!, owner);
-
   const priceFeedProviderContractInfo = contracts.find((c) => c.name === 'price_feed_provider');
   if (!priceFeedProviderContractInfo) throw 'BlockTimestampProvider ContractInfo not found';
   const priceFeedProvider = await getContractObject(PriceFeedProvider, priceFeedProviderContractInfo.address!, owner);
@@ -182,7 +178,6 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     stables: stablesWithLendingTokens,
     aTokenCodeHash: contracts.find((c) => c.name === 'aTokenCodeHash')!.codeHash!,
     vTokenCodeHash: contracts.find((c) => c.name === 'vTokenCodeHash')!.codeHash!,
-    blockTimestampProvider,
     balanceViewer,
   };
 };

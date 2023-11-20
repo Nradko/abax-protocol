@@ -279,7 +279,6 @@ export async function deployCoreContracts(
   owner: KeyringPair,
   oracle: string,
 ): Promise<{
-  blockTimestampProvider: BlockTimestampProvider;
   priceFeedProvider: PriceFeedProviderContract;
   lendingPool: LendingPool;
   aTokenCodeHash: any;
@@ -291,7 +290,6 @@ export async function deployCoreContracts(
     console.log(getLineSeparator());
     console.log(`Deployer: ${owner.address}`);
   }
-  const blockTimestampProvider = await deployBlockTimestampProvider(owner);
   const priceFeedProvider = await deployPriceFeedProvider(owner, oracle);
 
   const aTokenContract = await deployAToken(owner, 'Abacus Deposit Token', 'AToken', 0, owner.address, owner.address);
@@ -304,7 +302,7 @@ export async function deployCoreContracts(
   const vTokenCodeHash = vTokenCodeHashHex; //hexToBytes(vTokenCodeHashHex);
 
   const lendingPool = await deployLendingPool(owner);
-  return { blockTimestampProvider, priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
+  return { priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
 }
 
 function hexToBytes(hex) {
@@ -359,7 +357,6 @@ export const deployAndConfigureSystem = async (
   const oracle = await deployDiaOracle(owner);
 
   const contracts = await deployCoreContracts(owner, oracle.address);
-  await contracts.lendingPool.withSigner(owner).tx.setBlockTimestampProvider(contracts.blockTimestampProvider.address);
 
   await contracts.lendingPool.withSigner(owner).tx.grantRole(ROLES['ASSET_LISTING_ADMIN'], owner.address);
   await contracts.lendingPool.withSigner(owner).tx.grantRole(ROLES['PARAMETERS_ADMIN'], owner.address);
@@ -368,13 +365,6 @@ export const deployAndConfigureSystem = async (
 
   await contracts.lendingPool.withSigner(owner).tx.setPriceFeedProvider(contracts.priceFeedProvider.address);
 
-  const timestampToSet = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
-  await contracts.blockTimestampProvider.withSigner(owner).tx.setBlockTimestamp(timestampToSet.toString());
-
-  if (process.env.DEBUG) console.log({ shouldUseMockTimestamp });
-  if (shouldUseMockTimestamp) {
-    await contracts.blockTimestampProvider.withSigner(owner).tx.setShouldReturnMockValue(true);
-  }
   await contracts.lendingPool.withSigner(owner).query.addMarketRule([]);
   await contracts.lendingPool.withSigner(owner).tx.addMarketRule([]);
 
@@ -452,7 +442,6 @@ export const deployAndConfigureSystem = async (
   if (process.env.DEBUG) console.log('Asset rules added');
   const balanceViewer = await deployBalanceViewer(owner, contracts.lendingPool.address);
   const testEnv = {
-    blockTimestampProvider: contracts.blockTimestampProvider,
     priceFeedProvider: contracts.priceFeedProvider,
     oracle: oracle,
     users: users,
@@ -485,10 +474,6 @@ async function saveConfigToFile(testEnv: TestEnv, writePath: string) {
       {
         name: testEnv.oracle.name,
         address: testEnv.oracle.address,
-      },
-      {
-        name: testEnv.blockTimestampProvider.name,
-        address: testEnv.blockTimestampProvider.address,
       },
       ...Object.entries(testEnv.reserves).flatMap(([reserveName, r]) =>
         [r.underlying, r.aToken, r.vToken].map((c) => ({
