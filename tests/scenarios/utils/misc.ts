@@ -147,15 +147,24 @@ export async function increaseBlockTimestamp(deltaTimestamp: number) {
   const signer = getSigners()[0];
   const timestampNow = await api.query.timestamp.now();
   const timestampToSet = parseInt(timestampNow.toString()) + deltaTimestamp;
-  const res2 = await api.tx.timestamp.setTime(timestampToSet).signAndSend(signer);
-  const res3 = await api.tx.timestamp.setTime(timestampToSet).signAndSend(signer);
+  await new Promise((resolve, reject) => {
+    api.tx.timestamp
+      .setTime(timestampToSet)
+      .signAndSend(signer, ({ status }) => {
+        if (status.isInBlock) {
+          // console.log(`Completed at block hash #${status.asInBlock.toString()}`);
+          resolve('');
+        } else {
+          // console.log(`Current status: ${status.type}`);
+        }
+      })
+      .catch((error: any) => {
+        console.log(':( transaction failed', error);
+        reject('');
+      });
+  });
   await deployDiaOracle(signer);
   const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
-
-  console.log({
-    timestampNow: timestampNow.toString(),
-    timestampToSet: timestampToSet.toString(),
-    timestampNowPostChange: timestampNowPostChange.toString(),
-  });
+  if (timestampNowPostChange !== timestampToSet) throw new Error('Failed to set custom timestamp');
   return timestampToSet;
 }

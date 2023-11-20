@@ -77,6 +77,10 @@ pub trait LendingPoolBorrowImpl:
         _check_amount_not_zero(amount)?;
 
         let block_timestamp = self._timestamp();
+        ink::env::debug_println!(
+            "borrow | block_timestamp {}",
+            block_timestamp
+        );
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             self.data::<LendingPoolStorage>().account_for_borrow(
@@ -139,6 +143,10 @@ pub trait LendingPoolBorrowImpl:
         }
 
         let block_timestamp = self._timestamp();
+        ink::env::debug_println!(
+            "repay  | block_timestamp {}",
+            block_timestamp
+        );
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             self.data::<LendingPoolStorage>().account_for_repay(
                 &asset,

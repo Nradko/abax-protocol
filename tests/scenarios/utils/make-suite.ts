@@ -10,6 +10,7 @@ import PriceFeedProvider from '../../../typechain/contracts/price_feed_provider'
 import DiaOracleContract from '../../../typechain/contracts/dia_oracle';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { apiProviderWrapper } from 'tests/setup/helpers';
+import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
 
 export type TokenReserve = {
   underlying: PSP22Emitable;
@@ -56,6 +57,7 @@ function makeSuiteInternal(
       getContractsNodeProcess = await restartAndRestoreNodeState(getContractsNodeProcess);
       await apiProviderWrapper.getAndWaitForReady();
       suiteTestEnv = await readContractsFromFile();
+      await increaseBlockTimestamp(1337);
     });
 
     beforeEach(async function (this) {
@@ -71,6 +73,7 @@ function makeSuiteInternal(
       getContractsNodeProcess = await restartAndRestoreNodeState(getContractsNodeProcess);
       await apiProviderWrapper.getAndWaitForReady();
       suiteTestEnv = await readContractsFromFile();
+      await increaseBlockTimestamp(1337);
     });
 
     generateTests(() => suiteTestEnv);
