@@ -9,6 +9,7 @@ import { ROLE_NAMES, ROLES } from './consts';
 import { BN } from '@polkadot/util';
 import { getContractObject } from '@abaxfinance/contract-helpers';
 import { getAbaxTokenMetadata } from './helpers/abacusTokenData';
+import { apiProviderWrapper } from 'tests/setup/helpers';
 const isValidObject = (obj: any) => typeof obj === 'object' && obj !== null;
 /* eslint-disable */
 const replaceRNBNPropsWithStrings = function (obj: any) {
@@ -197,7 +198,8 @@ makeSuite('Menage tests', (getTestEnv) => {
             },
           },
         ]);
-        const timestamp = (await testEnv.blockTimestampProvider.query.getBlockTimestamp()).value.ok!;
+        const api = await apiProviderWrapper.getAndWaitForReady();
+        const timestamp = await api.query.timestamp.now();
         const reserveData = (await lendingPool.query.viewReserveData(PARAMS.asset)).value.ok!;
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
         const reserveParameters = (await lendingPool.query.viewReserveParameters(PARAMS.asset)).value.ok!;
@@ -328,7 +330,8 @@ makeSuite('Menage tests', (getTestEnv) => {
             },
           },
         ]);
-        const timestamp = (await testEnv.blockTimestampProvider.query.getBlockTimestamp()).value.ok!;
+        const api = await apiProviderWrapper.getAndWaitForReady();
+        const timestamp = await api.query.timestamp.now();
         const reserveData = (await lendingPool.query.viewReserveData(PARAMS.asset)).value.ok!;
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
         const reserveIndexes = (await lendingPool.query.viewReserveIndexes(PARAMS.asset)).value.ok!;

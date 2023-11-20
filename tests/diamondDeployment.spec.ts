@@ -42,8 +42,8 @@
 //     const failedFacets: string[] = [];
 //     //lending_pool_v0_manage_facet
 //     try {
-//       const res = await manageFacet.query.setBlockTimestampProvider(testEnv.blockTimestampProvider.address);
-//       await manageFacet.tx.setBlockTimestampProvider(testEnv.blockTimestampProvider.address);
+//       const res = await manageFacet.query.<todo call>;
+//       await manageFacet.tx.<todo call>;
 //       if (res.value.err) failedFacets.push('lending_pool_v0_manage_facet');
 //     } catch (e) {
 //       if (SHOW_ERRORS) console.log(e);

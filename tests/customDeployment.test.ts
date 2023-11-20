@@ -79,10 +79,6 @@ describe('Custom deployment', () => {
       };
       testEnv = await deployAndConfigureSystem(customDeploymentConfig);
     });
-    it('BlockTimestampProvider does not use mocked timestamp', async () => {
-      const queryRes = (await testEnv.blockTimestampProvider.query.getShouldReturnMockValue()).value.ok;
-      expect(queryRes).to.be.equal(false);
-    });
     it('Contains deployed reserves', async () => {
       const reserveBOI = (await testEnv.lendingPool.query.viewUnupdatedReserveData(testEnv.reserves['BOI'].underlying.address)).value.ok;
       const aTokensBOI = (await testEnv.lendingPool.query.viewReserveTokens(testEnv.reserves['BOI'].underlying.address)).value.ok;
