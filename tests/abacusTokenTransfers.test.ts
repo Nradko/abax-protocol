@@ -281,7 +281,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
               await expect(tx).to.eventually.be.fulfilled;
               const txRes = await tx;
-              expect(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+              expect(replaceRNBNPropsWithStrings(txRes.events)).to.almostDeepEqual([
                 {
                   name: 'Approval',
                   args: {
@@ -388,7 +388,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               ]);
 
-              expect(replaceRNBNPropsWithStrings(capturedTransferEvents), 'VWeth Transfer event').to.deep.equal([
+              expect(replaceRNBNPropsWithStrings(capturedTransferEvents), 'VWeth Transfer event').to.almostDeepEqual([
                 {
                   from: null,
                   to: alice.address,
@@ -418,7 +418,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 const tx = vTokenWETHContract.withSigner(alice).tx.transfer(charlie.address, aliceDebt, []);
                 await expect(tx).to.eventually.be.fulfilled;
                 const txRes = await tx;
-                expect(replaceRNBNPropsWithStrings(txRes.events), 'VWeth events').to.deep.equal([
+                expect(replaceRNBNPropsWithStrings(txRes.events), 'VWeth events').to.almostDeepEqual([
                   {
                     name: 'Approval',
                     args: {

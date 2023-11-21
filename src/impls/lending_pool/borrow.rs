@@ -4,7 +4,7 @@ use pendzl::traits::{AccountId, Balance, Storage};
 
 use super::{
     internal::{
-        AssetPrices, TimestampMock, Transfer, _check_amount_not_zero,
+        AssetPrices, Transfer, _check_amount_not_zero,
         _emit_abacus_token_transfer_event,
         _emit_abacus_token_transfer_event_and_decrease_allowance,
     },
@@ -12,7 +12,7 @@ use super::{
 };
 
 pub trait LendingPoolBorrowImpl:
-    Storage<LendingPoolStorage> + TimestampMock + EmitBorrowEvents
+    Storage<LendingPoolStorage> + EmitBorrowEvents
 {
     fn choose_market_rule(
         &mut self,
@@ -76,7 +76,7 @@ pub trait LendingPoolBorrowImpl:
         //// PULL DATA AND INIT CONDITIONS CHECK
         _check_amount_not_zero(amount)?;
 
-        let block_timestamp = self._timestamp();
+        let block_timestamp = Self::env().block_timestamp();
         ink::env::debug_println!(
             "borrow | block_timestamp {}",
             block_timestamp
@@ -142,7 +142,7 @@ pub trait LendingPoolBorrowImpl:
             return Err(LendingPoolError::AmountNotGreaterThanZero);
         }
 
-        let block_timestamp = self._timestamp();
+        let block_timestamp = Self::env().block_timestamp();
         ink::env::debug_println!(
             "repay  | block_timestamp {}",
             block_timestamp

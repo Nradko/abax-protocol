@@ -2,52 +2,33 @@ import { LendingPoolErrorBuilder, replaceRNBNPropsWithStrings } from '@abaxfinan
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
-import AToken from 'typechain/contracts/a_token';
+import { apiProviderWrapper } from 'tests/setup/helpers';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import StableToken from 'typechain/contracts/stable_token';
 import { Transfer } from 'typechain/event-types/a_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { ONE_YEAR } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
-import { makeSuite, TestEnv, TestEnvReserves, TestEnvStables } from './scenarios/utils/make-suite';
+import { TestEnv, TestEnvReserves, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import { apiProviderWrapper } from 'tests/setup/helpers';
 
 makeSuite('AbaxStableToken', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
-  let stables: TestEnvStables;
   let users: KeyringPair[];
   let alice: KeyringPair;
-  let bob: KeyringPair;
-  let charlie: KeyringPair;
-  let dave: KeyringPair;
-  let daiContract: PSP22Emitable;
   let usdcContract: PSP22Emitable;
-  let wethContract: PSP22Emitable;
   let usdaxContract: StableToken;
-  let aTokenDaiContract: AToken;
-  let aTokenUsdcContract: AToken;
-  let aTokenWETHContract: AToken;
 
   beforeEach('setup Env', async () => {
     testEnv = getTestEnv();
     lendingPool = testEnv.lendingPool;
     reserves = testEnv.reserves;
-    stables = testEnv.stables;
     users = testEnv.users;
     alice = users[0];
-    bob = users[1];
-    charlie = users[2];
-    dave = users[3];
-    daiContract = reserves['DAI'].underlying;
     usdcContract = reserves['USDC'].underlying;
-    wethContract = reserves['WETH'].underlying;
     usdaxContract = testEnv.stables['USDax'].underlying;
-    aTokenDaiContract = reserves['DAI'].aToken;
-    aTokenUsdcContract = reserves['USDC'].aToken;
-    aTokenWETHContract = reserves['WETH'].aToken;
   });
 
   describe('Alice has 11225 USDC collateral in the Lending Pool. Then ...', () => {

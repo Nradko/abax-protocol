@@ -9,16 +9,13 @@ use pendzl::{
 
 use ink::prelude::*;
 
-use super::{
-    internal::{AssetPrices, TimestampMock},
-    storage::LendingPoolStorage,
-};
+use super::{internal::AssetPrices, storage::LendingPoolStorage};
 
 pub trait LendingPoolVTokenInterfaceImpl:
     Storage<LendingPoolStorage> + EmitBorrowEvents
 {
     fn total_debt_of(&self, underlying_asset: AccountId) -> Balance {
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
         self.data::<LendingPoolStorage>()
             .total_debt_of(&underlying_asset, &timestamp)
             .unwrap()
@@ -29,7 +26,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
         underlying_asset: AccountId,
         user: AccountId,
     ) -> Balance {
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
         self.data::<LendingPoolStorage>()
             .user_debt_of(&underlying_asset, &user, &timestamp)
             .unwrap()
@@ -53,7 +50,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             return Err((AccessControlError::MissingRole).into());
         }
 
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
 
         let (
             from_accumulated_deposit_interest,

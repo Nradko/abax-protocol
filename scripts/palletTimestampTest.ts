@@ -21,22 +21,19 @@ export async function getLatestBlockNumber(api: ApiPromise) {
   console.log('preChangeTimestamp', preChangeTimestamp.toString());
   console.log('blockNumberPreSet', blockNumberPreSet.toString());
 
-  // await deployDiaOracle(signer);
   const res2 = await api.tx.timestamp.setTime(1500).signAndSend(signer);
-  // await deployDiaOracle(signer);
   const res3 = await api.tx.timestamp.setTime(1500).signAndSend(signer);
   console.log(res2.toHuman());
-  console.log(res3.toHuman());
+  // console.log(res3.toHuman());
   const blockNumberPostSet = await getLatestBlockNumber(api);
   const postChangeTimestamp = await api.query.timestamp.now();
   console.log('blockNumberPostSet', blockNumberPostSet.toString());
   console.log('postChangeTimestamp', postChangeTimestamp.toString());
 
   const res4 = await api.tx.timestamp.setTime(0).signAndSend(signer);
-  // await deployDiaOracle(signer);
   const res5 = await api.tx.timestamp.setTime(0).signAndSend(signer);
   console.log(res4.toHuman());
-  console.log(res5.toHuman());
+  // console.log(res5.toHuman());
 
   const blockNumberPostReset = await getLatestBlockNumber(api);
   const timestampPostReset = await api.query.timestamp.now();

@@ -9,7 +9,6 @@ import VToken from 'typechain/contracts/v_token';
 import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
 import { getEventTypeDescription } from 'typechain/shared/utils';
 import { ReserveData, ReserveParameters, UserReserveData } from 'typechain/types-returns/lending_pool';
-import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import { TestEnv } from './make-suite';
 import { ApiPromise } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
@@ -147,24 +146,24 @@ export async function increaseBlockTimestamp(deltaTimestamp: number) {
   const signer = getSigners()[0];
   const timestampNow = await api.query.timestamp.now();
   const timestampToSet = parseInt(timestampNow.toString()) + deltaTimestamp;
-  await new Promise((resolve, reject) => {
-    api.tx.timestamp
-      .setTime(timestampToSet)
-      .signAndSend(signer, ({ status }) => {
-        if (status.isInBlock) {
-          // console.log(`Completed at block hash #${status.asInBlock.toString()}`);
-          resolve('');
-        } else {
-          // console.log(`Current status: ${status.type}`);
-        }
-      })
-      .catch((error: any) => {
-        console.log(':( transaction failed', error);
-        reject('');
-      });
-  });
+  await api.tx.timestamp.setTime(timestampToSet).signAndSend(signer, {});
   await deployDiaOracle(signer);
+  // await transferNoop(api, signer);
   const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
   if (timestampNowPostChange !== timestampToSet) throw new Error('Failed to set custom timestamp');
   return timestampToSet;
+}
+async function transferNoop(api: ApiPromise, signer: KeyringPair) {
+  await new Promise((resolve, reject) => {
+    api.tx.balances
+      .transferKeepAlive(signer.address, 1)
+      .signAndSend(signer, ({ status }) => {
+        if (status.isInBlock) {
+          resolve(status.asInBlock.toString());
+        }
+      })
+      .catch((error: any) => {
+        reject(error);
+      });
+  });
 }

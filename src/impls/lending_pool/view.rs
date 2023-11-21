@@ -11,7 +11,7 @@ use pendzl::traits::{AccountId, Storage};
 use ink::prelude::vec::Vec;
 
 use super::{
-    internal::{AssetPrices, InternalIncome, TimestampMock},
+    internal::{AssetPrices, InternalIncome},
     storage::LendingPoolStorage,
 };
 
@@ -60,7 +60,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                 reserve_data
                     .accumulate_interest(
                         &mut reserve_indexes,
-                        &self._timestamp(),
+                        &Self::env().block_timestamp(),
                     )
                     .unwrap();
                 Some(reserve_data)
@@ -147,7 +147,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                 reserve_data
                     .accumulate_interest(
                         &mut reserve_indexes,
-                        &self._timestamp(),
+                        &Self::env().block_timestamp(),
                     )
                     .unwrap();
                 Some(reserve_indexes)
@@ -201,7 +201,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                 reserve_data
                     .accumulate_interest(
                         &mut reserve_indexes,
-                        &self._timestamp(),
+                        &Self::env().block_timestamp(),
                     )
                     .unwrap();
                 user_reserve_data
@@ -242,13 +242,6 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             self._get_assets_prices_e18(registered_assets).unwrap();
         self.data::<LendingPoolStorage>()
             .calculate_user_lending_power_e6(&user, &prices_e18)
-            .unwrap()
-    }
-
-    fn get_block_timestamp_provider_address(&self) -> AccountId {
-        self.data::<LendingPoolStorage>()
-            .block_timestamp_provider
-            .get()
             .unwrap()
     }
 

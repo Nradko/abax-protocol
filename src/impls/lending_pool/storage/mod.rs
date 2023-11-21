@@ -21,9 +21,6 @@ use pendzl::{
 #[pendzl::storage_item]
 pub struct LendingPoolStorage {
     #[lazy]
-    pub block_timestamp_provider: AccountId,
-
-    #[lazy]
     pub price_feed_provider: AccountId,
 
     #[lazy]

@@ -20,7 +20,7 @@ use pendzl::{
     traits::{Balance, Storage},
 };
 
-use super::internal::{InternalIncome, TimestampMock};
+use super::internal::InternalIncome;
 use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolManageImpl:
@@ -32,17 +32,6 @@ pub trait LendingPoolManageImpl:
     + access_control::Internal
     + access_control::MembersManager
 {
-    /// used for testing
-    fn set_block_timestamp_provider(
-        &mut self,
-        provider_address: AccountId,
-    ) -> Result<(), LendingPoolError> {
-        self.data::<LendingPoolStorage>()
-            .block_timestamp_provider
-            .set(&provider_address);
-        Ok(())
-    }
-
     fn set_price_feed_provider(
         &mut self,
         price_feed_provider: AccountId,
@@ -89,7 +78,7 @@ pub trait LendingPoolManageImpl:
         let caller = Self::env().caller();
         self._ensure_has_role(ASSET_LISTING_ADMIN, Some(caller))?;
 
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
 
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
@@ -177,7 +166,7 @@ pub trait LendingPoolManageImpl:
         let caller = Self::env().caller();
         self._ensure_has_role(ASSET_LISTING_ADMIN, Some(caller))?;
 
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
 
         self.data::<LendingPoolStorage>()
             .account_for_register_stablecoin(
@@ -311,7 +300,7 @@ pub trait LendingPoolManageImpl:
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
 
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
         self.data::<LendingPoolStorage>()
             .account_for_reserve_data_parameters_change(
                 &asset,

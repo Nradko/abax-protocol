@@ -28,14 +28,6 @@ pub trait LendingPoolManage {
         flash_loan_fee_e6: u128,
     ) -> Result<(), LendingPoolError>;
 
-    /// only for tests
-    /// sets provider of block_timestamp
-    #[ink(message)]
-    fn set_block_timestamp_provider(
-        &mut self,
-        provider_address: AccountId,
-    ) -> Result<(), LendingPoolError>;
-
     /// Registers new asset in the `LendingPool`'s storage and instaniates 'AToken' and 'VToken' for the reserve.
     ///
     /// * `asset` - `AccountId` of the registered asset

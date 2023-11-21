@@ -2,9 +2,6 @@ use core::cmp::Ordering;
 
 use abax_traits::{
     abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
-    block_timestamp_provider::{
-        BlockTimestampProviderInterface, BlockTimestampProviderRef,
-    },
     lending_pool::LendingPoolError,
     price_feed::{PriceFeed, PriceFeedRef},
 };
@@ -21,7 +18,7 @@ use pendzl::{
         },
         {PSP22Error, PSP22Ref, PSP22},
     },
-    traits::{Balance, Storage, Timestamp},
+    traits::{Balance, Storage},
 };
 
 use super::storage::LendingPoolStorage;
@@ -125,26 +122,6 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
     }
 }
 
-pub trait TimestampMock {
-    fn _timestamp(&self) -> Timestamp;
-}
-
-impl<T: Storage<LendingPoolStorage>> TimestampMock for T {
-    fn _timestamp(&self) -> Timestamp {
-        let provider_account_id = self
-            .data::<LendingPoolStorage>()
-            .block_timestamp_provider
-            .get();
-        if provider_account_id.is_none() {
-            return Self::env().block_timestamp();
-        }
-        let provider: BlockTimestampProviderRef =
-            provider_account_id.unwrap().into();
-
-        provider.get_block_timestamp()
-    }
-}
-
 pub trait Transfer {
     /// Transfers `want` tokens from `account` to self.
     fn _transfer_in(
@@ -224,7 +201,7 @@ impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
         assets: &[AccountId],
     ) -> Result<Vec<(AccountId, i128)>, LendingPoolError> {
         let mut result: Vec<(AccountId, i128)> = vec![];
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
         for asset in assets.iter() {
             let total_deposit = self
                 .data::<LendingPoolStorage>()

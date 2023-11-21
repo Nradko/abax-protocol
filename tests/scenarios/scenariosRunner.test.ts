@@ -10,7 +10,7 @@ const scenarioFolder = path.join(__dirname, 'stories');
 const selectedFiles: string[] = []; //['deposit'];
 const selectedScenarios: string[] = []; //['User 1 deposits 100 DAI on behalf of user 2, user 1 tries to borrow 0.1 WETH on behalf of user 2 (no allowance given)'];
 const skipScenarios = false;
-const forceOnlyScenarios = true;
+const forceOnlyScenarios = false;
 
 const forceItOnly = forceOnlyScenarios || selectedFiles.length > 0 || selectedScenarios.length > 0;
 fs.readdirSync(scenarioFolder).forEach((file) => {
