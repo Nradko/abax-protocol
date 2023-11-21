@@ -19,6 +19,7 @@ declare global {
       almostEqualOrEqualNumberE12<TData extends BN | number | string>(expected: TData): void;
       almostEqualOrEqualNumber<TData extends number | string>(expected: TData, epsilon?: number): void;
       equalUpTo1Digit<TData extends BN | number | string>(expected: TData): void;
+      almostDeepEqual<TData>(expected: TData): void;
     }
   }
 }
@@ -81,6 +82,37 @@ const equalUpTo1Digit = function <TData extends BN | number | string>(this: Chai
   );
 };
 
+const almostDeepEqual = function <TData>(this: Chai.AssertionPrototype, actual: TData, expected: TData) {
+  if (actual === undefined || actual === null) {
+    this.assert(
+      actual === expected,
+      `expected #{act} to be almost equal or equal #{exp} (up to 1 digit)`,
+      `expected #{act} not to be almost equal or equal #{exp} (up to 1 digit)`,
+      actual,
+      expected,
+      true,
+    );
+  }
+  const keys = Object.keys(actual as any);
+
+  keys.forEach((key) => {
+    const v = expected[key];
+    if (BN.isBN(v) || typeof v === 'number' || typeof v === 'string') {
+      const actualValueBN = new BN(actual[key]);
+      const expectedValueBN = new BN(v);
+      this.assert(
+        // x + 1 >= y >= x -1
+        actualValueBN.addn(1).gte(expectedValueBN) && expectedValueBN.gte(actualValueBN.subn(1)),
+        `expected #{act} to be almost equal or equal #{exp} for property ${key} (up to 1 digit)`,
+        `expected #{act} to be almost equal or equal #{exp} for property ${key} (up to 1 digit)`,
+        expectedValueBN.toString(0),
+        actualValueBN.toString(0),
+        true,
+      );
+    }
+  });
+};
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 chai.use((c, utils) => {
   c.Assertion.addMethod('output', async function (param, message) {
@@ -98,6 +130,10 @@ chai.use((c, utils) => {
   c.Assertion.addMethod('equalUpTo1Digit', function (this: Chai.AssertionPrototype, expected: BN | number | string) {
     const actual = (expected as BN) ? <BN>this._obj : (expected as string) ? <string>this._obj : <number>this._obj;
     equalUpTo1Digit.apply(this, [expected, actual]);
+  });
+  c.Assertion.addMethod('almostDeepEqual', function (this: Chai.AssertionPrototype, expected: any) {
+    const actual = (expected as BN) ? <BN>this._obj : (expected as string) ? <string>this._obj : <number>this._obj;
+    almostDeepEqual.apply(this, [expected, actual]);
   });
 });
 chai.config.truncateThreshold = 0;

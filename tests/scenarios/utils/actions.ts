@@ -10,7 +10,6 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
 import { PSP22Metadata } from 'tests/types/PSP22Metadata';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import AToken from '../../../typechain/contracts/a_token';
-import BlockTimestampProvider from '../../../typechain/contracts/block_timestamp_provider';
 import LendingPool from '../../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
 import VToken from '../../../typechain/contracts/v_token';

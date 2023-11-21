@@ -6,7 +6,6 @@ import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
 import AToken from '../../typechain/contracts/a_token';
 import BalanceViewer from '../../typechain/contracts/balance_viewer';
-import BlockTimestampProvider from '../../typechain/contracts/block_timestamp_provider';
 import LendingPool from '../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
 import DiaOracle from '../../typechain/contracts/dia_oracle';

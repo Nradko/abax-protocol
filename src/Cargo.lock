@@ -135,19 +135,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "block_timestamp_provider"
-version = "0.1.1"
-dependencies = [
- "abax_impls",
- "abax_library",
- "abax_traits",
- "ink",
- "parity-scale-codec",
- "pendzl",
- "scale-info",
-]
-
-[[package]]
 name = "byte-slice-cast"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

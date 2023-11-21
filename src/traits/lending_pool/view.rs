@@ -65,8 +65,6 @@ pub trait LendingPoolView {
         &self,
         user_address: AccountId,
     ) -> (bool, u128);
-    #[ink(message)]
-    fn get_block_timestamp_provider_address(&self) -> AccountId;
 
     #[ink(message)]
     fn view_protocol_income(

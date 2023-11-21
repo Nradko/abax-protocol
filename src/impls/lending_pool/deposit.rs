@@ -4,7 +4,7 @@ use pendzl::traits::{AccountId, Balance, Storage};
 
 use super::{
     internal::{
-        AssetPrices, TimestampMock, Transfer, _check_amount_not_zero,
+        AssetPrices, Transfer, _check_amount_not_zero,
         _emit_abacus_token_transfer_event,
         _emit_abacus_token_transfer_event_and_decrease_allowance,
     },
@@ -12,7 +12,7 @@ use super::{
 };
 
 pub trait LendingPoolDepositImpl:
-    Storage<LendingPoolStorage> + Transfer + TimestampMock + EmitDepositEvents
+    Storage<LendingPoolStorage> + Transfer + EmitDepositEvents
 {
     fn deposit(
         &mut self,
@@ -24,7 +24,7 @@ pub trait LendingPoolDepositImpl:
         //// ARGUMENT CHECK
         _check_amount_not_zero(amount)?;
         //// PULL
-        let block_timestamp = self._timestamp();
+        let block_timestamp = Self::env().block_timestamp();
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             self.data::<LendingPoolStorage>().account_for_deposit(
@@ -77,7 +77,7 @@ pub trait LendingPoolDepositImpl:
             return Err(LendingPoolError::AmountNotGreaterThanZero);
         }
         //// PULL DATA
-        let block_timestamp = self._timestamp();
+        let block_timestamp = Self::env().block_timestamp();
 
         let (
             user_accumulated_deposit_interest,

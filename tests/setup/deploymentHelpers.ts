@@ -10,7 +10,6 @@ import { TestEnv } from 'tests/scenarios/utils/make-suite';
 import { FacetCut } from 'typechain/types-arguments/diamond';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import ATokenContract from 'typechain/contracts/a_token';
-import BlockTimestampProvider from 'typechain/contracts/block_timestamp_provider';
 import DiamondContract from 'typechain/contracts/diamond';
 import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
@@ -23,7 +22,6 @@ import DiaOracleContract from 'typechain/contracts/dia_oracle';
 import PriceFeedProviderContract from 'typechain/contracts/price_feed_provider';
 
 import FlashLoanReceiverMockConstructor from 'typechain/constructors/flash_loan_receiver_mock';
-import BlockTimestampProviderConstructor from 'typechain/constructors/block_timestamp_provider';
 import DiamondContractConstructor from 'typechain/constructors/diamond';
 import PSP22EmitableConstructor from 'typechain/constructors/psp22_emitable';
 import PSP22OwnableConstructor from 'typechain/constructors/psp22_ownable';
@@ -128,15 +126,6 @@ export const deployDiaOracle = async (owner: KeyringPair) => deployWithLog(owner
 
 export const deployPriceFeedProvider = async (owner: KeyringPair, oracle: string) =>
   deployWithLog(owner, PriceFeedProviderContract, 'price_feed_provider', oracle);
-
-export const deployBlockTimestampProvider = async (owner: KeyringPair, shouldReturnMockValue = false, speedMultiplier = 1) => {
-  const deployRet = await new BlockTimestampProviderConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
-    shouldReturnMockValue,
-    owner.address,
-    speedMultiplier,
-  );
-  return getContractObject(BlockTimestampProvider, deployRet.address, owner);
-};
 
 export const deployAToken = async (
   owner: KeyringPair,

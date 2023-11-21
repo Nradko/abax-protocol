@@ -7,14 +7,14 @@ use primitive_types::U256;
 
 use super::{
     internal::{
-        AssetPrices, TimestampMock, Transfer, TransferEventDataSimplified,
+        AssetPrices, Transfer, TransferEventDataSimplified,
         _emit_abacus_token_transfer_event, _emit_abacus_token_transfer_events,
     },
     storage::LendingPoolStorage,
 };
 
 pub trait LendingPoolLiquidateImpl:
-    Storage<LendingPoolStorage> + TimestampMock + Transfer + EmitLiquidateEvents
+    Storage<LendingPoolStorage> + Transfer + EmitLiquidateEvents
 {
     fn liquidate(
         &mut self,
@@ -41,7 +41,7 @@ pub trait LendingPoolLiquidateImpl:
             return Err(LendingPoolError::Collaterized);
         }
 
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
         let caller = Self::env().caller();
 
         let (
@@ -166,7 +166,7 @@ pub trait LendingPoolLiquidateImpl:
     //     mut amount_to_repay: Balance,
     //     #[allow(unused_variables)] data: Vec<u8>,
     // ) -> Result<(Balance, Balance), LendingPoolError> {
-    //     let block_timestamp = self._timestamp();
+    //     let block_timestamp = Self::env().block_timestamp();
     //     let caller = Self::env().caller();
     //     let (collaterized, _) = self
     //         .data::<LendingPoolStorage>()

@@ -225,16 +225,6 @@ pub mod lending_pool {
                 flash_loan_fee_e6,
             )
         }
-        #[ink(message)]
-        fn set_block_timestamp_provider(
-            &mut self,
-            provider_address: AccountId,
-        ) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::set_block_timestamp_provider(
-                self,
-                provider_address,
-            )
-        }
 
         #[ink(message)]
         fn register_asset(
@@ -505,10 +495,6 @@ pub mod lending_pool {
                 self,
                 user_address,
             )
-        }
-        #[ink(message)]
-        fn get_block_timestamp_provider_address(&self) -> AccountId {
-            LendingPoolViewImpl::get_block_timestamp_provider_address(self)
         }
 
         #[ink(message)]

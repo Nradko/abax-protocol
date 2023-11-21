@@ -2,7 +2,7 @@ use abax_traits::lending_pool::{EmitMaintainEvents, LendingPoolError};
 use ink::primitives::AccountId;
 use pendzl::traits::Storage;
 
-use super::{internal::TimestampMock, storage::LendingPoolStorage};
+use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolMaintainImpl:
     Storage<LendingPoolStorage> + EmitMaintainEvents
@@ -12,7 +12,7 @@ pub trait LendingPoolMaintainImpl:
         asset: AccountId,
     ) -> Result<(), LendingPoolError> {
         //// PULL DATA
-        let timestamp = self._timestamp();
+        let timestamp = Self::env().block_timestamp();
         self.data::<LendingPoolStorage>()
             .account_for_accumulate_interest(&asset, &timestamp)?;
         self._emit_accumulate_interest_event(&asset);

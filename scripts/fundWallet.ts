@@ -15,7 +15,7 @@ import { readContractsFromFile } from 'tests/setup/nodePersistence';
   const signers = getSigners();
   await new Promise((resolve, reject) => {
     api.tx.balances
-      .transfer(address, toE12(amount))
+      .transferKeepAlive(address, toE12(amount))
       .signAndSend(signers[2], ({ status }) => {
         if (status.isInBlock) {
           console.log(`Completed at block hash #${status.asInBlock.toString()}`);

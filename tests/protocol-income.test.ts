@@ -8,7 +8,6 @@
 // import { Keypair } from '@polkadot/util-crypto/types';
 // import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 // import LendingPoolContract from '../typechain/contracts/lending_pool';
-// import BlockTimestampProvider from '../typechain/contracts/block_timestamp_provider';
 // import { KeyringPair } from '@polkadot/keyring/types';
 // import BN from 'bn.js';
 
