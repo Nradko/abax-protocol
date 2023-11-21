@@ -7,3 +7,4 @@ members = [
     "contracts/test_purpose/**",
     "impls",
 ]
+resolver = "2"
