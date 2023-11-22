@@ -1,5 +1,5 @@
 import { ChildProcess } from 'child_process';
-import { readContractsFromFile, restartAndRestoreNodeState, sleep } from 'tests/setup/nodePersistence';
+import { readContractsFromFile, restartAndRestoreNodeState, restoreTimestamp, sleep, storeTimestamp } from 'tests/setup/nodePersistence';
 import ATokenContract from '../../../typechain/contracts/a_token';
 import BalanceViewer from '../../../typechain/contracts/balance_viewer';
 import LendingPoolContract from '../../../typechain/contracts/lending_pool';
@@ -57,7 +57,6 @@ function makeSuiteInternal(
       getContractsNodeProcess = await restartAndRestoreNodeState(getContractsNodeProcess);
       await apiProviderWrapper.getAndWaitForReady();
       suiteTestEnv = await readContractsFromFile();
-      await increaseBlockTimestamp(1337);
     });
 
     beforeEach(async function (this) {
@@ -73,7 +72,6 @@ function makeSuiteInternal(
       getContractsNodeProcess = await restartAndRestoreNodeState(getContractsNodeProcess);
       await apiProviderWrapper.getAndWaitForReady();
       suiteTestEnv = await readContractsFromFile();
-      await increaseBlockTimestamp(1337);
     });
 
     generateTests(() => suiteTestEnv);
@@ -87,6 +85,7 @@ function makeSuiteInternal(
 
     after(async () => {
       await apiProviderWrapper.closeApi();
+      await storeTimestamp();
       getContractsNodeProcess()?.kill();
     });
   });

@@ -356,6 +356,11 @@ impl LendingPoolStorage {
         let mut user_config =
             self.user_configs.get(account).unwrap_or_default();
 
+        ink::env::debug_println!(
+            "user_reserve_data_before_borrow: {:?}",
+            user_reserve_data
+        );
+
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
             user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
@@ -372,6 +377,11 @@ impl LendingPoolStorage {
         if let Some(params) = reserve_parameters {
             reserve_data.recalculate_current_rates(&params)?
         }
+
+        ink::env::debug_println!(
+            "user_reserve_data_after_borrow: {:?}",
+            user_reserve_data
+        );
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);
@@ -409,7 +419,21 @@ impl LendingPoolStorage {
         let mut user_config =
             self.user_configs.get(account).unwrap_or_default();
 
+        ink::env::debug_println!(
+            "reserve_indexes before: {:?}",
+            reserve_indexes
+        );
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
+        ink::env::debug_println!(
+            "reserve_indexes after: {:?}",
+            reserve_indexes
+        );
+
+        ink::env::debug_println!(
+            "user_reserve_data_before_repay: {:?}",
+            user_reserve_data
+        );
+
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
             user_reserve_data.accumulate_user_interest(&reserve_indexes)?;
 
@@ -429,6 +453,11 @@ impl LendingPoolStorage {
         if let Some(params) = reserve_parameters {
             reserve_data.recalculate_current_rates(&params)?
         }
+
+        ink::env::debug_println!(
+            "user_reserve_data_after_repay: {:?}",
+            user_reserve_data
+        );
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
         self.reserve_indexes.insert(&asset_id, &reserve_indexes);

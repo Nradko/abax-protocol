@@ -6,6 +6,8 @@ ev
 test-chain-state
 test-chain-state-bp
 test-chain-state-tmp
+test-chain-timestamp
+
 *.testrun*.log
 dist
 

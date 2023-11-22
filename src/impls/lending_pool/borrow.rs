@@ -74,6 +74,7 @@ pub trait LendingPoolBorrowImpl:
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         //// PULL DATA AND INIT CONDITIONS CHECK
+        ink::env::debug_println!("BORROW");
         _check_amount_not_zero(amount)?;
 
         let block_timestamp = Self::env().block_timestamp();
@@ -141,6 +142,7 @@ pub trait LendingPoolBorrowImpl:
         if amount == 0 {
             return Err(LendingPoolError::AmountNotGreaterThanZero);
         }
+        ink::env::debug_println!("REPAY");
 
         let block_timestamp = Self::env().block_timestamp();
         ink::env::debug_println!(

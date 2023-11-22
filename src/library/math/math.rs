@@ -12,6 +12,12 @@ pub fn e18_mul_e18_to_e18_rdown(a: u128, b: u128) -> Result<u128, MathError> {
     if a == 0 || b == 0 {
         return Ok(0);
     }
+    if a == E18_U128 {
+        return Ok(b);
+    }
+    if b == E18_U128 {
+        return Ok(a);
+    }
     let x = U256::try_from(a).unwrap();
     let y = U256::try_from(b).unwrap();
     match u128::try_from(
@@ -28,6 +34,12 @@ pub fn e18_mul_e18_to_e18_rdown(a: u128, b: u128) -> Result<u128, MathError> {
 pub fn e18_mul_e18_to_e18_rup(a: u128, b: u128) -> Result<u128, MathError> {
     if a == 0 || b == 0 {
         return Ok(0);
+    }
+    if a == E18_U128 {
+        return Ok(b);
+    }
+    if b == E18_U128 {
+        return Ok(a);
     }
     let x = U256::try_from(a).unwrap();
     let y = U256::try_from(b).unwrap();

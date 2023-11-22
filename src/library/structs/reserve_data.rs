@@ -146,11 +146,17 @@ impl ReserveData {
         if delta_timestamp == 0 {
             return Ok(());
         }
+        ink::env::debug_println!(" old_timestamp : {},\n new_timestamp: {} \n, delta_timestamp: {} \n \n, ",
+            self.indexes_update_timestamp,
+            new_timestamp,
+            delta_timestamp
+        );
 
         let mut deposit_index_multiplier_e18: u128 = E18_U128;
         let mut debt_index_multiplier_e18: u128 = E18_U128;
 
-        if self.current_deposit_rate_e24 != 0 {
+        // total_deposit != 0 must be checked because it may happen for stable assets that total_deposit == 0 and deposit_rate !=0
+        if self.current_deposit_rate_e24 != 0 && self.total_deposit != 0 {
             deposit_index_multiplier_e18 = deposit_index_multiplier_e18
                 .checked_add(e24_mul_e0_to_e18_rdown(
                     self.current_deposit_rate_e24,
@@ -163,7 +169,8 @@ impl ReserveData {
             )?;
         }
 
-        if self.current_debt_rate_e24 != 0 {
+        // total_debt != 0 must be checked because it may happen for stable assets that total_debt == 0 and debt_rate !=0
+        if self.current_debt_rate_e24 != 0 && self.total_debt != 0 {
             debt_index_multiplier_e18 = debt_index_multiplier_e18
                 .checked_add(e24_mul_e0_to_e18_rup(
                     self.current_debt_rate_e24,
@@ -176,6 +183,13 @@ impl ReserveData {
             )?;
         }
         self.indexes_update_timestamp = *new_timestamp;
+
+        ink::env::debug_println!(
+            "debt current rate: {},\ndebt index multiplier: {}, \n ",
+            self.current_debt_rate_e24,
+            debt_index_multiplier_e18
+        );
+
         reserve_indexes.update_indexes(
             deposit_index_multiplier_e18,
             debt_index_multiplier_e18,
