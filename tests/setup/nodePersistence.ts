@@ -14,6 +14,7 @@ import VToken from '../../typechain/contracts/v_token';
 import StableToken from '../../typechain/contracts/stable_token';
 import { getContractObject } from './deploymentHelpers';
 import { apiProviderWrapper, getSigners } from './helpers';
+import { increaseBlockTimestamp, setBlockTimestamp } from 'tests/scenarios/utils/misc';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
 
@@ -95,6 +96,7 @@ export const restartAndRestoreNodeState = async (getOldContractsNodeProcess: () 
   contractsNodeProcess.stdout?.on('data', logToFile);
 
   await apiProviderWrapper.getAndWaitForReady();
+  await restoreTimestamp();
   return () => contractsNodeProcess;
 };
 
@@ -196,4 +198,33 @@ async function restoreTestChainState(oldContractsNodeProcess: ChildProcess | und
 
   fs.rmSync(testChainStateLocation, { force: true, recursive: true });
   fs.copySync(backupLocation, testChainStateLocation);
+}
+
+export async function storeTimestamp() {
+  if (!process.env.PWD) throw 'could not determine pwd';
+  const timestampBackupLocation = path.join(process.env.PWD, 'test-chain-timestamp');
+
+  const api = await apiProviderWrapper.getAndWaitForReady();
+  const timestamp = await api.query.timestamp.now();
+  console.log(`storing timestamp to: ${timestamp}`);
+  fs.writeFileSync(timestampBackupLocation, timestamp.toString());
+}
+
+export async function restoreTimestamp(): Promise<void> {
+  try {
+    if (!process.env.PWD) throw 'could not determine pwd';
+    const timestampBackupLocation = path.join(process.env.PWD, 'test-chain-timestamp');
+    let storedValue;
+    if (fs.existsSync(timestampBackupLocation)) {
+      storedValue = parseInt(fs.readFileSync(timestampBackupLocation, 'utf-8'), 10);
+    }
+    if (typeof storedValue === 'number') {
+      await setBlockTimestamp(storedValue);
+    } else {
+      // used to push fake_timestamp equal to current timestamp
+      await increaseBlockTimestamp(0);
+    }
+  } catch (error) {
+    console.error('Error reading file:', error);
+  }
 }

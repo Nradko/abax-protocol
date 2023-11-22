@@ -81,11 +81,13 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
       const initialUsdaxDebt: BN = new BN(10_000 * 1_000_000);
       let timestamp: number;
       beforeEach('Alice takes loan', async () => {
-        const timestampPre = parseInt((await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now()).toString());
-        console.log({ timestampPre });
+        const timestampBeforeBorrow = await increaseBlockTimestamp(0);
+        console.log('timestamp before Borrow:', timestampBeforeBorrow);
         await lendingPool.withSigner(alice).tx.borrow(usdaxContract.address, alice.address, initialUsdaxDebt, []);
+        const timestampAfterBorrow = await increaseBlockTimestamp(0);
+        console.log('timestamp after Borrow:', timestampAfterBorrow);
         timestamp = await increaseBlockTimestamp(ONE_YEAR.toNumber());
-        console.log({ timestampPost: timestamp });
+        console.log('timestamp after Borrow and increase:', timestamp);
       });
 
       it('Alice repays 10 000 USDax, debt should be accumulated', async () => {
@@ -94,9 +96,13 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           capturedTransferEvents.push(event);
         });
         const query = await lendingPool.withSigner(alice).query.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
+        const timestampBeforeRepay = await increaseBlockTimestamp(0);
+        console.log('timestamp before Repay:', timestampBeforeRepay);
         const tx = lendingPool.withSigner(alice).tx.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
         await expect(tx).to.eventually.be.fulfilled;
         const txRes = await tx;
+        const timestampAfterRepay = await increaseBlockTimestamp(0);
+        console.log('timestamp before Repay:', timestampAfterRepay);
         const reserveData = (await lendingPool.query.viewUnupdatedReserveData(usdaxContract.address)).value.ok!;
         const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
 
@@ -110,7 +116,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           indexesUpdateTimestamp: timestamp,
         });
         expect.soft(replaceRNBNPropsWithStrings(userReserveData)).to.deep.equal({
-          appliedCumulativeDebtIndexE18: '1011037600000000002', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1)) +1
+          appliedCumulativeDebtIndexE18: '1011037600000000001', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
           appliedCumulativeDepositIndexE18: '1000000000000000000',
           debt: '110376001', // same as totalDebt above +1
           deposit: '0',

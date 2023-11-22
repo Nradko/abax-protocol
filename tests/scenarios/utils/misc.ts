@@ -141,18 +141,28 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
   };
 };
 
-export async function increaseBlockTimestamp(deltaTimestamp: number) {
+export async function setBlockTimestamp(timestamp: number) {
   const api = await apiProviderWrapper.getAndWaitForReady();
   const signer = getSigners()[0];
+  console.log(`setting timestamp to: ${timestamp}`);
+  await api.tx.timestamp.setTime(timestamp).signAndSend(signer, {});
+  await deployDiaOracle(signer);
+  // await transferNoop(api, signer);
+  const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
+  if (timestampNowPostChange !== timestamp) throw new Error('Failed to set custom timestamp');
+}
+export async function increaseBlockTimestamp(deltaTimestamp: number): Promise<number> {
+  const api = await apiProviderWrapper.getAndWaitForReady();
   const timestampNow = await api.query.timestamp.now();
   const timestampToSet = parseInt(timestampNow.toString()) + deltaTimestamp;
-  await api.tx.timestamp.setTime(timestampToSet).signAndSend(signer, {});
-  await deployDiaOracle(signer);
+  console.log(`increasing timestamp by ${deltaTimestamp}`);
+  await setBlockTimestamp(timestampToSet);
   // await transferNoop(api, signer);
   const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
   if (timestampNowPostChange !== timestampToSet) throw new Error('Failed to set custom timestamp');
   return timestampToSet;
 }
+
 async function transferNoop(api: ApiPromise, signer: KeyringPair) {
   await new Promise((resolve, reject) => {
     api.tx.balances
