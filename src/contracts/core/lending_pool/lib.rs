@@ -29,11 +29,11 @@ pub mod lending_pool {
     use abax_traits::lending_pool::{
         DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
         EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
-        EmitManageEvents, LendingPoolATokenInterface, LendingPoolBorrow,
-        LendingPoolDeposit, LendingPoolError, LendingPoolFlash,
-        LendingPoolLiquidate, LendingPoolMaintain, LendingPoolManage,
-        LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
-        ROLE_ADMIN,
+        EmitManageEvents, InterestRateModel, LendingPoolATokenInterface,
+        LendingPoolBorrow, LendingPoolDeposit, LendingPoolError,
+        LendingPoolFlash, LendingPoolLiquidate, LendingPoolMaintain,
+        LendingPoolManage, LendingPoolVTokenInterface, LendingPoolView,
+        MarketRule, RuleId, ROLE_ADMIN,
     };
     use ink::{
         codegen::{EmitEvent, Env},
@@ -241,7 +241,7 @@ pub mod lending_pool {
             minimal_collateral: Balance,
             minimal_debt: Balance,
             income_for_suppliers_part_e6: u128,
-            interest_rate_model: [u128; 7],
+            interest_rate_model: InterestRateModel,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::register_asset(
                 self,
@@ -314,7 +314,7 @@ pub mod lending_pool {
         fn set_reserve_parameters(
             &mut self,
             asset: AccountId,
-            interest_rate_model: [u128; 7],
+            interest_rate_model: InterestRateModel,
             income_for_suppliers_part_e6: u128,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_reserve_parameters(
@@ -377,15 +377,15 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        fn set_stablecoin_debt_rate_e24(
+        fn set_stablecoin_debt_rate_e18(
             &mut self,
             asset: AccountId,
-            debt_rate_e24: u128,
+            debt_rate_e18: u64,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::set_stablecoin_debt_rate_e24(
+            LendingPoolManageImpl::set_stablecoin_debt_rate_e18(
                 self,
                 asset,
-                debt_rate_e24,
+                debt_rate_e18,
             )
         }
     }
@@ -758,7 +758,7 @@ pub mod lending_pool {
     pub struct ReserveParametersChanged {
         #[ink(topic)]
         asset: AccountId,
-        interest_rate_model: [u128; 7],
+        interest_rate_model: InterestRateModel,
         income_for_suppliers_part_e6: u128,
     }
 
@@ -793,7 +793,7 @@ pub mod lending_pool {
     pub struct StablecoinDebtRateChanged {
         #[ink(topic)]
         asset: AccountId,
-        debt_rate_e24: u128,
+        debt_rate_e18: u64,
     }
 
     impl EmitDepositEvents for LendingPool {
@@ -988,7 +988,7 @@ pub mod lending_pool {
         fn _emit_reserve_parameters_changed_event(
             &mut self,
             asset: &AccountId,
-            interest_rate_model: &[u128; 7],
+            interest_rate_model: &InterestRateModel,
             income_for_suppliers_part_e6: u128,
         ) {
             self.env().emit_event(ReserveParametersChanged {
@@ -1037,11 +1037,11 @@ pub mod lending_pool {
         fn _emit_stablecoin_debt_rate_changed(
             &mut self,
             asset: &AccountId,
-            debt_rate_e24: &u128,
+            debt_rate_e18: &u64,
         ) {
             self.env().emit_event(StablecoinDebtRateChanged {
                 asset: *asset,
-                debt_rate_e24: *debt_rate_e24,
+                debt_rate_e18: *debt_rate_e18,
             })
         }
     }

@@ -13,12 +13,12 @@ pub struct ReserveData {
     /// total deposit of underlying asset. It is sum of deposits and  of accumulated interests. Total deposit of aToken.
     pub total_deposit: Balance,
     /// current interest rate for deposited tokens per millisecond. 10^24 = 100%  millisecond Percentage Rate.
-    pub current_deposit_rate_e24: u128,
+    pub current_deposit_rate_e18: u64,
 
     /// total debt. It is sum of debts with accumulated interests. Total supply of vToken.
     pub total_debt: Balance,
     // current interest rate for debt per millisecond. 10^24 = 100%  millisecond Percentage Rate.
-    pub current_debt_rate_e24: u128,
+    pub current_debt_rate_e18: u64,
 
     /// timestamp of the last update of the rate indexes
     pub indexes_update_timestamp: Timestamp,
@@ -27,10 +27,15 @@ pub struct ReserveData {
 #[derive(Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum ReserveDataError {
+    /// returned if activating, disactivating, freezing, unfreezing action is redundant.
     AlreadySet,
+    /// returned if reserve is inactive
     Inactive,
+    /// returned if reserve is frozen
     Freezed,
+    /// returned if after the action total debt of an asset is freater than the maximal total debt restriocion.
     MaxDebtReached,
+    /// returned if after the action total deposit of an asset is grreater then the maximal total deposit restriction.
     MaxDepositReached,
 }
 
@@ -40,9 +45,9 @@ impl ReserveData {
             activated: true,
             freezed: false,
             total_deposit: 0,
-            current_deposit_rate_e24: 0,
+            current_deposit_rate_e18: 0,
             total_debt: 0,
-            current_debt_rate_e24: 0,
+            current_debt_rate_e18: 0,
             indexes_update_timestamp: *timestamp,
         }
     }
@@ -83,46 +88,12 @@ impl ReserveData {
         Ok(())
     }
 
-    pub fn utilization_rate_to_interest_rate_e24(
-        &self,
-        utilization_rate_e6: u128,
-        reserve_parameters: &ReserveParameters,
-    ) -> u128 {
-        let [t68, t84, t92, t96, t98, t99, t100]: [u128; 7] =
-            reserve_parameters.interest_rate_model;
-        match utilization_rate_e6 {
-            0 => 0,
-            1..=680_000 => t68 * utilization_rate_e6 / 680_000 + 1,
-            680_001..=840_000 => {
-                t68 + (t84 - t68) * (utilization_rate_e6 - 680_000) / 160_000
-                    + 1
-            }
-            840_001..=920_000 => {
-                t84 + (t92 - t84) * (utilization_rate_e6 - 840_000) / 80_000 + 1
-            }
-            920_001..=960_000 => {
-                t92 + (t96 - t92) * (utilization_rate_e6 - 920_000) / 40_000 + 1
-            }
-            960_001..=980_000 => {
-                t96 + (t98 - t96) * (utilization_rate_e6 - 960_000) / 20_000 + 1
-            }
-            980_001..=990_000 => {
-                t98 + (t99 - t98) * (utilization_rate_e6 - 980_000) / 10_000 + 1
-            }
-            990_001..=1_000_000 => {
-                t99 + (t100 - t99) * (utilization_rate_e6 - 990_000) / 10_000
-                    + 1
-            }
-            _ => t100 * utilization_rate_e6 / E6_U128 + 1,
-        }
-    }
-    //// VIEW
-    pub fn current_utilization_rate_e6(&self) -> Result<u128, MathError> {
+    pub fn current_utilization_rate_e6(&self) -> Result<u64, MathError> {
         if self.total_deposit == 0 {
-            return Ok(E6_U128);
+            return Ok(E6_U64);
         }
         let total_debt = self.total_debt;
-        match u128::try_from({
+        match u64::try_from({
             let x = U256::try_from(total_debt).unwrap();
             let y = U256::try_from(E6_U128).unwrap();
             let z = U256::try_from(self.total_deposit).unwrap();
@@ -133,15 +104,14 @@ impl ReserveData {
         }
     }
 
-    //// MUT
     pub fn accumulate_interest(
         &mut self,
         reserve_indexes: &mut ReserveIndexes,
         new_timestamp: &Timestamp,
     ) -> Result<(), MathError> {
         // time that have passed in miliseconds
-        let delta_timestamp: u128 =
-            (*new_timestamp - self.indexes_update_timestamp) as u128;
+        let delta_timestamp: u64 =
+            *new_timestamp - self.indexes_update_timestamp;
         // variable_borrow
         if delta_timestamp == 0 {
             return Ok(());
@@ -156,12 +126,12 @@ impl ReserveData {
         let mut debt_index_multiplier_e18: u128 = E18_U128;
 
         // total_deposit != 0 must be checked because it may happen for stable assets that total_deposit == 0 and deposit_rate !=0
-        if self.current_deposit_rate_e24 != 0 && self.total_deposit != 0 {
+        if self.current_deposit_rate_e18 != 0 && self.total_deposit != 0 {
             deposit_index_multiplier_e18 = deposit_index_multiplier_e18
-                .checked_add(e24_mul_e0_to_e18_rdown(
-                    self.current_deposit_rate_e24,
+                .checked_add(e18_mul_e0_to_e18_rdown(
+                    self.current_deposit_rate_e18,
                     delta_timestamp,
-                )?)
+                ))
                 .ok_or(MathError::Overflow)?;
             self.total_deposit = e18_mul_e0_to_e0_rdown(
                 deposit_index_multiplier_e18,
@@ -170,13 +140,21 @@ impl ReserveData {
         }
 
         // total_debt != 0 must be checked because it may happen for stable assets that total_debt == 0 and debt_rate !=0
-        if self.current_debt_rate_e24 != 0 && self.total_debt != 0 {
+        if self.current_debt_rate_e18 != 0 && self.total_debt != 0 {
             debt_index_multiplier_e18 = debt_index_multiplier_e18
-                .checked_add(e24_mul_e0_to_e18_rup(
-                    self.current_debt_rate_e24,
+                .checked_add(e18_mul_e0_to_e18_rup(
+                    self.current_debt_rate_e18,
                     delta_timestamp,
                 )?)
                 .ok_or(MathError::Overflow)?;
+            ink::env::debug_println!(
+                "current_debt_rate_e18: {}",
+                self.current_debt_rate_e18
+            );
+            ink::env::debug_println!(
+                "debt_index_multiplier: {}",
+                debt_index_multiplier_e18
+            );
             self.total_debt = e18_mul_e0_to_e0_rdown(
                 debt_index_multiplier_e18,
                 self.total_debt,
@@ -186,7 +164,7 @@ impl ReserveData {
 
         ink::env::debug_println!(
             "debt current rate: {},\ndebt index multiplier: {}, \n ",
-            self.current_debt_rate_e24,
+            self.current_debt_rate_e18,
             debt_index_multiplier_e18
         );
 
@@ -202,30 +180,29 @@ impl ReserveData {
         reserve_parameters: &ReserveParameters,
     ) -> Result<(), MathError> {
         if self.total_debt == 0 {
-            self.current_debt_rate_e24 = 0;
-            self.current_deposit_rate_e24 = 0;
+            self.current_debt_rate_e18 = 0;
+            self.current_deposit_rate_e18 = 0;
             return Ok(());
         }
         let utilization_rate_e6 = self.current_utilization_rate_e6()?;
-        self.current_debt_rate_e24 = self
-            .utilization_rate_to_interest_rate_e24(
-                utilization_rate_e6,
-                reserve_parameters,
-            );
+        self.current_debt_rate_e18 = utilization_rate_to_interest_rate_e18(
+            utilization_rate_e6,
+            &reserve_parameters.interest_rate_model,
+        )?;
 
         if self.total_deposit != 0 {
-            let current_income_per_milisecond_e24: U256 = {
+            let current_income_per_milisecond_e18: U256 = {
                 let x = U256::try_from(self.total_debt).unwrap();
-                let y = U256::try_from(self.current_debt_rate_e24).unwrap();
+                let y = U256::try_from(self.current_debt_rate_e18).unwrap();
                 x.checked_mul(y).unwrap()
             };
-            self.current_deposit_rate_e24 = e24_mul_e6_div_e0_to_e24_rdown(
-                current_income_per_milisecond_e24,
+            self.current_deposit_rate_e18 = e18_mul_e6_div_e0_to_e18_rdown(
+                current_income_per_milisecond_e18,
                 reserve_parameters.income_for_suppliers_part_e6,
                 self.total_deposit,
             )?;
         } else {
-            self.current_deposit_rate_e24 = 0;
+            self.current_deposit_rate_e18 = 0;
         }
         Ok(())
     }
@@ -293,5 +270,3 @@ impl ReserveData {
         }
     }
 }
-//TODO
-// pub use super::tests::reserve_data_tests;

@@ -16,10 +16,17 @@ pub struct AssetRules {
 #[derive(Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum AssetRulesError {
+    /// returned if the asset_rule to be set is invalid.
     InvalidAssetRule,
 }
 
 impl AssetRules {
+    /// verifies that:
+    /// 1) the rule is not empty
+    /// 2) that Some is not overriten by None
+    /// 3) that penalty is Some
+    ///
+    /// * `old_rule` - rule that is overwritten by Self
     pub fn verify_new_rule(
         &self,
         old_rule: &Option<AssetRules>,

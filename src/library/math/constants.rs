@@ -1,3 +1,5 @@
+pub const E6_U64: u64 = 10_u64.pow(6);
+
 pub const E6_U128: u128 = 10_u128.pow(6);
 pub const E8_U128: u128 = 10_u128.pow(8);
 pub const E9_U128: u128 = 10_u128.pow(9);

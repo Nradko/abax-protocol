@@ -11,6 +11,7 @@ pub trait LendingPoolFlash {
     ///  * `amounts` -  vec of amounts that one wants to borrow, in the correspong order to `assets`
     ///  * `receiver_params` -  additional data passed to receiver.
     /// # Errors
+    /// * `AmountNotGreaterThanZero` returned  if for some i `amount[i]`== 0.
     /// * `FlashLoanAmountsAssetsInconsistentLengths` returned when `assets`.len != `amounts`.len()
     /// * `PSP22Error` if transfer fails
     /// * `FlashLoanReceiverError` if call to `receiver` fails.

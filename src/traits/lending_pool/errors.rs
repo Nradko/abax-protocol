@@ -13,12 +13,8 @@ pub enum LendingPoolError {
 
     PriceFeedError(PriceFeedError),
     FlashLoanReceiverError(FlashLoanReceiverError),
-    /// returned if reserve is inactive
-    Inactive,
-    /// returned if activating, disactivating, freezing, unfreezing action is redundant.
-    AlreadySet,
-    /// returned if reserve is frozen
-    Freezed,
+    /// returned if the `amount` argument is zero.
+    AmountNotGreaterThanZero,
     /// returned if asset that is alerady registered is tried to be registered again.
     AlreadyRegistered,
     /// returned if an asset that is not registered is passed as an argument to message.
@@ -41,8 +37,6 @@ pub enum LendingPoolError {
     InsufficientDeposit,
     /// returned if the liquidation would result in not enough recompensation per repaid token.
     MinimumRecieved,
-    /// returned if the `amount` argument is zero.
-    AmountNotGreaterThanZero,
     /// returned if there is nothing to be repaid (in an asset) during liquidation.
     NothingToRepay,
     /// returned if there is nothing (in an asset) to to recompensate the liquidation.
@@ -51,20 +45,8 @@ pub enum LendingPoolError {
     TakingNotACollateral,
     /// returned if len of vector of assets that should be borrowed is different then lenght of vector of amounts.
     FlashLoanAmountsAssetsInconsistentLengths,
-    /// returned if after the action minimal collaetral restricion would be no satisfied.
-    MinimalCollateralDeposit,
-    /// returned if after the action minimal debt restricion would be no satisfied.
-    MinimalDebt,
-    /// returned if after the action total deposit of an asset is grreater then the maximal total deposit restriction.
-    MaxDepositReached,
-    /// returned if after the action total debt of an asset is freater than the maximal total debt restriocion.
-    MaxDebtReached,
     /// returned if passed 'market_rule_id' that is not used.
     MarketRuleInvalidId,
-    /// returned if the `accumulate_interest` is called manually on a reserve that was already accumulated this block
-    AccumulatedAlready,
-    /// returned if the asset_rule to be set is invalid.
-    InvalidAssetRule,
 }
 
 impl From<AssetRulesError> for LendingPoolError {

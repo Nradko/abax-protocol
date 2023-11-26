@@ -6,3 +6,5 @@ pub type RuleId = u32;
 pub type DecimalMultiplier = u128;
 
 pub type RoleType = u32;
+
+pub type InterestRateModel = [u64; 7];

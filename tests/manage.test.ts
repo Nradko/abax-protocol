@@ -210,9 +210,9 @@ makeSuite('Menage tests', (getTestEnv) => {
           activated: true,
           freezed: false,
           totalDeposit: '0',
-          currentDepositRateE24: '0',
+          currentDepositRateE18: '0',
           totalDebt: '0',
-          currentDebtRateE24: '0',
+          currentDebtRateE18: '0',
           indexesUpdateTimestamp: timestamp.toString(),
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
@@ -226,8 +226,8 @@ makeSuite('Menage tests', (getTestEnv) => {
           incomeForSuppliersPartE6: PARAMS.incomeForSuppliersPartE6,
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
-          cumulativeDepositIndexE18: '1000000000000000000',
-          cumulativeDebtIndexE18: '1000000000000000000',
+          depositIndexE18: '1000000000000000000',
+          debtIndexE18: '1000000000000000000',
         });
         expect.soft(reserveDecimalMultiplier).to.equal(Math.pow(10, Number(PARAMS.decimals)).toString());
         expect.flushSoft();
@@ -340,9 +340,9 @@ makeSuite('Menage tests', (getTestEnv) => {
           activated: true,
           freezed: false,
           totalDeposit: '0',
-          currentDepositRateE24: '0',
+          currentDepositRateE18: '0',
           totalDebt: '0',
-          currentDebtRateE24: '0',
+          currentDebtRateE18: '0',
           indexesUpdateTimestamp: timestamp.toString(),
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
@@ -352,8 +352,8 @@ makeSuite('Menage tests', (getTestEnv) => {
           minimalDebt: PARAMS.minimalDebt,
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
-          cumulativeDepositIndexE18: '1000000000000000000',
-          cumulativeDebtIndexE18: '1000000000000000000',
+          depositIndexE18: '1000000000000000000',
+          debtIndexE18: '1000000000000000000',
         });
         expect.soft(reserveDecimalMultiplier).to.equal(Math.pow(10, Number(PARAMS.decimals)).toString());
         expect.flushSoft();
@@ -726,14 +726,14 @@ makeSuite('Menage tests', (getTestEnv) => {
   // stablecoin rate admin is allowed to
   describe('While changing stablecoin rate', () => {
     const ROLES_WITH_ACCESS: string[] = ['STABLECOIN_RATE_ADMIN'];
-    type params = Parameters<typeof lendingPool.query.setStablecoinDebtRateE24>;
-    const debtRateE24: BN = new BN('123456789');
+    type params = Parameters<typeof lendingPool.query.setStablecoinDebtRateE18>;
+    const debtRateE18: BN = new BN('123456789');
 
     it('roles with no permission should fail with Err MissingRole', async () => {
       const stableAddress = testEnv.stables['USDax'].underlying.address;
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
-        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setStablecoinDebtRateE24(stableAddress, debtRateE24)).value.ok;
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setStablecoinDebtRateE18(stableAddress, debtRateE18)).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       }
       expect.flushSoft();
@@ -742,7 +742,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       it(role_name + ' should succeed', async () => {
         const stableAddress = testEnv.stables['USDax'].underlying.address;
 
-        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setStablecoinDebtRateE24(stableAddress, debtRateE24);
+        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setStablecoinDebtRateE18(stableAddress, debtRateE18);
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
         expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
@@ -750,14 +750,14 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'StablecoinDebtRateChanged',
             args: {
               asset: stableAddress,
-              debtRateE24: debtRateE24.toString(),
+              debtRateE18: debtRateE18.toString(),
             },
           },
         ]);
 
         const reserveData = (await lendingPool.query.viewReserveData(stableAddress)).value.ok!;
-        expect.soft(reserveData.currentDebtRateE24.rawNumber.toString()).to.deep.equal(debtRateE24.toString());
-        expect.soft(reserveData.currentDepositRateE24.rawNumber.toString()).to.deep.equal('0');
+        expect.soft(reserveData.currentDebtRateE18.toString()).to.deep.equal(debtRateE18.toString());
+        expect.soft(reserveData.currentDepositRateE18.toString()).to.deep.equal('0');
 
         expect.flushSoft();
       });

@@ -1,7 +1,7 @@
 pub type LendingPoolViewRef =
     contract_ref!(LendingPoolView, DefaultEnvironment);
 
-/// Trait containing non-mutable messages.
+/// Trait containing non-mutable messages - use of this trait should be omitted in smart contracts.
 #[ink::trait_definition]
 pub trait LendingPoolView {
     #[ink(message)]

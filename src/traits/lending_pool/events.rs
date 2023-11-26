@@ -114,7 +114,7 @@ pub trait EmitManageEvents {
     fn _emit_reserve_parameters_changed_event(
         &mut self,
         asset: &AccountId,
-        interest_rate_model: &[u128; 7],
+        interest_rate_model: &InterestRateModel,
         income_for_suppliers_part_e6: u128,
     );
 
@@ -137,7 +137,7 @@ pub trait EmitManageEvents {
     fn _emit_stablecoin_debt_rate_changed(
         &mut self,
         asset: &AccountId,
-        debt_rate_e18: &u128,
+        debt_rate_e18: &u64,
     );
     fn _emit_income_taken(&mut self, asset: &AccountId);
 }

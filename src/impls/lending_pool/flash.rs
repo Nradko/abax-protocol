@@ -16,7 +16,10 @@ use pendzl::{
     traits::{AccountId, Balance, Storage},
 };
 
-use super::{internal::Transfer, storage::LendingPoolStorage};
+use super::{
+    internal::{Transfer, _check_amount_not_zero},
+    storage::LendingPoolStorage,
+};
 
 pub trait LendingPoolFlashImpl:
     Storage<LendingPoolStorage>
@@ -45,6 +48,7 @@ pub trait LendingPoolFlashImpl:
             .unwrap();
 
         for i in 0..assets.len() {
+            _check_amount_not_zero(amounts[i])?;
             let fee = match self
                 ._has_role(FLASH_BORROWER, &Some(Self::env().caller()))
             {

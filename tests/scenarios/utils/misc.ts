@@ -13,6 +13,7 @@ import { TestEnv } from './make-suite';
 import { ApiPromise } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { deployDiaOracle } from 'tests/setup/deploymentHelpers';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/tokensToDeployForTesting';
 
 export const getLineSeparator = () => '='.repeat(process.stdout.columns ?? 60);
 
@@ -107,15 +108,7 @@ export const subscribeOnEvents = async (
 
 export const getReserveParametersDefaultObj = (): ReserveParameters => {
   return {
-    interestRateModel: [
-      new ReturnNumber(300000000000),
-      new ReturnNumber(500000000000),
-      new ReturnNumber(2000000000000),
-      new ReturnNumber(4000000000000),
-      new ReturnNumber(10000000000000),
-      new ReturnNumber(100000000000000),
-      new ReturnNumber(300000000000000),
-    ],
+    interestRateModel: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
     incomeForSuppliersPartE6: new ReturnNumber(E6),
   };
 };
@@ -125,9 +118,9 @@ export const getReserveDefaultObj = (): ReserveData => {
     activated: true,
     freezed: false,
     totalDeposit: new ReturnNumber(0),
-    currentDepositRateE24: new ReturnNumber(E18),
+    currentDepositRateE18: E18,
     totalDebt: new ReturnNumber(0),
-    currentDebtRateE24: new ReturnNumber(E18),
+    currentDebtRateE18: E18,
     indexesUpdateTimestamp: 0,
   };
 };
@@ -136,8 +129,8 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
   return {
     deposit: new ReturnNumber(0),
     debt: new ReturnNumber(0),
-    appliedCumulativeDepositIndexE18: new ReturnNumber(0),
-    appliedCumulativeDebtIndexE18: new ReturnNumber(0),
+    appliedDepositIndexE18: new ReturnNumber(0),
+    appliedDebtIndexE18: new ReturnNumber(0),
   };
 };
 
