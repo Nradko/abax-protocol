@@ -84,20 +84,25 @@ const spawnContractsNode = async (testChainStateLocation: string) => {
 };
 
 export const restartAndRestoreNodeState = async (getOldContractsNodeProcess: () => ChildProcess | undefined) => {
-  if (!process.env.PWD) throw 'could not determine pwd';
-  const testChainStateLocation = path.join(process.env.PWD, 'test-chain-state');
-  await apiProviderWrapper.closeApi();
-  await restoreTestChainState(getOldContractsNodeProcess(), testChainStateLocation);
-  const contractsNodeProcess = await spawnContractsNode(testChainStateLocation);
+  try {
+    if (!process.env.PWD) throw 'could not determine pwd';
+    const testChainStateLocation = path.join(process.env.PWD, 'test-chain-state');
+    await apiProviderWrapper.closeApi();
+    await restoreTestChainState(getOldContractsNodeProcess(), testChainStateLocation);
+    const contractsNodeProcess = await spawnContractsNode(testChainStateLocation);
 
-  contractsNodeProcess.stderr?.on('data', (data: string) => {
-    logToFile(data);
-  });
-  contractsNodeProcess.stdout?.on('data', logToFile);
+    contractsNodeProcess.stderr?.on('data', (data: string) => {
+      logToFile(data);
+    });
+    contractsNodeProcess.stdout?.on('data', logToFile);
 
-  await apiProviderWrapper.getAndWaitForReady();
-  await restoreTimestamp();
-  return () => contractsNodeProcess;
+    await apiProviderWrapper.getAndWaitForReady();
+    await restoreTimestamp();
+    return () => contractsNodeProcess;
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
 };
 
 export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH): Promise<TestEnv> => {
@@ -184,20 +189,28 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
 };
 
 async function restoreTestChainState(oldContractsNodeProcess: ChildProcess | undefined, testChainStateLocation: string) {
-  if (!process.env.PWD) throw 'could not determine pwd';
-  const backupLocation = path.join(process.env.PWD, 'test-chain-state-bp');
-  if (oldContractsNodeProcess) {
-    oldContractsNodeProcess.kill();
-  }
+  try {
+    if (!process.env.PWD) throw 'could not determine pwd';
+    const backupLocation = path.join(process.env.PWD, 'test-chain-state-bp');
+    if (oldContractsNodeProcess) {
+      oldContractsNodeProcess.kill();
+    }
 
-  const existingProcessesListeningOnPort = await findProcess('port', 9944, { logLevel: 'error' });
-  for (const p of existingProcessesListeningOnPort) {
-    console.log(chalk.yellow(`Killing process `) + chalk.magenta(p.name) + `(${chalk.italic(p.cmd)})` + ` occupying test port\n\n`);
-    process.kill(p.pid);
-  }
+    const existingProcessesListeningOnPort = await findProcess('port', 9944, { logLevel: 'error' });
+    for (const p of existingProcessesListeningOnPort) {
+      console.log(chalk.yellow(`Killing process `) + chalk.magenta(p.name) + `(${chalk.italic(p.cmd)})` + ` occupying test port\n\n`);
+      process.kill(p.pid);
+      await sleep(100);
+    }
 
-  fs.rmSync(testChainStateLocation, { force: true, recursive: true });
-  fs.copySync(backupLocation, testChainStateLocation);
+    fs.rmSync(testChainStateLocation, { force: true, recursive: true });
+    fs.copySync(backupLocation, testChainStateLocation);
+  } catch (e) {
+    console.log(chalk.yellow(JSON.stringify(e, null, 2)));
+    console.log('sleeping for 100ms then retrying...');
+    await sleep(100);
+    restoreTestChainState(oldContractsNodeProcess, testChainStateLocation);
+  }
 }
 
 export async function storeTimestamp() {
