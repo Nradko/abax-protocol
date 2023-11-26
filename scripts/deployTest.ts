@@ -3,7 +3,7 @@ import path from 'path';
 import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
-import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
+import { increaseBlockTimestamp, transferNoop } from 'tests/scenarios/utils/misc';
 import { storeTimestamp } from 'tests/setup/nodePersistence';
 
 (async (args: Record<string, string>) => {
@@ -15,8 +15,7 @@ import { storeTimestamp } from 'tests/setup/nodePersistence';
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.json');
 
   // to force mining first block and initializeing timestamp
-  const signer = getSigners()[0];
-  await deployDiaOracle(signer);
+  await transferNoop(api);
   // to force using fake_time
   await increaseBlockTimestamp(0);
   await deployAndConfigureSystem({ shouldUseMockTimestamp }, deployPath);

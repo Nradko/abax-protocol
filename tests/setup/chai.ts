@@ -136,11 +136,25 @@ chai.use((c, utils) => {
     almostDeepEqual.apply(this, [expected, actual]);
   });
 });
+
+const getCircularReplacer = () => {
+  const seen = new WeakSet();
+  return (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return undefined;
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+};
+
 chai.config.truncateThreshold = 0;
 chai.use(
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('chai-formatter-monkeypatch')(function (obj) {
-    return `:\n${JSON.stringify(obj, null, 2)}`;
+    return `:\n${JSON.stringify(obj, getCircularReplacer(), 2)}`;
   }),
 );
 
