@@ -14,7 +14,8 @@ pub trait LendingPoolDeposit {
     /// # Errors
     /// * `AmountNotGreaterThanZero` returned if `amount` returned  == 0.
     /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool` returned.
-    /// * `Inactive` returned if the reserve coresponding to the `asset` returned  is inactive.
+    /// * `Inactive` returned if the reserve coresponding to the `asset` is inactive.
+    /// * `Frozen` returned if the reserve coresponding to the `asset' is frozen.
     /// * `MaxDepositReached` returned if the total deposit after this deposit is higher than maximal_deposit.
     /// * `PSP22Error` returned if transfer of `asset`fails.
     #[ink(message)]
@@ -33,6 +34,13 @@ pub trait LendingPoolDeposit {
     ///     user0 is making redeem. If user0 != user1 then the allowance of on appropriate AToken will be decreased.
     /// * `amount` - the number of tokens to be redeemed. if greater then deposit_amount then only deposit_amopunt will be withdrawn.
     /// * `data` - additional data currently unused.
+    ///
+    /// # Errors
+    /// * `AmountNotGreaterThanZero` returned if `amount`  == 0.
+    /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool`.
+    /// * `Inactive` returned if the reserve coresponding to the `asset` is inactive.
+    /// * `InsufficientCollateral` returned if the 'asset' is used as colalteral by 'on_behalf_of" and after redeem the 'on_behalf_of' would become undercollaterized.
+    /// * `PSP22Error` returned if transfer of `asset`fails.
     #[ink(message)]
     fn redeem(
         &mut self,

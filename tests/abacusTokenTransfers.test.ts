@@ -358,7 +358,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: charlie.address,
-                    value: '1419244936801920', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                    value: '1419120000000000', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
                   },
                 },
                 {
@@ -466,7 +466,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   {
                     from: null,
                     to: charlie.address,
-                    value: '1419244936801920', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                    value: '1419120000000000', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
                   },
                 ]);
               });

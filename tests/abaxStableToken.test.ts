@@ -109,15 +109,15 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
           activated: true,
           freezed: false,
-          currentDebtRateE24: '350000000000',
-          currentDepositRateE24: '0',
+          currentDebtRateE18: 350000,
+          currentDepositRateE18: 0,
           totalDebt: '110376000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
           totalDeposit: '0',
           indexesUpdateTimestamp: timestamp,
         });
         expect.soft(replaceRNBNPropsWithStrings(userReserveData)).to.deep.equal({
-          appliedCumulativeDebtIndexE18: '1011037600000000001', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
-          appliedCumulativeDepositIndexE18: '1000000000000000000',
+          appliedDebtIndexE18: '1011037600000000001', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
+          appliedDepositIndexE18: '1000000000000000000',
           debt: '110376001', // same as totalDebt above +1
           deposit: '0',
         });

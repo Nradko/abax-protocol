@@ -63,7 +63,7 @@ pub trait LendingPoolManage {
         minimal_collateral: Balance,
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
-        interest_rate_model: [u128; 7],
+        interest_rate_model: InterestRateModel,
     ) -> Result<(), LendingPoolError>;
 
     /// Registers new Abax native Stable asset in the `LendingPool`'s storage and instaniates 'AToken' and 'VToken' for the reserve.
@@ -140,7 +140,7 @@ pub trait LendingPoolManage {
     fn set_reserve_parameters(
         &mut self,
         asset: AccountId,
-        interest_rate_model: [u128; 7],
+        interest_rate_model: InterestRateModel,
         income_for_suppliers_part_e6: u128,
     ) -> Result<(), LendingPoolError>;
 
@@ -167,16 +167,16 @@ pub trait LendingPoolManage {
     /// modifies the stablecoin debt rate
     ///
     ///  * `asset` - `AccountId` of the registered stable asset
-    ///  * `debt_rate_e24` - new debt rate
+    ///  * `debt_rate_e18` - new debt rate
     ///
     /// # Errors
     /// * `AccessControl::MisingRole` returned if the caller is not a STABLECOIN_RATE_ADMIN.
     /// * `AssetIsNotProtocolStablecoin` returned if `asset` is not abax native stablecoin.
     #[ink(message)]
-    fn set_stablecoin_debt_rate_e24(
+    fn set_stablecoin_debt_rate_e18(
         &mut self,
         asset: AccountId,
-        debt_rate_e24: u128,
+        debt_rate_e18: u64,
     ) -> Result<(), LendingPoolError>;
 
     /// adds new market rule at next martket rule id

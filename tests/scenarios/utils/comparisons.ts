@@ -626,21 +626,21 @@ export const checkRepayVariable = (
 };
 
 const getUserInterests = (userReserveData: UserReserveData, reserveIndexesAfter: ReserveIndexes): Interests => {
-  const supplyInterest = userReserveData.appliedCumulativeDepositIndexE18.rawNumber.eqn(0)
+  const supplyInterest = userReserveData.appliedDepositIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : userReserveData.deposit.rawNumber
-        .mul(reserveIndexesAfter.cumulativeDepositIndexE18.rawNumber)
-        .div(userReserveData.appliedCumulativeDepositIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.depositIndexE18.rawNumber)
+        .div(userReserveData.appliedDepositIndexE18.rawNumber)
         .sub(userReserveData.deposit.rawNumber);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = userReserveData.appliedCumulativeDepositIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = userReserveData.appliedDepositIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : userReserveData.debt.rawNumber
-        .mul(reserveIndexesAfter.cumulativeDebtIndexE18.rawNumber)
-        .div(userReserveData.appliedCumulativeDebtIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.debtIndexE18.rawNumber)
+        .div(userReserveData.appliedDebtIndexE18.rawNumber)
         .sub(userReserveData.debt.rawNumber);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
@@ -655,21 +655,21 @@ const getReserveInterests = (
   reserveIndexesBefore: ReserveIndexes,
   reserveIndexesAfter: ReserveIndexes,
 ): Interests => {
-  const supplyInterest = reserveIndexesBefore.cumulativeDepositIndexE18.rawNumber.eqn(0)
+  const supplyInterest = reserveIndexesBefore.depositIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : reserveDataBefore.totalDeposit.rawNumber
-        .mul(reserveIndexesAfter.cumulativeDepositIndexE18.rawNumber)
-        .div(reserveIndexesBefore.cumulativeDepositIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.depositIndexE18.rawNumber)
+        .div(reserveIndexesBefore.depositIndexE18.rawNumber)
         .sub(reserveDataBefore.totalDeposit.rawNumber);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = reserveIndexesBefore.cumulativeDebtIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = reserveIndexesBefore.debtIndexE18.rawNumber.eqn(0)
     ? new BN(0)
     : reserveDataBefore.totalDebt.rawNumber
-        .mul(reserveIndexesAfter.cumulativeDebtIndexE18.rawNumber)
-        .div(reserveIndexesBefore.cumulativeDebtIndexE18.rawNumber)
+        .mul(reserveIndexesAfter.debtIndexE18.rawNumber)
+        .div(reserveIndexesBefore.debtIndexE18.rawNumber)
         .sub(reserveDataBefore.totalDebt.rawNumber);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
@@ -688,6 +688,7 @@ const checkAbacusTokenTransferEvent = (
   messagge: string,
 ) => {
   const amountTransferred: BN = add ? new BN(amount).add(new BN(interest)) : new BN(amount).sub(new BN(interest));
+  // it will find both Vtoken.Transfer and AToken.Transfer
   const abacusTokenTransferEventParameters = capturedEventsParameters.find(
     (e) => e.eventName === ContractsEvents.ATokenEvent.Transfer && e.sourceContract.address === abacusTokenAddress,
   );

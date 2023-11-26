@@ -38,7 +38,6 @@ pub trait LendingPoolBorrowImpl:
         asset: AccountId,
         use_as_collateral_to_set: bool,
     ) -> Result<(), LendingPoolError> {
-        //// PULL DATA AND INIT CONDITIONS CHECK
         let caller = Self::env().caller();
         self.data::<LendingPoolStorage>()
             .account_for_set_as_collateral(
@@ -47,8 +46,8 @@ pub trait LendingPoolBorrowImpl:
                 use_as_collateral_to_set,
             )?;
 
+        // if the collateral is turned off collateralization must be checked
         if !use_as_collateral_to_set {
-            // check if there ie enought collateral
             let all_assets = self
                 .data::<LendingPoolStorage>()
                 .get_all_registered_assets();
@@ -73,11 +72,10 @@ pub trait LendingPoolBorrowImpl:
         amount: Balance,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
-        //// PULL DATA AND INIT CONDITIONS CHECK
-        ink::env::debug_println!("BORROW");
         _check_amount_not_zero(amount)?;
 
         let block_timestamp = Self::env().block_timestamp();
+        ink::env::debug_println!("BORROW");
         ink::env::debug_println!(
             "borrow | block_timestamp {}",
             block_timestamp
@@ -139,12 +137,10 @@ pub trait LendingPoolBorrowImpl:
         mut amount: Balance,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
-        if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero);
-        }
-        ink::env::debug_println!("REPAY");
-
+        _check_amount_not_zero(amount)?;
         let block_timestamp = Self::env().block_timestamp();
+
+        ink::env::debug_println!("REPAY");
         ink::env::debug_println!(
             "repay  | block_timestamp {}",
             block_timestamp

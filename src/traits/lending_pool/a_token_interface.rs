@@ -7,6 +7,8 @@ pub trait LendingPoolATokenInterface {
     /// Returns LendingPool's total deposit of an underlying asset.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up total deposit of.
+    ///
+    /// # Errors None
     #[ink(message)]
     fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance;
 
@@ -14,6 +16,8 @@ pub trait LendingPoolATokenInterface {
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up deposit of.
     /// * `user` - AccountId (aka address) of an user to look up deposit of.
+    ///
+    /// # Errors None
     #[ink(message)]
     fn user_deposit_of(
         &self,

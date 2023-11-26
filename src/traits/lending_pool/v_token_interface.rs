@@ -7,12 +7,16 @@ pub trait LendingPoolVTokenInterface {
     /// Returns LendingPool's total debt of users in the context of an underlying asset.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up total  debt of.
+    ///
+    /// # Errors None
     #[ink(message)]
     fn total_debt_of(&self, underlying_asset: AccountId) -> Balance;
     /// Returns the specified `user`'s  debt in the context of an `underlying_asset`.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up user's  debt of.
     /// * `user` - AccountId (aka address) of an user to look up  debt for.
+    ///
+    /// # Errors None
     #[ink(message)]
     fn user_debt_of(
         &self,

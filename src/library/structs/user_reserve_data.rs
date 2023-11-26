@@ -10,9 +10,9 @@ pub struct UserReserveData {
     /// underlying asset amount of debt plus accumulated interest.
     pub debt: Balance,
     /// index that is used to accumulate deposit interest.
-    pub applied_cumulative_deposit_index_e18: u128,
+    pub applied_deposit_index_e18: u128,
     /// index that is used to accumulate debt interest.
-    pub applied_cumulative_debt_index_e18: u128,
+    pub applied_debt_index_e18: u128,
 }
 /// type used to identify asset
 pub type AssetId = u32;
@@ -20,7 +20,9 @@ pub type AssetId = u32;
 #[derive(Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum UserReserveDataError {
+    /// returned if after the action minimal debt restricion would be no satisfied.
     MinimalDebt,
+    /// returned if after the action minimal collaetral restricion would be no satisfied.
     MinimalCollateral,
 }
 
@@ -104,45 +106,39 @@ impl UserReserveData {
         &self,
         reserve_restrictions: &ReserveRestrictions,
     ) -> Result<(), UserReserveDataError> {
-        if self.deposit != 0
-            && self.deposit < reserve_restrictions.minimal_collateral
-        {
+        if self.deposit < reserve_restrictions.minimal_collateral {
             return Err(UserReserveDataError::MinimalCollateral);
         }
         Ok(())
     }
 
+    /// based on the `reserve_indexes` and Self.applied_cumulative_**_index_e18 accumulates interest
+    ///
+    /// # Returns
+    /// (accumulated_deposit_interest, accumulated_debt_interest)
     pub fn accumulate_user_interest(
         &mut self,
         reserve_indexes: &ReserveIndexes,
     ) -> Result<(Balance, Balance), MathError> {
-        if self.applied_cumulative_deposit_index_e18
-            >= reserve_indexes.cumulative_deposit_index_e18
-            && self.applied_cumulative_debt_index_e18
-                >= reserve_indexes.cumulative_debt_index_e18
+        if self.applied_deposit_index_e18 >= reserve_indexes.deposit_index_e18
+            && self.applied_debt_index_e18 >= reserve_indexes.debt_index_e18
         {
             return Ok((0, 0));
         }
 
-        let (mut delta_user_deposit, mut delta_user_varaible_debt): (
-            Balance,
-            Balance,
-        ) = (0, 0);
+        let (mut delta_user_deposit, mut delta_user_debt): (Balance, Balance) =
+            (0, 0);
 
         if self.deposit != 0
-            && self.applied_cumulative_deposit_index_e18 != 0
-            && self.applied_cumulative_deposit_index_e18
-                < reserve_indexes.cumulative_deposit_index_e18
+            && self.applied_deposit_index_e18 != 0
+            && self.applied_deposit_index_e18
+                < reserve_indexes.deposit_index_e18
         {
             let updated_deposit = match u128::try_from({
                 let x = U256::try_from(self.deposit).unwrap();
-                let y = U256::try_from(
-                    reserve_indexes.cumulative_deposit_index_e18,
-                )
-                .unwrap();
-                let z =
-                    U256::try_from(self.applied_cumulative_deposit_index_e18)
-                        .unwrap();
+                let y =
+                    U256::try_from(reserve_indexes.deposit_index_e18).unwrap();
+                let z = U256::try_from(self.applied_deposit_index_e18).unwrap();
 
                 x.checked_mul(y).unwrap().checked_div(z).unwrap()
             }) {
@@ -152,24 +148,19 @@ impl UserReserveData {
             delta_user_deposit = updated_deposit - self.deposit;
             self.deposit = updated_deposit;
         }
-        self.applied_cumulative_deposit_index_e18 =
-            reserve_indexes.cumulative_deposit_index_e18;
+        self.applied_deposit_index_e18 = reserve_indexes.deposit_index_e18;
 
         if self.debt != 0
-            && self.applied_cumulative_debt_index_e18 != 0
-            && self.applied_cumulative_debt_index_e18
-                < reserve_indexes.cumulative_debt_index_e18
+            && self.applied_debt_index_e18 != 0
+            && self.applied_debt_index_e18 < reserve_indexes.debt_index_e18
         {
             let updated_borrow = {
                 let updated_borrow_rounded_down = match u128::try_from({
                     let x = U256::try_from(self.debt).unwrap();
-                    let y = U256::try_from(
-                        reserve_indexes.cumulative_debt_index_e18,
-                    )
-                    .unwrap();
+                    let y =
+                        U256::try_from(reserve_indexes.debt_index_e18).unwrap();
                     let z =
-                        U256::try_from(self.applied_cumulative_debt_index_e18)
-                            .unwrap();
+                        U256::try_from(self.applied_debt_index_e18).unwrap();
 
                     x.checked_mul(y).unwrap().checked_div(z).unwrap()
                 }) {
@@ -180,13 +171,12 @@ impl UserReserveData {
                     .checked_add(1)
                     .ok_or(MathError::Overflow)?
             };
-            delta_user_varaible_debt = updated_borrow - self.debt;
+            delta_user_debt = updated_borrow - self.debt;
             self.debt = updated_borrow;
         }
-        self.applied_cumulative_debt_index_e18 =
-            reserve_indexes.cumulative_debt_index_e18;
+        self.applied_debt_index_e18 = reserve_indexes.debt_index_e18;
 
-        Ok((delta_user_deposit, delta_user_varaible_debt))
+        Ok((delta_user_deposit, delta_user_debt))
     }
 }
 
@@ -195,10 +185,8 @@ impl UserReserveData {
         Self {
             deposit: 0,
             debt: 0,
-            applied_cumulative_deposit_index_e18: E18_U128,
-            applied_cumulative_debt_index_e18: E18_U128,
+            applied_deposit_index_e18: E18_U128,
+            applied_debt_index_e18: E18_U128,
         }
     }
 }
-//TODO
-// pub use super::tests::user_reserve_data_tests;

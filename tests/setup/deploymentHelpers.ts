@@ -417,7 +417,7 @@ export const deployAndConfigureSystem = async (
     await contracts.priceFeedProvider.tx.setAccountSymbol(reserve.address, stableData.metadata.name + '/USD');
     await oracle.tx.setPrice(stableData.metadata.name + '/USD', prices[stableData.metadata.name]);
     if (stableData.debtRate) {
-      await contracts.lendingPool.withSigner(owner).tx.setStablecoinDebtRateE24(reserve.address, stableData.debtRate);
+      await contracts.lendingPool.withSigner(owner).tx.setStablecoinDebtRateE18(reserve.address, stableData.debtRate);
     }
 
     stablesWithLendingTokens[stableData.metadata.name] = {

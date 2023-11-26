@@ -170,8 +170,8 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             None => UserReserveData {
                 deposit: 0,
                 debt: 0,
-                applied_cumulative_deposit_index_e18: E18_U128,
-                applied_cumulative_debt_index_e18: E18_U128,
+                applied_deposit_index_e18: E18_U128,
+                applied_debt_index_e18: E18_U128,
             },
         }
     }
@@ -212,8 +212,8 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             None => UserReserveData {
                 deposit: 0,
                 debt: 0,
-                applied_cumulative_deposit_index_e18: E18_U128,
-                applied_cumulative_debt_index_e18: E18_U128,
+                applied_deposit_index_e18: E18_U128,
+                applied_debt_index_e18: E18_U128,
             },
         }
     }

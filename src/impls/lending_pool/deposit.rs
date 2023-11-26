@@ -21,9 +21,8 @@ pub trait LendingPoolDepositImpl:
         amount: Balance,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
-        //// ARGUMENT CHECK
         _check_amount_not_zero(amount)?;
-        //// PULL
+
         let block_timestamp = Self::env().block_timestamp();
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
@@ -73,10 +72,8 @@ pub trait LendingPoolDepositImpl:
         mut amount: Balance,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
-        if amount == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero);
-        }
-        //// PULL DATA
+        _check_amount_not_zero(amount)?;
+
         let block_timestamp = Self::env().block_timestamp();
 
         let (
@@ -90,7 +87,7 @@ pub trait LendingPoolDepositImpl:
             &block_timestamp,
         )?;
 
-        // check if there ie enought collateral
+        // check if there is enought collateral
         if was_asset_a_collateral {
             let all_assets = self
                 .data::<LendingPoolStorage>()

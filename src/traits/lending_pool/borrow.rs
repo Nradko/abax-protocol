@@ -44,15 +44,15 @@ pub trait LendingPoolBorrow {
     /// * `data` - additional data that is unused.
     ///
     /// # Errors
-    /// * `AmountNotGreaterThanZero` returned  if `amount` returned  == 0.
-    /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool` returned .
-    /// * `Inactive` returned if the reserve coresponding to the `asset` returned  is inactive.
-    /// * `Frozen` returned if the reserve coresponding to the `asset` returned  is frozen.
-    /// * `MinimalDebt` returned if after taking the loan the debt of `on_bahalf_of` returned  is smaller than minimal_debt.
+    /// * `AmountNotGreaterThanZero` returned  if `amount`  == 0.
+    /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool`.
+    /// * `Inactive` returned if the reserve coresponding to the `asset` is inactive.
+    /// * `Frozen` returned if the reserve coresponding to the `asset` is frozen.
+    /// * `MinimalDebt` returned if after taking the loan the debt of `on_bahalf_of` is smaller than minimal_debt.
     /// * `MaxDebtReached` returned if after borrowig the total_debt is greated than maximal_total_debt.
     /// * `PriceFeedError` returned if there is a problem with Price Oracle.
-    /// * `InsufficientCollateral` returned if `use_as_collateral` ==false and insufficient collateralafter disabling `asset` returned  as a collateral.
-    /// * `PSP22Error` returned if transfer of `asset` fails (also in the case if the `caller` != `on_behalf_of` returned  and the caller has not enough allowance).
+    /// * `InsufficientCollateral` returned if `use_as_collateral` ==false and insufficient collateralafter disabling `asset` as a collateral.
+    /// * `PSP22Error` returned if transfer of `asset` fails (also in the case if the `caller` != `on_behalf_of` and the caller has not enough allowance).
     #[ink(message)]
     fn borrow(
         &mut self,
@@ -69,11 +69,11 @@ pub trait LendingPoolBorrow {
     /// * `data` - additional data currently unused.
     ///
     /// # Errors
-    /// * `AmountNotGreaterThanZero` returned if `amount` returned  == 0.
-    /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool` returned .
-    /// * `Inactive` returned if the reserve coresponding to the `asset` returned  is inactive.
-    /// * `MinimalDebt` returned if after repaying the loan the debt of `on_bahalf_of` returned  is smaller than minimal_debt and != 0.
-    /// * `PSP22Error` returned if transfer of `asset`  fails.
+    /// * `AmountNotGreaterThanZero` returned if `amount`== 0.
+    /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool`.
+    /// * `Inactive` returned if the reserve coresponding to the `asset` is inactive.
+    /// * `MinimalDebt` returned if after repaying the loan the debt of `on_bahalf_of` is smaller than minimal_debt and != 0.
+    /// * `PSP22Error` returned if transfer of the `asset` fails.
     #[ink(message)]
     fn repay(
         &mut self,

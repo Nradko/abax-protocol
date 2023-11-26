@@ -6,16 +6,16 @@
 )]
 pub struct ReserveIndexes {
     /// index used to calculate deposit accumulated interest
-    pub cumulative_deposit_index_e18: u128,
+    pub deposit_index_e18: u128,
     // index used to calculate debt accumulated interest
-    pub cumulative_debt_index_e18: u128,
+    pub debt_index_e18: u128,
 }
 #[allow(clippy::new_without_default)]
 impl ReserveIndexes {
     pub fn new() -> Self {
         ReserveIndexes {
-            cumulative_deposit_index_e18: E18_U128,
-            cumulative_debt_index_e18: E18_U128,
+            deposit_index_e18: E18_U128,
+            debt_index_e18: E18_U128,
         }
     }
 
@@ -24,13 +24,13 @@ impl ReserveIndexes {
         deposit_index_multiplier_e18: u128,
         debt_index_multiplier_e18: u128,
     ) -> Result<(), MathError> {
-        self.cumulative_deposit_index_e18 = e18_mul_e18_to_e18_rdown(
-            self.cumulative_deposit_index_e18,
+        self.deposit_index_e18 = e18_mul_e18_to_e18_rdown(
+            self.deposit_index_e18,
             deposit_index_multiplier_e18,
         )?;
 
-        self.cumulative_debt_index_e18 = e18_mul_e18_to_e18_rup(
-            self.cumulative_debt_index_e18,
+        self.debt_index_e18 = e18_mul_e18_to_e18_rup(
+            self.debt_index_e18,
             debt_index_multiplier_e18,
         )?;
 

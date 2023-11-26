@@ -4,8 +4,9 @@ use abax_library::structs::{
 };
 use abax_traits::dummy::DummyRef;
 use abax_traits::lending_pool::{
-    EmitManageEvents, LendingPoolError, MarketRule, ASSET_LISTING_ADMIN,
-    EMERGENCY_ADMIN, PARAMETERS_ADMIN, STABLECOIN_RATE_ADMIN, TREASURY,
+    EmitManageEvents, InterestRateModel, LendingPoolError, MarketRule,
+    ASSET_LISTING_ADMIN, EMERGENCY_ADMIN, PARAMETERS_ADMIN,
+    STABLECOIN_RATE_ADMIN, TREASURY,
 };
 use ink::prelude::string::{String, ToString};
 use ink::{
@@ -73,7 +74,7 @@ pub trait LendingPoolManageImpl:
         minimal_collateral: Balance,
         minimal_debt: Balance,
         income_for_suppliers_part_e6: u128,
-        interest_rate_model: [u128; 7],
+        interest_rate_model: InterestRateModel,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(ASSET_LISTING_ADMIN, Some(caller))?;
@@ -294,7 +295,7 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_parameters(
         &mut self,
         asset: AccountId,
-        interest_rate_model: [u128; 7],
+        interest_rate_model: InterestRateModel,
         income_for_suppliers_part_e6: u128,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
@@ -318,20 +319,20 @@ pub trait LendingPoolManageImpl:
         Ok(())
     }
 
-    fn set_stablecoin_debt_rate_e24(
+    fn set_stablecoin_debt_rate_e18(
         &mut self,
         asset: AccountId,
-        debt_rate_e24: u128,
+        debt_rate_e18: u64,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(STABLECOIN_RATE_ADMIN, Some(caller))?;
 
         self.data::<LendingPoolStorage>()
-            .account_for_stablecoin_debt_rate_e24_change(
+            .account_for_stablecoin_debt_rate_e18_change(
                 &asset,
-                &debt_rate_e24,
+                &debt_rate_e18,
             )?;
-        self._emit_stablecoin_debt_rate_changed(&asset, &debt_rate_e24);
+        self._emit_stablecoin_debt_rate_changed(&asset, &debt_rate_e18);
 
         Ok(())
     }

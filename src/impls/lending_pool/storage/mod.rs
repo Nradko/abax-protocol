@@ -81,8 +81,8 @@ impl LendingPoolStorage {
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
-                cumulative_deposit_index_e18: E18_U128,
-                cumulative_debt_index_e18: E18_U128,
+                deposit_index_e18: E18_U128,
+                debt_index_e18: E18_U128,
             },
         );
 
@@ -126,8 +126,8 @@ impl LendingPoolStorage {
         self.reserve_indexes.insert(
             &id,
             &ReserveIndexes {
-                cumulative_deposit_index_e18: E18_U128,
-                cumulative_debt_index_e18: E18_U128,
+                deposit_index_e18: E18_U128,
+                debt_index_e18: E18_U128,
             },
         );
 
@@ -173,6 +173,7 @@ impl LendingPoolStorage {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.check_activeness()?;
+        reserve_data.check_is_freezed()?;
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
@@ -224,7 +225,6 @@ impl LendingPoolStorage {
 
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.check_activeness()?;
-        reserve_data.check_is_freezed()?;
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
@@ -313,11 +313,9 @@ impl LendingPoolStorage {
             return Err(LendingPoolError::RuleCollateralDisable);
         }
 
-        if use_as_collateral_to_set
-            && user_reserve_data.deposit
-                < reserve_restrictions.minimal_collateral
-        {
-            return Err(LendingPoolError::MinimalCollateralDeposit);
+        if use_as_collateral_to_set {
+            user_reserve_data
+                .check_collateral_restrictions(&reserve_restrictions)?
         };
 
         if use_as_collateral_to_set {
@@ -784,10 +782,6 @@ impl LendingPoolStorage {
         let mut reserve_indexes = self.reserve_indexes.get(&asset_id).unwrap();
         let reserve_parameters = self.reserve_parameters.get(&asset_id);
 
-        if reserve_data.indexes_update_timestamp <= *timestamp {
-            return Err(LendingPoolError::AccumulatedAlready);
-        }
-
         reserve_data.accumulate_interest(&mut reserve_indexes, timestamp)?;
         if let Some(params) = reserve_parameters {
             reserve_data.recalculate_current_rates(&params)?
@@ -1098,17 +1092,17 @@ impl LendingPoolStorage {
         Ok(())
     }
 
-    pub fn account_for_stablecoin_debt_rate_e24_change(
+    pub fn account_for_stablecoin_debt_rate_e18_change(
         &mut self,
         asset: &AccountId,
-        debt_rate_e24: &u128,
+        debt_rate_e18: &u64,
     ) -> Result<(), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
         if self.reserve_parameters.contains(&asset_id) {
             return Err(LendingPoolError::AssetIsNotProtocolStablecoin);
         }
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
-        reserve_data.current_debt_rate_e24 = *debt_rate_e24;
+        reserve_data.current_debt_rate_e18 = *debt_rate_e18;
         self.reserve_datas.insert(&asset_id, &reserve_data);
         Ok(())
     }
