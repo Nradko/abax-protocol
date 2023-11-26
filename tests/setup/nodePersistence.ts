@@ -206,7 +206,7 @@ export async function storeTimestamp() {
 
   const api = await apiProviderWrapper.getAndWaitForReady();
   const timestamp = await api.query.timestamp.now();
-  console.log(`storing timestamp to: ${timestamp}`);
+  if (process.env.DEBUG) console.log(`storing timestamp to: ${timestamp}`);
   fs.writeFileSync(timestampBackupLocation, timestamp.toString());
 }
 

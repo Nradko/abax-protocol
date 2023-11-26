@@ -84,6 +84,8 @@ export const subscribeOnEvents = async (
   reserveName: string,
   callback: (eventName: string, event: AnyAbaxContractEvent, emitingContract: AnyAbaxContract, timestamp: number) => void,
 ): Promise<VoidFn[]> => {
+  const api = await apiProviderWrapper.getAndWaitForReady();
+  await transferNoop(api);
   const { lendingPool, reserves } = testEnv;
   const reserve = reserves[reserveName];
 
@@ -137,10 +139,9 @@ export const getUserReserveDataDefaultObj = (): UserReserveData => {
 export async function setBlockTimestamp(timestamp: number) {
   const api = await apiProviderWrapper.getAndWaitForReady();
   const signer = getSigners()[0];
-  console.log(`setting timestamp to: ${timestamp}`);
+  if (process.env.DEBUG) console.log(`setting timestamp to: ${timestamp}`);
   await api.tx.timestamp.setTime(timestamp).signAndSend(signer, {});
-  await deployDiaOracle(signer);
-  // await transferNoop(api, signer);
+  await transferNoop(api);
   const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
   if (timestampNowPostChange !== timestamp) throw new Error('Failed to set custom timestamp');
 }
@@ -148,15 +149,17 @@ export async function increaseBlockTimestamp(deltaTimestamp: number): Promise<nu
   const api = await apiProviderWrapper.getAndWaitForReady();
   const timestampNow = await api.query.timestamp.now();
   const timestampToSet = parseInt(timestampNow.toString()) + deltaTimestamp;
-  console.log(`increasing timestamp by ${deltaTimestamp}`);
+  if (process.env.DEBUG) console.log(`increasing timestamp by ${deltaTimestamp}`);
   await setBlockTimestamp(timestampToSet);
-  // await transferNoop(api, signer);
   const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
   if (timestampNowPostChange !== timestampToSet) throw new Error('Failed to set custom timestamp');
   return timestampToSet;
 }
 
-async function transferNoop(api: ApiPromise, signer: KeyringPair) {
+export async function transferNoop(api: ApiPromise) {
+  const signer = getSigners()[0];
+  await deployDiaOracle(signer); //TODO
+  return;
   await new Promise((resolve, reject) => {
     api.tx.balances
       .transferKeepAlive(signer.address, 1)

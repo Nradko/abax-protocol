@@ -8,6 +8,7 @@ import { LendingToken, MAX_U128, ONE_YEAR, RateMode } from 'tests/consts';
 import { expect } from 'tests/setup/chai';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { PSP22Metadata } from 'tests/types/PSP22Metadata';
+import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import AToken from '../../../typechain/contracts/a_token';
 import LendingPool from '../../../typechain/contracts/lending_pool';
@@ -24,9 +25,8 @@ import {
   checkRepayVariable,
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
-import { ValidateEventParameters } from './validateEvents';
 import { increaseBlockTimestamp, subscribeOnEvents } from './misc';
-import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
+import { ValidateEventParameters } from './validateEvents';
 
 export const convertToCurrencyDecimals = async (token: any, amount: BN | number | string) => {
   const decimals = (await token.query.tokenDecimals()).value.ok!;

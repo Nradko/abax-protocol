@@ -8,6 +8,7 @@ import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_po
 import { TokenReserve } from './make-suite';
 import { ValidateEventParameters } from './validateEvents';
 import { ReserveIndexes } from 'typechain/types-returns/lending_pool';
+import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
 export interface CheckDepositParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
@@ -712,7 +713,12 @@ const checkAbacusTokenTransferEvent = (
   }
 
   if (amountTransferred.isZero()) {
-    expect(abacusTokenTransferEventParameters, messagge + ' | emitted while shouldnt be').to.be.undefined;
+    expect(
+      replaceRNBNPropsWithStrings(
+        (abacusTokenTransferEventParameters ? [abacusTokenTransferEventParameters] : []).map(({ sourceContract, ...rest }) => rest)[0],
+      ),
+      messagge + ` | emitted while shouldnt be`,
+    ).to.be.undefined;
     return;
   }
 
