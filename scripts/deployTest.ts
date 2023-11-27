@@ -15,7 +15,7 @@ import { storeTimestamp } from 'tests/setup/nodePersistence';
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.json');
 
   // to force mining first block and initializeing timestamp
-  await transferNoop(api);
+  await transferNoop();
   // to force using fake_time
   await increaseBlockTimestamp(0);
   await deployAndConfigureSystem({ shouldUseMockTimestamp }, deployPath);

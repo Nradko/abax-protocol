@@ -25,7 +25,7 @@ import {
   checkRepayVariable,
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
-import { increaseBlockTimestamp, subscribeOnEvents } from './misc';
+import { increaseBlockTimestamp, subscribeOnEvents, transferNoop } from './misc';
 import { ValidateEventParameters } from './validateEvents';
 
 export const convertToCurrencyDecimals = async (token: any, amount: BN | number | string) => {
@@ -157,6 +157,7 @@ export const deposit = async (
     });
 
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.deposit(...args));
+    await transferNoop();
 
     const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
     const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
@@ -217,6 +218,8 @@ export const redeem = async (
 
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.redeem(...args));
 
+    await transferNoop();
+
     const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
     const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
 
@@ -232,6 +235,10 @@ export const redeem = async (
       parametersAfter,
       eventsFromTxOnly,
     );
+
+    unsubscribePromises.forEach((unsub) => {
+      return unsub();
+    });
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.redeem(...args)).value.ok;
@@ -287,6 +294,7 @@ export const borrowVariable = async (
     });
 
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.borrow(...args));
+    await transferNoop();
 
     const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
     const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
@@ -308,6 +316,10 @@ export const borrowVariable = async (
       parametersAfter,
       eventsFromTxOnly,
     );
+
+    unsubscribePromises.forEach((unsub) => {
+      return unsub();
+    });
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.borrow(...args)).value.ok;
@@ -365,6 +377,7 @@ export const repayVariable = async (
     });
 
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.repay(...args));
+    await transferNoop();
 
     const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
     const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
@@ -381,6 +394,10 @@ export const repayVariable = async (
       parametersAfter,
       eventsFromTxOnly,
     );
+
+    unsubscribePromises.forEach((unsub) => {
+      return unsub();
+    });
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.repay(...args)).value.ok;

@@ -85,7 +85,7 @@ export const subscribeOnEvents = async (
   callback: (eventName: string, event: AnyAbaxContractEvent, emitingContract: AnyAbaxContract, timestamp: number) => void,
 ): Promise<VoidFn[]> => {
   const api = await apiProviderWrapper.getAndWaitForReady();
-  await transferNoop(api);
+  await transferNoop();
   const { lendingPool, reserves } = testEnv;
   const reserve = reserves[reserveName];
 
@@ -141,7 +141,7 @@ export async function setBlockTimestamp(timestamp: number) {
   const signer = getSigners()[0];
   if (process.env.DEBUG) console.log(`setting timestamp to: ${timestamp}`);
   await api.tx.timestamp.setTime(timestamp).signAndSend(signer, {});
-  await transferNoop(api);
+  await transferNoop();
   const timestampNowPostChange = parseInt((await api.query.timestamp.now()).toString());
   if (timestampNowPostChange !== timestamp) throw new Error('Failed to set custom timestamp');
 }
@@ -156,7 +156,9 @@ export async function increaseBlockTimestamp(deltaTimestamp: number): Promise<nu
   return timestampToSet;
 }
 
-export async function transferNoop(api: ApiPromise) {
+/// makes an operation just to force new block production.
+export async function transferNoop() {
+  const api = await apiProviderWrapper.getAndWaitForReady();
   const signer = getSigners()[0];
   await deployDiaOracle(signer); //TODO
   return;
