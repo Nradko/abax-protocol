@@ -202,7 +202,8 @@ makeSuite('Menage tests', (getTestEnv) => {
         const timestamp = await api.query.timestamp.now();
         const reserveData = (await lendingPool.query.viewReserveData(PARAMS.asset)).value.ok!;
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
-        const reserveParameters = (await lendingPool.query.viewReserveParameters(PARAMS.asset)).value.ok!;
+        const reserveModel = (await lendingPool.query.viewInterestRateModel(PARAMS.asset)).value.ok!;
+        const reserveFees = (await lendingPool.query.viewReserveFees(PARAMS.asset)).value.ok!;
         const reserveIndexes = (await lendingPool.query.viewReserveIndexes(PARAMS.asset)).value.ok!;
         const reserveTokens = (await lendingPool.query.viewReserveTokens(PARAMS.asset)).value.ok!;
         const reserveDecimalMultiplier = (await lendingPool.query.viewReserveDecimalMultiplier(PARAMS.asset)).value.ok!.rawNumber.toString();
@@ -221,10 +222,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           minimalCollateral: PARAMS.minimalCollateral,
           minimalDebt: PARAMS.minimalDebt,
         });
-        expect.soft(replaceRNBNPropsWithStrings(reserveParameters)).to.deep.equal({
-          interestRateModel: PARAMS.interestRateModel,
-          incomeForSuppliersPartE6: PARAMS.incomeForSuppliersPartE6,
-        });
+        expect.soft(replaceRNBNPropsWithStrings(reserveModel)).to.deep.equal(PARAMS.interestRateModel);
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
@@ -245,7 +243,7 @@ makeSuite('Menage tests', (getTestEnv) => {
   // assetListingAdmin, globalAdmin are allowed to
   describe('While registering a protocol stablecoin', () => {
     const ROLES_WITH_ACCESS: string[] = ['ASSET_LISTING_ADMIN'];
-    type params = Parameters<typeof lendingPool.query.registerStablecoin>;
+    type params = Parameters<typeof lendingPool.query.registerAsset>;
     const PARAMS = {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
       aTokenCodeHash: [0],
@@ -258,10 +256,17 @@ makeSuite('Menage tests', (getTestEnv) => {
         borrowCoefficientE6: '3000000',
         penaltyE6: '300000',
       },
-      maximalTotalDeposit: '111',
-      maximalTotalDebt: '222',
-      minimalCollateral: '200000',
-      minimalDebt: '500000',
+      reserveRestrictions: {
+        maximalTotalDeposit: '111',
+        maximalTotalDebt: '222',
+        minimalCollateral: '200000',
+        minimalDebt: '500000',
+      },
+      reserveFees: {
+        depositFeeE6: '10000',
+        debtFeeE6: '10000',
+      },
+      interestRateModel: null,
     };
     beforeEach(() => {
       PARAMS.aTokenCodeHash = testEnv.aTokenCodeHash;
@@ -271,14 +276,14 @@ makeSuite('Menage tests', (getTestEnv) => {
     it('roles with no permission should fail with Err MissingRole', async () => {
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
-        const res = (await lendingPool.withSigner(adminOf[role_name]).query.registerStablecoin(...(Object.values(PARAMS) as params))).value.ok;
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.registerAsset(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       }
       expect.flushSoft();
     });
     for (const role_name of ROLES_WITH_ACCESS) {
       it(role_name + ' should succeed, event should be emitted, storage should be modified', async () => {
-        const tx = lendingPool.withSigner(adminOf[role_name]).tx.registerStablecoin(...(Object.values(PARAMS) as params));
+        const tx = lendingPool.withSigner(adminOf[role_name]).tx.registerAsset(...(Object.values(PARAMS) as params));
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
 
@@ -313,10 +318,7 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
-              maximalTotalDeposit: PARAMS.maximalTotalDeposit,
-              maximalTotalDebt: PARAMS.maximalTotalDebt,
-              minimalCollateral: PARAMS.minimalCollateral,
-              minimalDebt: PARAMS.minimalDebt,
+              reserveRestrictions: PARAMS.reserveRestrictions,
             },
           },
           {
@@ -327,6 +329,13 @@ makeSuite('Menage tests', (getTestEnv) => {
               collateralCoefficientE6: PARAMS.assetRules.collateralCoefficientE6,
               borrowCoefficientE6: PARAMS.assetRules.borrowCoefficientE6,
               penaltyE6: PARAMS.assetRules.penaltyE6,
+            },
+          },
+          {
+            name: 'ReserveFeesChanged',
+            args: {
+              asset: PARAMS.asset,
+              reserveFees: PARAMS.reserveFees,
             },
           },
         ]);
@@ -345,12 +354,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           currentDebtRateE18: '0',
           indexesUpdateTimestamp: timestamp.toString(),
         });
-        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
-          maximalTotalDeposit: PARAMS.maximalTotalDeposit,
-          maximalTotalDebt: PARAMS.maximalTotalDebt,
-          minimalCollateral: PARAMS.minimalCollateral,
-          minimalDebt: PARAMS.minimalDebt,
-        });
+        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
@@ -360,10 +364,9 @@ makeSuite('Menage tests', (getTestEnv) => {
       });
     }
     it(`that was already register with signer ASSET_LISTING_ADMIN tx should fail with Err AlreadyRegistered`, async () => {
-      const tx = lendingPool.withSigner(adminOf['ASSET_LISTING_ADMIN']).tx.registerStablecoin(...(Object.values(PARAMS) as params));
+      const tx = lendingPool.withSigner(adminOf['ASSET_LISTING_ADMIN']).tx.registerAsset(...(Object.values(PARAMS) as params));
       await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
-      const res = (await lendingPool.withSigner(adminOf['ASSET_LISTING_ADMIN']).query.registerStablecoin(...(Object.values(PARAMS) as params))).value
-        .ok;
+      const res = (await lendingPool.withSigner(adminOf['ASSET_LISTING_ADMIN']).query.registerAsset(...(Object.values(PARAMS) as params))).value.ok;
       expect(res, 'stablecoin already registered').to.have.deep.property('err', LendingPoolErrorBuilder.AlreadyRegistered());
     });
   });
@@ -479,13 +482,12 @@ makeSuite('Menage tests', (getTestEnv) => {
   });
 
   // parametersAdmin, globalAdmin are allowed
-  describe('While changing reserve parameters', () => {
+  describe('While changing interest rate model', () => {
     const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
-    type params = Parameters<typeof lendingPool.query.setReserveParameters>;
+    type params = Parameters<typeof lendingPool.query.setInterestRateModel>;
     const PARAMS = {
       asset: '',
       interestRateModel: ['1', '2', '3', '4', '5', '6', '7'],
-      incomeForSuppliersPartE6: '99999',
     };
     beforeEach(() => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
@@ -493,41 +495,79 @@ makeSuite('Menage tests', (getTestEnv) => {
     it('roles with no permission should fail with Err MissingRole', async () => {
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
-        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveParameters(...(Object.values(PARAMS) as params))).value.ok;
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setInterestRateModel(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       }
       expect.flushSoft();
     });
     for (const role_name of ROLES_WITH_ACCESS) {
       it(role_name + ' should succeed, event should be emitted, storage should be modified', async () => {
-        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setReserveParameters(...(Object.values(PARAMS) as params));
+        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setInterestRateModel(...(Object.values(PARAMS) as params));
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         const txRes = await tx;
         expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
           {
-            name: 'ReserveParametersChanged',
+            name: 'InterestRateModelChanged',
             args: {
               asset: PARAMS.asset,
               interestRateModel: PARAMS.interestRateModel,
-              incomeForSuppliersPartE6: PARAMS.incomeForSuppliersPartE6,
             },
           },
         ]);
 
-        const reserveParameters = (await lendingPool.query.viewReserveParameters(PARAMS.asset)).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(reserveParameters)).to.deep.equal({
-          interestRateModel: PARAMS.interestRateModel,
-          incomeForSuppliersPartE6: PARAMS.incomeForSuppliersPartE6,
-        });
+        const interestRateModel = (await lendingPool.query.viewInterestRateModel(PARAMS.asset)).value.ok!;
+        expect.soft(replaceRNBNPropsWithStrings(interestRateModel)).to.deep.equal(PARAMS.interestRateModel);
 
         expect.flushSoft();
       });
 
       it(role_name + 'should fail if asset is a stableToken', async () => {
         PARAMS.asset = testEnv.stables['USDax'].underlying.address;
-        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveParameters(...(Object.values(PARAMS) as params))).value.ok;
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setInterestRateModel(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AssetIsProtocolStablecoin());
+      });
+    }
+  });
+
+  describe('While changing reserve fees', () => {
+    const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
+    type params = Parameters<typeof lendingPool.query.setReserveFees>;
+    const PARAMS = {
+      asset: '',
+      reserveFees: { depositFeeE6: '10000', debtFeeE6: '10000' },
+    };
+    beforeEach(() => {
+      PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
+    });
+    it('roles with no permission should fail with Err MissingRole', async () => {
+      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      for (const role_name of ROLES_WITH_NO_ACCESS) {
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveFees(...(Object.values(PARAMS) as params))).value.ok;
+        expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+      }
+      expect.flushSoft();
+    });
+    for (const role_name of ROLES_WITH_ACCESS) {
+      it(role_name + ' should succeed, event should be emitted, storage should be modified', async () => {
+        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setReserveFees(...(Object.values(PARAMS) as params));
+        await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+
+        const txRes = await tx;
+        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+          {
+            name: 'ReserveFeesChanged',
+            args: {
+              asset: PARAMS.asset,
+              reserveFees: PARAMS.reserveFees,
+            },
+          },
+        ]);
+
+        const interestRateModel = (await lendingPool.query.viewInterestRateModel(PARAMS.asset)).value.ok!;
+        expect.soft(replaceRNBNPropsWithStrings(interestRateModel)).to.deep.equal(PARAMS.reserveFees);
+
+        expect.flushSoft();
       });
     }
   });

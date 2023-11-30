@@ -23,8 +23,8 @@ pub mod lending_pool {
         view::LendingPoolViewImpl,
     };
     use abax_library::structs::{
-        AssetRules, ReserveAbacusTokens, ReserveData, ReserveIndexes,
-        ReserveParameters, ReserveRestrictions, UserConfig, UserReserveData,
+        AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
+        ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
     };
     use abax_traits::lending_pool::{
         DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
@@ -236,12 +236,9 @@ pub mod lending_pool {
             symbol: String,
             decimals: u8,
             asset_rules: AssetRules,
-            maximal_total_deposit: Option<Balance>,
-            maximal_total_debt: Option<Balance>,
-            minimal_collateral: Balance,
-            minimal_debt: Balance,
-            income_for_suppliers_part_e6: u128,
-            interest_rate_model: InterestRateModel,
+            reserve_restrictions: ReserveRestrictions,
+            reserve_fees: ReserveFees,
+            interest_rate_model: Option<InterestRateModel>,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::register_asset(
                 self,
@@ -252,43 +249,9 @@ pub mod lending_pool {
                 symbol,
                 decimals,
                 asset_rules,
-                maximal_total_deposit,
-                maximal_total_debt,
-                minimal_collateral,
-                minimal_debt,
-                income_for_suppliers_part_e6,
+                reserve_restrictions,
+                reserve_fees,
                 interest_rate_model,
-            )
-        }
-
-        #[ink(message)]
-        fn register_stablecoin(
-            &mut self,
-            asset: AccountId,
-            a_token_code_hash: [u8; 32],
-            v_token_code_hash: [u8; 32],
-            name: String,
-            symbol: String,
-            decimals: u8,
-            asset_rules: AssetRules,
-            maximal_total_deposit: Option<Balance>,
-            maximal_total_debt: Option<Balance>,
-            minimal_collateral: Balance,
-            minimal_debt: Balance,
-        ) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::register_stablecoin(
-                self,
-                asset,
-                a_token_code_hash,
-                v_token_code_hash,
-                name,
-                symbol,
-                decimals,
-                asset_rules,
-                maximal_total_deposit,
-                maximal_total_debt,
-                minimal_collateral,
-                minimal_debt,
             )
         }
 
@@ -311,17 +274,15 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        fn set_reserve_parameters(
+        fn set_interest_rate_model(
             &mut self,
             asset: AccountId,
             interest_rate_model: InterestRateModel,
-            income_for_suppliers_part_e6: u128,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::set_reserve_parameters(
+            LendingPoolManageImpl::set_interest_rate_model(
                 self,
                 asset,
                 interest_rate_model,
-                income_for_suppliers_part_e6,
             )
         }
 
@@ -329,19 +290,22 @@ pub mod lending_pool {
         fn set_reserve_restrictions(
             &mut self,
             asset: AccountId,
-            maximal_total_deposit: Option<Balance>,
-            maximal_total_debt: Option<Balance>,
-            minimal_collateral: Balance,
-            minimal_debt: Balance,
+            reserve_restrictions: ReserveRestrictions,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_reserve_restrictions(
                 self,
                 asset,
-                maximal_total_deposit,
-                maximal_total_debt,
-                minimal_collateral,
-                minimal_debt,
+                reserve_restrictions,
             )
+        }
+
+        #[ink(message)]
+        fn set_reserve_fees(
+            &mut self,
+            asset: AccountId,
+            reserve_fees: ReserveFees,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_reserve_fees(self, asset, reserve_fees)
         }
 
         #[ink(message)]
@@ -423,11 +387,11 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_unupdated_reserve_indexes(self, asset)
         }
         #[ink(message)]
-        fn view_reserve_parameters(
+        fn view_interest_rate_model(
             &self,
             asset: AccountId,
-        ) -> Option<ReserveParameters> {
-            LendingPoolViewImpl::view_reserve_parameters(self, asset)
+        ) -> Option<InterestRateModel> {
+            LendingPoolViewImpl::view_interest_rate_model(self, asset)
         }
         #[ink(message)]
         fn view_reserve_restrictions(
@@ -457,6 +421,12 @@ pub mod lending_pool {
         ) -> Option<ReserveIndexes> {
             LendingPoolViewImpl::view_reserve_indexes(self, asset)
         }
+
+        #[ink(message)]
+        fn view_reserve_fees(&self, asset: AccountId) -> Option<ReserveFees> {
+            LendingPoolViewImpl::view_reserve_fees(self, asset)
+        }
+
         #[ink(message)]
         fn view_unupdated_user_reserve_data(
             &self,
@@ -755,21 +725,24 @@ pub mod lending_pool {
     }
 
     #[ink(event)]
-    pub struct ReserveParametersChanged {
+    pub struct ReserveInterestRateModelChanged {
         #[ink(topic)]
         asset: AccountId,
         interest_rate_model: InterestRateModel,
-        income_for_suppliers_part_e6: u128,
     }
 
     #[ink(event)]
     pub struct ReserveRestrictionsChanged {
         #[ink(topic)]
         asset: AccountId,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
+        reserve_restrictions: ReserveRestrictions,
+    }
+
+    #[ink(event)]
+    pub struct ReserveFeesChanged {
+        #[ink(topic)]
+        asset: AccountId,
+        reserve_fees: ReserveFees,
     }
 
     #[ink(event)]
@@ -985,33 +958,36 @@ pub mod lending_pool {
             })
         }
 
-        fn _emit_reserve_parameters_changed_event(
+        fn _emit_interest_rate_model_changed_event(
             &mut self,
             asset: &AccountId,
             interest_rate_model: &InterestRateModel,
-            income_for_suppliers_part_e6: u128,
         ) {
-            self.env().emit_event(ReserveParametersChanged {
+            self.env().emit_event(ReserveInterestRateModelChanged {
                 asset: *asset,
                 interest_rate_model: *interest_rate_model,
-                income_for_suppliers_part_e6,
+            })
+        }
+
+        fn _emit_reserve_fees_changed_event(
+            &mut self,
+            asset: &AccountId,
+            reserve_fees: &ReserveFees,
+        ) {
+            self.env().emit_event(ReserveFeesChanged {
+                asset: *asset,
+                reserve_fees: *reserve_fees,
             })
         }
 
         fn _emit_reserve_restrictions_changed_event(
             &mut self,
             asset: &AccountId,
-            maximal_total_deposit: Option<Balance>,
-            maximal_total_debt: Option<Balance>,
-            minimal_collateral: Balance,
-            minimal_debt: Balance,
+            reserve_restrictions: ReserveRestrictions,
         ) {
             self.env().emit_event(ReserveRestrictionsChanged {
                 asset: *asset,
-                maximal_total_deposit,
-                maximal_total_debt,
-                minimal_collateral,
-                minimal_debt,
+                reserve_restrictions,
             })
         }
         fn _emit_asset_rules_changed_event(

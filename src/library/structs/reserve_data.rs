@@ -168,16 +168,14 @@ impl ReserveData {
             debt_index_multiplier_e18
         );
 
-        reserve_indexes.update_indexes(
-            deposit_index_multiplier_e18,
-            debt_index_multiplier_e18,
-        )?;
+        reserve_indexes
+            .update(deposit_index_multiplier_e18, debt_index_multiplier_e18)?;
         Ok(())
     }
 
     pub fn recalculate_current_rates(
         &mut self,
-        reserve_parameters: &ReserveParameters,
+        interest_rate_model: &[u64; 7],
     ) -> Result<(), MathError> {
         if self.total_debt == 0 {
             self.current_debt_rate_e18 = 0;
@@ -187,18 +185,13 @@ impl ReserveData {
         let utilization_rate_e6 = self.current_utilization_rate_e6()?;
         self.current_debt_rate_e18 = utilization_rate_to_interest_rate_e18(
             utilization_rate_e6,
-            &reserve_parameters.interest_rate_model,
+            interest_rate_model,
         )?;
 
         if self.total_deposit != 0 {
-            let current_income_per_milisecond_e18: U256 = {
-                let x = U256::try_from(self.total_debt).unwrap();
-                let y = U256::try_from(self.current_debt_rate_e18).unwrap();
-                x.checked_mul(y).unwrap()
-            };
-            self.current_deposit_rate_e18 = e18_mul_e6_div_e0_to_e18_rdown(
-                current_income_per_milisecond_e18,
-                reserve_parameters.income_for_suppliers_part_e6,
+            self.current_deposit_rate_e18 = e18_mul_e18_div_e18_to_e18_rdown(
+                self.total_debt,
+                self.current_debt_rate_e18,
                 self.total_deposit,
             )?;
         } else {

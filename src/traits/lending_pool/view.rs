@@ -25,10 +25,12 @@ pub trait LendingPoolView {
     #[ink(message)]
     fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes>;
     #[ink(message)]
-    fn view_reserve_parameters(
+    fn view_reserve_fees(&self, asset: AccountId) -> Option<ReserveFees>;
+    #[ink(message)]
+    fn view_interest_rate_model(
         &self,
         asset: AccountId,
-    ) -> Option<ReserveParameters>;
+    ) -> Option<InterestRateModel>;
     #[ink(message)]
     fn view_reserve_restrictions(
         &self,

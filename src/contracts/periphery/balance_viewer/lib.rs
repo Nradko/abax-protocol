@@ -4,11 +4,12 @@
 pub mod balance_viewer {
 
     use abax_library::structs::{
-        ReserveAbacusTokens, ReserveData, ReserveParameters,
-        ReserveRestrictions, UserReserveData,
+        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveRestrictions,
+        UserReserveData,
     };
     use abax_traits::lending_pool::{
-        DecimalMultiplier, LendingPoolView, LendingPoolViewRef,
+        DecimalMultiplier, InterestRateModel, LendingPoolView,
+        LendingPoolViewRef,
     };
     use pendzl::{contracts::psp22::*, traits::Storage};
 
@@ -18,7 +19,8 @@ pub mod balance_viewer {
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub struct CompleteReserveData {
         pub data: Option<ReserveData>,
-        pub parameters: Option<ReserveParameters>,
+        pub interest_rate_model: Option<InterestRateModel>,
+        pub fees: Option<ReserveFees>,
         pub restriction: Option<ReserveRestrictions>,
         pub decimal_multiplier: Option<DecimalMultiplier>,
         pub tokens: Option<ReserveAbacusTokens>,
@@ -134,7 +136,10 @@ pub mod balance_viewer {
         ) -> CompleteReserveData {
             CompleteReserveData {
                 data: self.lending_pool.view_reserve_data(asset),
-                parameters: self.lending_pool.view_reserve_parameters(asset),
+                interest_rate_model: self
+                    .lending_pool
+                    .view_interest_rate_model(asset),
+                fees: self.lending_pool.view_reserve_fees(asset),
                 restriction: self.lending_pool.view_reserve_restrictions(asset),
                 decimal_multiplier: self
                     .lending_pool

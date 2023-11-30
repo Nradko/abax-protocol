@@ -111,20 +111,16 @@ pub trait EmitManageEvents {
     );
     fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, freezed: bool);
 
-    fn _emit_reserve_parameters_changed_event(
+    fn _emit_interest_rate_model_changed_event(
         &mut self,
         asset: &AccountId,
         interest_rate_model: &InterestRateModel,
-        income_for_suppliers_part_e6: u128,
     );
 
     fn _emit_reserve_restrictions_changed_event(
         &mut self,
         asset: &AccountId,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
+        new_restrictions: ReserveRestrictions,
     );
 
     fn _emit_asset_rules_changed_event(
@@ -139,5 +135,12 @@ pub trait EmitManageEvents {
         asset: &AccountId,
         debt_rate_e18: &u64,
     );
+
+    fn _emit_reserve_fees_changed_event(
+        &mut self,
+        asset: &AccountId,
+        asset_fees: &ReserveFees,
+    );
+
     fn _emit_income_taken(&mut self, asset: &AccountId);
 }

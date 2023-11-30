@@ -31,18 +31,19 @@ describe('Custom deployment', () => {
                 symbol: 'BOI',
                 decimals: 7,
               },
-              parameters: {
-                incomeForSuppliersPartE6: 1000000 - 100,
-                interestRateModelE24: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+              fees: {
+                depositFeeE6: 100,
+                debtFeeE6: 100,
               },
+              interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
               defaultRule: {
                 collateralCoefficientE6: 0.9 * E6,
                 borrowCoefficientE6: 1.1 * E6,
                 penaltyE6: 0.05 * E6,
               },
               restrictions: {
-                maximalSupply: null,
-                maximalDebt: null,
+                maximalTotalDeposit: null,
+                maximalTotalDebt: null,
                 minimalCollateral: '0',
                 minimalDebt: '0',
               },
@@ -53,18 +54,19 @@ describe('Custom deployment', () => {
                 symbol: 'WMN',
                 decimals: 9,
               },
-              parameters: {
-                incomeForSuppliersPartE6: 1000000 - 200,
-                interestRateModelE24: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+              fees: {
+                depositFeeE6: 100,
+                debtFeeE6: 100,
               },
+              interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
               defaultRule: {
                 collateralCoefficientE6: 0.9 * E6,
                 borrowCoefficientE6: 1.1 * E6,
                 penaltyE6: 0.05 * E6,
               },
               restrictions: {
-                maximalSupply: null,
-                maximalDebt: null,
+                maximalTotalDeposit: null,
+                maximalTotalDebt: null,
                 minimalCollateral: '0',
                 minimalDebt: '0',
               },

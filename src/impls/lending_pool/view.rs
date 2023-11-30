@@ -1,11 +1,13 @@
 use abax_library::{
     math::E18_U128,
     structs::{
-        ReserveAbacusTokens, ReserveData, ReserveIndexes, ReserveParameters,
+        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
         ReserveRestrictions, UserConfig, UserReserveData,
     },
 };
-use abax_traits::lending_pool::{DecimalMultiplier, MarketRule, RuleId};
+use abax_traits::lending_pool::{
+    DecimalMultiplier, InterestRateModel, MarketRule, RuleId,
+};
 use pendzl::traits::{AccountId, Storage};
 
 use ink::prelude::vec::Vec;
@@ -51,15 +53,15 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     .reserve_datas
                     .get(&asset_id)
                     .unwrap();
-                let mut reserve_indexes = self
+                let mut reserve_indexes_and_fees = self
                     .data::<LendingPoolStorage>()
-                    .reserve_indexes
+                    .reserve_indexes_and_fees
                     .get(&asset_id)
                     .unwrap();
 
                 reserve_data
                     .accumulate_interest(
-                        &mut reserve_indexes,
+                        &mut reserve_indexes_and_fees.indexes,
                         &Self::env().block_timestamp(),
                     )
                     .unwrap();
@@ -74,22 +76,38 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
         asset: AccountId,
     ) -> Option<ReserveIndexes> {
         match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
-            Some(asset_id) => self
-                .data::<LendingPoolStorage>()
-                .reserve_indexes
-                .get(&asset_id),
+            Some(asset_id) => Some(
+                self.data::<LendingPoolStorage>()
+                    .reserve_indexes_and_fees
+                    .get(&asset_id)
+                    .unwrap()
+                    .indexes,
+            ),
             None => None,
         }
     }
 
-    fn view_reserve_parameters(
+    fn view_reserve_fees(&self, asset: AccountId) -> Option<ReserveFees> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => Some(
+                self.data::<LendingPoolStorage>()
+                    .reserve_indexes_and_fees
+                    .get(&asset_id)
+                    .unwrap()
+                    .fees,
+            ),
+            None => None,
+        }
+    }
+
+    fn view_interest_rate_model(
         &self,
         asset: AccountId,
-    ) -> Option<ReserveParameters> {
+    ) -> Option<InterestRateModel> {
         match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
-                .reserve_parameters
+                .interest_rate_model
                 .get(&asset_id),
             None => None,
         }
@@ -138,19 +156,19 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     .reserve_datas
                     .get(&asset_id)
                     .unwrap();
-                let mut reserve_indexes = self
+                let mut reserve_indexes_and_fees = self
                     .data::<LendingPoolStorage>()
-                    .reserve_indexes
+                    .reserve_indexes_and_fees
                     .get(&asset_id)
                     .unwrap();
 
                 reserve_data
                     .accumulate_interest(
-                        &mut reserve_indexes,
+                        &mut reserve_indexes_and_fees.indexes,
                         &Self::env().block_timestamp(),
                     )
                     .unwrap();
-                Some(reserve_indexes)
+                Some(reserve_indexes_and_fees.indexes)
             }
             None => None,
         }
@@ -193,19 +211,22 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     .reserve_datas
                     .get(&asset_id)
                     .unwrap();
-                let mut reserve_indexes = self
+                let mut reserve_indexes_and_fees = self
                     .data::<LendingPoolStorage>()
-                    .reserve_indexes
+                    .reserve_indexes_and_fees
                     .get(&asset_id)
                     .unwrap();
                 reserve_data
                     .accumulate_interest(
-                        &mut reserve_indexes,
+                        &mut reserve_indexes_and_fees.indexes,
                         &Self::env().block_timestamp(),
                     )
                     .unwrap();
                 user_reserve_data
-                    .accumulate_user_interest(&reserve_indexes)
+                    .accumulate_user_interest(
+                        &reserve_indexes_and_fees.indexes,
+                        &reserve_indexes_and_fees.fees,
+                    )
                     .unwrap();
                 user_reserve_data
             }

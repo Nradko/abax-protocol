@@ -58,46 +58,9 @@ pub trait LendingPoolManage {
         symbol: String,
         decimals: u8,
         asset_rules: AssetRules,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        interest_rate_model: InterestRateModel,
-    ) -> Result<(), LendingPoolError>;
-
-    /// Registers new Abax native Stable asset in the `LendingPool`'s storage and instaniates 'AToken' and 'VToken' for the reserve.
-    ///
-    /// * `asset` - `AccountId` of the registered asset
-    /// * `a_token_code_hash` - code hash that will be used to initialize `AToken`
-    /// * `v_token_code_hash` - code hash that will be used to initialize `vToken`
-    /// * `name` - name of the `asset`. It will be used to create names for `AToken` and `VToken`.     
-    /// * `symbol` - symbol of the `asset`. It will be used to create sumbol for `AToken` and `VToken`.     
-    /// * `decimals` - a decimal denominator of an asset (number already multiplied by 10^N where N is number of decimals)
-    /// * `asset_rules' - `asset`'s AssetRules that will be used in default market rule (id = 0).
-    /// * `maximal_total_deposit` - maximal allowed total deposit. None for uncapped.
-    /// * `maximal_total_debt` - maximal allowed total debt. None for uncapped.
-    /// * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
-    /// * `minimal_debt` - the minimal possible debt that can be taken by user.
-    ///
-    /// # Errors
-    /// * `AccessControl::MisingRole` returned if the caller is not a ASSET_LISTING_ADMIN.
-    /// * `AlreadyRegistered` returned if asset was already registered.
-    /// * `InvalidAssetRule` returned if asset rule is invalid.
-    #[ink(message)]
-    fn register_stablecoin(
-        &mut self,
-        asset: AccountId,
-        a_token_code_hash: [u8; 32],
-        v_token_code_hash: [u8; 32],
-        name: String,
-        symbol: String,
-        decimals: u8,
-        asset_rules: AssetRules,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
+        reserve_restrictions: ReserveRestrictions,
+        fees: ReserveFees,
+        interest_rate_model: Option<InterestRateModel>,
     ) -> Result<(), LendingPoolError>;
 
     ///  activates or disactivates reserve
@@ -137,11 +100,17 @@ pub trait LendingPoolManage {
     /// # Errors
     /// * `AccessControl::MisingRole` returned if the caller is not a PARAMETERS_ADMIN.
     #[ink(message)]
-    fn set_reserve_parameters(
+    fn set_interest_rate_model(
         &mut self,
         asset: AccountId,
         interest_rate_model: InterestRateModel,
-        income_for_suppliers_part_e6: u128,
+    ) -> Result<(), LendingPoolError>;
+
+    #[ink(message)]
+    fn set_reserve_fees(
+        &mut self,
+        asset: AccountId,
+        reserve_fees: ReserveFees,
     ) -> Result<(), LendingPoolError>;
 
     /// modifies ReserveRestricion in the `LendingPool`'s storage
@@ -158,10 +127,7 @@ pub trait LendingPoolManage {
     fn set_reserve_restrictions(
         &mut self,
         asset: AccountId,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
+        reserve_restrictions: ReserveRestrictions,
     ) -> Result<(), LendingPoolError>;
 
     /// modifies the stablecoin debt rate

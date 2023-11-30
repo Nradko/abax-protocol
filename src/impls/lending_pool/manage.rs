@@ -1,5 +1,5 @@
 use abax_library::structs::{
-    AssetRules, ReserveAbacusTokens, ReserveData, ReserveParameters,
+    AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
     ReserveRestrictions,
 };
 use abax_traits::dummy::DummyRef;
@@ -69,12 +69,9 @@ pub trait LendingPoolManageImpl:
         symbol: String,
         decimals: u8,
         asset_rules: AssetRules,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-        income_for_suppliers_part_e6: u128,
-        interest_rate_model: InterestRateModel,
+        reserve_restrictions: ReserveRestrictions,
+        reserve_fees: ReserveFees,
+        interest_rate_model: Option<InterestRateModel>,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(ASSET_LISTING_ADMIN, Some(caller))?;
@@ -85,17 +82,10 @@ pub trait LendingPoolManageImpl:
             .account_for_register_asset(
                 &asset,
                 &ReserveData::new(&timestamp),
-                &ReserveParameters {
-                    interest_rate_model,
-                    income_for_suppliers_part_e6,
-                },
-                &ReserveRestrictions::new(
-                    &maximal_total_deposit,
-                    &maximal_total_debt,
-                    &minimal_collateral,
-                    &minimal_debt,
-                ),
+                &reserve_restrictions,
                 &10_u128.pow(decimals.into()),
+                &reserve_fees,
+                &interest_rate_model,
             )?;
 
         let (a_token_address, v_token_address) = (
@@ -134,96 +124,15 @@ pub trait LendingPoolManageImpl:
             &a_token_address,
             &v_token_address,
         );
-        self._emit_reserve_parameters_changed_event(
-            &asset,
-            &interest_rate_model,
-            income_for_suppliers_part_e6,
-        );
+
+        interest_rate_model.and_then(|model| {
+            self._emit_interest_rate_model_changed_event(&asset, &model);
+            Some(model)
+        });
+
         self._emit_reserve_restrictions_changed_event(
             &asset,
-            maximal_total_deposit,
-            maximal_total_debt,
-            minimal_collateral,
-            minimal_debt,
-        );
-        self._emit_asset_rules_changed_event(&0, &asset, &asset_rules);
-        Ok(())
-    }
-
-    fn register_stablecoin(
-        &mut self,
-        asset: AccountId,
-        a_token_code_hash: [u8; 32],
-        v_token_code_hash: [u8; 32],
-        name: String,
-        symbol: String,
-        decimals: u8,
-        asset_rules: AssetRules,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
-    ) -> Result<(), LendingPoolError> {
-        let caller = Self::env().caller();
-        self._ensure_has_role(ASSET_LISTING_ADMIN, Some(caller))?;
-
-        let timestamp = Self::env().block_timestamp();
-
-        self.data::<LendingPoolStorage>()
-            .account_for_register_stablecoin(
-                &asset,
-                &ReserveData::new(&timestamp),
-                &ReserveRestrictions::new(
-                    &maximal_total_deposit,
-                    &maximal_total_debt,
-                    &minimal_collateral,
-                    &minimal_debt,
-                ),
-                &10_u128.pow(decimals.into()),
-            )?;
-
-        let (a_token_address, v_token_address) = (
-            self._instantiate_a_token_contract(
-                &a_token_code_hash,
-                &asset,
-                name.clone(),
-                symbol.clone(),
-                decimals,
-            ),
-            self._instantiate_v_token_contract(
-                &v_token_code_hash,
-                &asset,
-                name.clone(),
-                symbol.clone(),
-                decimals,
-            ),
-        );
-
-        self.data::<LendingPoolStorage>()
-            .account_for_set_abacus_tokens(
-                &asset,
-                &ReserveAbacusTokens::new(&a_token_address, &v_token_address),
-            )?;
-
-        self.data::<LendingPoolStorage>()
-            .account_for_asset_rule_change(&0, &asset, &asset_rules)?;
-
-        self._emit_asset_registered_event(
-            &asset,
-            name,
-            symbol,
-            decimals,
-            &a_token_code_hash,
-            &v_token_code_hash,
-            &a_token_address,
-            &v_token_address,
-        );
-        self._emit_reserve_restrictions_changed_event(
-            &asset,
-            maximal_total_deposit,
-            maximal_total_debt,
-            minimal_collateral,
-            minimal_debt,
+            reserve_restrictions,
         );
         self._emit_asset_rules_changed_event(&0, &asset, &asset_rules);
         Ok(())
@@ -262,10 +171,7 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_restrictions(
         &mut self,
         asset: AccountId,
-        maximal_total_deposit: Option<Balance>,
-        maximal_total_debt: Option<Balance>,
-        minimal_collateral: Balance,
-        minimal_debt: Balance,
+        reserve_restrictions: ReserveRestrictions,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
@@ -273,49 +179,50 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .account_for_reserve_restricitions_change(
                 &asset,
-                &ReserveRestrictions {
-                    maximal_total_deposit,
-                    maximal_total_debt,
-                    minimal_collateral,
-                    minimal_debt,
-                },
+                &reserve_restrictions,
             )?;
 
         self._emit_reserve_restrictions_changed_event(
             &asset,
-            maximal_total_deposit,
-            maximal_total_debt,
-            minimal_collateral,
-            minimal_debt,
+            reserve_restrictions,
         );
 
         Ok(())
     }
 
-    fn set_reserve_parameters(
+    fn set_interest_rate_model(
         &mut self,
         asset: AccountId,
         interest_rate_model: InterestRateModel,
-        income_for_suppliers_part_e6: u128,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
 
         let timestamp = Self::env().block_timestamp();
         self.data::<LendingPoolStorage>()
-            .account_for_reserve_data_parameters_change(
+            .account_for_interest_rate_model_change(
                 &asset,
-                &ReserveParameters {
-                    interest_rate_model,
-                    income_for_suppliers_part_e6,
-                },
+                &interest_rate_model,
                 &timestamp,
             )?;
-        self._emit_reserve_parameters_changed_event(
+        self._emit_interest_rate_model_changed_event(
             &asset,
             &interest_rate_model,
-            income_for_suppliers_part_e6,
         );
+        Ok(())
+    }
+
+    fn set_reserve_fees(
+        &mut self,
+        asset: AccountId,
+        reserve_fees: ReserveFees,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
+
+        self.data::<LendingPoolStorage>()
+            .account_for_reserve_fees_change(&asset, &reserve_fees)?;
+        self._emit_reserve_fees_changed_event(&asset, &reserve_fees);
         Ok(())
     }
 
