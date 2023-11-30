@@ -149,7 +149,7 @@ impl<T: Storage<LendingPoolStorage>> Transfer for T {
     ) -> Result<(), LendingPoolError> {
         if self
             .data()
-            .reserve_parameters
+            .interest_rate_model
             .contains(&self.data().asset_id(asset)?)
         {
             let mut psp22: PSP22Ref = (*asset).into();
@@ -175,7 +175,7 @@ impl<T: Storage<LendingPoolStorage>> Transfer for T {
     ) -> Result<(), LendingPoolError> {
         if self
             .data()
-            .reserve_parameters
+            .interest_rate_model
             .contains(&self.data().asset_id(asset)?)
         {
             let mut psp22: PSP22Ref = (*asset).into();

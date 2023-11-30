@@ -8,7 +8,7 @@ import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import VToken from 'typechain/contracts/v_token';
 import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
 import { getEventTypeDescription } from 'typechain/shared/utils';
-import { ReserveData, ReserveParameters, UserReserveData } from 'typechain/types-returns/lending_pool';
+import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
 import { TestEnv } from './make-suite';
 import { ApiPromise } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
@@ -108,12 +108,12 @@ export const subscribeOnEvents = async (
   return Promise.all(subscribePromises);
 };
 
-export const getReserveParametersDefaultObj = (): ReserveParameters => {
-  return {
-    interestRateModel: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-    incomeForSuppliersPartE6: new ReturnNumber(E6),
-  };
-};
+// export const getReserveParametersDefaultObj = (): ReserveParameters => {
+//   return {
+//     interestRateModel: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+//     incomeForSuppliersPartE6: new ReturnNumber(E6),
+//   };
+// };
 
 export const getReserveDefaultObj = (): ReserveData => {
   return {

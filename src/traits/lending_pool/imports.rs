@@ -11,8 +11,8 @@ use abax_library::{
     math::MathError,
     structs::{
         AssetRules, AssetRulesError, ReserveAbacusTokens, ReserveData,
-        ReserveDataError, ReserveIndexes, ReserveParameters,
-        ReserveRestrictions, UserConfig, UserReserveData, UserReserveDataError,
+        ReserveDataError, ReserveFees, ReserveIndexes, ReserveRestrictions,
+        UserConfig, UserReserveData, UserReserveDataError,
     },
 };
 

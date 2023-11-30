@@ -36,9 +36,11 @@ import { getLineSeparator } from 'tests/scenarios/utils/misc';
 import { AbiMessage } from '@polkadot/api-contract/types';
 import { SignAndSendSuccessResponse, _genValidGasLimitAndValue, _signAndSend } from '@727-ventures/typechain-types';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
-import { TokensToDeployForTesting } from './tokensToDeployForTesting.types';
+import { InterestRateModel, TokensToDeployForTesting } from './tokensToDeployForTesting.types';
 import { TOKENS_TO_DEPLOY_FOR_TESTING } from './tokensToDeployForTesting';
 import { BURNER, MINTER, ROLES } from 'tests/consts';
+import { ReserveFees } from 'typechain/types-arguments/balance_viewer';
+import { AssetRules, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());
@@ -370,15 +372,10 @@ export const deployAndConfigureSystem = async (
       reserveData.metadata.name,
       reserveData.metadata.symbol,
       reserveData.metadata.decimals,
-      reserveData.defaultRule.collateralCoefficientE6,
-      reserveData.defaultRule.borrowCoefficientE6,
-      reserveData.defaultRule.penaltyE6,
-      reserveData.restrictions.maximalSupply,
-      reserveData.restrictions.maximalDebt,
-      reserveData.restrictions.minimalCollateral,
-      reserveData.restrictions.minimalDebt,
-      reserveData.parameters.incomeForSuppliersPartE6,
-      reserveData.parameters.interestRateModelE24,
+      reserveData.defaultRule,
+      reserveData.restrictions,
+      reserveData.fees,
+      reserveData.interestRateModelE18,
     );
     await contracts.priceFeedProvider.tx.setAccountSymbol(reserve.address, reserveData.metadata.name + '/USD');
     await oracle.tx.setPrice(reserveData.metadata.name + '/USD', prices[reserveData.metadata.name]);
@@ -397,7 +394,7 @@ export const deployAndConfigureSystem = async (
     await reserve.withSigner(owner).tx.grantRole(BURNER, contracts.lendingPool.address);
 
     if (process.env.DEBUG) console.log(`${stableData.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
-    const { aToken, vToken } = await registerNewStablecoin(
+    const { aToken, vToken } = await registerNewAsset(
       owner,
       contracts.lendingPool,
       reserve.address,
@@ -406,13 +403,10 @@ export const deployAndConfigureSystem = async (
       stableData.metadata.name,
       stableData.metadata.symbol,
       stableData.metadata.decimals,
-      stableData.defaultRule.collateralCoefficientE6,
-      stableData.defaultRule.borrowCoefficientE6,
-      stableData.defaultRule.penaltyE6,
-      stableData.restrictions.maximalSupply,
-      stableData.restrictions.maximalDebt,
-      stableData.restrictions.minimalCollateral,
-      stableData.restrictions.minimalDebt,
+      stableData.defaultRule,
+      stableData.restrictions,
+      stableData.fees,
+      null,
     );
     await contracts.priceFeedProvider.tx.setAccountSymbol(reserve.address, stableData.metadata.name + '/USD');
     await oracle.tx.setPrice(stableData.metadata.name + '/USD', prices[stableData.metadata.name]);
@@ -504,15 +498,10 @@ export async function registerNewAsset(
   name: string,
   symbol: string,
   decimals: number,
-  collateralCoefficientE6: null | number | string,
-  borrowCoefficientE6: null | number | string,
-  penaltyE6: null | number | string,
-  maximalTotalDeposit: null | BN | string,
-  maximalDebt: null | BN | string,
-  minimalCollatral: string | BN | number,
-  minimalDebt: string | BN | number,
-  incomeForSuppliersPartE6: number | string,
-  interestRateModel: [number | string, number | string, number | string, number | string, number | string, number | string, number | string],
+  assetRules: AssetRules,
+  restrictions: ReserveRestrictions,
+  fees: ReserveFees,
+  interestRateModel: InterestRateModel | null,
 ): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
   const registerAssetArgs: Parameters<typeof lendingPool.query.registerAsset> = [
     assetAddress,
@@ -521,16 +510,9 @@ export async function registerNewAsset(
     name,
     symbol,
     decimals,
-    {
-      collateralCoefficientE6,
-      borrowCoefficientE6,
-      penaltyE6,
-    },
-    maximalTotalDeposit,
-    maximalDebt,
-    minimalCollatral,
-    minimalDebt,
-    incomeForSuppliersPartE6,
+    assetRules,
+    restrictions,
+    fees,
     interestRateModel,
   ];
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -540,54 +522,6 @@ export async function registerNewAsset(
     console.log(err);
   }
   await lendingPool.withSigner(owner).tx.registerAsset(...registerAssetArgs);
-
-  const tokenAdresses = (await lendingPool.query.viewReserveTokens(assetAddress)).value.ok!;
-  const aToken = await getContractObject(ATokenContract, tokenAdresses.aTokenAddress.toString(), owner);
-  const vToken = await getContractObject(VTokenContract, tokenAdresses.vTokenAddress.toString(), owner);
-  return { aToken, vToken };
-}
-
-export async function registerNewStablecoin(
-  owner: KeyringPair,
-  lendingPool: LendingPool,
-  assetAddress: string,
-  aTokenCodeHash: number[],
-  vTokenCodeHash: number[],
-  name: string,
-  symbol: string,
-  decimals: number,
-  collateralCoefficientE6: null | number | string,
-  borrowCoefficientE6: null | number | string,
-  penaltyE6: null | number | string,
-  maximalTotalDeposit: null | BN | string,
-  maximalDebt: null | BN | string,
-  minimalCollatral: string | BN,
-  minimalDebt: string | BN,
-): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
-  const registerAssetArgs: Parameters<typeof lendingPool.query.registerStablecoin> = [
-    assetAddress,
-    aTokenCodeHash,
-    vTokenCodeHash,
-    name,
-    symbol,
-    decimals,
-    {
-      collateralCoefficientE6,
-      borrowCoefficientE6,
-      penaltyE6,
-    },
-    maximalTotalDeposit,
-    maximalDebt,
-    minimalCollatral,
-    minimalDebt,
-  ];
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  try {
-    const res = await lendingPool.query.registerStablecoin(...registerAssetArgs);
-  } catch (err) {
-    console.log(err);
-  }
-  await lendingPool.withSigner(owner).tx.registerStablecoin(...registerAssetArgs);
 
   const tokenAdresses = (await lendingPool.query.viewReserveTokens(assetAddress)).value.ok!;
   const aToken = await getContractObject(ATokenContract, tokenAdresses.aTokenAddress.toString(), owner);

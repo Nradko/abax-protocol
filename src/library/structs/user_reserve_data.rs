@@ -112,13 +112,14 @@ impl UserReserveData {
         Ok(())
     }
 
-    /// based on the `reserve_indexes` and Self.applied_cumulative_**_index_e18 accumulates interest
+    /// based on the `reserve_indexes_and_fees` and Self.applied_cumulative_**_index_e18 accumulates interest
     ///
     /// # Returns
     /// (accumulated_deposit_interest, accumulated_debt_interest)
     pub fn accumulate_user_interest(
         &mut self,
         reserve_indexes: &ReserveIndexes,
+        reserve_fees: &ReserveFees,
     ) -> Result<(Balance, Balance), MathError> {
         if self.applied_deposit_index_e18 >= reserve_indexes.deposit_index_e18
             && self.applied_debt_index_e18 >= reserve_indexes.debt_index_e18
@@ -134,17 +135,19 @@ impl UserReserveData {
             && self.applied_deposit_index_e18
                 < reserve_indexes.deposit_index_e18
         {
-            let updated_deposit = match u128::try_from({
-                let x = U256::try_from(self.deposit).unwrap();
-                let y =
-                    U256::try_from(reserve_indexes.deposit_index_e18).unwrap();
-                let z = U256::try_from(self.applied_deposit_index_e18).unwrap();
+            let updated_deposit_with_fee = e0_mul_e18_div_e18_to_e0_rdown(
+                self.deposit,
+                reserve_indexes.deposit_index_e18,
+                self.applied_deposit_index_e18,
+            )?;
 
-                x.checked_mul(y).unwrap().checked_div(z).unwrap()
-            }) {
-                Ok(v) => Ok(v),
-                _ => Err(MathError::Overflow),
-            }?;
+            let fee = e0_mul_e6_to_e0_rup(
+                updated_deposit_with_fee,
+                reserve_fees.deposit_fee_e6,
+            )?;
+
+            let updated_deposit = updated_deposit_with_fee.saturating_sub(fee);
+
             delta_user_deposit = updated_deposit - self.deposit;
             self.deposit = updated_deposit;
         }
@@ -154,23 +157,21 @@ impl UserReserveData {
             && self.applied_debt_index_e18 != 0
             && self.applied_debt_index_e18 < reserve_indexes.debt_index_e18
         {
-            let updated_borrow = {
-                let updated_borrow_rounded_down = match u128::try_from({
-                    let x = U256::try_from(self.debt).unwrap();
-                    let y =
-                        U256::try_from(reserve_indexes.debt_index_e18).unwrap();
-                    let z =
-                        U256::try_from(self.applied_debt_index_e18).unwrap();
+            let updated_borrow_with_no_fee = e0_mul_e18_div_e18_to_e0_rdown(
+                self.debt,
+                reserve_indexes.debt_index_e18,
+                self.applied_debt_index_e18,
+            )?;
 
-                    x.checked_mul(y).unwrap().checked_div(z).unwrap()
-                }) {
-                    Ok(v) => Ok(v),
-                    _ => Err(MathError::Overflow),
-                }?;
-                updated_borrow_rounded_down
-                    .checked_add(1)
-                    .ok_or(MathError::Overflow)?
-            };
+            let fee = e0_mul_e6_to_e0_rup(
+                updated_borrow_with_no_fee,
+                reserve_fees.debt_fee_e6,
+            )?;
+
+            let updated_borrow = updated_borrow_with_no_fee
+                .checked_add(fee)
+                .ok_or(MathError::Overflow)?;
+
             delta_user_debt = updated_borrow - self.debt;
             self.debt = updated_borrow;
         }

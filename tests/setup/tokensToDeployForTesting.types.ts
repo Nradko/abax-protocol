@@ -1,4 +1,5 @@
 import BN from 'bn.js';
+import { AssetRules, ReserveFees, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
 
 export type TokenMetadata = {
   name: string;
@@ -6,39 +7,32 @@ export type TokenMetadata = {
   decimals: number;
 };
 
-export type TokenLendingParameters = {
-  incomeForSuppliersPartE6: number | string;
-  interestRateModelE24: [number | string, number | string, number | string, number | string, number | string, number | string, number | string];
-};
+export type InterestRateModel = [
+  number | string,
+  number | string,
+  number | string,
+  number | string,
+  number | string,
+  number | string,
+  number | string,
+];
 
-export type TokenDefaultAssetRule = {
-  collateralCoefficientE6: null | number | string;
-  borrowCoefficientE6: null | number | string;
-  penaltyE6: number | string;
-};
-
-export type TokenLendingRestrictions = {
-  maximalSupply: null | string;
-  maximalDebt: null | string;
-  minimalCollateral: string;
-  minimalDebt: string;
-};
-
-export type TestReserveToken = {
+export interface TestToken {
   metadata: TokenMetadata;
-  parameters: TokenLendingParameters;
-  defaultRule: TokenDefaultAssetRule;
-  restrictions: TokenLendingRestrictions;
-};
+  defaultRule: AssetRules;
+  restrictions: ReserveRestrictions;
+  fees: ReserveFees;
+}
 
-export type TestStablecoin = {
-  metadata: TokenMetadata;
-  defaultRule: TokenDefaultAssetRule;
-  restrictions: TokenLendingRestrictions;
+export interface TestExternalToken extends TestToken {
+  interestRateModelE18: InterestRateModel;
+}
+
+export interface TestInternalStableToken extends TestToken {
   debtRate?: string | BN;
-};
+}
 
 export type TokensToDeployForTesting = {
-  reserveTokens: Array<TestReserveToken>;
-  stableTokens: Array<TestStablecoin>;
+  reserveTokens: Array<TestExternalToken>;
+  stableTokens: Array<TestInternalStableToken>;
 };
