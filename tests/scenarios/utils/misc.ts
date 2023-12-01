@@ -123,7 +123,6 @@ export const getReserveDefaultObj = (): ReserveData => {
     currentDepositRateE18: E18,
     totalDebt: new ReturnNumber(0),
     currentDebtRateE18: E18,
-    indexesUpdateTimestamp: 0,
   };
 };
 

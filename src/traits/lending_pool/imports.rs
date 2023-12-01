@@ -12,7 +12,7 @@ use abax_library::{
     structs::{
         AssetRules, AssetRulesError, ReserveAbacusTokens, ReserveData,
         ReserveDataError, ReserveFees, ReserveIndexes, ReserveRestrictions,
-        UserConfig, UserReserveData, UserReserveDataError,
+        ReserveRestrictionsError, UserConfig, UserReserveData,
     },
 };
 

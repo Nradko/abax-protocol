@@ -4,10 +4,11 @@ import chalk from 'chalk';
 import { makeSuite } from './utils/make-suite';
 import { executeStory, Scenario } from './utils/scenario-engine';
 import { apiProviderWrapper } from 'tests/setup/helpers';
+import { borrowVariable } from './utils/actions';
 
 const scenarioFolder = path.join(__dirname, 'stories');
 
-const selectedFiles: string[] = ['borrow-repay-variable']; //['deposit'];
+const selectedFiles: string[] = []; //['deposit'];
 const selectedScenarios: string[] = []; //['User 1 deposits 100 DAI on behalf of user 2, user 1 tries to borrow 0.1 WETH on behalf of user 2 (no allowance given)'];
 const skipScenarios = false;
 const forceOnlyScenarios = false;

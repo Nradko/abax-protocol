@@ -81,11 +81,12 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
                 &asset,
-                &ReserveData::new(&timestamp),
+                &ReserveData::default(),
                 &reserve_restrictions,
                 &10_u128.pow(decimals.into()),
                 &reserve_fees,
                 &interest_rate_model,
+                &timestamp,
             )?;
 
         let (a_token_address, v_token_address) = (

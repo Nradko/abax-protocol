@@ -5,7 +5,8 @@ use abax_library::{
     },
     structs::{
         AssetId, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
-        ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
+        ReserveIndexesAndFees, ReserveRestrictions, UserConfig,
+        UserReserveData,
     },
 };
 use abax_traits::lending_pool::{
@@ -16,27 +17,6 @@ use pendzl::{
     storage::Mapping,
     traits::{AccountId, Balance, Timestamp},
 };
-
-/// Stores data used to accumulate deposit and debt interest rates.
-#[derive(Debug, scale::Encode, scale::Decode)]
-#[cfg_attr(
-    feature = "std",
-    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
-)]
-pub struct ReserveIndexesAndFees {
-    pub indexes: ReserveIndexes,
-    /// fee is used to accumulate users debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
-    pub fees: ReserveFees,
-}
-
-impl ReserveIndexesAndFees {
-    pub fn new(fees: &ReserveFees) -> Self {
-        ReserveIndexesAndFees {
-            indexes: ReserveIndexes::default(),
-            fees: *fees,
-        }
-    }
-}
 
 #[derive(Default, Debug)]
 #[pendzl::storage_item]
@@ -86,6 +66,7 @@ impl LendingPoolStorage {
         decimal_multiplier: &DecimalMultiplier,
         reserve_fees: &ReserveFees,
         interest_rate_model: &Option<InterestRateModel>,
+        timestamp: &Timestamp,
     ) -> Result<(), LendingPoolError> {
         if self.asset_to_id.contains(asset) {
             return Err(LendingPoolError::AlreadyRegistered);
@@ -94,14 +75,12 @@ impl LendingPoolStorage {
 
         self.asset_to_id.insert(asset, &id);
         self.id_to_asset.insert(&id, asset);
-
         self.reserve_datas.insert(&id, reserve_data);
         self.reserve_restrictions.insert(&id, reserve_restrictions);
         self.reserve_decimal_multiplier
             .insert(&id, decimal_multiplier);
         self.reserve_indexes_and_fees
-            .insert(&id, &ReserveIndexesAndFees::new(reserve_fees));
-
+            .insert(&id, &ReserveIndexesAndFees::new(timestamp, reserve_fees));
         interest_rate_model.and_then(|value| {
             self.interest_rate_model.insert(&id, &value);
             Some(value)
@@ -119,6 +98,7 @@ impl LendingPoolStorage {
         if !self.asset_to_id.contains(asset) {
             return Err(LendingPoolError::AssetNotRegistered);
         }
+
         self.reserve_abacus_tokens
             .insert(asset, reserve_abacus_tokens);
 
@@ -141,6 +121,7 @@ impl LendingPoolStorage {
 
         self.market_rules.insert(&id, market_rule);
         self.next_rule_id.set(&(id + 1));
+
         Ok(())
     }
 
@@ -161,9 +142,11 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<(u128, u128), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
+
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.check_activeness()?;
         reserve_data.check_is_freezed()?;
+
         let mut reserve_indexes_and_fees =
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
         let reserve_restrictions =
@@ -176,21 +159,22 @@ impl LendingPoolStorage {
         let mut user_config =
             self.user_configs.get(account).unwrap_or_default();
 
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
-        user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
 
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
+            reserve_data.add_interests(
+                user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?
+            )?;
         user_reserve_data.increase_user_deposit(
             &asset_id,
             &mut user_config,
+            &mut reserve_data,
             amount,
         )?;
-        reserve_data.increase_total_deposit(amount)?;
 
-        reserve_data.check_max_total_deposit(&reserve_restrictions)?;
+        reserve_restrictions.check_max_total_deposit(&reserve_data)?;
 
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?
@@ -217,16 +201,15 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<(u128, u128, bool), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
-        ink::env::debug_println!("amount_before: {}", amount);
 
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.check_activeness()?;
+
         let mut reserve_indexes_and_fees =
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
         let interest_rate_model = self.interest_rate_model.get(&asset_id);
-
         let mut user_reserve_data = self
             .user_reserve_datas
             .get(&(asset_id, *account))
@@ -238,28 +221,26 @@ impl LendingPoolStorage {
             return Err(LendingPoolError::AmountNotGreaterThanZero);
         }
 
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
+
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
-            user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?;
+            reserve_data.add_interests(
+                user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?
+            )?;
 
         if *amount > user_reserve_data.deposit {
             *amount = user_reserve_data.deposit;
         }
-        ink::env::debug_println!("amount_middle: {}", amount);
 
         let was_asset_a_collateral = user_reserve_data.decrease_user_deposit(
             &asset_id,
             &mut user_config,
+            &mut reserve_data,
             &reserve_restrictions,
             amount,
         )?;
-
-        ink::env::debug_println!("amount_after: {}", amount);
-        reserve_data.decrease_total_deposit(amount)?;
-
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?
         }
@@ -286,8 +267,11 @@ impl LendingPoolStorage {
         if market_rule_id >= self.next_rule_id.get().unwrap() {
             return Err(LendingPoolError::MarketRuleInvalidId);
         }
+
         let mut user_config = self.user_configs.get(user).unwrap_or_default();
+
         user_config.market_rule_id = market_rule_id;
+
         self.user_configs.insert(user, &user_config);
 
         Ok(())
@@ -323,8 +307,8 @@ impl LendingPoolStorage {
         }
 
         if use_as_collateral_to_set {
-            user_reserve_data
-                .check_collateral_restrictions(&reserve_restrictions)?
+            reserve_restrictions
+                .check_collateral_restrictions(&user_reserve_data)?
         };
 
         if use_as_collateral_to_set {
@@ -356,7 +340,6 @@ impl LendingPoolStorage {
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
         let interest_rate_model = self.interest_rate_model.get(&asset_id);
-
         let mut user_reserve_data = self
             .user_reserve_datas
             .get(&(asset_id, *account))
@@ -369,21 +352,23 @@ impl LendingPoolStorage {
             user_reserve_data
         );
 
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
-            user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
 
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
+            reserve_data.add_interests(
+                user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?
+            )?;
         user_reserve_data.increase_user_debt(
             &asset_id,
             &mut user_config,
+            &mut reserve_data,
             amount,
         )?;
-        user_reserve_data.check_debt_restrictions(&reserve_restrictions)?;
-        reserve_data.increase_total_debt(amount)?;
-        reserve_data.check_max_total_debt(&reserve_restrictions)?;
+
+        reserve_restrictions.check_debt_restrictions(&user_reserve_data)?;
+        reserve_restrictions.check_max_total_debt(&reserve_data)?;
 
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?
@@ -424,7 +409,6 @@ impl LendingPoolStorage {
         let reserve_restrictions =
             self.reserve_restrictions.get(&asset_id).unwrap();
         let interest_rate_model = self.interest_rate_model.get(&asset_id);
-
         let mut user_reserve_data = self
             .user_reserve_datas
             .get(&(asset_id, *account))
@@ -436,10 +420,9 @@ impl LendingPoolStorage {
             "reserve_indexes_and_fees before: {:?}",
             reserve_indexes_and_fees
         );
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
         ink::env::debug_println!(
             "reserve_indexes_and_fees after: {:?}",
             reserve_indexes_and_fees
@@ -451,7 +434,9 @@ impl LendingPoolStorage {
         );
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
-            user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?;
+            reserve_data.add_interests(
+                user_reserve_data.accumulate_user_interest(&reserve_indexes_and_fees.indexes, &reserve_indexes_and_fees.fees)?
+            )?;
 
         if *amount > user_reserve_data.debt {
             *amount = user_reserve_data.debt;
@@ -460,11 +445,10 @@ impl LendingPoolStorage {
         user_reserve_data.decrease_user_debt(
             &asset_id,
             &mut user_config,
+            &mut reserve_data,
             amount,
         )?;
-        user_reserve_data.check_debt_restrictions(&reserve_restrictions)?;
-
-        reserve_data.decrease_total_debt(amount);
+        reserve_restrictions.check_debt_restrictions(&user_reserve_data)?;
 
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?
@@ -514,7 +498,7 @@ impl LendingPoolStorage {
                 continue;
             }
 
-            // THE LOGIC IS CHANGED, RESERVEDATA IS NOT UPDATED!!!!!!!
+            // Reserve indexes are not updated
             let reserve_indexes_and_fees =
                 self.reserve_indexes_and_fees.get(&asset_id).unwrap();
             let mut user_reserve_data =
@@ -696,46 +680,56 @@ impl LendingPoolStorage {
             return Err(LendingPoolError::NothingToRepay);
         }
 
-        // accumulate to repay
-        reserve_data_to_repay.accumulate_interest(
-            &mut reserve_indexes_to_repay.indexes,
-            timestamp,
-        )?;
+        // MODIFY TO_REPAY
+        reserve_indexes_to_repay
+            .indexes
+            .update(&reserve_data_to_repay, timestamp)?;
+
         let (
             user_accumulated_deposit_interest_to_repay,
             user_accumulated_debt_interest_to_repay,
-        ) = user_reserve_data_to_repay.accumulate_user_interest(
-            &reserve_indexes_to_repay.indexes,
-            &reserve_indexes_to_repay.fees,
+        ) = reserve_data_to_repay.add_interests(
+            user_reserve_data_to_repay.accumulate_user_interest(
+                &reserve_indexes_to_repay.indexes,
+                &reserve_indexes_to_repay.fees,
+            )?,
         )?;
-
-        // accumulate to take
-        reserve_data_to_take.accumulate_interest(
-            &mut reserve_indexes_to_take.indexes,
-            timestamp,
-        )?;
-        // accumulate to take
-        let (
-            user_accumulated_deposit_interest_to_take,
-            user_accumulated_debt_interest_to_take,
-        ): (Balance, Balance) = user_reserve_data_to_take
-            .accumulate_user_interest(
-                &reserve_indexes_to_take.indexes,
-                &reserve_indexes_to_take.fees,
-            )?;
-        // caller's
-        let (
-            caller_accumulated_deposit_interest_to_take,
-            caller_accumulated_debt_interest_to_take,
-        ): (Balance, Balance) = caller_reserve_data_to_take
-            .accumulate_user_interest(
-                &reserve_indexes_to_take.indexes,
-                &reserve_indexes_to_take.fees,
-            )?;
 
         if *amount_to_repay > user_reserve_data_to_repay.debt {
             *amount_to_repay = user_reserve_data_to_repay.debt;
         }
+
+        user_reserve_data_to_repay.decrease_user_debt(
+            &asset_to_repay_id,
+            &mut user_config,
+            &mut reserve_data_to_repay,
+            amount_to_repay,
+        )?;
+
+        // accumulate to take
+        reserve_indexes_to_take
+            .indexes
+            .update(&reserve_data_to_take, timestamp)?;
+        // users to take
+        let (
+            user_accumulated_deposit_interest_to_take,
+            user_accumulated_debt_interest_to_take,
+        ): (Balance, Balance) = reserve_data_to_take.add_interests(
+            user_reserve_data_to_take.accumulate_user_interest(
+                &reserve_indexes_to_take.indexes,
+                &reserve_indexes_to_take.fees,
+            )?,
+        )?;
+        // caller's
+        let (
+            caller_accumulated_deposit_interest_to_take,
+            caller_accumulated_debt_interest_to_take,
+        ): (Balance, Balance) = reserve_data_to_take.add_interests(
+            caller_reserve_data_to_take.accumulate_user_interest(
+                &reserve_indexes_to_take.indexes,
+                &reserve_indexes_to_take.fees,
+            )?,
+        )?;
 
         let mut amount_to_take = self
             .calculate_liquidated_amount_and_check_if_collateral(
@@ -751,23 +745,17 @@ impl LendingPoolStorage {
             amount_to_take = user_reserve_data_to_take.deposit;
         }
 
-        user_reserve_data_to_repay.decrease_user_debt(
-            &asset_to_repay_id,
-            &mut user_config,
-            amount_to_repay,
-        )?;
-
-        reserve_data_to_repay.decrease_total_debt(amount_to_repay);
-
         user_reserve_data_to_take.decrease_user_deposit(
             &asset_to_take_id,
             &mut user_config,
+            &mut reserve_data_to_take,
             &self.reserve_restrictions.get(&asset_to_take_id).unwrap(),
             &amount_to_take,
         )?;
         caller_reserve_data_to_take.increase_user_deposit(
             &asset_to_take_id,
             &mut caller_config,
+            &mut reserve_data_to_take,
             &amount_to_take,
         )?;
 
@@ -822,10 +810,9 @@ impl LendingPoolStorage {
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
         let interest_rate_model = self.interest_rate_model.get(&asset_id);
 
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?
         }
@@ -885,10 +872,9 @@ impl LendingPoolStorage {
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         let mut reserve_indexes_and_fees =
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&mut reserve_data, timestamp)?;
         reserve_data.recalculate_current_rates(interest_rate_model)?;
 
         self.reserve_datas.insert(&asset_id, &reserve_data);
@@ -922,13 +908,13 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<Balance, LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
-        let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
+        let reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         let mut reserve_indexes_and_fees =
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
 
         Ok(reserve_data.total_deposit)
     }
@@ -940,17 +926,17 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<Balance, LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
-        let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
+        let reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         let mut reserve_indexes_and_fees =
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
         let mut user_reserve_data = self
             .user_reserve_datas
             .get(&(asset_id, *user))
             .unwrap_or_default();
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
         user_reserve_data.accumulate_user_interest(
             &reserve_indexes_and_fees.indexes,
             &reserve_indexes_and_fees.fees,
@@ -991,24 +977,29 @@ impl LendingPoolStorage {
             .get(&(asset_id, *to))
             .unwrap_or_default();
 
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
+
         let (from_accumulated_deposit_interest, from_accumulated_debt_interest) =
-            from_user_reserve_data.accumulate_user_interest(
-                &reserve_indexes_and_fees.indexes,
-                &reserve_indexes_and_fees.fees,
+            reserve_data.add_interests(
+                from_user_reserve_data.accumulate_user_interest(
+                    &reserve_indexes_and_fees.indexes,
+                    &reserve_indexes_and_fees.fees,
+                )?,
             )?;
         let (to_accumulated_deposit_interest, to_accumulated_debt_interest) =
-            to_user_reserve_data.accumulate_user_interest(
-                &reserve_indexes_and_fees.indexes,
-                &reserve_indexes_and_fees.fees,
+            reserve_data.add_interests(
+                to_user_reserve_data.accumulate_user_interest(
+                    &reserve_indexes_and_fees.indexes,
+                    &reserve_indexes_and_fees.fees,
+                )?,
             )?;
 
         from_user_reserve_data.decrease_user_deposit(
             &asset_id,
             &mut from_config,
+            &mut reserve_data,
             &reserve_restrictions,
             amount,
         )?;
@@ -1016,6 +1007,7 @@ impl LendingPoolStorage {
         to_user_reserve_data.increase_user_deposit(
             &asset_id,
             &mut to_config,
+            &mut reserve_data,
             amount,
         )?;
 
@@ -1046,13 +1038,12 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<Balance, LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
-        let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
+        let reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         let mut reserve_indexes_and_fees =
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
 
         Ok(reserve_data.total_debt)
     }
@@ -1064,17 +1055,16 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<Balance, LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
-        let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
+        let reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         let mut reserve_indexes_and_fees =
             self.reserve_indexes_and_fees.get(&asset_id).unwrap();
         let mut user_reserve_data = self
             .user_reserve_datas
             .get(&(asset_id, *user))
             .unwrap_or_default();
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
         user_reserve_data.accumulate_user_interest(
             &reserve_indexes_and_fees.indexes,
             &reserve_indexes_and_fees.fees,
@@ -1119,36 +1109,41 @@ impl LendingPoolStorage {
             .get(&(asset_id, *to))
             .unwrap_or_default();
 
-        reserve_data.accumulate_interest(
-            &mut reserve_indexes_and_fees.indexes,
-            timestamp,
-        )?;
+        reserve_indexes_and_fees
+            .indexes
+            .update(&reserve_data, timestamp)?;
 
         let (from_accumulated_deposit_interest, from_accumulated_debt_interest) =
-            from_user_reserve_data.accumulate_user_interest(
-                &reserve_indexes_and_fees.indexes,
-                &reserve_indexes_and_fees.fees,
+            reserve_data.add_interests(
+                from_user_reserve_data.accumulate_user_interest(
+                    &reserve_indexes_and_fees.indexes,
+                    &reserve_indexes_and_fees.fees,
+                )?,
             )?;
         let (to_accumulated_deposit_interest, to_accumulated_debt_interest) =
-            to_user_reserve_data.accumulate_user_interest(
-                &reserve_indexes_and_fees.indexes,
-                &reserve_indexes_and_fees.fees,
+            reserve_data.add_interests(
+                to_user_reserve_data.accumulate_user_interest(
+                    &reserve_indexes_and_fees.indexes,
+                    &reserve_indexes_and_fees.fees,
+                )?,
             )?;
 
         from_user_reserve_data.decrease_user_debt(
             &asset_id,
             &mut from_config,
+            &mut reserve_data,
             amount,
         )?;
 
         to_user_reserve_data.increase_user_debt(
             &asset_id,
             &mut to_config,
+            &mut reserve_data,
             amount,
         )?;
-        from_user_reserve_data
-            .check_debt_restrictions(&reserve_restrictions)?;
-        to_user_reserve_data.check_debt_restrictions(&reserve_restrictions)?;
+        reserve_restrictions
+            .check_debt_restrictions(&from_user_reserve_data)?;
+        reserve_restrictions.check_debt_restrictions(&to_user_reserve_data)?;
 
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?

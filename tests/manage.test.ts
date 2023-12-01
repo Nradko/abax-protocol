@@ -218,7 +218,6 @@ makeSuite('Menage tests', (getTestEnv) => {
           currentDepositRateE18: '0',
           totalDebt: '0',
           currentDebtRateE18: '0',
-          indexesUpdateTimestamp: timestamp.toString(),
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
         expect.soft(replaceRNBNPropsWithStrings(reserveModel)).to.deep.equal(PARAMS.interestRateModel);
@@ -226,6 +225,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
+          updateTimestamp: timestamp.toString(),
         });
         expect.soft(reserveDecimalMultiplier).to.equal(Math.pow(10, Number(PARAMS.decimals)).toString());
         expect.flushSoft();
@@ -352,12 +352,12 @@ makeSuite('Menage tests', (getTestEnv) => {
           currentDepositRateE18: '0',
           totalDebt: '0',
           currentDebtRateE18: '0',
-          indexesUpdateTimestamp: timestamp.toString(),
         });
         expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
+          updateTimestamp: timestamp.toString(),
         });
         expect.soft(reserveDecimalMultiplier).to.equal(Math.pow(10, Number(PARAMS.decimals)).toString());
         expect.flushSoft();
