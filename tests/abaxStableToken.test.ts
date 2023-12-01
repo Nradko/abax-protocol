@@ -51,7 +51,25 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
       const tx = lendingPool.withSigner(alice).tx.borrow(usdaxContract.address, alice.address, initialUsdaxDebt, []);
       await expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
-      expect(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+      const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
+      const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
+
+      expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
+        activated: true,
+        freezed: false,
+        currentDebtRateE18: 350000,
+        currentDepositRateE18: 0,
+        totalDebt: '10000000000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
+        totalDeposit: '0',
+      });
+      expect.soft(replaceRNBNPropsWithStrings(userReserveData)).to.deep.equal({
+        appliedDebtIndexE18: '1000000000000000000', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
+        appliedDepositIndexE18: '1000000000000000000',
+        debt: '10000000000', // same as totalDebt above +1
+        deposit: '0',
+      });
+
+      expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'BorrowVariable',
           args: {
@@ -62,13 +80,14 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           },
         },
       ]);
-      expect(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([
+      expect.soft(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([
         {
           from: null,
           to: alice.address,
           value: initialUsdaxDebt.toString(),
         },
       ]);
+      expect.flushSoft();
     });
 
     it('Alice should NOT be able to take 10001 USDax loan', async () => {
@@ -103,7 +122,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         const txRes = await tx;
         const timestampAfterRepay = await increaseBlockTimestamp(0);
         console.log('timestamp before Repay:', timestampAfterRepay);
-        const reserveData = (await lendingPool.query.viewUnupdatedReserveData(usdaxContract.address)).value.ok!;
+        const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
         const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
 
         expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
@@ -111,14 +130,13 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           freezed: false,
           currentDebtRateE18: 350000,
           currentDepositRateE18: 0,
-          totalDebt: '110376000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
+          totalDebt: '110376001', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10 + 1  [[curent_debt_rate * time] * debt]
           totalDeposit: '0',
-          indexesUpdateTimestamp: timestamp,
         });
         expect.soft(replaceRNBNPropsWithStrings(userReserveData)).to.deep.equal({
           appliedDebtIndexE18: '1011037600000000001', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
           appliedDepositIndexE18: '1000000000000000000',
-          debt: '110376001', // same as totalDebt above +1
+          debt: '110376001', // same as totalDebt above
           deposit: '0',
         });
         expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([

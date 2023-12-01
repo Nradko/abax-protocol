@@ -9,7 +9,7 @@ pub enum LendingPoolError {
 
     AssetRulesError(AssetRulesError),
     ReserveDataError(ReserveDataError),
-    UserReserveDataError(UserReserveDataError),
+    ReserveRestrictionsError(ReserveRestrictionsError),
 
     PriceFeedError(PriceFeedError),
     FlashLoanReceiverError(FlashLoanReceiverError),
@@ -59,9 +59,10 @@ impl From<ReserveDataError> for LendingPoolError {
         LendingPoolError::ReserveDataError(error)
     }
 }
-impl From<UserReserveDataError> for LendingPoolError {
-    fn from(error: UserReserveDataError) -> Self {
-        LendingPoolError::UserReserveDataError(error)
+
+impl From<ReserveRestrictionsError> for LendingPoolError {
+    fn from(error: ReserveRestrictionsError) -> Self {
+        LendingPoolError::ReserveRestrictionsError(error)
     }
 }
 

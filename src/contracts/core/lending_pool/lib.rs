@@ -369,13 +369,6 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_registered_assets(self)
         }
         #[ink(message)]
-        fn view_unupdated_reserve_data(
-            &self,
-            asset: AccountId,
-        ) -> Option<ReserveData> {
-            LendingPoolViewImpl::view_unupdated_reserve_data(self, asset)
-        }
-        #[ink(message)]
         fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
             LendingPoolViewImpl::view_reserve_data(self, asset)
         }

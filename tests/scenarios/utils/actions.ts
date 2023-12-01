@@ -474,7 +474,7 @@ export const getTxTimestamp = async (tx: SignAndSendSuccessResponse) => {
 };
 
 export const getReserveAndUserReserveData = async <R extends { address: string }>(reserve: R, user: KeyringPair, lendingPool: LendingPool) => {
-  const reserveData = (await lendingPool.query.viewUnupdatedReserveData(reserve.address)).value.unwrap();
+  const reserveData = (await lendingPool.query.viewReserveData(reserve.address)).value.unwrap();
   const reserveIndexes = (await lendingPool.query.viewUnupdatedReserveIndexes(reserve.address)).value.unwrap();
   if (!reserveData) throw new Error(`ERROR READING RESERVE DATA (reserve: ${reserve.address})`);
   if (!reserveIndexes) throw new Error(`ERROR READING RESERVE INDEXES (reserve: ${reserve.address})`);

@@ -17,20 +17,12 @@ pub struct UserReserveData {
 /// type used to identify asset
 pub type AssetId = u32;
 
-#[derive(Debug, PartialEq, Eq, Encode, Decode)]
-#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-pub enum UserReserveDataError {
-    /// returned if after the action minimal debt restricion would be no satisfied.
-    MinimalDebt,
-    /// returned if after the action minimal collaetral restricion would be no satisfied.
-    MinimalCollateral,
-}
-
 impl UserReserveData {
     pub fn increase_user_deposit(
         &mut self,
         asset_id: &AssetId,
         user_config: &mut UserConfig,
+        reserve_data: &mut ReserveData,
         amount: &u128,
     ) -> Result<(), MathError> {
         user_config.deposits |= 1_u128 << *asset_id;
@@ -39,6 +31,9 @@ impl UserReserveData {
             .deposit
             .checked_add(*amount)
             .ok_or(MathError::Overflow)?;
+
+        reserve_data.increase_total_deposit(amount)?;
+
         Ok(())
     }
 
@@ -46,6 +41,7 @@ impl UserReserveData {
         &mut self,
         asset_id: &AssetId,
         user_config: &mut UserConfig,
+        reserve_data: &mut ReserveData,
         reserve_restrictions: &ReserveRestrictions,
         amount: &u128,
     ) -> Result<bool, MathError> {
@@ -56,6 +52,9 @@ impl UserReserveData {
             .deposit
             .checked_sub(*amount)
             .ok_or(MathError::Underflow)?;
+
+        reserve_data.decrease_total_deposit(amount)?;
+
         let is_asset_a_collateral =
             (user_config.collaterals & (1_u128 << asset_id)) > 0;
 
@@ -69,12 +68,16 @@ impl UserReserveData {
         &mut self,
         asset_id: &AssetId,
         user_config: &mut UserConfig,
+        reserve_data: &mut ReserveData,
         amount: &u128,
     ) -> Result<(), MathError> {
         user_config.borrows |= 1_u128 << *asset_id;
 
         self.debt =
             self.debt.checked_add(*amount).ok_or(MathError::Overflow)?;
+
+        reserve_data.increase_total_debt(amount)?;
+
         Ok(())
     }
 
@@ -82,6 +85,7 @@ impl UserReserveData {
         &mut self,
         asset_id: &AssetId,
         user_config: &mut UserConfig,
+        reserve_data: &mut ReserveData,
         amount: &u128,
     ) -> Result<(), MathError> {
         if *amount == self.debt {
@@ -89,26 +93,9 @@ impl UserReserveData {
         }
         self.debt =
             self.debt.checked_sub(*amount).ok_or(MathError::Underflow)?;
-        Ok(())
-    }
 
-    pub fn check_debt_restrictions(
-        &self,
-        reserve_restrictions: &ReserveRestrictions,
-    ) -> Result<(), UserReserveDataError> {
-        if self.debt != 0 && self.debt < reserve_restrictions.minimal_debt {
-            return Err(UserReserveDataError::MinimalDebt);
-        }
-        Ok(())
-    }
+        reserve_data.decrease_total_debt(amount);
 
-    pub fn check_collateral_restrictions(
-        &self,
-        reserve_restrictions: &ReserveRestrictions,
-    ) -> Result<(), UserReserveDataError> {
-        if self.deposit < reserve_restrictions.minimal_collateral {
-            return Err(UserReserveDataError::MinimalCollateral);
-        }
         Ok(())
     }
 
@@ -141,8 +128,10 @@ impl UserReserveData {
                 self.applied_deposit_index_e18,
             )?;
 
+            let interest_with_fee = updated_deposit_with_fee - self.deposit;
+
             let fee = e0_mul_e6_to_e0_rup(
-                updated_deposit_with_fee,
+                interest_with_fee,
                 reserve_fees.deposit_fee_e6,
             )?;
 
@@ -163,8 +152,10 @@ impl UserReserveData {
                 self.applied_debt_index_e18,
             )?;
 
+            let interest_with_no_fee = updated_borrow_with_no_fee - self.debt;
+
             let fee = e0_mul_e6_to_e0_rup(
-                updated_borrow_with_no_fee,
+                interest_with_no_fee,
                 reserve_fees.debt_fee_e6,
             )?;
 

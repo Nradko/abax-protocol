@@ -74,7 +74,6 @@ export const checkDeposit = (
   //   return;
   // }
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
 
   // get event and check what can be checked
   const depositEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.Deposit);
@@ -110,7 +109,7 @@ export const checkDeposit = (
   // ReserveData Checks
   // total_deposit <- increases on deposit
   let before = parBefore.reserveData.totalDeposit.rawNumber;
-  let expected = before.add(amount).add(reserveInterests.supply);
+  let expected = before.add(amount).add(userInterests.supply);
   let actual = parAfter.reserveData.totalDeposit.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
@@ -200,7 +199,6 @@ export const checkRedeem = (
   //   return;
   // }
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
   amount = amount.lt(parBefore.userReserveData.deposit.rawNumber.add(userInterests.supply))
     ? amount
     : parBefore.userReserveData.deposit.rawNumber.add(userInterests.supply);
@@ -239,7 +237,7 @@ export const checkRedeem = (
   // ReserveData Checks
   // total_deposit <- decreases on Redeem
   let before = parBefore.reserveData.totalDeposit.rawNumber;
-  let expected = before.add(reserveInterests.supply).sub(amount);
+  let expected = before.add(userInterests.supply).sub(amount);
   let actual = parAfter.reserveData.totalDeposit.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
@@ -350,7 +348,6 @@ export const checkBorrowVariable = (
   // }
 
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
 
   // get event and check what can be checked
   const borrowVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.BorrowVariable);
@@ -387,7 +384,7 @@ export const checkBorrowVariable = (
   // ReserveData Checks
   // total_debt <- increases on borrow
   let before = parBefore.reserveData.totalDebt.rawNumber;
-  let expected = before.add(reserveInterests.variableBorrow).add(amount);
+  let expected = before.add(userInterests.variableBorrow).add(amount);
   let actual = parAfter.reserveData.totalDebt.rawNumber;
 
   if (expected.toString() !== actual.toString()) {
@@ -400,7 +397,7 @@ export const checkBorrowVariable = (
       actual.toString(),
       `BorrowVariable | ReserveData | total_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
-    .to.equal(expected.toString());
+    .to.almostDeepEqual(expected.toString());
 
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
@@ -504,7 +501,6 @@ export const checkRepayVariable = (
   // }
 
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  const reserveInterests = getReserveInterests(parBefore.reserveData, parBefore.reserveIndexes, parAfter.reserveIndexes);
   amount = amount?.lte(parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow))
     ? amount
     : parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow);
@@ -549,7 +545,7 @@ export const checkRepayVariable = (
       'RepayVariable | ReserveData | total_debt - repay of the amount would cause an underflow. No loss happens. Expecting total_debt to equal 0',
     );
 
-  let expected = before.add(reserveInterests.variableBorrow).sub(amount).lten(0) ? 0 : before.add(reserveInterests.variableBorrow).sub(amount);
+  let expected = before.add(userInterests.variableBorrow).sub(amount);
   let actual = parAfter.reserveData.totalDebt.rawNumber;
 
   if (expected.toString() !== actual.toString()) {

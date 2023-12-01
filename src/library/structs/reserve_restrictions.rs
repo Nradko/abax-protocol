@@ -33,3 +33,68 @@ impl ReserveRestrictions {
         }
     }
 }
+
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum ReserveRestrictionsError {
+    /// returned if after the action total debt of an asset is freater than the maximal total debt restriocion.
+    MaxDebtReached,
+    /// returned if after the action total deposit of an asset is grreater then the maximal total deposit restriction.
+    MaxDepositReached,
+    /// returned if after the action minimal debt restricion would be no satisfied.
+    MinimalDebt,
+    /// returned if after the action minimal collaetral restricion would be no satisfied.
+    MinimalCollateral,
+}
+
+impl ReserveRestrictions {
+    pub fn check_max_total_deposit(
+        &self,
+        reserve_data: &ReserveData,
+    ) -> Result<(), ReserveRestrictionsError> {
+        match self.maximal_total_deposit {
+            Some(max_total_deposit)
+                if reserve_data.total_deposit > max_total_deposit =>
+            {
+                Err(ReserveRestrictionsError::MaxDepositReached)
+            }
+            _ => Ok(()),
+        }
+    }
+
+    pub fn check_max_total_debt(
+        &self,
+        reserve_data: &ReserveData,
+    ) -> Result<(), ReserveRestrictionsError> {
+        match self.maximal_total_debt {
+            Some(max_total_debt)
+                if reserve_data.total_debt > max_total_debt =>
+            {
+                Err(ReserveRestrictionsError::MaxDebtReached)
+            }
+            _ => Ok(()),
+        }
+    }
+
+    pub fn check_debt_restrictions(
+        &self,
+        user_reserve_data: &UserReserveData,
+    ) -> Result<(), ReserveRestrictionsError> {
+        if user_reserve_data.debt != 0
+            && user_reserve_data.debt < self.minimal_debt
+        {
+            return Err(ReserveRestrictionsError::MinimalDebt);
+        }
+        Ok(())
+    }
+
+    pub fn check_collateral_restrictions(
+        &self,
+        user_reserve_data: &UserReserveData,
+    ) -> Result<(), ReserveRestrictionsError> {
+        if user_reserve_data.deposit < self.minimal_collateral {
+            return Err(ReserveRestrictionsError::MinimalCollateral);
+        }
+        Ok(())
+    }
+}

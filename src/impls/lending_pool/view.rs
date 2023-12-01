@@ -32,41 +32,12 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             .get_all_registered_assets()
     }
 
-    fn view_unupdated_reserve_data(
-        &self,
-        asset: AccountId,
-    ) -> Option<ReserveData> {
+    fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
         match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
                 .reserve_datas
                 .get(&asset_id),
-            None => None,
-        }
-    }
-
-    fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
-            Some(asset_id) => {
-                let mut reserve_data = self
-                    .data::<LendingPoolStorage>()
-                    .reserve_datas
-                    .get(&asset_id)
-                    .unwrap();
-                let mut reserve_indexes_and_fees = self
-                    .data::<LendingPoolStorage>()
-                    .reserve_indexes_and_fees
-                    .get(&asset_id)
-                    .unwrap();
-
-                reserve_data
-                    .accumulate_interest(
-                        &mut reserve_indexes_and_fees.indexes,
-                        &Self::env().block_timestamp(),
-                    )
-                    .unwrap();
-                Some(reserve_data)
-            }
             None => None,
         }
     }
@@ -83,6 +54,30 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     .unwrap()
                     .indexes,
             ),
+            None => None,
+        }
+    }
+
+    fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes> {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+            Some(asset_id) => {
+                let reserve_data = self
+                    .data::<LendingPoolStorage>()
+                    .reserve_datas
+                    .get(&asset_id)
+                    .unwrap();
+                let mut reserve_indexes_and_fees = self
+                    .data::<LendingPoolStorage>()
+                    .reserve_indexes_and_fees
+                    .get(&asset_id)
+                    .unwrap();
+
+                reserve_indexes_and_fees
+                    .indexes
+                    .update(&reserve_data, &Self::env().block_timestamp())
+                    .unwrap();
+                Some(reserve_indexes_and_fees.indexes)
+            }
             None => None,
         }
     }
@@ -148,32 +143,6 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
             )
     }
 
-    fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
-            Some(asset_id) => {
-                let mut reserve_data = self
-                    .data::<LendingPoolStorage>()
-                    .reserve_datas
-                    .get(&asset_id)
-                    .unwrap();
-                let mut reserve_indexes_and_fees = self
-                    .data::<LendingPoolStorage>()
-                    .reserve_indexes_and_fees
-                    .get(&asset_id)
-                    .unwrap();
-
-                reserve_data
-                    .accumulate_interest(
-                        &mut reserve_indexes_and_fees.indexes,
-                        &Self::env().block_timestamp(),
-                    )
-                    .unwrap();
-                Some(reserve_indexes_and_fees.indexes)
-            }
-            None => None,
-        }
-    }
-
     fn view_unupdated_user_reserve_data(
         &self,
         asset: AccountId,
@@ -206,7 +175,7 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     .user_reserve_datas
                     .get(&(asset_id, user))
                     .unwrap_or_default();
-                let mut reserve_data = self
+                let reserve_data = self
                     .data::<LendingPoolStorage>()
                     .reserve_datas
                     .get(&asset_id)
@@ -216,11 +185,9 @@ pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
                     .reserve_indexes_and_fees
                     .get(&asset_id)
                     .unwrap();
-                reserve_data
-                    .accumulate_interest(
-                        &mut reserve_indexes_and_fees.indexes,
-                        &Self::env().block_timestamp(),
-                    )
+                reserve_indexes_and_fees
+                    .indexes
+                    .update(&reserve_data, &Self::env().block_timestamp())
                     .unwrap();
                 user_reserve_data
                     .accumulate_user_interest(

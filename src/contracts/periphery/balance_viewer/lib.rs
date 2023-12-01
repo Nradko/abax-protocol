@@ -4,8 +4,8 @@
 pub mod balance_viewer {
 
     use abax_library::structs::{
-        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveRestrictions,
-        UserReserveData,
+        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
+        ReserveRestrictions, UserReserveData,
     };
     use abax_traits::lending_pool::{
         DecimalMultiplier, InterestRateModel, LendingPoolView,
@@ -19,6 +19,7 @@ pub mod balance_viewer {
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
     pub struct CompleteReserveData {
         pub data: Option<ReserveData>,
+        pub indexes: Option<ReserveIndexes>,
         pub interest_rate_model: Option<InterestRateModel>,
         pub fees: Option<ReserveFees>,
         pub restriction: Option<ReserveRestrictions>,
@@ -69,10 +70,7 @@ pub mod balance_viewer {
 
             let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
             for asset in assets_to_view {
-                ret.push((
-                    asset,
-                    self.lending_pool.view_unupdated_reserve_data(asset),
-                ));
+                ret.push((asset, self.lending_pool.view_reserve_data(asset)));
             }
             ret
         }
@@ -136,6 +134,7 @@ pub mod balance_viewer {
         ) -> CompleteReserveData {
             CompleteReserveData {
                 data: self.lending_pool.view_reserve_data(asset),
+                indexes: self.lending_pool.view_reserve_indexes(asset),
                 interest_rate_model: self
                     .lending_pool
                     .view_interest_rate_model(asset),
