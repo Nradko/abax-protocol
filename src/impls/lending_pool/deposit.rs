@@ -76,6 +76,19 @@ pub trait LendingPoolDepositImpl:
 
         let block_timestamp = Self::env().block_timestamp();
 
+        let asset_id =
+            self.data::<LendingPoolStorage>().asset_id(&asset).unwrap();
+        let reserve_data_before = self
+            .data::<LendingPoolStorage>()
+            .reserve_datas
+            .get(&asset_id)
+            .unwrap();
+        let user_reserve_data_before = self
+            .data::<LendingPoolStorage>()
+            .user_reserve_datas
+            .get(&(asset_id, on_behalf_of))
+            .unwrap();
+
         let (
             user_accumulated_deposit_interest,
             user_accumulated_debt_interest,
@@ -86,6 +99,35 @@ pub trait LendingPoolDepositImpl:
             &mut amount,
             &block_timestamp,
         )?;
+
+        let reserve_data_after = self
+            .data::<LendingPoolStorage>()
+            .reserve_datas
+            .get(&asset_id)
+            .unwrap();
+        let user_reserve_data_after = self
+            .data::<LendingPoolStorage>()
+            .user_reserve_datas
+            .get(&(asset_id, on_behalf_of))
+            .unwrap();
+
+        ink::env::debug_println!(
+            "reserve_data_before: {:?}",
+            reserve_data_before
+        );
+        ink::env::debug_println!(
+            "reserve_data_after: {:?}",
+            reserve_data_after
+        );
+
+        ink::env::debug_println!(
+            "user_reserve_data_before: {:?}",
+            user_reserve_data_before
+        );
+        ink::env::debug_println!(
+            "user_reserve_data_after: {:?}",
+            user_reserve_data_after
+        );
 
         // check if there is enought collateral
         if was_asset_a_collateral {

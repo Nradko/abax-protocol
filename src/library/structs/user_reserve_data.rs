@@ -157,7 +157,7 @@ impl UserReserveData {
             && self.applied_debt_index_e18 != 0
             && self.applied_debt_index_e18 < reserve_indexes.debt_index_e18
         {
-            let updated_borrow_with_no_fee = e0_mul_e18_div_e18_to_e0_rdown(
+            let updated_borrow_with_no_fee = e0_mul_e18_div_e18_to_e0_rup(
                 self.debt,
                 reserve_indexes.debt_index_e18,
                 self.applied_debt_index_e18,

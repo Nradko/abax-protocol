@@ -139,7 +139,7 @@ pub trait EmitManageEvents {
     fn _emit_reserve_fees_changed_event(
         &mut self,
         asset: &AccountId,
-        asset_fees: &ReserveFees,
+        reserve_fees: &ReserveFees,
     );
 
     fn _emit_income_taken(&mut self, asset: &AccountId);

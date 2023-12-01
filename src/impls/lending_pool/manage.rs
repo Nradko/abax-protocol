@@ -135,6 +135,7 @@ pub trait LendingPoolManageImpl:
             reserve_restrictions,
         );
         self._emit_asset_rules_changed_event(&0, &asset, &asset_rules);
+        self._emit_reserve_fees_changed_event(&asset, &reserve_fees);
         Ok(())
     }
 
