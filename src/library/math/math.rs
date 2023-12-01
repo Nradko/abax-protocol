@@ -191,6 +191,27 @@ pub fn e0_mul_e18_div_e18_to_e0_rdown(
     }
 }
 
+pub fn e0_mul_e18_div_e18_to_e0_rup(
+    a: u128,
+    b: u128,
+    c: u128,
+) -> Result<u128, MathError> {
+    if a == 0 || b == 0 {
+        return Ok(0);
+    }
+    if c == 0 {
+        return Err(MathError::DivByZero);
+    }
+    let x = U256::try_from(a).unwrap();
+    let y = U256::try_from(b).unwrap();
+    let z = U256::try_from(c).unwrap();
+    // x*y cant overflow and z != 0
+    match u128::try_from(x * y / z) {
+        Ok(v) => v.checked_add(1).ok_or(MathError::Overflow),
+        _ => Err(MathError::Overflow),
+    }
+}
+
 pub fn e0_mul_e6_to_e0_rup(a: u128, b: u32) -> Result<u128, MathError> {
     if a == 0 || b == 0 {
         return Ok(0);
@@ -198,9 +219,10 @@ pub fn e0_mul_e6_to_e0_rup(a: u128, b: u32) -> Result<u128, MathError> {
 
     let x = U256::try_from(a).unwrap();
     let y = U256::try_from(b).unwrap();
+    let e6_u256 = U256::try_from(E6_U128).unwrap();
 
-    //x * y + 1 can't overflow
-    match u128::try_from(x * y + 1) {
+    //x * y + 1 can't overflow, e6_u256 != 0
+    match u128::try_from(x * y / e6_u256 + 1) {
         Ok(v) => Ok(v),
         _ => Err(MathError::Overflow),
     }

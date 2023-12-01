@@ -215,7 +215,7 @@ export const redeem = async (
     const unsubscribePromises = await subscribeOnEvents(testEnv, reserveSymbol, (eventName, event, sourceContract, timestamp) => {
       capturedEvents.push({ eventName, event, sourceContract, timestamp });
     });
-
+    const qq = await lendingPool.withSigner(caller).query.redeem(...args);
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.redeem(...args));
 
     await transferNoop();
@@ -376,6 +376,7 @@ export const repayVariable = async (
       capturedEvents.push({ eventName, event, sourceContract, timestamp });
     });
 
+    const qq = await lendingPool.withSigner(caller).query.repay(...args);
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.repay(...args));
     await transferNoop();
 

@@ -217,6 +217,7 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<(u128, u128, bool), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
+        ink::env::debug_println!("amount_before: {}", amount);
 
         let mut reserve_data = self.reserve_datas.get(&asset_id).unwrap();
         reserve_data.check_activeness()?;
@@ -233,6 +234,10 @@ impl LendingPoolStorage {
         let mut user_config =
             self.user_configs.get(account).unwrap_or_default();
 
+        if user_reserve_data.deposit == 0 {
+            return Err(LendingPoolError::AmountNotGreaterThanZero);
+        }
+
         reserve_data.accumulate_interest(
             &mut reserve_indexes_and_fees.indexes,
             timestamp,
@@ -243,12 +248,16 @@ impl LendingPoolStorage {
         if *amount > user_reserve_data.deposit {
             *amount = user_reserve_data.deposit;
         }
+        ink::env::debug_println!("amount_middle: {}", amount);
+
         let was_asset_a_collateral = user_reserve_data.decrease_user_deposit(
             &asset_id,
             &mut user_config,
             &reserve_restrictions,
             amount,
         )?;
+
+        ink::env::debug_println!("amount_after: {}", amount);
         reserve_data.decrease_total_deposit(amount)?;
 
         if let Some(params) = interest_rate_model {

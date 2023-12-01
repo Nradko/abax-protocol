@@ -41,8 +41,8 @@ export const TOKENS_TO_DEPLOY_FOR_TESTING: TokensToDeployForTesting = {
         decimals: 6,
       },
       fees: {
-        depositFeeE6: 10,
-        debtFeeE6: 10,
+        depositFeeE6: 0,
+        debtFeeE6: 0,
       },
       interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
       defaultRule: {

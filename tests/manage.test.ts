@@ -7,7 +7,6 @@ import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 import { ROLE_NAMES, ROLES } from './consts';
 import { BN } from '@polkadot/util';
-import { getContractObject } from '@abaxfinance/contract-helpers';
 import { getAbaxTokenMetadata } from './helpers/abacusTokenData';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 const isValidObject = (obj: any) => typeof obj === 'object' && obj !== null;
@@ -107,11 +106,13 @@ makeSuite('Menage tests', (getTestEnv) => {
         borrowCoefficientE6: '3000000',
         penaltyE6: '300000',
       },
-      maximalTotalDeposit: '111',
-      maximalTotalDebt: '222',
-      minimalCollateral: '200000',
-      minimalDebt: '500000',
-      incomeForSuppliersPartE6: '800000',
+      reserveRestrictions: {
+        maximalTotalDeposit: '111',
+        maximalTotalDebt: '222',
+        minimalCollateral: '200000',
+        minimalDebt: '500000',
+      },
+      reserveFees: { depositFeeE6: '100000', debtFeeE6: '100000' },
       interestRateModel: ['1', '2', '3', '4', '5', '6', '7'],
     };
 
@@ -162,7 +163,7 @@ makeSuite('Menage tests', (getTestEnv) => {
             },
           },
           {
-            name: 'ReserveParametersChanged',
+            name: 'ReserveInterestRateModelChanged',
             args: {
               asset: PARAMS.asset,
               interestRateModel: [
@@ -174,17 +175,13 @@ makeSuite('Menage tests', (getTestEnv) => {
                 PARAMS.interestRateModel[5],
                 PARAMS.interestRateModel[6],
               ],
-              incomeForSuppliersPartE6: PARAMS.incomeForSuppliersPartE6,
             },
           },
           {
             name: 'ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
-              maximalTotalDeposit: PARAMS.maximalTotalDeposit,
-              maximalTotalDebt: PARAMS.maximalTotalDebt,
-              minimalCollateral: PARAMS.minimalCollateral,
-              minimalDebt: PARAMS.minimalDebt,
+              reserveRestrictions: PARAMS.reserveRestrictions,
             },
           },
           {
@@ -195,6 +192,13 @@ makeSuite('Menage tests', (getTestEnv) => {
               collateralCoefficientE6: PARAMS.assetRules.collateralCoefficientE6,
               borrowCoefficientE6: PARAMS.assetRules.borrowCoefficientE6,
               penaltyE6: PARAMS.assetRules.penaltyE6,
+            },
+          },
+          {
+            name: 'ReserveFeesChanged',
+            args: {
+              asset: PARAMS.asset,
+              reserveFees: PARAMS.reserveFees,
             },
           },
         ]);
@@ -216,13 +220,9 @@ makeSuite('Menage tests', (getTestEnv) => {
           currentDebtRateE18: '0',
           indexesUpdateTimestamp: timestamp.toString(),
         });
-        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
-          maximalTotalDeposit: PARAMS.maximalTotalDeposit,
-          maximalTotalDebt: PARAMS.maximalTotalDebt,
-          minimalCollateral: PARAMS.minimalCollateral,
-          minimalDebt: PARAMS.minimalDebt,
-        });
+        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
         expect.soft(replaceRNBNPropsWithStrings(reserveModel)).to.deep.equal(PARAMS.interestRateModel);
+        expect.soft(replaceRNBNPropsWithStrings(reserveFees)).to.deep.equal(PARAMS.reserveFees);
         expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
@@ -508,7 +508,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
           {
-            name: 'InterestRateModelChanged',
+            name: 'ReserveInterestRateModelChanged',
             args: {
               asset: PARAMS.asset,
               interestRateModel: PARAMS.interestRateModel,
@@ -564,8 +564,8 @@ makeSuite('Menage tests', (getTestEnv) => {
           },
         ]);
 
-        const interestRateModel = (await lendingPool.query.viewInterestRateModel(PARAMS.asset)).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(interestRateModel)).to.deep.equal(PARAMS.reserveFees);
+        const reserveFees = (await lendingPool.query.viewReserveFees(PARAMS.asset)).value.ok!;
+        expect.soft(replaceRNBNPropsWithStrings(reserveFees)).to.deep.equal(PARAMS.reserveFees);
 
         expect.flushSoft();
       });
@@ -577,10 +577,12 @@ makeSuite('Menage tests', (getTestEnv) => {
     type params = Parameters<typeof lendingPool.query.setReserveRestrictions>;
     const PARAMS = {
       asset: '',
-      maximalTotalDeposit: '123456789',
-      maximalTotalDebt: '23456789',
-      minimalCollateral: '3456789',
-      minimalDebt: '456789',
+      reserveRestrictions: {
+        maximalTotalDeposit: '123456789',
+        maximalTotalDebt: '23456789',
+        minimalCollateral: '3456789',
+        minimalDebt: '456789',
+      },
     };
     beforeEach(() => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
@@ -604,21 +606,13 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
-              maximalTotalDeposit: PARAMS.maximalTotalDeposit,
-              maximalTotalDebt: PARAMS.maximalTotalDebt,
-              minimalCollateral: PARAMS.minimalCollateral,
-              minimalDebt: PARAMS.minimalDebt,
+              reserveRestrictions: PARAMS.reserveRestrictions,
             },
           },
         ]);
 
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal({
-          maximalTotalDeposit: PARAMS.maximalTotalDeposit,
-          maximalTotalDebt: PARAMS.maximalTotalDebt,
-          minimalCollateral: PARAMS.minimalCollateral,
-          minimalDebt: PARAMS.minimalDebt,
-        });
+        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
 
         expect.flushSoft();
       });
