@@ -7,8 +7,8 @@ import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { E18, E6 } from '@abaxfinance/utils';
-import { ReturnNumber } from '@727-ventures/typechain-types';
-import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { ReturnNumber } from 'wookashwackomytest-typechain-types';
+import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import { toE18String } from './helpers/converters';
 
@@ -314,7 +314,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
 
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'Liquidation',
             args: {

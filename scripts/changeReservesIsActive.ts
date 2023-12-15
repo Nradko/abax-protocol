@@ -2,11 +2,11 @@ import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
-import { getContractObject } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { StoredContractInfo } from 'tests/setup/nodePersistence';
 import LendingPool from 'typechain/contracts/lending_pool';
 import { getArgvObj } from '@abaxfinance/utils';
+import { getContractObject } from '@abaxfinance/contract-helpers';
 
 const RESERVE_TOKEN_ADDRESSES: string[] = [
   '5CRTAHVoub9SZDQXvaaHH8xT1ScYyUvKGPoEo8vTnzv6KWAs',
@@ -40,7 +40,7 @@ const SET_RESERVES_IS_ACTIVE = false;
   const contracts = JSON.parse(await fs.readFile(deployPath, 'utf8')) as StoredContractInfo[];
   const lendingPoolContractInfo = contracts.find((c) => c.name === 'lending_pool');
   if (!lendingPoolContractInfo?.address) throw 'lendingPool ContractInfo not found';
-  const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address, signer);
+  const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address, signer, api);
 
   for (const reserveAddress of RESERVE_TOKEN_ADDRESSES) {
     const result = await lendingPool.withSigner(signer).query.setReserveIsActive(reserveAddress, SET_RESERVES_IS_ACTIVE);

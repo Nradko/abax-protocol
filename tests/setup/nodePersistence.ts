@@ -12,9 +12,9 @@ import DiaOracle from '../../typechain/contracts/dia_oracle';
 import PriceFeedProvider from '../../typechain/contracts/price_feed_provider';
 import VToken from '../../typechain/contracts/v_token';
 import StableToken from '../../typechain/contracts/stable_token';
-import { getContractObject } from './deploymentHelpers';
 import { apiProviderWrapper, getSigners } from './helpers';
 import { increaseBlockTimestamp, setBlockTimestamp } from 'tests/scenarios/utils/misc';
+import { getContractObject } from '@abaxfinance/contract-helpers';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
 
@@ -23,7 +23,7 @@ export interface StoredContractInfo {
   address?: string;
   reserveName?: string;
   stableName?: string;
-  codeHash?: number[];
+  codeHash?: string;
 }
 
 export const saveContractInfoToFileAsJson = async (contractInfos: StoredContractInfo[], writePath = DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH) => {
@@ -106,21 +106,22 @@ export const restartAndRestoreNodeState = async (getOldContractsNodeProcess: () 
 };
 
 export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH): Promise<TestEnv> => {
+  const api = await apiProviderWrapper.getAndWaitForReady();
   const contracts = JSON.parse(await fs.readFile(writePath, 'utf8')) as StoredContractInfo[];
 
   const [owner, ...users] = getSigners();
 
   const lendingPoolContractInfo = contracts.find((c) => c.name === 'lending_pool');
   if (!lendingPoolContractInfo) throw 'lendingPool ContractInfo not found';
-  const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address!, owner);
+  const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address!, owner, api);
 
   const priceFeedProviderContractInfo = contracts.find((c) => c.name === 'price_feed_provider');
   if (!priceFeedProviderContractInfo) throw 'BlockTimestampProvider ContractInfo not found';
-  const priceFeedProvider = await getContractObject(PriceFeedProvider, priceFeedProviderContractInfo.address!, owner);
+  const priceFeedProvider = await getContractObject(PriceFeedProvider, priceFeedProviderContractInfo.address!, owner, api);
 
   const oracleInfo = contracts.find((c) => c.name === 'dia_oracle');
   if (!oracleInfo) throw 'BlockTimestampProvider ContractInfo not found';
-  const oracle = await getContractObject(DiaOracle, oracleInfo.address!, owner);
+  const oracle = await getContractObject(DiaOracle, oracleInfo.address!, owner, api);
 
   const reservesContracts = contracts.filter((c) => c.reserveName);
 
@@ -129,17 +130,17 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     if (!contractInfo.reserveName) continue;
     switch (contractInfo.name) {
       case 'psp22_emitable': {
-        const reserve = await getContractObject(PSP22Emitable, contractInfo.address!, owner);
+        const reserve = await getContractObject(PSP22Emitable, contractInfo.address!, owner, api);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve };
         break;
       }
       case 'a_token': {
-        const aToken = await getContractObject(AToken, contractInfo.address!, owner);
+        const aToken = await getContractObject(AToken, contractInfo.address!, owner, api);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], aToken };
         break;
       }
       case 'v_token': {
-        const vToken = await getContractObject(VToken, contractInfo.address!, owner);
+        const vToken = await getContractObject(VToken, contractInfo.address!, owner, api);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], vToken };
         break;
       }
@@ -153,17 +154,17 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     if (!contractInfo.stableName) continue;
     switch (contractInfo.name) {
       case 'stable_token': {
-        const reserve = await getContractObject(StableToken, contractInfo.address!, owner);
+        const reserve = await getContractObject(StableToken, contractInfo.address!, owner, api);
         stablesWithLendingTokens[contractInfo.stableName] = { ...stablesWithLendingTokens[contractInfo.stableName], underlying: reserve };
         break;
       }
       case 'a_token': {
-        const aToken = await getContractObject(AToken, contractInfo.address!, owner);
+        const aToken = await getContractObject(AToken, contractInfo.address!, owner, api);
         stablesWithLendingTokens[contractInfo.stableName] = { ...stablesWithLendingTokens[contractInfo.stableName], aToken };
         break;
       }
       case 'v_token': {
-        const vToken = await getContractObject(VToken, contractInfo.address!, owner);
+        const vToken = await getContractObject(VToken, contractInfo.address!, owner, api);
         stablesWithLendingTokens[contractInfo.stableName] = { ...stablesWithLendingTokens[contractInfo.stableName], vToken };
         break;
       }
@@ -172,7 +173,7 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
 
   const balanceViewerContractInfo = contracts.find((c) => c.name === 'balance_viewer');
   if (!balanceViewerContractInfo) throw 'BalanceViewer ContractInfo not found';
-  const balanceViewer = await getContractObject(BalanceViewer, balanceViewerContractInfo.address!, owner);
+  const balanceViewer = await getContractObject(BalanceViewer, balanceViewerContractInfo.address!, owner, api);
 
   return {
     users: users,
@@ -200,7 +201,7 @@ async function restoreTestChainState(oldContractsNodeProcess: ChildProcess | und
     for (const p of existingProcessesListeningOnPort) {
       console.log(chalk.yellow(`Killing process `) + chalk.magenta(p.name) + `(${chalk.italic(p.cmd)})` + ` occupying test port\n\n`);
       process.kill(p.pid);
-      await sleep(100);
+      await sleep(50);
     }
 
     fs.rmSync(testChainStateLocation, { force: true, recursive: true });

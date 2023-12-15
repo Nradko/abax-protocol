@@ -3,7 +3,9 @@ import path from 'path';
 import glob from 'glob';
 import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
-import { snakeToCamel } from './fixPropertyCasing';
+
+const snakeToCamel = (str: string) => str.toLowerCase().replace(/([-_][a-z])/g, (group) => group.toUpperCase().replace('-', '').replace('_', ''));
+
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }

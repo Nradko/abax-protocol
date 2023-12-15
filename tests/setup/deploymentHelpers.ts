@@ -7,10 +7,8 @@ import BN from 'bn.js';
 import fs, { readFileSync } from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
-import { FacetCut } from 'typechain/types-arguments/diamond';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import ATokenContract from 'typechain/contracts/a_token';
-import DiamondContract from 'typechain/contracts/diamond';
 import LendingPool from 'typechain/contracts/lending_pool';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import PSP22Ownable from 'typechain/contracts/psp22_ownable';
@@ -22,7 +20,6 @@ import DiaOracleContract from 'typechain/contracts/dia_oracle';
 import PriceFeedProviderContract from 'typechain/contracts/price_feed_provider';
 
 import FlashLoanReceiverMockConstructor from 'typechain/constructors/flash_loan_receiver_mock';
-import DiamondContractConstructor from 'typechain/constructors/diamond';
 import PSP22EmitableConstructor from 'typechain/constructors/psp22_emitable';
 import PSP22OwnableConstructor from 'typechain/constructors/psp22_ownable';
 import StableTokenConstructor from 'typechain/constructors/stable_token';
@@ -34,13 +31,14 @@ import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from '.
 import { toE6 } from '@abaxfinance/utils';
 import { getLineSeparator } from 'tests/scenarios/utils/misc';
 import { AbiMessage } from '@polkadot/api-contract/types';
-import { SignAndSendSuccessResponse, _genValidGasLimitAndValue, _signAndSend } from '@727-ventures/typechain-types';
+import { SignAndSendSuccessResponse, _genValidGasLimitAndValue, _signAndSend } from 'wookashwackomytest-typechain-types';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { InterestRateModel, TokensToDeployForTesting } from './tokensToDeployForTesting.types';
 import { TOKENS_TO_DEPLOY_FOR_TESTING } from './tokensToDeployForTesting';
 import { BURNER, MINTER, ROLES } from 'tests/consts';
 import { ReserveFees } from 'typechain/types-arguments/balance_viewer';
 import { AssetRules, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
+import { getContractObject } from '@abaxfinance/contract-helpers';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());
@@ -111,7 +109,7 @@ export const setupContract = async (signer: KeyringPair, contractName: string, c
   return { signer, deployedContract };
 };
 
-const deployWithLog = async <T>(
+export const deployWithLog = async <T>(
   signer: KeyringPair,
   constructor: new (address: string, contractSigner: KeyringPair, nativeAPI: ApiPromise) => T,
   contractName: string,
@@ -119,7 +117,7 @@ const deployWithLog = async <T>(
 ) => {
   const ret = await setupContract(signer, contractName, 'new', ...deployArgs);
   if (process.env.DEBUG) console.log(`Deployed ${contractName}: ${ret.deployedContract.address.toString()}`);
-  return getContractObject<T>(constructor, ret.deployedContract.address.toString(), ret.signer);
+  return getContractObjectWrapper<T>(constructor, ret.deployedContract.address.toString(), ret.signer);
 };
 
 export const deployLendingPool = async (owner: KeyringPair) => await deployWithLog(owner, LendingPool, 'lending_pool');
@@ -153,7 +151,7 @@ export const deployEmitableToken = async (owner: KeyringPair, name: string, deci
     `Reserve ${name} token `,
     decimals,
   );
-  return getContractObject(PSP22Emitable, deployRet.address, owner);
+  return getContractObjectWrapper(PSP22Emitable, deployRet.address, owner);
 };
 
 export const deployOwnableToken = async (owner: KeyringPair, name: string, decimals: number = 6, tokenOwnerAddress: string) => {
@@ -163,7 +161,7 @@ export const deployOwnableToken = async (owner: KeyringPair, name: string, decim
     decimals,
     tokenOwnerAddress,
   );
-  return getContractObject(PSP22Ownable, deployRet.address, owner);
+  return getContractObjectWrapper(PSP22Ownable, deployRet.address, owner);
 };
 
 export const deployStableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
@@ -172,99 +170,28 @@ export const deployStableToken = async (owner: KeyringPair, name: string, decima
     `Reserve ${name} token `,
     decimals,
   );
-  return getContractObject(StableToken, deployRet.address, owner);
+  return getContractObjectWrapper(StableToken, deployRet.address, owner);
 };
 
 export const deployTestReservesMinter = async (owner: KeyringPair) => {
   const deployRet = await new TestReservesMinterConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
-  return getContractObject(TestReservesMinter, deployRet.address, owner);
+  return getContractObjectWrapper(TestReservesMinter, deployRet.address, owner);
 };
 
 export const deployFlashLoanReceiverMock = async (owner: KeyringPair) => {
   const deployRet = await new FlashLoanReceiverMockConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
-  return getContractObject(FlashLoanReceiverMock, deployRet.address, owner);
+  return getContractObjectWrapper(FlashLoanReceiverMock, deployRet.address, owner);
 };
 
 export const deployBalanceViewer = async (owner: KeyringPair, lendingPoolAddress: string) => {
   const deployRet = await new BalanceViewerConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(lendingPoolAddress);
-  return getContractObject(BalanceViewer, deployRet.address, owner);
+  return getContractObjectWrapper(BalanceViewer, deployRet.address, owner);
 };
-
-export const deployDiamond = async (owner: KeyringPair) => {
-  const deployRet = await new DiamondContractConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(owner.address);
-  return getContractObject(DiamondContract, deployRet.address, owner);
-};
-
-const getSelectorsFromMessages = (messages: AbiMessage[]) => messages.map((message) => message.selector.toU8a() as unknown as number[]);
-
-const getSelectorByName = (messages: AbiMessage[], name: string) =>
-  messages.filter((message) => message.identifier === name)[0].selector.toU8a() as unknown as number[];
-
-export const setupDiamondContract = async <T>(
-  constructor: new (address: string, signer: KeyringPair, nativeAPI: ApiPromise) => T,
-  defaultSigner: KeyringPair,
-  owner: KeyringPair,
-  facetWithInitializeMethod: string,
-  facets: string[],
-) => {
-  const api = await apiProviderWrapper.getAndWaitForReady();
-
-  const initFacetCodePromise = getCodePromise(api, facetWithInitializeMethod);
-  const gasLimit = (await _genValidGasLimitAndValue(api)).gasLimit as WeightV2;
-  const tx = initFacetCodePromise.tx['new']!({ gasLimit });
-  const response = await _signAndSend(api.registry, tx, owner, (event: any) => event);
-  //@ts-ignore
-  const initFacetAddress = (response as SignAndSendSuccessResponse)!.result!.contract.address.toString();
-
-  const initFacetWasmHash = initFacetCodePromise.abi.info.source.wasmHash.toString();
-  const initFacetMessages = initFacetCodePromise.abi.messages;
-  const initSelector = getSelectorByName(initFacetMessages, 'initialize_contract');
-  const initFacetSelectors = getSelectorsFromMessages(initFacetMessages);
-  const initCut: FacetCut[] = [{ hash: initFacetWasmHash, selectors: initFacetSelectors }];
-
-  const diamondContract = await deployDiamond(owner);
-  await diamondContract.query.diamondCut(initCut, {
-    hash: initFacetWasmHash,
-    selector: initSelector,
-    input: [],
-  });
-
-  await diamondContract.tx.diamondCut(initCut, {
-    hash: initFacetWasmHash,
-    selector: initSelector,
-    input: [],
-  });
-
-  const initCutRemove = [{ hash: initFacetWasmHash, selectors: [] }];
-  await diamondContract.tx.diamondCut(initCutRemove, null);
-
-  const cuts: FacetCut[] = [];
-  for (const facet of facets) {
-    const facetCodePromise = getCodePromise(api, facet);
-    await deployWithLog(defaultSigner, LendingPool, facet);
-    const facetCodeHash = facetCodePromise.abi.info.source.wasmHash.toString();
-    const facetMessages = facetCodePromise.abi.messages;
-    const facetSelectors = getSelectorsFromMessages(facetMessages);
-    const facetCut = { hash: facetCodeHash, selectors: facetSelectors };
-    cuts.push(facetCut);
-    const res = await diamondContract.query.diamondCut([facetCut], null);
-    try {
-      await diamondContract.tx.diamondCut([facetCut], null);
-    } catch (e) {
-      console.log(res.value.err);
-    }
-  }
-
-  return new constructor(diamondContract.address, defaultSigner, api);
-};
-
-export const getContractObject = async <T>(
-  constructor: new (address: string, signer: KeyringPair, nativeAPI: ApiPromise) => T,
+const getContractObjectWrapper = async <T>(
+  constructor: new (address: string, signer: KeyringPair, api: ApiPromise) => T,
   contractAddress: string,
   signerPair: KeyringPair,
-) => {
-  return new constructor(contractAddress, signerPair, await apiProviderWrapper.getAndWaitForReady());
-};
+) => getContractObject(constructor, contractAddress, signerPair, await apiProviderWrapper.getAndWaitForReady());
 //reserveDatas: ReserveTokenDeploymentData
 export async function deployCoreContracts(
   owner: KeyringPair,
@@ -272,8 +199,8 @@ export async function deployCoreContracts(
 ): Promise<{
   priceFeedProvider: PriceFeedProviderContract;
   lendingPool: LendingPool;
-  aTokenCodeHash: any;
-  vTokenCodeHash: any;
+  aTokenCodeHash: string;
+  vTokenCodeHash: string;
 }> {
   if (process.env.DEBUG) {
     console.log(getLineSeparator());
@@ -296,36 +223,21 @@ export async function deployCoreContracts(
   return { priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
 }
 
-function hexToBytes(hex) {
-  hex.replace('0x', '');
-  const bytes: number[] = [];
-  for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
-  return bytes;
-}
-
 export interface ProductionDeploymentParams {
   owner: KeyringPair;
 
   reserveDatas: ReserveTokenDeploymentData[];
 }
 
-const getEntryOrThrow = <T>(record: Record<string, T>, key: string) => {
-  if (!(key in record)) throw new Error(`Key "${key}" not found in record ${record}`);
-  const value = record[key];
-  return value;
-};
-
 export type DeploymentConfig = {
   testTokensToDeploy: TokensToDeployForTesting;
   priceOverridesE18: Record<string, string>;
-  shouldUseMockTimestamp: boolean;
   owner: KeyringPair;
   users: KeyringPair[];
 };
 export const DEFAULT_TEST_DEPLOYMENT_CONFIG: DeploymentConfig = {
   testTokensToDeploy: TOKENS_TO_DEPLOY_FOR_TESTING,
   priceOverridesE18: MOCK_CHAINLINK_AGGREGATORS_PRICES,
-  shouldUseMockTimestamp: true,
   owner: getSigners()[0],
   users: getSignersWithoutOwner(getSigners(), 0),
 };
@@ -343,7 +255,7 @@ export const deployAndConfigureSystem = async (
     },
   };
 
-  const { owner, users, testTokensToDeploy, priceOverridesE18: prices, shouldUseMockTimestamp } = config;
+  const { owner, users, testTokensToDeploy, priceOverridesE18: prices } = config;
 
   const oracle = await deployDiaOracle(owner);
 
@@ -493,8 +405,8 @@ export async function registerNewAsset(
   owner: KeyringPair,
   lendingPool: LendingPool,
   assetAddress: string,
-  aTokenCodeHash: number[],
-  vTokenCodeHash: number[],
+  aTokenCodeHash: string,
+  vTokenCodeHash: string,
   name: string,
   symbol: string,
   decimals: number,
@@ -505,8 +417,8 @@ export async function registerNewAsset(
 ): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
   const registerAssetArgs: Parameters<typeof lendingPool.query.registerAsset> = [
     assetAddress,
-    aTokenCodeHash,
-    vTokenCodeHash,
+    aTokenCodeHash as any,
+    vTokenCodeHash as any,
     name,
     symbol,
     decimals,
@@ -524,7 +436,7 @@ export async function registerNewAsset(
   await lendingPool.withSigner(owner).tx.registerAsset(...registerAssetArgs);
 
   const tokenAdresses = (await lendingPool.query.viewReserveTokens(assetAddress)).value.ok!;
-  const aToken = await getContractObject(ATokenContract, tokenAdresses.aTokenAddress.toString(), owner);
-  const vToken = await getContractObject(VTokenContract, tokenAdresses.vTokenAddress.toString(), owner);
+  const aToken = await getContractObjectWrapper(ATokenContract, tokenAdresses.aTokenAddress.toString(), owner);
+  const vToken = await getContractObjectWrapper(VTokenContract, tokenAdresses.vTokenAddress.toString(), owner);
   return { aToken, vToken };
 }

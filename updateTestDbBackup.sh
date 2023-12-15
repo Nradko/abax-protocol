@@ -12,7 +12,7 @@ mkdir $TMP_DIR_NAME
 ($SCRIPT_DIR/substrate-contracts-node --dev --base-path $SCRIPT_DIR/$TMP_DIR_NAME --rpc-port 9944)&
 NODE_PID=$!
 sleep 1 #precautiously wait for node to finish start up
-npx ts-node $SCRIPT_DIR/runWithoutWarnings.ts npx ts-node $SCRIPT_DIR/scripts/deployTest.ts path=$SCRIPT_DIR/tests/setup shouldUseMockTimestamp=true
+npx tsx $SCRIPT_DIR/runWithoutWarnings.ts npx tsx $SCRIPT_DIR/scripts/deployTest.ts path=$SCRIPT_DIR/tests/setup
 DEPLOY_RESULT=$?
 kill $NODE_PID
 if [ $DEPLOY_RESULT -ne 0 ]; then

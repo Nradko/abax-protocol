@@ -75,7 +75,6 @@ describe('Custom deployment', () => {
           stableTokens: [],
         },
         priceOverridesE18: { BOI: '5000000000000000000', WMN: '50000000000000000' },
-        shouldUseMockTimestamp: false,
         users: getSignersWithoutOwner(signers, 5),
         owner: signers[5],
       };

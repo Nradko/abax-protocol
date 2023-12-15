@@ -480,7 +480,10 @@ impl LendingPoolStorage {
         let mut total_collateral_power_e6: u128 = 0;
         let mut total_debt_power_e6: u128 = 0;
 
-        let user_config = self.user_configs.get(user).unwrap();
+        let user_config = match self.user_configs.get(user) {
+            Some(config) => config,
+            None => return Ok((true, 0)),
+        };
         let market_rule =
             self.market_rules.get(&user_config.market_rule_id).unwrap();
 
@@ -502,7 +505,10 @@ impl LendingPoolStorage {
             let reserve_indexes_and_fees =
                 self.reserve_indexes_and_fees.get(&asset_id).unwrap();
             let mut user_reserve_data =
-                self.user_reserve_datas.get(&(asset_id, *user)).unwrap();
+                match self.user_reserve_datas.get(&(asset_id, *user)) {
+                    Some(data) => data,
+                    None => return Ok((true, 0)),
+                };
 
             user_reserve_data.accumulate_user_interest(
                 &reserve_indexes_and_fees.indexes,

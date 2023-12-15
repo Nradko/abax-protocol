@@ -8,8 +8,8 @@ const printHelp = () => {
   console.log(chalk.yellow('Supply input file via') + chalk.green('--input <path> ') + chalk.yellow('or as a first argument of the script'));
   console.log(chalk.yellow('Supply output file via') + chalk.green('--output <path> ') + chalk.yellow('or as a second argument of the script'));
   console.log(`\nExample usages:`);
-  console.log(chalk.cyan('npx ts-node ./ansiFileToHtml.ts --input ./myFile.txt --output ./outputFile.html'));
-  console.log(chalk.cyan('npx ts-node ./ansiFileToHtml.ts ./myFile.txt ./outputFile.html'));
+  console.log(chalk.cyan('npx tsx ./ansiFileToHtml.ts --input ./myFile.txt --output ./outputFile.html'));
+  console.log(chalk.cyan('npx tsx ./ansiFileToHtml.ts ./myFile.txt ./outputFile.html'));
 };
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;

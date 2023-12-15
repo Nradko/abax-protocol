@@ -5,7 +5,7 @@ set -e
 
 start_time=$(date +%s.%3N)
 script -efq $SCRIPT_DIR/build.log -c \
-"env CARGO_TERM_COLOR=always FORCE_COLOR=1 npx ts-node --transpile-only $SCRIPT_DIR/scripts/compile/compileAllContracts.ts $* \
+"env CARGO_TERM_COLOR=always FORCE_COLOR=1 npx tsx $SCRIPT_DIR/scripts/compile/compileAllContracts.ts $* \
     2>&1 | sed -n -E '/profiles for the non root.*|package:.*|workspace:.*/!p'; exit \"\${PIPESTATUS[0]}\""
 
 yarn generateTypes

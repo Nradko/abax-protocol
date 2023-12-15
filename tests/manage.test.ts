@@ -6,12 +6,13 @@ import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 import { ROLE_NAMES, ROLES } from './consts';
-import { BN } from '@polkadot/util';
 import { getAbaxTokenMetadata } from './helpers/abacusTokenData';
 import { apiProviderWrapper } from 'tests/setup/helpers';
+import BN from 'bn.js';
+//TODO
 const isValidObject = (obj: any) => typeof obj === 'object' && obj !== null;
 /* eslint-disable */
-const replaceRNBNPropsWithStrings = function (obj: any) {
+const replaceNumericPropsWithStrings = function (obj: any) {
   if (obj?.rawNumber) {
     return obj.rawNumber.toString();
   }
@@ -25,7 +26,7 @@ const replaceRNBNPropsWithStrings = function (obj: any) {
       } else if (typeof obj[key] === 'number') {
         tmpObj[key] = String(obj[key]);
       } else if (isValidObject(obj[key])) {
-        tmpObj[key] = replaceRNBNPropsWithStrings(obj[key]);
+        tmpObj[key] = replaceNumericPropsWithStrings(obj[key]);
       }
     }
   }
@@ -55,6 +56,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     for (const role_name of ROLES_NAMES.filter((role) => role !== 'ROLE_ADMIN')) {
       const role = ROLES[role_name];
       const qq = await lendingPool.withSigner(owner).query.grantRole(role, adminOf[role_name].address);
+      const tkqr = await lendingPool.withSigner(owner).query.viewRegisteredAssets();
       const tx = await lendingPool.withSigner(owner).tx.grantRole(role, adminOf[role_name].address);
     }
   });
@@ -75,7 +77,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const tx = lendingPool.withSigner(adminOf[role_name]).tx.setFlashLoanFeeE6(flashLoanFeeE6);
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'FlashLoanFeeChanged',
             args: {
@@ -84,7 +86,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           },
         ]);
         const querryRes = (await lendingPool.query.viewFlashLoanFeeE6()).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(querryRes)).to.equal(flashLoanFeeE6);
+        expect.soft(replaceNumericPropsWithStrings(querryRes)).to.equal(flashLoanFeeE6);
         expect.flushSoft();
       });
     }
@@ -96,8 +98,8 @@ makeSuite('Menage tests', (getTestEnv) => {
     type params = Parameters<typeof lendingPool.query.registerAsset>;
     let PARAMS = {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
-      aTokenCodeHash: [0],
-      vTokenCodeHash: [0],
+      aTokenCodeHash: '',
+      vTokenCodeHash: '',
       name: 'TOKEN NAME XAYR',
       symbol: 'XAYR',
       decimals: '6',
@@ -148,7 +150,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           decimals: PARAMS.decimals,
         });
 
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'AssetRegistered',
             args: {
@@ -211,7 +213,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveIndexes = (await lendingPool.query.viewReserveIndexes(PARAMS.asset)).value.ok!;
         const reserveTokens = (await lendingPool.query.viewReserveTokens(PARAMS.asset)).value.ok!;
         const reserveDecimalMultiplier = (await lendingPool.query.viewReserveDecimalMultiplier(PARAMS.asset)).value.ok!.rawNumber.toString();
-        expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
+        expect.soft(replaceNumericPropsWithStrings(reserveData)).to.deep.equal({
           activated: true,
           freezed: false,
           totalDeposit: '0',
@@ -219,10 +221,10 @@ makeSuite('Menage tests', (getTestEnv) => {
           totalDebt: '0',
           currentDebtRateE18: '0',
         });
-        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
-        expect.soft(replaceRNBNPropsWithStrings(reserveModel)).to.deep.equal(PARAMS.interestRateModel);
-        expect.soft(replaceRNBNPropsWithStrings(reserveFees)).to.deep.equal(PARAMS.reserveFees);
-        expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
+        expect.soft(replaceNumericPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
+        expect.soft(replaceNumericPropsWithStrings(reserveModel)).to.deep.equal(PARAMS.interestRateModel);
+        expect.soft(replaceNumericPropsWithStrings(reserveFees)).to.deep.equal(PARAMS.reserveFees);
+        expect.soft(replaceNumericPropsWithStrings(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
           updateTimestamp: timestamp.toString(),
@@ -246,8 +248,8 @@ makeSuite('Menage tests', (getTestEnv) => {
     type params = Parameters<typeof lendingPool.query.registerAsset>;
     const PARAMS = {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
-      aTokenCodeHash: [0],
-      vTokenCodeHash: [0],
+      aTokenCodeHash: '',
+      vTokenCodeHash: '',
       name: 'TOKEN NAME XAYR',
       symbol: 'XAYR',
       decimals: '6',
@@ -300,7 +302,7 @@ makeSuite('Menage tests', (getTestEnv) => {
           decimals: PARAMS.decimals,
         });
 
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'AssetRegistered',
             args: {
@@ -345,7 +347,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
         const reserveIndexes = (await lendingPool.query.viewReserveIndexes(PARAMS.asset)).value.ok!;
         const reserveDecimalMultiplier = (await lendingPool.query.viewReserveDecimalMultiplier(PARAMS.asset)).value.ok!.rawNumber.toString();
-        expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
+        expect.soft(replaceNumericPropsWithStrings(reserveData)).to.deep.equal({
           activated: true,
           freezed: false,
           totalDeposit: '0',
@@ -353,8 +355,8 @@ makeSuite('Menage tests', (getTestEnv) => {
           totalDebt: '0',
           currentDebtRateE18: '0',
         });
-        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
-        expect.soft(replaceRNBNPropsWithStrings(reserveIndexes)).to.deep.equal({
+        expect.soft(replaceNumericPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
+        expect.soft(replaceNumericPropsWithStrings(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
           updateTimestamp: timestamp.toString(),
@@ -399,7 +401,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'ReserveActivated',
             args: {
@@ -454,7 +456,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'ReserveFreezed',
             args: {
@@ -506,7 +508,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'ReserveInterestRateModelChanged',
             args: {
@@ -517,7 +519,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         ]);
 
         const interestRateModel = (await lendingPool.query.viewInterestRateModel(PARAMS.asset)).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(interestRateModel)).to.deep.equal(PARAMS.interestRateModel);
+        expect.soft(replaceNumericPropsWithStrings(interestRateModel)).to.deep.equal(PARAMS.interestRateModel);
 
         expect.flushSoft();
       });
@@ -554,7 +556,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'ReserveFeesChanged',
             args: {
@@ -565,7 +567,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         ]);
 
         const reserveFees = (await lendingPool.query.viewReserveFees(PARAMS.asset)).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(reserveFees)).to.deep.equal(PARAMS.reserveFees);
+        expect.soft(replaceNumericPropsWithStrings(reserveFees)).to.deep.equal(PARAMS.reserveFees);
 
         expect.flushSoft();
       });
@@ -601,7 +603,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'ReserveRestrictionsChanged',
             args: {
@@ -612,7 +614,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         ]);
 
         const reserveRestrictions = (await lendingPool.query.viewReserveRestrictions(PARAMS.asset)).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
+        expect.soft(replaceNumericPropsWithStrings(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
 
         expect.flushSoft();
       });
@@ -643,7 +645,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const tx = lendingPool.withSigner(adminOf[role_name]).tx.takeProtocolIncome(...(Object.values(PARAMS) as params));
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
-        // expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([]);
+        // expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([]);
         expect.flushSoft();
       });
     }
@@ -678,7 +680,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const tx = lendingPool.withSigner(adminOf[role_name]).tx.modifyAssetRule(...(Object.values(PARAMS) as params));
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'AssetRulesChanged',
             args: {
@@ -693,7 +695,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
         const marketRules = (await lendingPool.query.viewMarketRule(PARAMS.marketRuleId)).value.ok!;
         const assetId = (await lendingPool.query.viewAssetId(PARAMS.asset)).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(marketRules[assetId]!)).to.deep.equal({
+        expect.soft(replaceNumericPropsWithStrings(marketRules[assetId.toString()]!)).to.deep.equal({
           collateralCoefficientE6: PARAMS.assetRules.collateralCoefficientE6,
           borrowCoefficientE6: PARAMS.assetRules.borrowCoefficientE6,
           penaltyE6: PARAMS.assetRules.penaltyE6,
@@ -727,7 +729,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const tx = lendingPool.withSigner(adminOf[role_name]).tx.addMarketRule(marketRule);
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'AssetRulesChanged',
             args: {
@@ -751,7 +753,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         ]);
 
         const queryMarketRule = (await lendingPool.query.viewMarketRule('1')).value.ok!;
-        expect.soft(replaceRNBNPropsWithStrings(queryMarketRule!)).to.deep.equal(marketRule);
+        expect.soft(replaceNumericPropsWithStrings(queryMarketRule!)).to.deep.equal(marketRule);
         expect.flushSoft();
       });
     }
@@ -779,7 +781,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const tx = lendingPool.withSigner(adminOf[role_name]).tx.setStablecoinDebtRateE18(stableAddress, debtRateE18);
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
         const txRes = await tx;
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'StablecoinDebtRateChanged',
             args: {

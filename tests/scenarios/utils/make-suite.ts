@@ -35,8 +35,8 @@ export interface TestEnv {
   stables: TestEnvStables;
   priceFeedProvider: PriceFeedProvider;
   oracle: DiaOracleContract;
-  aTokenCodeHash: number[];
-  vTokenCodeHash: number[];
+  aTokenCodeHash: string;
+  vTokenCodeHash: string;
   balanceViewer: BalanceViewer;
 }
 
@@ -78,7 +78,6 @@ function makeSuiteInternal(
     afterEach(async function (this) {
       if (this.currentTest?.state === 'failed') {
         hasAnyStoryStepFailed = true;
-        await sleep(1000);
       }
     });
 

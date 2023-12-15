@@ -1,4 +1,3 @@
-import { BN_ZERO } from '@polkadot/util';
 import BN from 'bn.js';
 import { expect } from 'tests/setup/chai';
 import { Transfer } from 'typechain/event-types/a_token';
@@ -8,7 +7,9 @@ import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_po
 import { TokenReserve } from './make-suite';
 import { ValidateEventParameters } from './validateEvents';
 import { ReserveIndexes } from 'typechain/types-returns/lending_pool';
-import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
+
+const BN_ZERO = new BN(0);
 export interface CheckDepositParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
@@ -710,7 +711,7 @@ const checkAbacusTokenTransferEvent = (
 
   if (amountTransferred.isZero()) {
     expect(
-      replaceRNBNPropsWithStrings(
+      replaceNumericPropsWithStrings(
         (abacusTokenTransferEventParameters ? [abacusTokenTransferEventParameters] : []).map(({ sourceContract, ...rest }) => rest)[0],
       ),
       messagge + ` | emitted while shouldnt be`,

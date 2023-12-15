@@ -1,4 +1,4 @@
-import { GasLimit, QueryReturnType } from '@727-ventures/typechain-types';
+import { GasLimit, QueryReturnType } from 'wookashwackomytest-typechain-types';
 export interface PSP22Metadata {
   methods: {
     'tokenDecimals'(__options: GasLimit): Promise<QueryReturnType<number>>;
