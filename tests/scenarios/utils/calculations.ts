@@ -1,4 +1,4 @@
-import { ReturnNumber } from '@727-ventures/typechain-types';
+import { ReturnNumber } from 'wookashwackomytest-typechain-types';
 import BN from 'bn.js';
 import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
 

@@ -110,7 +110,7 @@ Test execution consists of a set of simple steps:
 
 **Disclaimer** Due to frequent code updates and the migration to ink!4 the code for benchmarking/creating graphs is not up to date and its execution will fail.
 
-- `scripts/benchmarking` folder contains a set of benchmarks. Each of them is runnable via `npx ts-node <path_to_the_benchmark>`. After its execution a set of output files will be produced:
+- `scripts/benchmarking` folder contains a set of benchmarks. Each of them is runnable via `npx tsx <path_to_the_benchmark>`. After its execution a set of output files will be produced:
 
   - plot(s) (created using `chart.js`)
   - results in csv format

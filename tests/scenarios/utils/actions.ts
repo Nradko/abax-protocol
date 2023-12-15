@@ -1,4 +1,4 @@
-import { SignAndSendSuccessResponse } from '@727-ventures/typechain-types';
+import { SignAndSendSuccessResponse } from 'wookashwackomytest-typechain-types';
 import { parseAmountToBN } from '@abaxfinance/utils';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
@@ -446,14 +446,16 @@ export const setUseAsCollateral = async (
           args: {
             asset: testEnv.reserves[reserveSymbol].underlying.address,
             caller: caller.address,
-            set: (userConfigAfter.collaterals.toNumber() >> assetId) % 2 === 1 ? true : false,
+            set: (userConfigAfter.collaterals.toNumber() >> assetId.toNumber()) % 2 === 1 ? true : false,
           },
           name: 'CollateralSet',
         },
       ]);
     }
     expect.toBeDefined(userConfigAfter);
-    expect((userConfigAfter.collaterals.toNumber() >> assetId) % 2, 'setUseAsCollateral didnt work').to.equal(useAsCollateralToSet ? 1 : 0);
+    expect((userConfigAfter.collaterals.toNumber() >> assetId.toNumber()) % 2, 'setUseAsCollateral didnt work').to.equal(
+      useAsCollateralToSet ? 1 : 0,
+    );
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.setAsCollateral(...args)).value.ok;

@@ -1,4 +1,4 @@
-import { decodeAddress, encodeAddress } from '@polkadot/util-crypto';
+import { encodeAddress } from '@polkadot/util-crypto';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import { getArgvObj } from '@abaxfinance/utils';
@@ -7,8 +7,8 @@ const printHelp = () => {
   console.log(chalk.yellow('Supply input file via') + chalk.green('--input <path> ') + chalk.yellow('or as a first argument of the script'));
   console.log(chalk.yellow('Supply output file via') + chalk.green('--output <path> ') + chalk.yellow('or as a second argument of the script'));
   console.log(`\nExample usages:`);
-  console.log(chalk.cyan('npx ts-node ./ansiFileToHtml.ts --input ./myFile.txt --output ./outputFile.html'));
-  console.log(chalk.cyan('npx ts-node ./ansiFileToHtml.ts ./myFile.txt ./outputFile.html'));
+  console.log(chalk.cyan('npx tsx ./ansiFileToHtml.ts --input ./myFile.txt --output ./outputFile.html'));
+  console.log(chalk.cyan('npx tsx ./ansiFileToHtml.ts ./myFile.txt ./outputFile.html'));
 };
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;

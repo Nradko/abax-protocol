@@ -1,9 +1,10 @@
-import { getContractObject } from 'tests/setup/deploymentHelpers';
 import { ReserveAbacusTokens } from 'typechain/types-returns/lending_pool';
 import ATokenContract from 'typechain/contracts/a_token';
 import VTokenContract from 'typechain/contracts/v_token';
 import { KeyringPair } from '@polkadot/keyring/types';
 import LendingPoolContract from 'typechain/contracts/lending_pool';
+import { getContractObject } from '@abaxfinance/contract-helpers';
+import { apiProviderWrapper } from 'tests/setup/helpers';
 
 type PSP22Metadata = {
   name: string;
@@ -27,9 +28,10 @@ export async function getAbaxTokenMetadata(
   lendingPool: LendingPoolContract,
   assetAddress: string,
 ): Promise<AbacusTokensMetadata> {
+  const api = await apiProviderWrapper.getAndWaitForReady();
   const reserveTokens: ReserveAbacusTokens = (await lendingPool.query.viewReserveTokens(assetAddress)).value.ok!;
-  const AToken = await getContractObject(ATokenContract, reserveTokens.aTokenAddress as string, signer);
-  const VToken = await getContractObject(VTokenContract, reserveTokens.vTokenAddress as string, signer);
+  const AToken = await getContractObject(ATokenContract, reserveTokens.aTokenAddress as string, signer, api);
+  const VToken = await getContractObject(VTokenContract, reserveTokens.vTokenAddress as string, signer, api);
 
   const ATokenData = {
     name: (await AToken.query.tokenName()).value.ok!,

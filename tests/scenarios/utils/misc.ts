@@ -1,4 +1,4 @@
-import { handleEventReturn, ReturnNumber } from '@727-ventures/typechain-types';
+import { handleEventReturn, ReturnNumber } from 'wookashwackomytest-typechain-types';
 import { E18, E6 } from '@abaxfinance/utils';
 import { VoidFn } from '@polkadot/api/types';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
@@ -120,9 +120,9 @@ export const getReserveDefaultObj = (): ReserveData => {
     activated: true,
     freezed: false,
     totalDeposit: new ReturnNumber(0),
-    currentDepositRateE18: E18,
+    currentDepositRateE18: new ReturnNumber(E18),
     totalDebt: new ReturnNumber(0),
-    currentDebtRateE18: E18,
+    currentDebtRateE18: new ReturnNumber(E18),
   };
 };
 

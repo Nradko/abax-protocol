@@ -6,7 +6,7 @@ import VToken from 'typechain/contracts/v_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
-import { replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
 import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
@@ -95,7 +95,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       const tx = aTokenDaiContract.withSigner(alice).tx.transfer(bob.address, initialDaiBalance, []);
       await expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
-      expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+      expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Transfer',
           args: {
@@ -138,7 +138,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
 
       expect.soft(bobBalanceAfter.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.soft(bobDepositAfter.deposit.rawNumber.toString()).to.equal(initialDaiBalance.muln(2).toString());
-      expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+      expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'Approval',
           args: {
@@ -221,7 +221,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
             const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
             await expect(tx).to.eventually.be.fulfilled;
             const txRes = await tx;
-            expect(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+            expect(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
               {
                 name: 'Approval',
                 args: {
@@ -239,7 +239,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               },
             ]);
-            expect(replaceRNBNPropsWithStrings(capturedRepayEvents)).to.deep.equal([
+            expect(replaceNumericPropsWithStrings(capturedRepayEvents)).to.deep.equal([
               {
                 asset: wethContract.address,
                 caller: vTokenWETHContract.address,
@@ -248,7 +248,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               },
             ]);
 
-            expect(replaceRNBNPropsWithStrings(capturedBorrowEvents)).to.deep.equal([
+            expect(replaceNumericPropsWithStrings(capturedBorrowEvents)).to.deep.equal([
               {
                 asset: wethContract.address,
                 caller: vTokenWETHContract.address,
@@ -281,7 +281,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
               await expect(tx).to.eventually.be.fulfilled;
               const txRes = await tx;
-              expect(replaceRNBNPropsWithStrings(txRes.events)).to.almostDeepEqual([
+              expect(replaceNumericPropsWithStrings(txRes.events)).to.almostDeepEqual([
                 {
                   name: 'Approval',
                   args: {
@@ -315,7 +315,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 },
               ]);
-              expect(replaceRNBNPropsWithStrings(capturedRepayEvents)).to.deep.equal([
+              expect(replaceNumericPropsWithStrings(capturedRepayEvents)).to.deep.equal([
                 {
                   asset: wethContract.address,
                   caller: vTokenWETHContract.address,
@@ -324,7 +324,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               ]);
 
-              expect(replaceRNBNPropsWithStrings(capturedBorrowEvents)).to.deep.equal([
+              expect(replaceNumericPropsWithStrings(capturedBorrowEvents)).to.deep.equal([
                 {
                   asset: wethContract.address,
                   caller: vTokenWETHContract.address,
@@ -333,7 +333,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               ]);
 
-              expect(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([]);
+              expect(replaceNumericPropsWithStrings(capturedTransferEvents)).to.deep.equal([]);
             });
 
             it('Charlie should be able to transfer aWETH to Alice and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
@@ -352,7 +352,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               const tx = aTokenWETHContract.withSigner(charlie).tx.transfer(alice.address, charliesDeposit, []);
               await expect(tx).to.eventually.be.fulfilled;
               const txRes = await tx;
-              expect(replaceRNBNPropsWithStrings(txRes.events), 'AWeth events').to.deep.equal([
+              expect(replaceNumericPropsWithStrings(txRes.events), 'AWeth events').to.deep.equal([
                 {
                   name: 'Transfer',
                   args: {
@@ -370,7 +370,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 },
               ]);
-              expect(replaceRNBNPropsWithStrings(capturedDepositEvents), 'LendingPool Deposit event').to.deep.equal([
+              expect(replaceNumericPropsWithStrings(capturedDepositEvents), 'LendingPool Deposit event').to.deep.equal([
                 {
                   asset: wethContract.address,
                   caller: aTokenWETHContract.address,
@@ -379,7 +379,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               ]);
 
-              expect(replaceRNBNPropsWithStrings(capturedRedeemEvents), 'LendingPool Redeem event').to.deep.equal([
+              expect(replaceNumericPropsWithStrings(capturedRedeemEvents), 'LendingPool Redeem event').to.deep.equal([
                 {
                   asset: wethContract.address,
                   caller: aTokenWETHContract.address,
@@ -388,7 +388,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               ]);
 
-              expect(replaceRNBNPropsWithStrings(capturedTransferEvents), 'VWeth Transfer event').to.almostDeepEqual([
+              expect(replaceNumericPropsWithStrings(capturedTransferEvents), 'VWeth Transfer event').to.almostDeepEqual([
                 {
                   from: null,
                   to: alice.address,
@@ -418,7 +418,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 const tx = vTokenWETHContract.withSigner(alice).tx.transfer(charlie.address, aliceDebt, []);
                 await expect(tx).to.eventually.be.fulfilled;
                 const txRes = await tx;
-                expect(replaceRNBNPropsWithStrings(txRes.events), 'VWeth events').to.almostDeepEqual([
+                expect(replaceNumericPropsWithStrings(txRes.events), 'VWeth events').to.almostDeepEqual([
                   {
                     name: 'Approval',
                     args: {
@@ -444,7 +444,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                     },
                   },
                 ]);
-                expect(replaceRNBNPropsWithStrings(capturedRepayEvents), 'LendingPool Repay event').to.deep.equal([
+                expect(replaceNumericPropsWithStrings(capturedRepayEvents), 'LendingPool Repay event').to.deep.equal([
                   {
                     asset: wethContract.address,
                     caller: vTokenWETHContract.address,
@@ -453,7 +453,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 ]);
 
-                expect(replaceRNBNPropsWithStrings(capturedBorrowEvents), 'LendingPool Borrow event').to.deep.equal([
+                expect(replaceNumericPropsWithStrings(capturedBorrowEvents), 'LendingPool Borrow event').to.deep.equal([
                   {
                     asset: wethContract.address,
                     caller: vTokenWETHContract.address,
@@ -462,7 +462,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 ]);
 
-                expect(replaceRNBNPropsWithStrings(capturedTransferEvents), 'AWeth Transfer event').to.deep.equal([
+                expect(replaceNumericPropsWithStrings(capturedTransferEvents), 'AWeth Transfer event').to.deep.equal([
                   {
                     from: null,
                     to: charlie.address,

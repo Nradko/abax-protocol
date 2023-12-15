@@ -9,7 +9,6 @@ import { storeTimestamp } from 'tests/setup/nodePersistence';
 (async (args: Record<string, string>) => {
   if (require.main !== module) return;
   const outputJsonFolder = args['path'] ?? process.env.PWD;
-  const shouldUseMockTimestamp = (args['shouldUseMockTimestamp'] === 'true' || args['shouldUseMockTimestamp'] === '1') ?? true;
   if (!outputJsonFolder) throw 'could not determine path';
   const api = await apiProviderWrapper.getAndWaitForReady();
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.json');
@@ -18,7 +17,7 @@ import { storeTimestamp } from 'tests/setup/nodePersistence';
   await transferNoop();
   // to force using fake_time
   await increaseBlockTimestamp(0);
-  await deployAndConfigureSystem({ shouldUseMockTimestamp }, deployPath);
+  await deployAndConfigureSystem({}, deployPath);
   await storeTimestamp();
   api.disconnect();
   process.exit(0);

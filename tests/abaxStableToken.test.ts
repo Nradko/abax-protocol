@@ -1,8 +1,7 @@
-import { LendingPoolErrorBuilder, replaceRNBNPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { LendingPoolErrorBuilder, replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
-import { apiProviderWrapper } from 'tests/setup/helpers';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import StableToken from 'typechain/contracts/stable_token';
 import { Transfer } from 'typechain/event-types/a_token';
@@ -54,22 +53,22 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
       const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
       const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
 
-      expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
+      expect.soft(replaceNumericPropsWithStrings(reserveData)).to.deep.equal({
         activated: true,
         freezed: false,
-        currentDebtRateE18: 350000,
-        currentDepositRateE18: 0,
+        currentDebtRateE18: '350000',
+        currentDepositRateE18: '0',
         totalDebt: '10000000000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
         totalDeposit: '0',
       });
-      expect.soft(replaceRNBNPropsWithStrings(userReserveData)).to.deep.equal({
+      expect.soft(replaceNumericPropsWithStrings(userReserveData)).to.deep.equal({
         appliedDebtIndexE18: '1000000000000000000', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
         appliedDepositIndexE18: '1000000000000000000',
         debt: '10000000000', // same as totalDebt above +1
         deposit: '0',
       });
 
-      expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+      expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
         {
           name: 'BorrowVariable',
           args: {
@@ -80,7 +79,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           },
         },
       ]);
-      expect.soft(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([
+      expect.soft(replaceNumericPropsWithStrings(capturedTransferEvents)).to.deep.equal([
         {
           from: null,
           to: alice.address,
@@ -125,21 +124,21 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
         const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
 
-        expect.soft(replaceRNBNPropsWithStrings(reserveData)).to.deep.equal({
+        expect.soft(replaceNumericPropsWithStrings(reserveData)).to.deep.equal({
           activated: true,
           freezed: false,
-          currentDebtRateE18: 350000,
-          currentDepositRateE18: 0,
+          currentDebtRateE18: '350000',
+          currentDepositRateE18: '0',
           totalDebt: '110376001', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10 + 1  [[curent_debt_rate * time] * debt]
           totalDeposit: '0',
         });
-        expect.soft(replaceRNBNPropsWithStrings(userReserveData)).to.deep.equal({
+        expect.soft(replaceNumericPropsWithStrings(userReserveData)).to.deep.equal({
           appliedDebtIndexE18: '1011037600000000001', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
           appliedDepositIndexE18: '1000000000000000000',
           debt: '110376001', // same as totalDebt above
           deposit: '0',
         });
-        expect.soft(replaceRNBNPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
           {
             name: 'RepayVariable',
             args: {
@@ -150,7 +149,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
             },
           },
         ]);
-        expect.soft(replaceRNBNPropsWithStrings(capturedTransferEvents)).to.deep.equal([
+        expect.soft(replaceNumericPropsWithStrings(capturedTransferEvents)).to.deep.equal([
           {
             from: alice.address,
             to: null,
