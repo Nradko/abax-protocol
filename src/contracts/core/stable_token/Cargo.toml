@@ -5,7 +5,7 @@ authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
 edition = "2021"
 
 [dependencies]
-ink = { version = "4.3", default-features = false }
+ink = { version = "5.0.0-rc", default-features = false }
 scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = [
     "derive",
 ] }
@@ -13,9 +13,17 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../../pendzl-contracts", default-features = false, features = [
+pendzl = { path = "../../../../../simple_pendzl", default-features = false, features = [
     "psp22",
+    "psp22_impl",
+    "psp22_metadata",
+    "psp22_metadata_impl",
+    "psp22_mintable",
+    "psp22_mintable_impl",
+    "psp22_burnable",
+    "psp22_burnable_impl",
     "access_control",
+    "access_control_impl",
 ] }
 
 abax_traits = { path = "../../../traits", default-features = false }

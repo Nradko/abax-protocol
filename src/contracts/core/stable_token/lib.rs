@@ -9,42 +9,36 @@
 )]
 #[ink::contract]
 pub mod stable_token {
-    use ink::{
-        codegen::{EmitEvent, Env},
-        prelude::string::String,
-    };
+    use ink::prelude::string::String;
 
     use abax_traits::lending_pool::{BURNER, MINTER};
-    use pendzl::{
-        contracts::{
-            access_control,
-            psp22::{
-                extensions::{metadata::*, mintable::PSP22MintableImpl},
-                PSP22Error,
-            },
-        },
-        traits::Storage,
-    };
+    use pendzl::contracts::access::access_control;
+    use pendzl::contracts::token::psp22;
+    use pendzl::contracts::token::psp22::extensions::metadata;
+    use pendzl::contracts::token::psp22::PSP22Error;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default, pendzl::traits::Storage)]
     pub struct StableToken {
         #[storage_field]
-        access: access_control::Data,
+        access: access_control::implementation::AccessControlData,
         #[storage_field]
-        psp22: psp22::Data,
+        psp22: psp22::implementation::PSP22Data,
         #[storage_field]
-        metadata: metadata::Data,
+        metadata: metadata::implementation::PSP22MetadataData,
     }
 
     impl StableToken {
         #[ink(constructor)]
         pub fn new(name: String, symbol: String, decimal: u8) -> Self {
             let mut instance = Self::default();
+            let caller = instance.env().caller();
             instance.metadata.name.set(&name.into());
             instance.metadata.symbol.set(&symbol.into());
             instance.metadata.decimals.set(&decimal);
-            instance._init_with_caller();
+            instance
+                ._grant_role(Self::_default_admin(), Some(caller))
+                .expect("caller should become admin");
             instance
         }
     }
@@ -52,62 +46,44 @@ pub mod stable_token {
     #[overrider(PSP22Mintable)]
     pub fn mint(
         &mut self,
-        account: AccountId,
+        from: AccountId,
         amount: Balance,
     ) -> Result<(), PSP22Error> {
         self._ensure_has_role(MINTER, Some(self.env().caller()))?;
-        self._mint_to(account, amount)
+        psp22::PSP22Internal::_mint_to(self, &from, &amount)
     }
 
     #[overrider(PSP22Burnable)]
     pub fn burn(
         &mut self,
-        account: AccountId,
+        from: AccountId,
         amount: Balance,
     ) -> Result<(), PSP22Error> {
         self._ensure_has_role(BURNER, Some(self.env().caller()))?;
-        self._burn_from(account, amount)
+        psp22::PSP22Internal::_burn_from(self, &from, &amount)
     }
 
-    #[ink(event)]
-    pub struct Transfer {
-        #[ink(topic)]
-        from: Option<AccountId>,
-        #[ink(topic)]
-        to: Option<AccountId>,
-        value: Balance,
-    }
-
-    #[ink(event)]
-    pub struct Approval {
-        #[ink(topic)]
-        owner: AccountId,
-        #[ink(topic)]
-        spender: AccountId,
-        value: Balance,
-    }
-
-    #[overrider(psp22::Internal)]
+    #[overrider(Internal)]
     fn _emit_transfer_event(
         &self,
         from: Option<AccountId>,
         to: Option<AccountId>,
         amount: Balance,
     ) {
-        self.env().emit_event(Transfer {
+        self.env().emit_event(psp22::Transfer {
             from,
             to,
             value: amount,
         })
     }
-    #[overrider(psp22::Internal)]
+    #[overrider(Internal)]
     fn _emit_approval_event(
         &self,
         owner: AccountId,
         spender: AccountId,
         amount: Balance,
     ) {
-        self.env().emit_event(Approval {
+        self.env().emit_event(psp22::Approval {
             owner,
             spender,
             value: amount,

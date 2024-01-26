@@ -15,8 +15,6 @@ import { KeyringPair } from '@polkadot/keyring/types';
 import { deployDiaOracle } from 'tests/setup/deploymentHelpers';
 import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/tokensToDeployForTesting';
 
-export const getLineSeparator = () => '='.repeat(process.stdout.columns ?? 60);
-
 async function printTimestamp() {
   const timestamp = await (await apiProviderWrapper.getAndWaitForReady()).query.timestamp.now();
   console.log({ timestamp: timestamp.toString() });
@@ -44,9 +42,11 @@ const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<A
 
         if (event.method === 'ContractEmitted') {
           const [address, data] = record.event.data;
+          const signatureTopic = record.topics[0].toString();
 
           if (address.toString() === contract.address.toString()) {
-            const eventDecoded = contract.abi.decodeEvent(data);
+            const eventDecoded =
+              contract.abi.events[(contract.abi.json as any).spec.events.findIndex((e: any) => e.signature_topic === signatureTopic)]!.fromU8a(data);
 
             if (eventDecoded.event.identifier.toString() === eventName) {
               api.query.timestamp.now().then((timestamp) => {
@@ -61,7 +61,7 @@ const subscribeOnEvent = async <TEvent extends AnyAbaxContractEventEnumLiteral<A
                   const eventParsed = handleEventReturn(
                     _event,
                     // eslint-disable-next-line @typescript-eslint/no-var-requires
-                    getEventTypeDescription(eventName, require(`typechain/event-data/${contract.name}.json`)),
+                    getEventTypeDescription(signatureTopic, require(`typechain/event-data/${contract.name}.json`)),
                   ) as TEvent;
                   const timestampParsed = parseInt(timestamp.toString());
                   cb(eventParsed, timestampParsed);

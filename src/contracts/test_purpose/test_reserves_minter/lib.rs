@@ -4,22 +4,19 @@
 #[ink::contract]
 pub mod psp22_emitable {
 
-    use pendzl::{
-        contracts::{
-            ownable::*,
-            psp22::{extensions::mintable::PSP22MintableRef, PSP22Error},
-        },
-        traits::Storage,
+    use pendzl::contracts::{
+        access::ownable,
+        token::psp22::{extensions::mintable::PSP22MintableRef, PSP22Error},
     };
 
     use ink::{prelude::vec::Vec, storage::Mapping};
-    use pendzl::contracts::psp22::extensions::mintable::PSP22Mintable;
+    use pendzl::contracts::token::psp22::extensions::mintable::PSP22Mintable;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default, pendzl::traits::Storage)]
     pub struct TestReservesMinter {
         #[storage_field]
-        ownable: ownable::Data,
+        ownable: ownable::implementation::OwnableData,
         reserves_to_mint: Vec<AccountId>,
         already_minted: Mapping<AccountId, bool>,
     }
@@ -29,7 +26,10 @@ pub mod psp22_emitable {
         pub fn new() -> Self {
             let mut instance = Self::default();
             let caller = instance.env().caller();
-            ownable::Internal::_init_with_owner(&mut instance, caller);
+            ownable::OwnableInternal::_update_owner(
+                &mut instance,
+                &Some(caller),
+            );
             instance
         }
 

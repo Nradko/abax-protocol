@@ -4,7 +4,8 @@ import chalk from 'chalk';
 import { exec, spawn } from 'child_process';
 import path from 'path';
 import glob from 'glob';
-import { getLineSeparator } from 'tests/scenarios/utils/misc';
+
+export const getLineSeparator = () => '='.repeat(process.stdout.columns ?? 60);
 export const execPromise = util.promisify(exec);
 
 export const createFileWithDirectoriesSync = (filePath: string, data: string) => {

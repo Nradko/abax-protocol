@@ -3,7 +3,7 @@ use abax_traits::{
     lending_pool::{EmitBorrowEvents, LendingPoolError},
 };
 use pendzl::{
-    contracts::access_control::AccessControlError,
+    contracts::access::access_control::AccessControlError,
     traits::{AccountId, Balance, Storage},
 };
 

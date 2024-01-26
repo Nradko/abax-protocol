@@ -4,28 +4,22 @@
 #[ink::contract]
 pub mod psp22_emitable {
 
-    use pendzl::{
-        contracts::{
-            ownable::*,
-            psp22::{
-                extensions::{metadata::*, mintable::*},
-                PSP22Error,
-            },
-        },
-        traits::Storage,
-    };
+    use pendzl::contracts::access::ownable;
+    use pendzl::contracts::token::psp22;
+    use pendzl::contracts::token::psp22::PSP22Error;
 
     use ink::prelude::string::String;
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default, pendzl::traits::Storage)]
     pub struct PSP22OwnableContract {
         #[storage_field]
-        ownable: ownable::Data,
+        ownable: ownable::implementation::OwnableData,
         #[storage_field]
-        psp22: psp22::Data,
+        psp22: psp22::implementation::PSP22Data,
         #[storage_field]
-        metadata: metadata::Data,
+        metadata:
+            psp22::extensions::metadata::implementation::PSP22MetadataData,
     }
 
     impl PSP22OwnableContract {
@@ -40,19 +34,11 @@ pub mod psp22_emitable {
             instance.metadata.name.set(&name.into());
             instance.metadata.symbol.set(&symbol.into());
             instance.metadata.decimals.set(&decimal);
-            ownable::Internal::_init_with_owner(&mut instance, owner);
+            ownable::OwnableInternal::_update_owner(
+                &mut instance,
+                &Some(owner),
+            );
             instance
         }
-    }
-
-    #[overrider(PSP22MintableImpl)]
-    #[ink(message)]
-    #[modifiers(only_owner)]
-    fn mint(
-        &mut self,
-        account: AccountId,
-        amount: Balance,
-    ) -> Result<(), PSP22Error> {
-        self._mint_to(account, amount)
     }
 }

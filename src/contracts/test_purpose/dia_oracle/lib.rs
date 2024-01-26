@@ -5,6 +5,7 @@ pub use self::oracle_anchor::TokenPriceStorageRef;
 #[ink::contract]
 pub mod oracle_anchor {
     use abax_traits::dia_oracle::{OracleGetters, OracleSetters};
+    use ink::env::DefaultEnvironment;
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;
     use ink::storage::{traits::ManualKey, Lazy, Mapping};
@@ -21,7 +22,7 @@ pub mod oracle_anchor {
         data: Lazy<TokenPriceStruct, ManualKey<0x1>>,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct OwnershipTransferred {
         #[ink(topic)]
         previous_owner: Option<AccountId>,
@@ -29,7 +30,7 @@ pub mod oracle_anchor {
         new_owner: AccountId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct UpdaterChanged {
         #[ink(topic)]
         old: Option<AccountId>,
@@ -37,7 +38,7 @@ pub mod oracle_anchor {
         new: AccountId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct TokenPriceChanged {
         #[ink(topic)]
         pair: String,
@@ -189,11 +190,12 @@ pub mod oracle_anchor {
                 self.data.get().expect("self.data not set");
             assert!(caller == tps.owner, "only owner can set set code");
 
-            ink::env::set_code_hash(&code_hash).unwrap_or_else(|err| {
-                panic!(
+            ink::env::set_code_hash::<DefaultEnvironment>(&code_hash.into())
+                .unwrap_or_else(|err| {
+                    panic!(
                     "Failed to `set_code_hash` to {code_hash:?} due to {err:?}"
                 )
-            });
+                });
         }
     }
 }

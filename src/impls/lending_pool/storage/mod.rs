@@ -13,10 +13,8 @@ use abax_traits::lending_pool::{
     DecimalMultiplier, InterestRateModel, LendingPoolError, MarketRule, RuleId,
 };
 use ink::prelude::vec::Vec;
-use pendzl::{
-    storage::Mapping,
-    traits::{AccountId, Balance, Timestamp},
-};
+use ink::storage::Mapping;
+use pendzl::traits::{AccountId, Balance, Timestamp};
 
 #[derive(Default, Debug)]
 #[pendzl::storage_item]

@@ -15,23 +15,15 @@ use ink::{
     primitives::{AccountId, Hash},
     ToAccountId,
 };
-use pendzl::contracts::psp22::PSP22;
-use pendzl::{
-    contracts::{access_control::*, psp22::PSP22Ref},
-    traits::{Balance, Storage},
-};
+use pendzl::contracts::access::access_control;
+use pendzl::contracts::token::psp22::{PSP22Ref, PSP22};
+use pendzl::traits::{Balance, Storage};
 
 use super::internal::InternalIncome;
 use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolManageImpl:
-    ManageInternal
-    + Storage<LendingPoolStorage>
-    + Storage<access_control::Data>
-    + InternalIncome
-    + EmitManageEvents
-    + access_control::Internal
-    + access_control::MembersManager
+    ManageInternal + EmitManageEvents + access_control::AccessControlInternal
 {
     fn set_price_feed_provider(
         &mut self,

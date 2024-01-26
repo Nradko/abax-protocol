@@ -25,11 +25,15 @@ import PSP22OwnableConstructor from 'typechain/constructors/psp22_ownable';
 import StableTokenConstructor from 'typechain/constructors/stable_token';
 import TestReservesMinterConstructor from 'typechain/constructors/test_reserves_minter';
 import BalanceViewerConstructor from 'typechain/constructors/balance_viewer';
+import LendingPoolConstructor from 'typechain/constructors/lending_pool';
+import ATokenConstructor from 'typechain/constructors/a_token';
+import VTokenConstructor from 'typechain/constructors/v_token';
+import DIAOracleConstructor from 'typechain/constructors/dia_oracle';
+import PriceFeedProviderConstructor from 'typechain/constructors/price_feed_provider';
 
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './helpers';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
 import { toE6 } from '@abaxfinance/utils';
-import { getLineSeparator } from 'tests/scenarios/utils/misc';
 import { AbiMessage } from '@polkadot/api-contract/types';
 import { SignAndSendSuccessResponse, _genValidGasLimitAndValue, _signAndSend } from 'wookashwackomytest-typechain-types';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
@@ -39,6 +43,7 @@ import { BURNER, MINTER, ROLES } from 'tests/consts';
 import { ReserveFees } from 'typechain/types-arguments/balance_viewer';
 import { AssetRules, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
 import { getContractObject } from '@abaxfinance/contract-helpers';
+import { getLineSeparator } from 'scripts/compile/common';
 
 const getCodePromise = (api: ApiPromise, contractName: string): CodePromise => {
   const abi = JSON.parse(readFileSync(`./artifacts/${contractName}.json`).toString());
@@ -120,12 +125,19 @@ export const deployWithLog = async <T>(
   return getContractObjectWrapper<T>(constructor, ret.deployedContract.address.toString(), ret.signer);
 };
 
-export const deployLendingPool = async (owner: KeyringPair) => await deployWithLog(owner, LendingPool, 'lending_pool');
+export const deployLendingPool = async (owner: KeyringPair) => {
+  const deployRet = await new LendingPoolConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
+  return getContractObjectWrapper(LendingPool, deployRet.address, owner);
+};
+export const deployDiaOracle = async (owner: KeyringPair) => {
+  const deployRet = await new DIAOracleConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
+  return getContractObjectWrapper(DiaOracleContract, deployRet.address, owner);
+};
 
-export const deployDiaOracle = async (owner: KeyringPair) => deployWithLog(owner, DiaOracleContract, 'dia_oracle');
-
-export const deployPriceFeedProvider = async (owner: KeyringPair, oracle: string) =>
-  deployWithLog(owner, PriceFeedProviderContract, 'price_feed_provider', oracle);
+export const deployPriceFeedProvider = async (owner: KeyringPair, oracle: string) => {
+  const deployRet = await new PriceFeedProviderConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(oracle);
+  return getContractObjectWrapper(PriceFeedProviderContract, deployRet.address, owner);
+};
 
 export const deployAToken = async (
   owner: KeyringPair,
@@ -134,7 +146,16 @@ export const deployAToken = async (
   decimal: number,
   lendingPoolAddress: string,
   underlyingAssetAddress: string,
-) => deployWithLog(owner, ATokenContract, 'a_token', 'AToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
+) => {
+  const deployRet = await new ATokenConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    name,
+    symbol,
+    decimal,
+    lendingPoolAddress,
+    underlyingAssetAddress,
+  );
+  return getContractObjectWrapper(ATokenContract, deployRet.address, owner);
+};
 
 export const deployVToken = async (
   owner: KeyringPair,
@@ -143,7 +164,16 @@ export const deployVToken = async (
   decimal: number,
   lendingPoolAddress: string,
   underlyingAssetAddress: string,
-) => deployWithLog(owner, VTokenContract, 'v_token', 'VToken', symbol, decimal, lendingPoolAddress, underlyingAssetAddress);
+) => {
+  const deployRet = await new VTokenConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
+    name,
+    symbol,
+    decimal,
+    lendingPoolAddress,
+    underlyingAssetAddress,
+  );
+  return getContractObjectWrapper(VTokenContract, deployRet.address, owner);
+};
 
 export const deployEmitableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
   const deployRet = await new PSP22EmitableConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
@@ -153,7 +183,6 @@ export const deployEmitableToken = async (owner: KeyringPair, name: string, deci
   );
   return getContractObjectWrapper(PSP22Emitable, deployRet.address, owner);
 };
-
 export const deployOwnableToken = async (owner: KeyringPair, name: string, decimals: number = 6, tokenOwnerAddress: string) => {
   const deployRet = await new PSP22OwnableConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
     name,
@@ -163,7 +192,6 @@ export const deployOwnableToken = async (owner: KeyringPair, name: string, decim
   );
   return getContractObjectWrapper(PSP22Ownable, deployRet.address, owner);
 };
-
 export const deployStableToken = async (owner: KeyringPair, name: string, decimals: number = 6) => {
   const deployRet = await new StableTokenConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(
     name,
@@ -182,17 +210,17 @@ export const deployFlashLoanReceiverMock = async (owner: KeyringPair) => {
   const deployRet = await new FlashLoanReceiverMockConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new();
   return getContractObjectWrapper(FlashLoanReceiverMock, deployRet.address, owner);
 };
-
 export const deployBalanceViewer = async (owner: KeyringPair, lendingPoolAddress: string) => {
   const deployRet = await new BalanceViewerConstructor(await apiProviderWrapper.getAndWaitForReady(), owner).new(lendingPoolAddress);
   return getContractObjectWrapper(BalanceViewer, deployRet.address, owner);
 };
+
 const getContractObjectWrapper = async <T>(
   constructor: new (address: string, signer: KeyringPair, api: ApiPromise) => T,
   contractAddress: string,
   signerPair: KeyringPair,
 ) => getContractObject(constructor, contractAddress, signerPair, await apiProviderWrapper.getAndWaitForReady());
-//reserveDatas: ReserveTokenDeploymentData
+
 export async function deployCoreContracts(
   owner: KeyringPair,
   oracle: string,

@@ -4,7 +4,7 @@ use abax_traits::{
 };
 use ink::prelude::*;
 use pendzl::{
-    contracts::access_control::AccessControlError,
+    contracts::access::access_control::AccessControlError,
     traits::{AccountId, Balance, Storage},
 };
 
