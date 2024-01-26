@@ -6,15 +6,13 @@ use ink::{
     primitives::AccountId,
 };
 use pendzl::{
-    contracts::psp22::{psp22, PSP22Error},
+    contracts::token::psp22::{PSP22Error, PSP22Internal, Transfer},
     traits::{Balance, Storage},
 };
 
 use self::storage::AbacusTokenStorage;
 
-pub trait AbacusTokenImpl:
-    Storage<AbacusTokenStorage> + psp22::Internal
-{
+pub trait AbacusTokenImpl: Storage<AbacusTokenStorage> + PSP22Internal {
     fn emit_transfer_events(
         &mut self,
         events: Vec<TransferEventData>,
@@ -26,12 +24,11 @@ pub trait AbacusTokenImpl:
         }
         for event in &events {
             if event.amount != 0 {
-                <Self as psp22::Internal>::_emit_transfer_event(
-                    self,
-                    event.from,
-                    event.to,
-                    event.amount,
-                );
+                Self::env().emit_event(Transfer {
+                    from: event.from,
+                    to: event.to,
+                    value: event.amount,
+                });
             }
         }
         Ok(())
@@ -50,7 +47,11 @@ pub trait AbacusTokenImpl:
             return Err(PSP22Error::Custom(String::from("NotLendingPool")));
         }
         if event.amount != 0 {
-            self._emit_transfer_event(event.from, event.to, event.amount);
+            Self::env().emit_event(Transfer {
+                from: event.from,
+                to: event.to,
+                value: event.amount,
+            })
         }
 
         let allowance = self._allowance(&owner, &spender);
@@ -59,10 +60,10 @@ pub trait AbacusTokenImpl:
             return Err(PSP22Error::InsufficientAllowance);
         }
 
-        self._approve_from_to(
-            owner,
-            spender,
-            allowance - decrease_allowance_by,
+        self._decrease_allowance_from_to(
+            &owner,
+            &spender,
+            &decrease_allowance_by,
         )?;
 
         Ok(())

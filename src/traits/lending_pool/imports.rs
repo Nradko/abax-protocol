@@ -4,7 +4,7 @@ use scale::{Decode, Encode};
 
 use ink::prelude::format;
 use pendzl::contracts::{
-    access_control::AccessControlError, psp22::PSP22Error,
+    access::access_control::AccessControlError, token::psp22::PSP22Error,
 };
 
 use abax_library::{

@@ -10,14 +10,13 @@ pub mod price_feed_provider {
 
     use ink::storage::{Lazy, Mapping};
 
-    use pendzl::contracts::ownable::{OwnableError, OwnableImpl};
-    use pendzl::traits::Storage;
+    use pendzl::contracts::access::ownable;
 
     #[ink(storage)]
     #[derive(Storage, Default)]
     pub struct PriceFeedProvider {
         #[storage_field]
-        ownable: ownable::Data,
+        ownable: ownable::implementation::OwnableData,
         oracle: Lazy<OracleGettersRef>,
         account_to_symbol: Mapping<AccountId, String>,
     }
@@ -26,9 +25,9 @@ pub mod price_feed_provider {
         #[ink(constructor)]
         pub fn new(oracle: AccountId) -> Self {
             let mut instance: PriceFeedProvider = Default::default();
-            ownable::Internal::_init_with_owner(
+            ownable::OwnableInternal::_update_owner(
                 &mut instance,
-                Self::env().caller(),
+                &Some(Self::env().caller()),
             );
             let oracle_ref: OracleGettersRef = oracle.into();
             instance.oracle.set(&oracle_ref);

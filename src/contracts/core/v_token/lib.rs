@@ -12,85 +12,80 @@ pub mod v_token {
             LendingPoolVTokenInterface, LendingPoolVTokenInterfaceRef,
         },
     };
-    use ink::{
-        codegen::{EmitEvent, Env},
-        prelude::string::String,
-    };
+    use ink::codegen::Env;
+    use ink::prelude::string::String;
 
-    use pendzl::{
-        contracts::psp22::{extensions::metadata::*, PSP22Error},
-        traits::Storage,
-    };
+    use pendzl::contracts::token::psp22::{self, PSP22Error};
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default, pendzl::traits::Storage)]
     pub struct VToken {
         #[storage_field]
-        psp22: psp22::Data,
+        psp22: psp22::implementation::PSP22Data,
         #[storage_field]
         abacus_token: AbacusTokenStorage,
         #[storage_field]
-        metadata: metadata::Data,
+        metadata:
+            psp22::extensions::metadata::implementation::PSP22MetadataData,
     }
 
-    #[ink(event)]
-    pub struct Transfer {
-        #[ink(topic)]
-        from: Option<AccountId>,
-        #[ink(topic)]
-        to: Option<AccountId>,
-        value: Balance,
-    }
-
-    #[ink(event)]
-    pub struct Approval {
-        #[ink(topic)]
-        owner: AccountId,
-        #[ink(topic)]
-        spender: AccountId,
-        value: Balance,
-    }
-
-    #[overrider(psp22::Internal)]
-    fn _emit_transfer_event(
-        &self,
-        from: Option<AccountId>,
-        to: Option<AccountId>,
-        amount: Balance,
-    ) {
-        self.env().emit_event(Transfer {
-            from,
-            to,
-            value: amount,
-        })
-    }
-    #[overrider(psp22::Internal)]
-    fn _emit_approval_event(
-        &self,
-        owner: AccountId,
-        spender: AccountId,
-        amount: Balance,
-    ) {
-        self.env().emit_event(Approval {
-            owner,
-            spender,
-            value: amount,
-        })
-    }
-
-    #[overrider(psp22::Internal)]
+    #[overrider(PSP22Internal)]
     fn _balance_of(&self, owner: &AccountId) -> Balance {
         let lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         lending_pool.user_debt_of(self.abacus_token.underlying_asset, *owner)
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(PSP22Internal)]
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
         self.abacus_token
             .allowances
             .get(&(*owner, *spender))
             .unwrap_or(0)
+    }
+
+    #[overrider(PSP22Internal)]
+    fn _decrease_allowance_from_to(
+        &mut self,
+        owner: &AccountId,
+        spender: &AccountId,
+        amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        let new_allowance = self
+            ._allowance(owner, spender)
+            .checked_sub(*amount)
+            .ok_or(PSP22Error::InsufficientAllowance)?;
+        self.abacus_token
+            .allowances
+            .insert(&(*owner, *spender), &new_allowance);
+        self.env().emit_event(psp22::Approval {
+            owner: *owner,
+            spender: *spender,
+            value: new_allowance,
+        });
+        Ok(())
+    }
+
+    #[overrider(PSP22Internal)]
+    fn _increase_allowance_from_to(
+        &mut self,
+        owner: &AccountId,
+        spender: &AccountId,
+        amount: &Balance,
+    ) -> Result<(), PSP22Error> {
+        let new_allowance = self
+            ._allowance(owner, spender)
+            .checked_add(*amount)
+            .ok_or(PSP22Error::Custom("Overflow".into()))?;
+        self.abacus_token
+            .allowances
+            .insert(&(*owner, *spender), &new_allowance);
+        self.env().emit_event(psp22::Approval {
+            owner: *owner,
+            spender: *spender,
+            value: new_allowance,
+        });
+        Ok(())
     }
 
     /// Transfers `value` amount of tokens from the caller's account to account `to`
@@ -114,13 +109,15 @@ pub mod v_token {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
         let from: AccountId = self.env().caller();
-        let allowance = psp22::Internal::_allowance(self, &to, &from);
+        let allowance = psp22::PSP22Internal::_allowance(self, &to, &from);
         if allowance < value {
             return Err(PSP22Error::InsufficientAllowance);
         }
 
-        psp22::Internal::_approve_from_to(self, to, from, allowance - value)?;
-        psp22::Internal::_transfer_from_to(self, from, to, value, data)?;
+        psp22::PSP22Internal::_decrease_allowance_from_to(
+            self, &to, &from, &value,
+        )?;
+        psp22::PSP22Internal::_update(self, Some(&from), Some(&to), &value)?;
         Ok(())
     }
     /// Transfers `value` tokens on the behalf of `from` to the account `to`
@@ -148,98 +145,97 @@ pub mod v_token {
         data: Vec<u8>,
     ) -> Result<(), PSP22Error> {
         let caller = self.env().caller();
-        let allowance = psp22::Internal::_allowance(self, &from, &caller);
+        let allowance = psp22::PSP22Internal::_allowance(self, &from, &caller);
         if allowance < value {
             return Err(PSP22Error::InsufficientAllowance);
         }
 
-        psp22::Internal::_approve_from_to(self, to, caller, allowance - value)?;
-        psp22::Internal::_transfer_from_to(self, from, to, value, data)?;
+        psp22::PSP22Internal::_decrease_allowance_from_to(
+            self, &to, &caller, &value,
+        )?;
+        psp22::PSP22Internal::_update(self, Some(&from), Some(&to), &value)?;
         Ok(())
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(PSP22Internal)]
     fn _total_supply(&self) -> Balance {
         let lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         lending_pool.total_debt_of(self.abacus_token.underlying_asset)
     }
 
-    #[overrider(psp22::Internal)]
-    #[allow(unused_variables)]
-    fn _transfer_from_to(
+    #[overrider(PSP22Internal)]
+    fn _update(
         &mut self,
-        from: AccountId,
-        to: AccountId,
-        amount: Balance,
-        data: Vec<u8>,
+        from: Option<&AccountId>,
+        to: Option<&AccountId>,
+        amount: &Balance,
     ) -> Result<(), PSP22Error> {
-        // self._before_token_transfer(Some(&from), Some(&to), &amount)?;
         let mut lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
             lending_pool.transfer_debt_from_to(
                 self.abacus_token.underlying_asset,
-                from,
-                to,
-                amount,
+                *from.unwrap(),
+                *to.unwrap(),
+                *amount,
             )?;
-        // self._after_token_transfer(Some(&from), Some(&to), &amount)?;
         if mint_from_amount > 0 {
-            psp22::Internal::_emit_transfer_event(
-                self,
-                None,
-                Some(from),
-                mint_from_amount,
-            );
+            self.env().emit_event(psp22::Transfer {
+                from: None,
+                to: from.copied(),
+                value: mint_from_amount,
+            });
         }
         if mint_to_amount > 0 {
-            psp22::Internal::_emit_transfer_event(
-                self,
-                None,
-                Some(to),
-                mint_to_amount,
-            );
+            self.env().emit_event(psp22::Transfer {
+                from: None,
+                to: to.copied(),
+                value: mint_from_amount,
+            });
         }
-
-        psp22::Internal::_emit_transfer_event(
-            self,
-            Some(from),
-            Some(to),
-            amount,
-        );
+        // emitting transfer event
+        self.env().emit_event(psp22::Transfer {
+            from: from.copied(),
+            to: to.copied(),
+            value: *amount,
+        });
 
         Ok(())
     }
 
-    #[overrider(psp22::Internal)]
-    fn _approve_from_to(
+    #[overrider(PSP22Internal)]
+    fn _approve(
         &mut self,
-        owner: AccountId,
-        spender: AccountId,
-        amount: Balance,
+        owner: &AccountId,
+        spender: &AccountId,
+        amount: &Balance,
     ) -> Result<(), PSP22Error> {
         self.abacus_token
             .allowances
-            .insert(&(owner, spender), &amount);
-        psp22::Internal::_emit_approval_event(self, owner, spender, amount);
+            .insert((owner, spender), amount);
+        self.env().emit_event(psp22::Approval {
+            owner: *owner,
+            spender: *spender,
+            value: *amount,
+        });
         Ok(())
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(PSP22Internal)]
     fn _mint_to(
         &mut self,
-        _account: AccountId,
-        _amount: Balance,
+        to: &AccountId,
+        amount: &Balance,
     ) -> Result<(), PSP22Error> {
         panic!("Unsupported operation!")
     }
 
-    #[overrider(psp22::Internal)]
+    #[overrider(PSP22Internal)]
     fn _burn_from(
         &mut self,
-        _account: AccountId,
-        _amount: Balance,
+        from: &AccountId,
+        amount: &Balance,
     ) -> Result<(), PSP22Error> {
         panic!("Unsupported operation!")
     }

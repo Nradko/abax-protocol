@@ -11,7 +11,10 @@ pub mod balance_viewer {
         DecimalMultiplier, InterestRateModel, LendingPoolView,
         LendingPoolViewRef,
     };
-    use pendzl::{contracts::psp22::*, traits::Storage};
+    use pendzl::{
+        contracts::token::psp22::{PSP22Ref, PSP22},
+        traits::Storage,
+    };
 
     use ink::prelude::{vec::Vec, *};
 

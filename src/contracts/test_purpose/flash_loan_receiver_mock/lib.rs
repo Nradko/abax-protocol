@@ -7,13 +7,15 @@ pub mod flash_loan_receiver_mock {
     };
     use ink::prelude::vec::Vec;
 
-    use pendzl::contracts::psp22::extensions::mintable::PSP22Mintable;
     use pendzl::{
-        contracts::traits::psp22::{extensions::mintable::PSP22MintableRef, *},
+        contracts::token::psp22::{
+            extensions::mintable::{PSP22Mintable, PSP22MintableRef},
+            PSP22Ref, PSP22,
+        },
         traits::Storage,
     };
 
-    #[ink(event)]
+    #[ink::event]
     pub struct ExecutedWithSuccess {
         #[ink(topic)]
         assets: Vec<AccountId>,
@@ -22,7 +24,7 @@ pub mod flash_loan_receiver_mock {
         #[ink(topic)]
         fees: Vec<u128>,
     }
-    #[ink(event)]
+    #[ink::event]
     pub struct ExecutedWithFail {
         #[ink(topic)]
         assets: Vec<AccountId>,

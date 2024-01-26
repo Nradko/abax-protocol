@@ -11,7 +11,9 @@ const forbiddenRegexps = [
   /API-WS: disconnected from ws/,
   /RPC methods not decorated: timestamp_setTime/,
   /disconnected from ws:\/\/127.0.0.1:9944: 1000:: Normal connection closure/,
+  /1000:: Normal Closure/,
   /CONTRACT: Unable to decode contract event: createType\(AccountId\):: Invalid AccountId provided, expected 32 bytes, found 18/, // event decoding fails and that is an artifact of it
+  /CONTRACT: Unable to decode contract event/,
 ];
 
 (async () => {

@@ -1,7 +1,5 @@
-use pendzl::{
-    storage::Mapping,
-    traits::{AccountId, Balance},
-};
+use ink::storage::Mapping;
+use pendzl::traits::{AccountId, Balance};
 
 // here all the prices of reserves underlaying asssets are stored.
 #[derive(Debug)]

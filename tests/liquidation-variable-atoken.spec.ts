@@ -1,16 +1,15 @@
+import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { E18 } from '@abaxfinance/utils';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
-import LendingPoolContract from '../typechain/contracts/lending_pool';
+import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import DiaOracle from '../typechain/contracts/dia_oracle';
+import LendingPoolContract from '../typechain/contracts/lending_pool';
+import { toE18String } from './helpers/converters';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import { E18, E6 } from '@abaxfinance/utils';
-import { ReturnNumber } from 'wookashwackomytest-typechain-types';
-import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
-import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
-import { toE18String } from './helpers/converters';
 
 makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -139,6 +138,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         // const borrowerData = await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address);
+        const borrowersDAIDataBefore = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address)).value.ok!;
 
         const res = await lendingPool
           .withSigner(liquidator)
@@ -161,6 +161,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
         expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
+        expect.soft(borrowersDAIDataBefore.debt.rawNumber.gtn(0)).to.be.true;
         expect.soft(liquidatorsWETHDataAfter.deposit.rawNumber.gt(new BN((0.8 * E18).toString()))).to.be.true;
         expect.soft(borrowersWETHDataAfter.deposit.rawNumber.lt(new BN((0.2 * E18).toString()))).to.be.true;
         expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');

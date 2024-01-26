@@ -12,7 +12,7 @@ use ink::{
 };
 
 use pendzl::{
-    contracts::access_control::*,
+    contracts::access::access_control,
     traits::{AccountId, Balance, Storage},
 };
 
@@ -24,8 +24,7 @@ use super::{
 pub trait LendingPoolFlashImpl:
     Storage<LendingPoolStorage>
     + EmitFlashEvents
-    + access_control::Internal
-    + access_control::MembersManager
+    + access_control::AccessControlInternal
 {
     fn flash_loan(
         &mut self,
@@ -50,7 +49,7 @@ pub trait LendingPoolFlashImpl:
         for i in 0..assets.len() {
             _check_amount_not_zero(amounts[i])?;
             let fee = match self
-                ._has_role(FLASH_BORROWER, &Some(Self::env().caller()))
+                ._has_role(FLASH_BORROWER, Some(Self::env().caller()))
             {
                 false => amounts[i] * flash_fee_e6 / E6_U128,
                 true => amounts[i] * flash_fee_e6 / E6_U128 / 10,

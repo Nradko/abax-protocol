@@ -1,8 +1,8 @@
-import { deployAndConfigureSystem, deployDiaOracle } from 'tests/setup/deploymentHelpers';
+import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import path from 'path';
 import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
-import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
+import { apiProviderWrapper } from 'tests/setup/helpers';
 import { increaseBlockTimestamp, transferNoop } from 'tests/scenarios/utils/misc';
 import { storeTimestamp } from 'tests/setup/nodePersistence';
 

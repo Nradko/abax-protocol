@@ -11,7 +11,7 @@ use ink::{
 };
 
 use pendzl::{
-    contracts::psp22::{
+    contracts::token::psp22::{
         extensions::{
             burnable::{PSP22Burnable, PSP22BurnableRef},
             mintable::{PSP22Mintable, PSP22MintableRef},

@@ -35,22 +35,15 @@ pub mod lending_pool {
         LendingPoolManage, LendingPoolVTokenInterface, LendingPoolView,
         MarketRule, RuleId, ROLE_ADMIN,
     };
-    use ink::{
-        codegen::{EmitEvent, Env},
-        prelude::vec::Vec,
-    };
+    use ink::{codegen::Env, env::DefaultEnvironment, prelude::vec::Vec};
 
-    // use pendzl::storage::Mapping;
-    use pendzl::{
-        contracts::access_control::{self, *},
-        traits::{Storage, String},
-    };
+    use pendzl::{contracts::access::access_control, traits::String};
     /// storage of the contract
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default, pendzl::traits::Storage)]
     pub struct LendingPool {
         #[storage_field]
-        access: access_control::Data,
+        access: access_control::implementation::AccessControlData,
         #[storage_field]
         lending_pool: LendingPoolStorage,
     }
@@ -556,7 +549,9 @@ pub mod lending_pool {
             instance.lending_pool.next_rule_id.set(&0);
             instance.lending_pool.flash_loan_fee_e6.set(&1000);
             instance._emit_flash_loan_fee_e6_changed_event(&1000);
-            instance._init_with_admin(caller.into());
+            instance
+                ._grant_role(Self::_default_admin(), Some(caller))
+                .expect("caller should become admin");
             instance
         }
 
@@ -565,23 +560,24 @@ pub mod lending_pool {
             &mut self,
             code_hash: [u8; 32],
         ) -> Result<(), LendingPoolError> {
-            access_control::Internal::_ensure_has_role(
+            access_control::AccessControlInternal::_ensure_has_role(
                 self,
                 ROLE_ADMIN,
                 Some(Self::env().caller()),
             )?;
-            ink::env::set_code_hash(&code_hash).unwrap_or_else(|err| {
-                panic!(
-                    "Failed to `set_code_hash` to {:?} due to {:?}",
-                    code_hash, err
-                )
-            });
+            ink::env::set_code_hash::<DefaultEnvironment>(&code_hash.into())
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "Failed to `set_code_hash` to {:?} due to {:?}",
+                        code_hash, err
+                    )
+                });
 
             Ok(())
         }
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct Deposit {
         #[ink(topic)]
         asset: AccountId,
@@ -590,7 +586,7 @@ pub mod lending_pool {
         on_behalf_of: AccountId,
         amount: Balance,
     }
-    #[ink(event)]
+    #[ink::event]
     pub struct Redeem {
         #[ink(topic)]
         asset: AccountId,
@@ -600,14 +596,14 @@ pub mod lending_pool {
         amount: Balance,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct MarketRuleChosen {
         #[ink(topic)]
         user: AccountId,
         market_rule_id: RuleId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct CollateralSet {
         #[ink(topic)]
         caller: AccountId,
@@ -616,7 +612,7 @@ pub mod lending_pool {
         set: bool,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct BorrowVariable {
         #[ink(topic)]
         asset: AccountId,
@@ -625,7 +621,7 @@ pub mod lending_pool {
         on_behalf_of: AccountId,
         amount: Balance,
     }
-    #[ink(event)]
+    #[ink::event]
     pub struct RepayVariable {
         #[ink(topic)]
         asset: AccountId,
@@ -635,7 +631,7 @@ pub mod lending_pool {
         amount: Balance,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct FlashLoan {
         #[ink(topic)]
         receiver: AccountId,
@@ -647,7 +643,7 @@ pub mod lending_pool {
         fee: u128,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct Liquidation {
         liquidator: AccountId,
         #[ink(topic)]
@@ -659,13 +655,13 @@ pub mod lending_pool {
         amount_repaid: Balance,
         amount_taken: Balance,
     }
-    #[ink(event)]
+    #[ink::event]
     pub struct InterestsAccumulated {
         #[ink(topic)]
         asset: AccountId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct UserInterestsAccumulated {
         #[ink(topic)]
         asset: AccountId,
@@ -673,7 +669,7 @@ pub mod lending_pool {
         user: AccountId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct RateRebalanced {
         #[ink(topic)]
         asset: AccountId,
@@ -681,7 +677,7 @@ pub mod lending_pool {
         user: AccountId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct AssetRegistered {
         #[ink(topic)]
         asset: AccountId,
@@ -694,51 +690,51 @@ pub mod lending_pool {
         v_token_address: AccountId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct PriceFeedProviderChanged {
         price_feed_provider: AccountId,
     }
-    #[ink(event)]
+    #[ink::event]
     pub struct FlashLoanFeeChanged {
         flash_loan_fee_e6: u128,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct ReserveActivated {
         #[ink(topic)]
         asset: AccountId,
         active: bool,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct ReserveFreezed {
         #[ink(topic)]
         asset: AccountId,
         freezed: bool,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct ReserveInterestRateModelChanged {
         #[ink(topic)]
         asset: AccountId,
         interest_rate_model: InterestRateModel,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct ReserveRestrictionsChanged {
         #[ink(topic)]
         asset: AccountId,
         reserve_restrictions: ReserveRestrictions,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct ReserveFeesChanged {
         #[ink(topic)]
         asset: AccountId,
         reserve_fees: ReserveFees,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct AssetRulesChanged {
         #[ink(topic)]
         market_rule_id: RuleId,
@@ -749,13 +745,13 @@ pub mod lending_pool {
         penalty_e6: Option<u128>,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct IncomeTaken {
         #[ink(topic)]
         asset: AccountId,
     }
 
-    #[ink(event)]
+    #[ink::event]
     pub struct StablecoinDebtRateChanged {
         #[ink(topic)]
         asset: AccountId,

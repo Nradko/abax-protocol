@@ -34,6 +34,7 @@ ${foundEvents
     ({ contractName, events }) => `
 export enum ${contractName}Event {
   ${events
+    .filter((value, index, self) => self.indexOf(value) === index) // remove duplicates
     .map(
       (e, index) => `  ${e} = '${e}'${index === events.length - 1 ? '' : ','}
 `,
