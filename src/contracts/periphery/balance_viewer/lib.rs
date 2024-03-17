@@ -13,7 +13,7 @@ pub mod balance_viewer {
     };
     use pendzl::{
         contracts::token::psp22::{PSP22Ref, PSP22},
-        traits::Storage,
+        traits::StorageFieldGetter,
     };
 
     use ink::prelude::{vec::Vec, *};
@@ -31,7 +31,7 @@ pub mod balance_viewer {
     }
 
     #[ink(storage)]
-    #[derive(Storage)]
+    #[derive(StorageFieldGetter)]
     pub struct BalanceViewer {
         lending_pool: LendingPoolViewRef,
     }

@@ -8,7 +8,7 @@ import { MAX_U128, ROLES } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
 
 const PARAMETERS_ADMIN = ROLES['PARAMETERS_ADMIN'];
 makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1', (getTestEnv) => {
@@ -94,7 +94,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
         });
         it('User tries to switch market mode and succeeds as user has enough collateral. Event should be emitted.', async () => {
           const txRes = await lendingPool.withSigner(user).tx.chooseMarketRule(1);
-          expect(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
+          expect(stringifyNumericProps(txRes.events)).to.deep.equal([
             {
               name: 'MarketRuleChosen',
               args: {
@@ -115,7 +115,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
             const txRes = await lendingPool
               .withSigner(parametersAdmin)
               .tx.modifyAssetRule(1, usdcContract.address, { collateralCoefficientE6: 0, borrowCoefficientE6: 1030000, penaltyE6: 15000 });
-            expect(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
+            expect(stringifyNumericProps(txRes.events)).to.deep.equal([
               {
                 name: 'AssetRulesChanged',
                 args: {

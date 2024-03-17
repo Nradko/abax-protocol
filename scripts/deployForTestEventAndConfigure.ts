@@ -1,24 +1,20 @@
-import { getArgvObj, toE6 } from '@abaxfinance/utils';
 import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
 import path from 'path';
 import { ROLES } from 'tests/consts';
-import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
-import {
-  deployBalanceViewer,
-  deployCoreContracts,
-  deployOwnableToken,
-  deployTestReservesMinter,
-  registerNewAsset,
-} from 'tests/setup/deploymentHelpers';
+import { deployCoreContracts, registerNewAsset } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
-import { ReserveTokenDeploymentData } from 'tests/setup/testEnvConsts';
 import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/tokensToDeployForTesting';
 import { TokensToDeployForTesting } from 'tests/setup/tokensToDeployForTesting.types';
 import ATokenContract from 'typechain/contracts/a_token';
 import PSP22Ownable from 'typechain/contracts/psp22_ownable';
 import VTokenContract from 'typechain/contracts/v_token';
+import BalanceViewerDeployer from 'typechain/deployers/balance_viewer';
+import Psp22OwnableDeployer from 'typechain/deployers/psp22_ownable';
+import TestReservesMinterDeployer from 'typechain/deployers/test_reserves_minter';
+import { toE } from 'wookashwackomytest-polkahat-network-helpers';
+import { getArgvObj } from 'wookashwackomytest-utils';
 
 const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
   reserveTokens: [
@@ -30,7 +26,7 @@ const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
         debtFeeE6: 0,
       },
       interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-      defaultRule: { collateralCoefficientE6: toE6(0.92), borrowCoefficientE6: toE6(1.08), penaltyE6: toE6(0.04) },
+      defaultRule: { collateralCoefficientE6: toE(6, 0.92), borrowCoefficientE6: toE(6, 1.08), penaltyE6: toE(6, 0.04) },
       restrictions: { maximalTotalDeposit: null, maximalTotalDebt: null, minimalCollateral: 2000000, minimalDebt: 1000000 },
     },
     {
@@ -41,7 +37,7 @@ const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
         debtFeeE6: 0,
       },
       interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-      defaultRule: { collateralCoefficientE6: toE6(0.95), borrowCoefficientE6: toE6(1.05), penaltyE6: toE6(0.025) },
+      defaultRule: { collateralCoefficientE6: toE(6, 0.95), borrowCoefficientE6: toE(6, 1.05), penaltyE6: toE(6, 0.025) },
       restrictions: { maximalTotalDeposit: null, maximalTotalDebt: null, minimalCollateral: 2000, minimalDebt: 1000 },
     },
     {
@@ -52,7 +48,7 @@ const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
         debtFeeE6: 0,
       },
       interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-      defaultRule: { collateralCoefficientE6: toE6(0.75), borrowCoefficientE6: toE6(1.25), penaltyE6: toE6(0.125) },
+      defaultRule: { collateralCoefficientE6: toE(6, 0.75), borrowCoefficientE6: toE(6, 1.25), penaltyE6: toE(6, 0.125) },
       restrictions: { maximalTotalDeposit: null, maximalTotalDebt: null, minimalCollateral: 2000, minimalDebt: 1000 },
     },
     {
@@ -63,7 +59,7 @@ const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
         debtFeeE6: 0,
       },
       interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-      defaultRule: { collateralCoefficientE6: toE6(0.75), borrowCoefficientE6: toE6(1.25), penaltyE6: toE6(0.125) },
+      defaultRule: { collateralCoefficientE6: toE(6, 0.75), borrowCoefficientE6: toE(6, 1.25), penaltyE6: toE(6, 0.125) },
       restrictions: { maximalTotalDeposit: null, maximalTotalDebt: null, minimalCollateral: 2000, minimalDebt: 1000 },
     },
     {
@@ -74,7 +70,7 @@ const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
         debtFeeE6: 0,
       },
       interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-      defaultRule: { collateralCoefficientE6: toE6(0.63), borrowCoefficientE6: toE6(1.42), penaltyE6: toE6(0.2) },
+      defaultRule: { collateralCoefficientE6: toE(6, 0.63), borrowCoefficientE6: toE(6, 1.42), penaltyE6: toE(6, 0.2) },
       restrictions: { maximalTotalDeposit: null, maximalTotalDebt: null, minimalCollateral: 2000, minimalDebt: 1000 },
     },
     {
@@ -85,7 +81,7 @@ const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
         debtFeeE6: 0,
       },
       interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-      defaultRule: { collateralCoefficientE6: toE6(0.7), borrowCoefficientE6: toE6(1.3), penaltyE6: toE6(0.15) },
+      defaultRule: { collateralCoefficientE6: toE(6, 0.7), borrowCoefficientE6: toE(6, 1.3), penaltyE6: toE(6, 0.15) },
       restrictions: {
         maximalTotalDeposit: '1000000000000000000000000000',
         maximalTotalDebt: '1000000000000000000000000000',
@@ -142,12 +138,19 @@ type TokenReserve = {
   console.log('a_token code hash:', aTokenCodeHash);
   console.log('v_token code hash:', vTokenCodeHash);
 
-  const testReservesMinter = await deployTestReservesMinter(signer);
+  const testReservesMinter = (await new TestReservesMinterDeployer(api, signer).new()).contract;
 
   const reservesWithLendingTokens = {} as Record<string, TokenReserve>;
   for (const reserveData of RESERVE_TOKENS_TO_DEPLOY.reserveTokens) {
     //TODO
-    const reserve = await deployOwnableToken(signer, reserveData.metadata.name, reserveData.metadata.decimals, testReservesMinter.address);
+    const reserve = (
+      await new Psp22OwnableDeployer(api, signer).new(
+        reserveData.metadata.name,
+        `Reserve ${reserveData.metadata.name} token`,
+        reserveData.metadata.decimals,
+        testReservesMinter.address,
+      )
+    ).contract;
     if (process.env.DEBUG) console.log(`${reserveData.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
     const { aToken, vToken } = await registerNewAsset(
       signer,
@@ -191,7 +194,7 @@ type TokenReserve = {
     { collateralCoefficientE6: 850000, borrowCoefficientE6: 1150000, penaltyE6: 75000 },
   ]);
 
-  const balanceViewer = await deployBalanceViewer(signer, lendingPool.address);
+  const balanceViewer = (await new BalanceViewerDeployer(api, signer).new(lendingPool.address)).contract;
 
   await saveContractInfoToFileAsJson(
     [

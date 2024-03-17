@@ -12,7 +12,7 @@ pub mod flash_loan_receiver_mock {
             extensions::mintable::{PSP22Mintable, PSP22MintableRef},
             PSP22Ref, PSP22,
         },
-        traits::Storage,
+        traits::StorageFieldGetter,
     };
 
     #[ink::event]
@@ -35,7 +35,7 @@ pub mod flash_loan_receiver_mock {
     }
 
     #[ink(storage)]
-    #[derive(Default, Storage)]
+    #[derive(Default, StorageFieldGetter)]
     pub struct FlashLoanReceiverMock {
         fail_execute_operation: bool,
         simulate_balance_to_cover_fee: bool,

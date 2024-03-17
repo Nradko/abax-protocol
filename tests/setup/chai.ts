@@ -3,7 +3,9 @@ import chaiAsPromised from 'chai-as-promised';
 import type { AccountId } from '@polkadot/types/interfaces';
 import BN from 'bn.js';
 import { flush, proxy } from 'tests/soft-assert';
-import { E12, parseAmountToBN } from '@abaxfinance/utils';
+import { parseAmountToBN } from 'wookashwackomytest-utils';
+import { E12bn } from 'wookashwackomytest-polkahat-network-helpers';
+import 'wookashwackomytest-polkahat-chai-matchers';
 const softExpect = proxy(chai.expect);
 
 export interface ExpectStaticWithSoft extends Chai.ExpectStatic {
@@ -57,7 +59,7 @@ const almostEqualOrEqualNumberE12 = function <TData extends BN | number | string
   const epsilonScaleFactor = new BN(10).pow(new BN(epsilonLeftoverDecimals));
 
   const diff = actualValueBN.sub(expectedValueBN).abs();
-  const epsilonScaled = epsilonParsed.mul(new BN(E12.toString()).div(epsilonScaleFactor));
+  const epsilonScaled = epsilonParsed.mul(E12bn).div(epsilonScaleFactor);
   this.assert(
     diff.lte(epsilonScaled),
     `expected #{act} to be almost equal or equal #{exp} | diff: ${diff} | epsilon: ${epsilonScaled}`,

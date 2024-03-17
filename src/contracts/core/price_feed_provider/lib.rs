@@ -13,7 +13,7 @@ pub mod price_feed_provider {
     use pendzl::contracts::access::ownable;
 
     #[ink(storage)]
-    #[derive(Storage, Default)]
+    #[derive(StorageFieldGetter, Default)]
     pub struct PriceFeedProvider {
         #[storage_field]
         ownable: ownable::implementation::OwnableData,

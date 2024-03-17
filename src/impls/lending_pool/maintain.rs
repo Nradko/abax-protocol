@@ -1,11 +1,11 @@
 use abax_traits::lending_pool::{EmitMaintainEvents, LendingPoolError};
 use ink::primitives::AccountId;
-use pendzl::traits::Storage;
+use pendzl::traits::StorageFieldGetter;
 
 use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolMaintainImpl:
-    Storage<LendingPoolStorage> + EmitMaintainEvents
+    StorageFieldGetter<LendingPoolStorage> + EmitMaintainEvents
 {
     fn accumulate_interest(
         &mut self,

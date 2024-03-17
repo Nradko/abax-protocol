@@ -1,6 +1,6 @@
 use abax_traits::lending_pool::{EmitBorrowEvents, LendingPoolError, RuleId};
 use ink::prelude::vec::Vec;
-use pendzl::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use super::{
     internal::{
@@ -12,7 +12,7 @@ use super::{
 };
 
 pub trait LendingPoolBorrowImpl:
-    Storage<LendingPoolStorage> + EmitBorrowEvents
+    StorageFieldGetter<LendingPoolStorage> + EmitBorrowEvents
 {
     fn choose_market_rule(
         &mut self,

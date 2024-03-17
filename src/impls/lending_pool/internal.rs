@@ -18,7 +18,7 @@ use pendzl::{
         },
         {PSP22Error, PSP22Ref, PSP22},
     },
-    traits::{Balance, Storage},
+    traits::{Balance, StorageFieldGetter},
 };
 
 use super::storage::LendingPoolStorage;
@@ -140,7 +140,7 @@ pub trait Transfer {
     ) -> Result<(), LendingPoolError>;
 }
 
-impl<T: Storage<LendingPoolStorage>> Transfer for T {
+impl<T: StorageFieldGetter<LendingPoolStorage>> Transfer for T {
     fn _transfer_in(
         &self,
         asset: &AccountId,
@@ -195,7 +195,7 @@ pub trait InternalIncome {
     ) -> Result<Vec<(AccountId, i128)>, LendingPoolError>;
 }
 
-impl<T: Storage<LendingPoolStorage>> InternalIncome for T {
+impl<T: StorageFieldGetter<LendingPoolStorage>> InternalIncome for T {
     fn _get_protocol_income(
         &self,
         assets: &[AccountId],
@@ -231,7 +231,7 @@ pub trait AssetPrices {
     ) -> Result<Vec<u128>, LendingPoolError>;
 }
 
-impl<T: Storage<LendingPoolStorage>> AssetPrices for T {
+impl<T: StorageFieldGetter<LendingPoolStorage>> AssetPrices for T {
     fn _get_assets_prices_e18(
         &self,
         assets: Vec<AccountId>,

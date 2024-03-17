@@ -1,12 +1,11 @@
 import { BN } from 'bn.js';
 import { ChildProcess } from 'child_process';
-import { ONE_YEAR } from './consts';
 import { approve } from './scenarios/utils/actions';
 import { TestEnv } from './scenarios/utils/make-suite';
-import { E12, E6 } from '@abaxfinance/utils';
 import { expect } from './setup/chai';
 import { apiProviderWrapper } from './setup/helpers';
 import { readContractsFromFile, restartAndRestoreNodeState } from './setup/nodePersistence';
+import { E6bn } from 'wookashwackomytest-polkahat-network-helpers';
 
 const U128_MAX_VALUE = new BN('340282366920938463463374607431768211455');
 describe('Checked Math', () => {
@@ -28,7 +27,7 @@ describe('Checked Math', () => {
     const reserve = testEnv.reserves[reserveSymbol].underlying;
     const reserve2 = testEnv.reserves[reserve2Symbol].underlying;
     const user = testEnv.users[0];
-    const amountToDeposit = U128_MAX_VALUE.subn(E6);
+    const amountToDeposit = U128_MAX_VALUE.sub(E6bn);
 
     await reserve.tx.mint(user.address, U128_MAX_VALUE);
     await approve(reserveSymbol, user, testEnv, U128_MAX_VALUE);

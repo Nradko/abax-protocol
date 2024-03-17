@@ -13,7 +13,7 @@ pub mod psp22_emitable {
     use pendzl::contracts::token::psp22::extensions::mintable::PSP22Mintable;
 
     #[ink(storage)]
-    #[derive(Default, pendzl::traits::Storage)]
+    #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct TestReservesMinter {
         #[storage_field]
         ownable: ownable::implementation::OwnableData,

@@ -1,11 +1,5 @@
 import BN from 'bn.js';
 
-export enum RateMode {
-  None = '0',
-  Stable = '1',
-  Variable = '2',
-}
-
 export enum LendingToken {
   AToken = 'AToken',
   VToken = 'VToken',

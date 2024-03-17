@@ -1,11 +1,10 @@
 import { ChildProcess } from 'child_process';
 import { deployAndConfigureSystem, DeploymentConfig } from 'tests/setup/deploymentHelpers';
 import { TestEnv } from './scenarios/utils/make-suite';
-import { E6 } from '@abaxfinance/utils';
 import { expect } from './setup/chai';
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './setup/helpers';
 import { restartAndRestoreNodeState } from './setup/nodePersistence';
-import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from './setup/tokensToDeployForTesting';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6 } from './setup/tokensToDeployForTesting';
 
 describe('Custom deployment', () => {
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
@@ -101,7 +100,7 @@ describe('Custom deployment', () => {
       const testEnv: TestEnv = await deployAndConfigureSystem(customDeploymentConfig);
 
       const price = (await testEnv.oracle.query.getLatestPrice(reserveSymbol + '/USD')).value.ok!;
-      expect(price[1].rawNumber.toString()).to.equal(priceToOverride);
+      expect(price[1].toString()).to.equal(priceToOverride);
     });
   });
 });

@@ -1,13 +1,12 @@
 import BN from 'bn.js';
 import { expect } from 'tests/setup/chai';
+import LendingPoolContract from 'typechain/contracts/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
-import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
-import { ContractsEvents } from 'typechain/events/enum';
-import { ReserveData, UserReserveData } from 'typechain/types-returns/lending_pool';
+import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
+import { ReserveData, ReserveIndexes, UserReserveData } from 'typechain/types-returns/lending_pool';
+import { getContractEventsFromTx } from 'wookashwackomytest-polkahat-chai-matchers';
+import { SignAndSendSuccessResponse } from 'wookashwackomytest-typechain-types';
 import { TokenReserve } from './make-suite';
-import { ValidateEventParameters } from './validateEvents';
-import { ReserveIndexes } from 'typechain/types-returns/lending_pool';
-import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
 
 const BN_ZERO = new BN(0);
 export interface CheckDepositParameters {
@@ -56,62 +55,38 @@ export interface Interests {
   variableBorrow: BN;
 }
 
-export const checkDeposit = (
-  lendingPoolAddress: string,
-  reserveTokens: TokenReserve,
+export const checkDeposit = async (
+  lendingPool: LendingPoolContract,
+  reserveToken: TokenReserve,
   caller: string,
   onBehalfOf: string,
   amount: BN,
   parBefore: CheckDepositParameters,
   parAfter: CheckDepositParameters,
-  capturedEventsParameters: ValidateEventParameters[],
+  tx: SignAndSendSuccessResponse,
 ) => {
-  // if (
-  //   parAfter.timestamp !== parBefore.timestamp ||
-  //   parAfter.reserveData.indexesUpdateTimestamp !== parBefore.reserveData.indexesUpdateTimestamp ||
-  //   parAfter.userReserveData.updateTimestamp !== parBefore.userReserveData.updateTimestamp
-  // ) {
-  //   console.log('Deposit | TIME HAS PASSED | CHECK IS SKIPPED');
-  //   return;
-  // }
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
 
-  // get event and check what can be checked
-  const depositEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.Deposit);
-  expect(depositEventParameters, 'Deposit | Event | not emitted').not.to.be.undefined;
-  expect.soft(depositEventParameters?.sourceContract.address, 'Deposit | Event | source contract').to.equal(lendingPoolAddress);
-  const depositEvent = depositEventParameters?.event as any as Deposit;
-  expect.soft(depositEvent.asset, 'Deposit | Event | asset').to.equal(reserveTokens.underlying.address);
-  expect.soft(depositEvent.amount.toString(), 'Deposit | Event | amount').to.equal(amount.toString());
-  expect.soft(depositEvent.caller, 'Deposit | Event | caller').to.equal(caller);
-  expect.soft(depositEvent.onBehalfOf, 'Deposit | Event | onBehalfOf').to.equal(onBehalfOf);
+  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Deposit, {
+    asset: reserveToken.underlying.address,
+    amount: amount,
+    caller: caller,
+    onBehalfOf: onBehalfOf,
+  });
+
+  const [aTokenEvents] = getContractEventsFromTx(tx, reserveToken.aToken as any, ContractsEvents.ATokenEvent.Transfer);
+  const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.aToken.address,
-    onBehalfOf,
-    amount,
-    userInterests.supply,
-    true,
-    'Deposit | AToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount, userInterests.supply, true, 'Deposit | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.vToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.variableBorrow,
-    true,
-    'Deposit | VToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.variableBorrow, true, 'Deposit | VToken Transfer Event');
 
   // ReserveData Checks
   // total_deposit <- increases on deposit
-  let before = parBefore.reserveData.totalDeposit.rawNumber;
+  let before = parBefore.reserveData.totalDeposit;
   let expected = before.add(amount).add(userInterests.supply);
-  let actual = parAfter.reserveData.totalDeposit.rawNumber;
+  let actual = parAfter.reserveData.totalDeposit;
 
   if (expected.toString() !== actual.toString()) {
     console.log(`Deposit | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
@@ -127,9 +102,9 @@ export const checkDeposit = (
   // timestamp should be set to reserve data timestamp
 
   // deposit <- increases on deposit
-  before = parBefore.userReserveData.deposit.rawNumber;
+  before = parBefore.userReserveData.deposit;
   expected = before.add(amount).add(userInterests.supply);
-  actual = parAfter.userReserveData.deposit.rawNumber;
+  actual = parAfter.userReserveData.deposit;
 
   if (expected.toString() !== actual.toString()) {
     console.log(`Deposit | UserReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`);
@@ -163,83 +138,59 @@ export const checkDeposit = (
     .soft(actual.toString(), `Deposit | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
 
-  // // AToken Checks
-  // //balance <- increase od Deposit
-  // before = parBefore.aBalance;
-  // expected = before.add(amount).add(userInterests.supply);
-  // actual = parAfter.aBalance;
+  // AToken Checks
+  //balance <- increase od Deposit
+  before = parBefore.aBalance;
+  expected = before.add(amount).add(userInterests.supply);
+  actual = parAfter.aBalance;
 
-  // if (expected.toString() !== actual.toString()) {
-  //   console.log(`Deposit | AToken user Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  // }
-  // expect
-  //   .soft(
-  //     actual.toString(),
-  //     `Deposit | AToken user Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-  //   )
-  //   .to.equal(expected.toString());
+  if (expected.toString() !== actual.toString()) {
+    console.log(`Deposit | AToken user Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+  }
+  expect
+    .soft(
+      actual.toString(),
+      `Deposit | AToken user Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+    )
+    .to.equal(expected.toString());
   expect.flushSoft();
 };
 
-export const checkRedeem = (
-  lendingPoolAddress: string,
-  reserveTokens: TokenReserve,
+export const checkRedeem = async (
+  lendingPool: LendingPoolContract,
+  reserveToken: TokenReserve,
   caller: string,
   onBehalfOf: string,
   amount: BN,
   parBefore: CheckRedeemParameters,
   parAfter: CheckRedeemParameters,
-  capturedEventsParameters: ValidateEventParameters[],
+  tx: SignAndSendSuccessResponse,
 ) => {
-  // if (
-  //   parAfter.timestamp !== parBefore.timestamp ||
-  //   parAfter.reserveData.indexesUpdateTimestamp !== parBefore.reserveData.indexesUpdateTimestamp ||
-  //   parAfter.userReserveData.updateTimestamp !== parBefore.userReserveData.updateTimestamp
-  // ) {
-  //   console.log('Redeem | TIME HAS PASSED | CHECK IS SKIPPED');
-  //   return;
-  // }
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  amount = amount.lt(parBefore.userReserveData.deposit.rawNumber.add(userInterests.supply))
+  amount = amount.lt(parBefore.userReserveData.deposit.add(userInterests.supply))
     ? amount
-    : parBefore.userReserveData.deposit.rawNumber.add(userInterests.supply);
+    : parBefore.userReserveData.deposit.add(userInterests.supply);
 
-  const redeemEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.Redeem);
-  expect(redeemEventParameters, 'Redeem | Event | not emitted').not.to.be.undefined;
-  expect.soft(redeemEventParameters?.sourceContract.address, 'Redeem | Event | source contract').to.equal(lendingPoolAddress);
-  const RedeemEvent = redeemEventParameters?.event as any as Redeem;
-  expect(RedeemEvent, 'Redeem | Event | not emitted').not.to.be.undefined;
-  expect.soft(RedeemEvent.asset, 'Redeem | Event | asset').to.equal(reserveTokens.underlying.address);
-  expect.soft(RedeemEvent.amount.toString(), 'Redeem | Event | amount').to.equal(amount.toString());
-  expect.soft(RedeemEvent.caller, 'Redeem | Event | caller').to.equal(caller);
-  expect.soft(RedeemEvent.onBehalfOf, 'Redeem | Event | onBehalfOf').to.equal(onBehalfOf);
+  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Redeem, {
+    asset: reserveToken.underlying.address,
+    amount: amount,
+    caller: caller,
+    onBehalfOf: onBehalfOf,
+  });
+
+  const [aTokenEvents] = getContractEventsFromTx(tx, reserveToken.aToken as any, ContractsEvents.ATokenEvent.Transfer);
+  const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.aToken.address,
-    onBehalfOf,
-    amount.neg(),
-    userInterests.supply,
-    true,
-    'Redeem | AToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount.neg(), userInterests.supply, true, 'Redeem | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.vToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.variableBorrow,
-    true,
-    'Redeem | VToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.variableBorrow, true, 'Redeem | VToken Transfer Event');
 
   // ReserveData Checks
   // total_deposit <- decreases on Redeem
-  let before = parBefore.reserveData.totalDeposit.rawNumber;
+  let before = parBefore.reserveData.totalDeposit;
   let expected = before.add(userInterests.supply).sub(amount);
-  let actual = parAfter.reserveData.totalDeposit.rawNumber;
+  let actual = parAfter.reserveData.totalDeposit;
 
   if (expected.toString() !== actual.toString()) {
     console.log(`Redeem | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
@@ -255,9 +206,9 @@ export const checkRedeem = (
   // timestamp should be set to reserve data timestamp
 
   // deposit <- decreases on Redeem
-  before = parBefore.userReserveData.deposit.rawNumber;
+  before = parBefore.userReserveData.deposit;
   expected = before.add(userInterests.supply).sub(amount);
-  actual = parAfter.userReserveData.deposit.rawNumber;
+  actual = parAfter.userReserveData.deposit;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
@@ -304,16 +255,16 @@ export const checkRedeem = (
 
   // // AToken Checks
   // // balance <- decrease on Redeem
-  // before = parBefore.aBalance;
-  // expected = before.add(userInterests.supply).sub(amount);
-  // actual = parAfter.aBalance;
+  before = parBefore.aBalance;
+  expected = before.add(userInterests.supply).sub(amount);
+  actual = parAfter.aBalance;
 
-  // if (expected.toString() !== actual.toString()) {
-  //   console.log(`Redeem | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  // }
-  // expect
-  //   .soft(actual.toString(), `Redeem | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
-  //   .to.equal(expected.toString());
+  if (expected.toString() !== actual.toString()) {
+    console.log(`Redeem | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+  }
+  expect
+    .soft(actual.toString(), `Redeem | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
+    .to.equal(expected.toString());
 
   // alowance <- decrease on Redeem
   if (parBefore.aAllowance !== undefined && parAfter.aAllowance !== undefined) {
@@ -329,64 +280,38 @@ export const checkRedeem = (
   expect.flushSoft();
 };
 
-export const checkBorrowVariable = (
-  lendingPoolAddress: string,
-  reserveTokens: TokenReserve,
+export const checkBorrowVariable = async (
+  lendingPool: LendingPoolContract,
+  reserveToken: TokenReserve,
   caller: string,
   onBehalfOf: string,
   amount: BN,
   parBefore: CheckBorrowVariableParameters,
   parAfter: CheckBorrowVariableParameters,
-  capturedEventsParameters: ValidateEventParameters[],
+  tx: SignAndSendSuccessResponse,
 ) => {
-  // if (
-  //   parAfter.timestamp !== parBefore.timestamp ||
-  //   parAfter.reserveData.indexesUpdateTimestamp !== parBefore.reserveData.indexesUpdateTimestamp ||
-  //   parAfter.userReserveData.updateTimestamp !== parBefore.userReserveData.updateTimestamp
-  // ) {
-  //   console.log('BorrowVariable | TIME HAS PASSED | CHECK IS SKIPPED');
-  //   return;
-  // }
-
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
 
-  // get event and check what can be checked
-  const borrowVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.BorrowVariable);
-  expect(borrowVariableEventParameters, 'BorrowVariable | Event | not emitted').not.to.be.undefined;
-  expect.soft(borrowVariableEventParameters?.sourceContract.address, 'BorrowVariable | Event | source contract').to.equal(lendingPoolAddress);
-  const BorrowVariableEvent = borrowVariableEventParameters?.event as any as BorrowVariable;
-  expect(BorrowVariableEvent, 'BorrowVariable | Event | not emitted').not.to.be.undefined;
-  expect.soft(BorrowVariableEvent.asset, 'BorrowVariable | Event | asset').to.equal(reserveTokens.underlying.address);
-  expect.soft(BorrowVariableEvent.amount.toString(), 'BorrowVariable | Event | amount').to.equal(amount.toString());
-  expect.soft(BorrowVariableEvent.caller, 'BorrowVariable | Event | caller').to.equal(caller);
-  expect.soft(BorrowVariableEvent.onBehalfOf, 'BorrowVariable | Event | onBehalfOf').to.equal(onBehalfOf);
+  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.BorrowVariable, {
+    asset: reserveToken.underlying.address,
+    amount: amount,
+    caller: caller,
+    onBehalfOf: onBehalfOf,
+  });
+
+  const [aTokenEvents] = getContractEventsFromTx(tx, reserveToken.aToken as any, ContractsEvents.ATokenEvent.Transfer);
+  const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.aToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.supply,
-    true,
-    'BorrowVariable | AToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'BorrowVariable | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.vToken.address,
-    onBehalfOf,
-    amount,
-    userInterests.variableBorrow,
-    true,
-    'BorrowVariable | VToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, amount, userInterests.variableBorrow, true, 'BorrowVariable | VToken Transfer Event');
 
   // ReserveData Checks
   // total_debt <- increases on borrow
-  let before = parBefore.reserveData.totalDebt.rawNumber;
+  let before = parBefore.reserveData.totalDebt;
   let expected = before.add(userInterests.variableBorrow).add(amount);
-  let actual = parAfter.reserveData.totalDebt.rawNumber;
+  let actual = parAfter.reserveData.totalDebt;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
@@ -404,9 +329,9 @@ export const checkBorrowVariable = (
   // timestamp should be set to reserve data timestamp
 
   // variable_borroved <- increases on BorrowVariable
-  before = parBefore.userReserveData.debt.rawNumber;
+  before = parBefore.userReserveData.debt;
   expected = before.add(userInterests.variableBorrow).add(amount);
-  actual = parAfter.userReserveData.debt.rawNumber;
+  actual = parAfter.userReserveData.debt;
 
   if (expected.toString() !== actual.toString()) {
     console.log(`BorrowVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
@@ -451,19 +376,19 @@ export const checkBorrowVariable = (
 
   // // VToken Checks
   // // balnce <- increase on BorrowVariable
-  // before = parBefore.vBalance;
-  // expected = before.add(userInterests.variableBorrow).add(amount);
-  // actual = parAfter.vBalance;
+  before = parBefore.vBalance;
+  expected = before.add(userInterests.variableBorrow).add(amount);
+  actual = parAfter.vBalance;
 
-  // if (expected.toString() !== actual.toString()) {
-  //   console.log(`BorrowVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  // }
-  // expect
-  //   .soft(
-  //     actual.toString(),
-  //     `BorrowVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-  //   )
-  //   .to.equal(expected.toString());
+  if (expected.toString() !== actual.toString()) {
+    console.log(`BorrowVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+  }
+  expect
+    .soft(
+      actual.toString(),
+      `BorrowVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+    )
+    .to.equal(expected.toString());
 
   // allowance <- decrease on BorrowVariable
   if (parBefore.vAllowance !== undefined && parAfter.vAllowance !== undefined) {
@@ -482,57 +407,38 @@ export const checkBorrowVariable = (
   expect.flushSoft();
 };
 
-export const checkRepayVariable = (
-  lendingPoolAddress: string,
-  reserveTokens: TokenReserve,
+export const checkRepayVariable = async (
+  lendingPool: LendingPoolContract,
+  reserveToken: TokenReserve,
   caller: string,
   onBehalfOf: string,
-  amount: BN | null,
+  amountArg: BN | null,
   parBefore: CheckRepayVariableParameters,
   parAfter: CheckRepayVariableParameters,
-  capturedEventsParameters: ValidateEventParameters[],
+  tx: SignAndSendSuccessResponse,
 ) => {
-  // if (
-  //   parAfter.timestamp !== parBefore.timestamp ||
-  //   parAfter.reserveData.indexesUpdateTimestamp !== parBefore.reserveData.indexesUpdateTimestamp ||
-  //   parAfter.userReserveData.updateTimestamp !== parBefore.userReserveData.updateTimestamp
-  // ) {
-  //   console.log('RepayVariable | TIME HAS PASSED | CHECK IS SKIPPED');
-  //   return;
-  // }
-
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  amount = amount?.lte(parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow))
-    ? amount
-    : parBefore.userReserveData.debt.rawNumber.add(userInterests.variableBorrow);
+  const amountToUse = amountArg?.lte(parBefore.userReserveData.debt.add(userInterests.variableBorrow))
+    ? amountArg
+    : parBefore.userReserveData.debt.add(userInterests.variableBorrow);
 
-  // get event and check what can be checked
-  const repayVariableEventParameters = capturedEventsParameters.find((e) => e.eventName === ContractsEvents.LendingPoolEvent.RepayVariable);
-  expect(repayVariableEventParameters, 'RepayVariable | Event | not emitted').not.to.be.undefined;
-  expect.soft(repayVariableEventParameters?.sourceContract.address, 'RepayVariable | Event | source contract').to.equal(lendingPoolAddress);
-  const RepayVariableEvent = repayVariableEventParameters?.event as any as RepayVariable;
-  expect(RepayVariableEvent, 'RepayVariable | Event | not emitted').not.to.be.undefined;
-  expect.soft(RepayVariableEvent.asset, 'RepayVariable | Event | asset').to.equal(reserveTokens.underlying.address);
-  expect.soft(RepayVariableEvent.amount.toString(), 'RepayVariable | Event | amount').to.equalUpTo1Digit(amount.toString());
-  expect.soft(RepayVariableEvent.caller, 'RepayVariable | Event | caller').to.equal(caller);
-  expect.soft(RepayVariableEvent.onBehalfOf, 'RepayVariable | Event | onBehalfOf').to.equal(onBehalfOf);
+  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.RepayVariable, {
+    asset: reserveToken.underlying.address,
+    amount: amountToUse,
+    caller: caller,
+    onBehalfOf: onBehalfOf,
+  });
+
+  const [aTokenEvents] = getContractEventsFromTx(tx, reserveToken.aToken as any, ContractsEvents.ATokenEvent.Transfer);
+  const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.aToken.address,
-    onBehalfOf,
-    BN_ZERO,
-    userInterests.supply,
-    true,
-    'RepayVariable | AToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'RepayVariable | AToken Transfer Event');
   // VToken
   checkAbacusTokenTransferEvent(
-    capturedEventsParameters,
-    reserveTokens.vToken.address,
+    vTokenEvents[0],
     onBehalfOf,
-    amount.neg(),
+    amountToUse.neg(),
     userInterests.variableBorrow,
     true,
     'RepayVariable | VToken Transfer Event',
@@ -540,106 +446,105 @@ export const checkRepayVariable = (
 
   // ReserveData Checks
   // total_debt <- decreases on repayVariable
-  let before = parBefore.reserveData.totalDebt.rawNumber;
-  if (before.sub(amount).lten(0))
+  let before = parBefore.reserveData.totalDebt;
+  if (before.sub(amountToUse).lten(0))
     console.log(
       'RepayVariable | ReserveData | total_debt - repay of the amount would cause an underflow. No loss happens. Expecting total_debt to equal 0',
     );
 
-  let expected = before.add(userInterests.variableBorrow).sub(amount);
-  let actual = parAfter.reserveData.totalDebt.rawNumber;
+  let expected = before.add(userInterests.variableBorrow).sub(amountToUse);
+  let actual = parAfter.reserveData.totalDebt;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
-      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     );
   }
   expect
     .soft(
       actual.toString(),
-      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.almostEqualOrEqualNumberE12(expected.toString());
 
   // UserReserveData Checks
   // variable_borroved <- decreases on RepayVariable
-  before = parBefore.userReserveData.debt.rawNumber;
-  expected = before.add(userInterests.variableBorrow).sub(amount);
-  actual = parAfter.userReserveData.debt.rawNumber;
+  before = parBefore.userReserveData.debt;
+  expected = before.add(userInterests.variableBorrow).sub(amountToUse);
+  actual = parAfter.userReserveData.debt;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(
+      `RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
+    );
   }
   expect
     .soft(
       actual.toString(),
-      `RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
   // Underlying Balances Checks
   // LendingPool Balance <- increases on RepayVariable
   before = parBefore.poolBalance;
-  expected = before.add(amount);
+  expected = before.add(amountToUse);
   actual = parAfter.poolBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`RepayVariable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  }
-  expect
-    .soft(actual.toString(), `RepayVariable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
-    .to.equalUpTo1Digit(expected.toString());
-
-  // Caller Balance <- decreases on RepayVariable
-  before = parBefore.callerBalance;
-  expected = before.sub(amount);
-  actual = parAfter.callerBalance;
-
-  if (expected.toString() !== actual.toString()) {
-    console.log(`RepayVariable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`RepayVariable | Pool Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `RepayVariable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `RepayVariable | Pool Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
+    )
+    .to.equalUpTo1Digit(expected.toString());
+
+  // Caller Balance <- decreases on RepayVariable
+  before = parBefore.callerBalance;
+  expected = before.sub(amountToUse);
+  actual = parAfter.callerBalance;
+
+  if (expected.toString() !== actual.toString()) {
+    console.log(`RepayVariable | Caller Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
+  }
+  expect
+    .soft(
+      actual.toString(),
+      `RepayVariable | Caller Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
   // // VToken Checks
   // // balnce <- decreases on RepayVariable
-  // before = parBefore.vBalance;
-  // expected = before.sub(amount);
-  // actual = parAfter.vBalance;
+  before = parBefore.vBalance;
+  expected = before.sub(amountToUse);
+  actual = parAfter.vBalance;
 
-  // if (expected.toString() !== actual.toString()) {
-  //   console.log(`RepayVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
-  // }
-  // expect
-  //   .soft(
-  //     actual.toString(),
-  //     `RepayVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-  //   )
-  //   .to.equal(expected.toString());
+  if (expected.toString() !== actual.toString()) {
+    console.log(`RepayVariable | VToken Balance | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
+  }
+  expect
+    .soft(
+      actual.toString(),
+      `RepayVariable | VToken Balance | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
+    )
+    .to.equal(expected.toString());
   expect.flushSoft();
 };
 
 const getUserInterests = (userReserveData: UserReserveData, reserveIndexesAfter: ReserveIndexes): Interests => {
-  const supplyInterest = userReserveData.appliedDepositIndexE18.rawNumber.eqn(0)
+  const supplyInterest = userReserveData.appliedDepositIndexE18.eqn(0)
     ? new BN(0)
-    : userReserveData.deposit.rawNumber
-        .mul(reserveIndexesAfter.depositIndexE18.rawNumber)
-        .div(userReserveData.appliedDepositIndexE18.rawNumber)
-        .sub(userReserveData.deposit.rawNumber);
+    : userReserveData.deposit.mul(reserveIndexesAfter.depositIndexE18).div(userReserveData.appliedDepositIndexE18).sub(userReserveData.deposit);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = userReserveData.appliedDepositIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = userReserveData.appliedDepositIndexE18.eqn(0)
     ? new BN(0)
-    : userReserveData.debt.rawNumber
-        .mul(reserveIndexesAfter.debtIndexE18.rawNumber)
-        .div(userReserveData.appliedDebtIndexE18.rawNumber)
-        .sub(userReserveData.debt.rawNumber);
+    : userReserveData.debt.mul(reserveIndexesAfter.debtIndexE18).div(userReserveData.appliedDebtIndexE18).sub(userReserveData.debt);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
   }
@@ -653,22 +558,19 @@ const getReserveInterests = (
   reserveIndexesBefore: ReserveIndexes,
   reserveIndexesAfter: ReserveIndexes,
 ): Interests => {
-  const supplyInterest = reserveIndexesBefore.depositIndexE18.rawNumber.eqn(0)
+  const supplyInterest = reserveIndexesBefore.depositIndexE18.eqn(0)
     ? new BN(0)
-    : reserveDataBefore.totalDeposit.rawNumber
-        .mul(reserveIndexesAfter.depositIndexE18.rawNumber)
-        .div(reserveIndexesBefore.depositIndexE18.rawNumber)
-        .sub(reserveDataBefore.totalDeposit.rawNumber);
+    : reserveDataBefore.totalDeposit
+        .mul(reserveIndexesAfter.depositIndexE18)
+        .div(reserveIndexesBefore.depositIndexE18)
+        .sub(reserveDataBefore.totalDeposit);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = reserveIndexesBefore.debtIndexE18.rawNumber.eqn(0)
+  const variableBorrowInterest = reserveIndexesBefore.debtIndexE18.eqn(0)
     ? new BN(0)
-    : reserveDataBefore.totalDebt.rawNumber
-        .mul(reserveIndexesAfter.debtIndexE18.rawNumber)
-        .div(reserveIndexesBefore.debtIndexE18.rawNumber)
-        .sub(reserveDataBefore.totalDebt.rawNumber);
+    : reserveDataBefore.totalDebt.mul(reserveIndexesAfter.debtIndexE18).div(reserveIndexesBefore.debtIndexE18).sub(reserveDataBefore.totalDebt);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
   }
@@ -677,8 +579,7 @@ const getReserveInterests = (
 };
 
 const checkAbacusTokenTransferEvent = (
-  capturedEventsParameters: ValidateEventParameters[],
-  abacusTokenAddress: string,
+  abacusTokenTransferEventArg: { args: AnyAbaxContractEvent } | undefined,
   user: string,
   amount: BN | number | string,
   interest: BN | number | string,
@@ -686,18 +587,13 @@ const checkAbacusTokenTransferEvent = (
   messagge: string,
 ) => {
   const amountTransferred: BN = add ? new BN(amount).add(new BN(interest)) : new BN(amount).sub(new BN(interest));
-  // it will find both Vtoken.Transfer and AToken.Transfer
-  const abacusTokenTransferEventParameters = capturedEventsParameters.find(
-    (e) => e.eventName === ContractsEvents.ATokenEvent.Transfer && e.sourceContract.address === abacusTokenAddress,
-  );
 
   if (process.env.DEBUG) {
     if (amountTransferred.isZero()) {
-      if (abacusTokenTransferEventParameters !== undefined) console.log(messagge + ' | emitted while shouldnt be\n');
+      if (abacusTokenTransferEventArg !== undefined) console.log(messagge + ' | emitted while shouldnt be\n');
     } else {
-      if (abacusTokenTransferEventParameters === undefined) console.log(messagge + ' | not emitted');
-      if (abacusTokenTransferEventParameters?.sourceContract.address !== abacusTokenAddress) console.log(messagge + 'source contract');
-      const abacusTokenTransferEvent = abacusTokenTransferEventParameters?.event as any as Transfer;
+      if (abacusTokenTransferEventArg === undefined) console.log(messagge + ' | not emitted');
+      const abacusTokenTransferEvent = abacusTokenTransferEventArg?.args as any as Transfer;
       if (amountTransferred.isNeg()) {
         if (abacusTokenTransferEvent?.from?.toString() !== user) console.log(messagge + ' | from');
         if (abacusTokenTransferEvent?.to?.toString() !== undefined) console.log(messagge + 'to');
@@ -705,23 +601,17 @@ const checkAbacusTokenTransferEvent = (
         if (abacusTokenTransferEvent?.from?.toString() !== undefined) console.log(messagge + ' | from');
         if (abacusTokenTransferEvent?.to?.toString() !== user) console.log(messagge + 'to');
       }
-      if (abacusTokenTransferEvent?.value.toString() !== amountTransferred.abs().toString()) console.log(messagge + 'value');
+      if (abacusTokenTransferEvent?.value?.toString() !== amountTransferred.abs().toString()) console.log(messagge + 'value');
     }
   }
 
   if (amountTransferred.isZero()) {
-    expect(
-      replaceNumericPropsWithStrings(
-        (abacusTokenTransferEventParameters ? [abacusTokenTransferEventParameters] : []).map(({ sourceContract, ...rest }) => rest)[0],
-      ),
-      messagge + ` | emitted while shouldnt be`,
-    ).to.be.undefined;
+    expect(abacusTokenTransferEventArg, messagge + ` | emitted while shouldnt be`).to.be.undefined;
     return;
   }
 
-  expect(abacusTokenTransferEventParameters, messagge + ' | not emitted').not.to.be.undefined;
-  expect.soft(abacusTokenTransferEventParameters?.sourceContract.address, messagge + 'source contract').to.equal(abacusTokenAddress);
-  const abacusTokenTransferEvent = abacusTokenTransferEventParameters?.event as any as Transfer;
+  expect(abacusTokenTransferEventArg, messagge + ' | not emitted').not.to.be.undefined;
+  const abacusTokenTransferEvent = abacusTokenTransferEventArg?.args as any as Transfer;
   if (amountTransferred.isNeg()) {
     expect.soft(abacusTokenTransferEvent?.from?.toString(), messagge + ' | from').to.equal(user);
     expect.soft(abacusTokenTransferEvent?.to?.toString(), messagge + 'to').to.equal(undefined);
@@ -729,5 +619,5 @@ const checkAbacusTokenTransferEvent = (
     expect.soft(abacusTokenTransferEvent?.from?.toString(), messagge + ' | from').to.equal(undefined);
     expect.soft(abacusTokenTransferEvent?.to?.toString(), messagge + ' | to').to.equal(user);
   }
-  expect.soft(abacusTokenTransferEvent?.value.toString(), messagge + ' | value').to.equalUpTo1Digit(amountTransferred.abs().toString());
+  expect.soft(abacusTokenTransferEvent?.value?.toString(), messagge + ' | value').to.equalUpTo1Digit(amountTransferred.abs().toString());
 };

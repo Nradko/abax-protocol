@@ -1,5 +1,5 @@
-import { LendingPool, LendingPoolErrorBuilder, Psp22Ownable, getContractObject, replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
-import { getArgvObj } from '@abaxfinance/utils';
+import { LendingPool, LendingPoolErrorBuilder, Psp22Ownable, getContractObject } from 'wookashwackomytest-contract-helpers';
+import { getArgvObj } from 'wookashwackomytest-utils';
 import { ApiPromise } from '@polkadot/api';
 import Keyring from '@polkadot/keyring';
 import BN from 'bn.js';
@@ -8,6 +8,7 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
 import { isEqual } from 'lodash';
 import type { WeightV2 } from '@polkadot/types/interfaces';
 import { bnToBn } from '@polkadot/util';
+import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
 
 const LENDING_POOL_ADDRESS = '5CaYwwWqGqVEDSYVmMi7qhV9T3kLQmKeF5VGxiz6jt4sZrPE';
 
@@ -69,8 +70,8 @@ async function tryLiquidate(userAddress: string) {
   const queryResD = await lendingPool.query.getUserFreeCollateralCoefficient(userAddress);
   console.log({
     userAddress,
-    collateralized: replaceNumericPropsWithStrings(queryResD.value.ok)[0],
-    collateralCoefficient: replaceNumericPropsWithStrings(queryResD.value.ok)[1],
+    collateralized: stringifyNumericProps(queryResD.value.ok!)[0],
+    collateralCoefficient: stringifyNumericProps(queryResD.value.ok!)[1],
   });
   //DEBUG
 
@@ -83,9 +84,7 @@ async function tryLiquidate(userAddress: string) {
     const tx = await lendingPool
       .withSigner(liquidationSignerSpender)
       .tx.liquidate(userAddress, WETH_ADDR, AZERO_ADDR, amountToRepay, minimumTokenReceivedE18, [], { gasLimit: getMaxGasLimit(api) });
-    console.log(
-      `${userAddress}| Liquidation success: ${tx.blockHash?.toString()} | events: ${JSON.stringify(replaceNumericPropsWithStrings(tx.events))}`,
-    );
+    console.log(`${userAddress}| Liquidation success: ${tx.blockHash?.toString()} | events: ${JSON.stringify(stringifyNumericProps(tx.events))}`);
     const queryResAfter = await lendingPool.query.getUserFreeCollateralCoefficient(userAddress);
 
     const biggestDebtReserveAfter = (await lendingPool.query.viewReserveData(WETH_ADDR.toString())).value.ok!;
@@ -102,20 +101,20 @@ async function tryLiquidate(userAddress: string) {
 
     console.log({
       userAddress,
-      collateralized: replaceNumericPropsWithStrings(queryResAfter.value.ok)[0],
-      collateralCoefficient: replaceNumericPropsWithStrings(queryResAfter.value.ok)[1],
-      biggestDebtReserveBefore: replaceNumericPropsWithStrings(biggestDebtReserveBefore),
-      biggestDebtDataAfter: replaceNumericPropsWithStrings(biggestDebtReserveAfter),
+      collateralized: stringifyNumericProps(queryResAfter.value.ok!)[0],
+      collateralCoefficient: stringifyNumericProps(queryResAfter.value.ok!)[1],
+      biggestDebtReserveBefore: stringifyNumericProps(biggestDebtReserveBefore),
+      biggestDebtDataAfter: stringifyNumericProps(biggestDebtReserveAfter),
       biggestDebtPSPBalanceOfLendingPool: biggestDebtPSPBalanceOfLendingPool.toString(),
       biggestDebtPSPBalanceOfLendingPoolAfter: biggestDebtPSPBalanceOfLendingPoolAfter.toString(),
-      borrowerBiggestDebtReserveBefore: replaceNumericPropsWithStrings(borrowerBiggestDebtReserveBefore),
-      borrowerBiggestDebtReserveAfter: replaceNumericPropsWithStrings(borrowerBiggestDebtReserveAfter),
-      borrowerBiggestCollateralReserveBefore: replaceNumericPropsWithStrings(borrowerBiggestCollateralReserveBefore),
-      borrowerBiggestCollateralReserveAfter: replaceNumericPropsWithStrings(borrowerBiggestCollateralReserveAfter),
-      liquidationSpenderBiggestDebtReserveBefore: replaceNumericPropsWithStrings(liquidationSpenderBiggestDebtReserveBefore),
-      liquidationSpenderBiggestDebtReserveAfter: replaceNumericPropsWithStrings(liquidationSpenderBiggestDebtReserveAfter),
-      liqudationSpenderBiggestCollateralReserveBefore: replaceNumericPropsWithStrings(liqudationSpenderBiggestCollateralReserveBefore),
-      liqudationSpenderBiggestCollateralReserveAfter: replaceNumericPropsWithStrings(liqudationSpenderBiggestCollateralReserveAfter),
+      borrowerBiggestDebtReserveBefore: stringifyNumericProps(borrowerBiggestDebtReserveBefore),
+      borrowerBiggestDebtReserveAfter: stringifyNumericProps(borrowerBiggestDebtReserveAfter),
+      borrowerBiggestCollateralReserveBefore: stringifyNumericProps(borrowerBiggestCollateralReserveBefore),
+      borrowerBiggestCollateralReserveAfter: stringifyNumericProps(borrowerBiggestCollateralReserveAfter),
+      liquidationSpenderBiggestDebtReserveBefore: stringifyNumericProps(liquidationSpenderBiggestDebtReserveBefore),
+      liquidationSpenderBiggestDebtReserveAfter: stringifyNumericProps(liquidationSpenderBiggestDebtReserveAfter),
+      liqudationSpenderBiggestCollateralReserveBefore: stringifyNumericProps(liqudationSpenderBiggestCollateralReserveBefore),
+      liqudationSpenderBiggestCollateralReserveAfter: stringifyNumericProps(liqudationSpenderBiggestCollateralReserveAfter),
     });
   } catch (e) {
     console.error(`${userAddress}| liquidation unsuccessfull`);

@@ -17,7 +17,7 @@ use ink::{
 };
 use pendzl::contracts::access::access_control;
 use pendzl::contracts::token::psp22::{PSP22Ref, PSP22};
-use pendzl::traits::{Balance, Storage};
+use pendzl::traits::{Balance, StorageFieldGetter};
 
 use super::internal::InternalIncome;
 use super::storage::LendingPoolStorage;
@@ -327,7 +327,7 @@ pub trait LendingPoolManageImpl:
     }
 }
 
-pub trait ManageInternal: Storage<LendingPoolStorage> {
+pub trait ManageInternal: StorageFieldGetter<LendingPoolStorage> {
     fn _instantiate_a_token_contract(
         &self,
         a_token_code_hash: &[u8; 32],
@@ -379,7 +379,7 @@ pub trait ManageInternal: Storage<LendingPoolStorage> {
     ) -> AccountId {
         let create_params = ink::env::call::build_create::<DummyRef>()
             .code_hash(Hash::from(*abacus_token_code_hash))
-            .gas_limit(10_000_000_000)
+            .ref_time_limit(10_000_000_000)
             .endowment(0)
             .exec_input(
                 ExecutionInput::new(ink::env::call::Selector::new(

@@ -11,7 +11,7 @@ pub mod psp22_emitable {
     use ink::prelude::string::String;
 
     #[ink(storage)]
-    #[derive(Default, pendzl::traits::Storage)]
+    #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct PSP22OwnableContract {
         #[storage_field]
         ownable: ownable::implementation::OwnableData,

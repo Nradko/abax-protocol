@@ -13,8 +13,8 @@ import PriceFeedProvider from '../../typechain/contracts/price_feed_provider';
 import VToken from '../../typechain/contracts/v_token';
 import StableToken from '../../typechain/contracts/stable_token';
 import { apiProviderWrapper, getSigners } from './helpers';
-import { increaseBlockTimestamp, setBlockTimestamp } from 'tests/scenarios/utils/misc';
-import { getContractObject } from '@abaxfinance/contract-helpers';
+import { getContractObject } from 'wookashwackomytest-contract-helpers';
+import { time } from 'wookashwackomytest-polkahat-network-helpers';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
 
@@ -186,6 +186,7 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     aTokenCodeHash: contracts.find((c) => c.name === 'aTokenCodeHash')!.codeHash!,
     vTokenCodeHash: contracts.find((c) => c.name === 'vTokenCodeHash')!.codeHash!,
     balanceViewer,
+    api: api,
   };
 };
 
@@ -218,7 +219,7 @@ export async function storeTimestamp() {
   if (!process.env.PWD) throw 'could not determine pwd';
   const timestampBackupLocation = path.join(process.env.PWD, 'test-chain-timestamp');
 
-  const api = await apiProviderWrapper.getAndWaitForReady();
+  const api = await apiProviderWrapper.getAndWaitForReady(false);
   const timestamp = await api.query.timestamp.now();
   if (process.env.DEBUG) console.log(`storing timestamp to: ${timestamp}`);
   fs.writeFileSync(timestampBackupLocation, timestamp.toString());
@@ -232,11 +233,12 @@ export async function restoreTimestamp(): Promise<void> {
     if (fs.existsSync(timestampBackupLocation)) {
       storedValue = parseInt(fs.readFileSync(timestampBackupLocation, 'utf-8'), 10);
     }
+    const api = await apiProviderWrapper.getAndWaitForReady(false);
     if (typeof storedValue === 'number') {
-      await setBlockTimestamp(storedValue);
+      await time.setTo(storedValue, api);
     } else {
       // used to push fake_timestamp equal to current timestamp
-      await increaseBlockTimestamp(0);
+      await time.setTo(Date.now(), api);
     }
   } catch (error) {
     console.error('Error reading file:', error);

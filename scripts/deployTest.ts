@@ -1,10 +1,10 @@
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import path from 'path';
-import { getArgvObj } from '@abaxfinance/utils';
+import { getArgvObj } from 'wookashwackomytest-utils';
 import chalk from 'chalk';
 import { apiProviderWrapper } from 'tests/setup/helpers';
-import { increaseBlockTimestamp, transferNoop } from 'tests/scenarios/utils/misc';
 import { storeTimestamp } from 'tests/setup/nodePersistence';
+import { time } from 'wookashwackomytest-polkahat-network-helpers';
 
 (async (args: Record<string, string>) => {
   if (require.main !== module) return;
@@ -13,10 +13,8 @@ import { storeTimestamp } from 'tests/setup/nodePersistence';
   const api = await apiProviderWrapper.getAndWaitForReady();
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.json');
 
-  // to force mining first block and initializeing timestamp
-  await transferNoop();
   // to force using fake_time
-  await increaseBlockTimestamp(0);
+  await time.setTo(Date.now(), api);
   await deployAndConfigureSystem({}, deployPath);
   await storeTimestamp();
   api.disconnect();

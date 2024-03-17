@@ -1,6 +1,6 @@
 use abax_traits::lending_pool::{EmitDepositEvents, LendingPoolError};
 use ink::prelude::vec::Vec;
-use pendzl::traits::{AccountId, Balance, Storage};
+use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use super::{
     internal::{
@@ -12,7 +12,7 @@ use super::{
 };
 
 pub trait LendingPoolDepositImpl:
-    Storage<LendingPoolStorage> + Transfer + EmitDepositEvents
+    StorageFieldGetter<LendingPoolStorage> + Transfer + EmitDepositEvents
 {
     fn deposit(
         &mut self,
