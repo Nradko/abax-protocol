@@ -1,7 +1,6 @@
-import { LendingPoolErrorBuilder, replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
+import { LendingPoolErrorBuilder } from 'wookashwackomytest-contract-helpers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import { increaseBlockTimestamp } from 'tests/scenarios/utils/misc';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
 import StableToken from 'typechain/contracts/stable_token';
 import { Transfer } from 'typechain/event-types/a_token';
@@ -10,6 +9,8 @@ import { ONE_YEAR } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { TestEnv, TestEnvReserves, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
+import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { time } from 'wookashwackomytest-polkahat-network-helpers';
 
 makeSuite('AbaxStableToken', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -53,7 +54,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
       const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
       const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
 
-      expect.soft(replaceNumericPropsWithStrings(reserveData)).to.deep.equal({
+      expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
         activated: true,
         freezed: false,
         currentDebtRateE18: '350000',
@@ -61,14 +62,14 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         totalDebt: '10000000000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
         totalDeposit: '0',
       });
-      expect.soft(replaceNumericPropsWithStrings(userReserveData)).to.deep.equal({
+      expect.soft(stringifyNumericProps(userReserveData)).to.deep.equal({
         appliedDebtIndexE18: '1000000000000000000', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
         appliedDepositIndexE18: '1000000000000000000',
         debt: '10000000000', // same as totalDebt above +1
         deposit: '0',
       });
 
-      expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
+      expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
         {
           name: 'BorrowVariable',
           args: {
@@ -79,7 +80,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           },
         },
       ]);
-      expect.soft(replaceNumericPropsWithStrings(capturedTransferEvents)).to.deep.equal([
+      expect.soft(stringifyNumericProps(capturedTransferEvents)).to.deep.equal([
         {
           from: null,
           to: alice.address,
@@ -99,12 +100,12 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
       const initialUsdaxDebt: BN = new BN(10_000 * 1_000_000);
       let timestamp: number;
       beforeEach('Alice takes loan', async () => {
-        const timestampBeforeBorrow = await increaseBlockTimestamp(0);
+        const timestampBeforeBorrow = await time.increase(0);
         console.log('timestamp before Borrow:', timestampBeforeBorrow);
         await lendingPool.withSigner(alice).tx.borrow(usdaxContract.address, alice.address, initialUsdaxDebt, []);
-        const timestampAfterBorrow = await increaseBlockTimestamp(0);
+        const timestampAfterBorrow = await time.increase(0);
         console.log('timestamp after Borrow:', timestampAfterBorrow);
-        timestamp = await increaseBlockTimestamp(ONE_YEAR.toNumber());
+        timestamp = await time.increase(ONE_YEAR.toNumber());
         console.log('timestamp after Borrow and increase:', timestamp);
       });
 
@@ -114,17 +115,17 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           capturedTransferEvents.push(event);
         });
         const query = await lendingPool.withSigner(alice).query.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
-        const timestampBeforeRepay = await increaseBlockTimestamp(0);
+        const timestampBeforeRepay = await time.increase(0);
         console.log('timestamp before Repay:', timestampBeforeRepay);
         const tx = lendingPool.withSigner(alice).tx.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
         await expect(tx).to.eventually.be.fulfilled;
         const txRes = await tx;
-        const timestampAfterRepay = await increaseBlockTimestamp(0);
+        const timestampAfterRepay = await time.increase(0);
         console.log('timestamp before Repay:', timestampAfterRepay);
         const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
         const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
 
-        expect.soft(replaceNumericPropsWithStrings(reserveData)).to.deep.equal({
+        expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
           activated: true,
           freezed: false,
           currentDebtRateE18: '350000',
@@ -132,13 +133,13 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           totalDebt: '110376001', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10 + 1  [[curent_debt_rate * time] * debt]
           totalDeposit: '0',
         });
-        expect.soft(replaceNumericPropsWithStrings(userReserveData)).to.deep.equal({
+        expect.soft(stringifyNumericProps(userReserveData)).to.deep.equal({
           appliedDebtIndexE18: '1011037600000000001', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
           appliedDepositIndexE18: '1000000000000000000',
           debt: '110376001', // same as totalDebt above
           deposit: '0',
         });
-        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
             name: 'RepayVariable',
             args: {
@@ -149,7 +150,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
             },
           },
         ]);
-        expect.soft(replaceNumericPropsWithStrings(capturedTransferEvents)).to.deep.equal([
+        expect.soft(stringifyNumericProps(capturedTransferEvents)).to.deep.equal([
           {
             from: alice.address,
             to: null,

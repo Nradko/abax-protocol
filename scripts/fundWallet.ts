@@ -1,10 +1,9 @@
 import { convertToCurrencyDecimals } from 'tests/scenarios/utils/actions';
-import path from 'path';
-import { getArgvObj } from '@abaxfinance/utils';
+import { getArgvObj } from 'wookashwackomytest-utils';
 import chalk from 'chalk';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
-import { toE12, toE6 } from '@abaxfinance/utils';
 import { readContractsFromFile } from 'tests/setup/nodePersistence';
+import { toE } from 'wookashwackomytest-polkahat-network-helpers';
 
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;
@@ -15,7 +14,7 @@ import { readContractsFromFile } from 'tests/setup/nodePersistence';
   const signers = getSigners();
   await new Promise((resolve, reject) => {
     api.tx.balances
-      .transferKeepAlive(address, toE12(amount))
+      .transferKeepAlive(address, toE(12, amount))
       .signAndSend(signers[2], ({ status }) => {
         if (status.isInBlock) {
           console.log(`Completed at block hash #${status.asInBlock.toString()}`);

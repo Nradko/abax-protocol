@@ -1,6 +1,5 @@
 import { TestEnv } from './make-suite';
 import { mint, approve, deposit, borrow, redeem, repay, setUseAsCollateral, increaseAllowance } from './actions';
-import { RateMode } from 'tests/consts';
 import { KeyringPair } from '@polkadot/keyring/types';
 
 export interface Action {
@@ -40,7 +39,6 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
 
   const onBehalfOf = onBehalfOfIndex ? users[parseInt(onBehalfOfIndex)] : user;
   if (!onBehalfOf) throw `User of index ${onBehalfOfIndex} does not exist!`;
-  const rateMode = getRateMode(borrowRateMode);
   switch (name) {
     case 'mint': {
       const { amount } = action.args;
@@ -78,13 +76,13 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
       }
       break;
     case 'borrow': {
-      const { amount, timeTravel } = action.args;
+      const { amount } = action.args;
 
       if (!amount || amount === '') {
         throw `Invalid amount to borrow from the ${reserve} reserve`;
       }
 
-      await borrow(reserve, amount, rateMode, user, onBehalfOf, timeTravel, expected, testEnv, revertMessage);
+      await borrow(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
       break;
     }
     case 'repay': {
@@ -94,7 +92,7 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
         throw `Invalid amount to repay into the ${reserve} reserve`;
       }
 
-      await repay(reserve, amount, rateMode, user, onBehalfOf, expected, testEnv, revertMessage);
+      await repay(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
       break;
     }
 
@@ -132,20 +130,3 @@ const ensureNotEmpty = (name: string, reserve: any, userIndex: any, expected: st
     throw `An expected resut for action ${name} is required`;
   }
 };
-function getRateMode(borrowRateMode: string | undefined) {
-  let rateMode = RateMode.None;
-
-  if (borrowRateMode) {
-    if (borrowRateMode === 'none') {
-      rateMode = RateMode.None;
-    } else if (borrowRateMode === 'stable') {
-      rateMode = RateMode.Stable;
-    } else if (borrowRateMode === 'variable') {
-      rateMode = RateMode.Variable;
-    } else {
-      //random value, to test improper selection of the parameter
-      rateMode = '4' as RateMode;
-    }
-  }
-  return rateMode;
-}

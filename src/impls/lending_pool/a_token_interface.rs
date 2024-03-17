@@ -5,13 +5,13 @@ use abax_traits::{
 use ink::prelude::*;
 use pendzl::{
     contracts::access::access_control::AccessControlError,
-    traits::{AccountId, Balance, Storage},
+    traits::{AccountId, Balance, StorageFieldGetter},
 };
 
 use super::{internal::AssetPrices, storage::LendingPoolStorage};
 
 pub trait LendingPoolATokenInterfaceImpl:
-    Storage<LendingPoolStorage> + EmitDepositEvents
+    StorageFieldGetter<LendingPoolStorage> + EmitDepositEvents
 {
     fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = Self::env().block_timestamp();

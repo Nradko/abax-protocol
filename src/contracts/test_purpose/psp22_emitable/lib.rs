@@ -9,7 +9,7 @@ pub mod psp22_emitable {
     use ink::prelude::string::String;
 
     #[ink(storage)]
-    #[derive(Default, pendzl::traits::Storage)]
+    #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct PSP22EmitableContract {
         #[storage_field]
         psp22: psp22::implementation::PSP22Data,

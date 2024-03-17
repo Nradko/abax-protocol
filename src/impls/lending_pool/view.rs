@@ -8,7 +8,7 @@ use abax_library::{
 use abax_traits::lending_pool::{
     DecimalMultiplier, InterestRateModel, MarketRule, RuleId,
 };
-use pendzl::traits::{AccountId, Storage};
+use pendzl::traits::{AccountId, StorageFieldGetter};
 
 use ink::prelude::vec::Vec;
 
@@ -17,7 +17,7 @@ use super::{
     storage::LendingPoolStorage,
 };
 
-pub trait LendingPoolViewImpl: Storage<LendingPoolStorage> {
+pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
     fn view_flash_loan_fee_e6(&self) -> u128 {
         self.data::<LendingPoolStorage>()
             .flash_loan_fee_e6

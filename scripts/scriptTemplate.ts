@@ -1,4 +1,4 @@
-import { getArgvObj } from '@abaxfinance/utils';
+import { getArgvObj } from 'wookashwackomytest-utils';
 import chalk from 'chalk';
 
 import { blake2AsHex, blake2AsU8a } from '@polkadot/util-crypto';

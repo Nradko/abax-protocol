@@ -1,7 +1,6 @@
-import { getArgvObj } from '@abaxfinance/utils';
+import { getArgvObj } from 'wookashwackomytest-utils';
 import { ApiPromise } from '@polkadot/api';
 import chalk from 'chalk';
-import { deployDiaOracle } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
 
 export async function getLatestBlockNumber(api: ApiPromise) {

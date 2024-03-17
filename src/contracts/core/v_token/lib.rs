@@ -18,7 +18,7 @@ pub mod v_token {
     use pendzl::contracts::token::psp22::{self, PSP22Error};
 
     #[ink(storage)]
-    #[derive(Default, pendzl::traits::Storage)]
+    #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct VToken {
         #[storage_field]
         psp22: psp22::implementation::PSP22Data,

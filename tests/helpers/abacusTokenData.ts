@@ -3,7 +3,7 @@ import ATokenContract from 'typechain/contracts/a_token';
 import VTokenContract from 'typechain/contracts/v_token';
 import { KeyringPair } from '@polkadot/keyring/types';
 import LendingPoolContract from 'typechain/contracts/lending_pool';
-import { getContractObject } from '@abaxfinance/contract-helpers';
+import { getContractObject } from 'wookashwackomytest-contract-helpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 
 type PSP22Metadata = {

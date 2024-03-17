@@ -1,9 +1,9 @@
-import { LendingPool, getContractObject } from '@abaxfinance/contract-helpers';
-import { getArgvObj } from '@abaxfinance/utils';
+import { LendingPool, getContractObject } from 'wookashwackomytest-contract-helpers';
+import { getArgvObj } from 'wookashwackomytest-utils';
 import Keyring from '@polkadot/keyring';
-import { deployWithLog } from 'tests/setup/deploymentHelpers';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import chalk from 'chalk';
+import LendingPoolDeployer from 'typechain/deployers/lending_pool';
 
 const CONTRACT_ADDR = '5CaYwwWqGqVEDSYVmMi7qhV9T3kLQmKeF5VGxiz6jt4sZrPE';
 const COTNRACT_CONSTRUCTOR = LendingPool;
@@ -19,9 +19,9 @@ const COTNRACT_CONSTRUCTOR = LendingPool;
   //code
 
   const existingContract = getContractObject(COTNRACT_CONSTRUCTOR, CONTRACT_ADDR, signer, api);
-  const dummyDeploy = await deployWithLog(signer, COTNRACT_CONSTRUCTOR, 'lending_pool');
+  const dummyDeploy = await new LendingPoolDeployer(api, signer).new();
   console.log('query contract info');
-  const { codeHash } = (await api.query.contracts.contractInfoOf(dummyDeploy.address)).toHuman() as { codeHash: string };
+  const { codeHash } = (await api.query.contracts.contractInfoOf(dummyDeploy.contract.address)).toHuman() as { codeHash: string };
   console.log('code hash', codeHash.toString());
   console.log('query set code');
   const queryRes = await existingContract.query.setCode(codeHash as any);

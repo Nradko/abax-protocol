@@ -5,7 +5,7 @@ authors = [""]
 edition = "2021"
 
 [dependencies]
-ink = { version = "5.0.0-rc", default-features = false }
+ink = { version = "5.0.0", default-features = false }
 scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = [
     "derive",
 ] }
@@ -13,7 +13,7 @@ scale-info = { version = "2.7", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { path = "../../../../../simple_pendzl", default-features = false, features = [
+pendzl = { version = "0.2.0-alpha",  default-features = false, features = [
 ] }
 
 abax_traits = { path = "../../../traits", default-features = false }

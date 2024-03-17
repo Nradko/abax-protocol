@@ -18,7 +18,7 @@ pub mod stable_token {
     use pendzl::contracts::token::psp22::PSP22Error;
 
     #[ink(storage)]
-    #[derive(Default, pendzl::traits::Storage)]
+    #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct StableToken {
         #[storage_field]
         access: access_control::implementation::AccessControlData,
@@ -46,11 +46,11 @@ pub mod stable_token {
     #[overrider(PSP22Mintable)]
     pub fn mint(
         &mut self,
-        from: AccountId,
+        to: AccountId,
         amount: Balance,
     ) -> Result<(), PSP22Error> {
         self._ensure_has_role(MINTER, Some(self.env().caller()))?;
-        psp22::PSP22Internal::_mint_to(self, &from, &amount)
+        psp22::PSP22Internal::_mint_to(self, &to, &amount)
     }
 
     #[overrider(PSP22Burnable)]

@@ -40,7 +40,7 @@ pub mod lending_pool {
     use pendzl::{contracts::access::access_control, traits::String};
     /// storage of the contract
     #[ink(storage)]
-    #[derive(Default, pendzl::traits::Storage)]
+    #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct LendingPool {
         #[storage_field]
         access: access_control::implementation::AccessControlData,

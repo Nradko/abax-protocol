@@ -1,15 +1,14 @@
-import { SignAndSendSuccessResponse } from 'wookashwackomytest-typechain-types';
-import { parseAmountToBN } from '@abaxfinance/utils';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import chalk from 'chalk';
-import { isNil, maxBy } from 'lodash';
-import { LendingToken, MAX_U128, ONE_YEAR, RateMode } from 'tests/consts';
+import { isNil } from 'lodash';
+import { LendingToken, MAX_U128 } from 'tests/consts';
 import { expect } from 'tests/setup/chai';
 import { apiProviderWrapper } from 'tests/setup/helpers';
-import { PSP22Metadata } from 'tests/types/PSP22Metadata';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
+import { SignAndSendSuccessResponse } from 'wookashwackomytest-typechain-types';
+import { parseAmountToBN } from 'wookashwackomytest-utils';
 import AToken from '../../../typechain/contracts/a_token';
 import LendingPool from '../../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
@@ -25,18 +24,11 @@ import {
   checkRepayVariable,
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
-import { increaseBlockTimestamp, subscribeOnEvents, transferNoop } from './misc';
-import { ValidateEventParameters } from './validateEvents';
 
 export const convertToCurrencyDecimals = async (token: any, amount: BN | number | string) => {
   const decimals = (await token.query.tokenDecimals()).value.ok!;
   const { amountParsed, amountParsedDecimals } = BN.isBN(amount) ? { amountParsed: amount, amountParsedDecimals: 0 } : parseAmountToBN(amount);
   return amountParsed.mul(new BN(Math.pow(10, decimals - amountParsedDecimals).toString()));
-};
-
-export const convertFromCurrencyDecimals = async <T extends PSP22Metadata>(token: T, amount: BN | number | string) => {
-  const { value: decimals } = await token.methods.tokenDecimals({});
-  return new BN(amount).div(new BN(Math.pow(10, decimals).toString()));
 };
 
 export const mint = async (tokenContract: PSP22Emitable, amount: BN | number | string, user: KeyringPair) => {
@@ -107,27 +99,6 @@ export const runAndRetrieveTxCost = async (sender: KeyringPair, transaction: () 
   const realCost = BigInt((balancePre.toJSON() as any).data.free) - BigInt((balanceAfter.toJSON() as any).data.free);
   return { txResult, txCost: realCost };
 };
-//Args<TMethod>
-
-// type LendingPoolTransactionKey = keyof lending_pool['tx'];
-// type LendingPoolTransaction<Key extends LendingPoolTransactionKey> = lending_pool['tx'][Key];
-// export const trrt = async <TMethod extends LendingPoolTransactionKey>(
-//   sender: KeyringPair,
-//   contract: lending_pool,
-//   method: TMethod,
-//   args: Parameters<LendingPoolTransaction<TMethod>>,
-// ) => {
-//   const balancePre = await (getApi.get()).query.system.account(sender.address);
-//   if(args.length === 0){
-//     const queryResult1 = await contract.query[method](args);
-//   }
-
-//   const queryResult = await contract.query[method](args);
-//   const txResult = await contract.tx[method](args);
-//   const balanceAfter = await (getApi.get()).query.system.account(sender.address);
-//   const realCost = BigInt((balancePre.toJSON() as any).data.free) - BigInt((balanceAfter.toJSON() as any).data.free);
-//   return { txResult, txCost: realCost };
-// };
 
 export const deposit = async (
   reserveSymbol: string,
@@ -151,31 +122,10 @@ export const deposit = async (
       const { gasConsumed } = await lendingPool.withSigner(caller).query.deposit(...args);
     }
 
-    const capturedEvents: ValidateEventParameters[] = [];
-    const unsubscribePromises = await subscribeOnEvents(testEnv, reserveSymbol, (eventName, event, sourceContract, timestamp) => {
-      capturedEvents.push({ eventName, event, sourceContract, timestamp });
-    });
-
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.deposit(...args));
-    await transferNoop();
 
-    const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-    const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
     const parametersAfter = await getCheckDepositParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
-    checkDeposit(
-      lendingPool.address,
-      reserve,
-      caller.address,
-      onBehalfOf.address,
-      amountToDeposit,
-      parametersBefore,
-      parametersAfter,
-      eventsFromTxOnly,
-    );
-
-    unsubscribePromises.forEach((unsub) => {
-      return unsub();
-    });
+    await checkDeposit(lendingPool, reserve, caller.address, onBehalfOf.address, amountToDeposit, parametersBefore, parametersAfter, txResult);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.deposit(...args)).value.ok;
@@ -211,34 +161,12 @@ export const redeem = async (
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.redeem(...args);
     }
-    const capturedEvents: ValidateEventParameters[] = [];
-    const unsubscribePromises = await subscribeOnEvents(testEnv, reserveSymbol, (eventName, event, sourceContract, timestamp) => {
-      capturedEvents.push({ eventName, event, sourceContract, timestamp });
-    });
-    const qq = await lendingPool.withSigner(caller).query.redeem(...args);
+
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.redeem(...args));
-
-    await transferNoop();
-
-    const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-    const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
 
     const parametersAfter = await getCheckRedeemParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
 
-    checkRedeem(
-      lendingPool.address,
-      reserve,
-      caller.address,
-      onBehalfOf.address,
-      amountToWithdraw,
-      parametersBefore,
-      parametersAfter,
-      eventsFromTxOnly,
-    );
-
-    unsubscribePromises.forEach((unsub) => {
-      return unsub();
-    });
+    await checkRedeem(lendingPool, reserve, caller.address, onBehalfOf.address, amountToWithdraw, parametersBefore, parametersAfter, txResult);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.redeem(...args)).value.ok;
@@ -252,26 +180,8 @@ export const redeem = async (
 export const borrow = async (
   reserveSymbol: string,
   amount: string,
-  interestRateMode: string,
-  user: KeyringPair,
-  onBehalfOf: KeyringPair,
-  timeTravelInDays: string,
-  expectedResult: string,
-  testEnv: TestEnv,
-  expectedErrorName?: string,
-) => {
-  if (interestRateMode === RateMode.Variable) {
-    await borrowVariable(reserveSymbol, amount, user, onBehalfOf, timeTravelInDays, expectedResult, testEnv, expectedErrorName);
-  } else {
-    throw 'Stable rate not supported!';
-  }
-};
-export const borrowVariable = async (
-  reserveSymbol: string,
-  amount: string,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
-  timeTravelInDays: string,
   expectedResult: string,
   testEnv: TestEnv,
   expectedErrorName?: string,
@@ -288,38 +198,12 @@ export const borrowVariable = async (
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.borrow(...args);
     }
-    const capturedEvents: ValidateEventParameters[] = [];
-    const unsubscribePromises = await subscribeOnEvents(testEnv, reserveSymbol, (eventName, event, sourceContract, timestamp) => {
-      capturedEvents.push({ eventName, event, sourceContract, timestamp });
-    });
 
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.borrow(...args));
-    await transferNoop();
-
-    const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-    const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
-
-    if (timeTravelInDays) {
-      const secondsToTravel = new BN(timeTravelInDays).mul(ONE_YEAR).div(new BN(365)).toNumber();
-      await increaseBlockTimestamp(secondsToTravel);
-    }
 
     const parametersAfter = await getCheckBorrowVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
-    checkBorrowVariable(
-      lendingPool.address,
-      reserve,
-      caller.address,
-      onBehalfOf.address,
-      amountToBorrow,
-      parametersBefore,
-      parametersAfter,
-      eventsFromTxOnly,
-    );
-
-    unsubscribePromises.forEach((unsub) => {
-      return unsub();
-    });
+    checkBorrowVariable(lendingPool, reserve, caller.address, onBehalfOf.address, amountToBorrow, parametersBefore, parametersAfter, txResult);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.borrow(...args)).value.ok;
@@ -331,23 +215,6 @@ export const borrowVariable = async (
 };
 
 export const repay = async (
-  reserveSymbol: string,
-  amount: string,
-  rateMode: string,
-  user: KeyringPair,
-  onBehalfOf: KeyringPair,
-  expectedResult: string,
-  testEnv: TestEnv,
-  expectedErrorName?: string,
-) => {
-  if (rateMode === RateMode.Variable) {
-    await repayVariable(reserveSymbol, amount, user, onBehalfOf, expectedResult, testEnv, expectedErrorName);
-  } else {
-    throw 'Stable rate not supported!';
-  }
-};
-
-export const repayVariable = async (
   reserveSymbol: string,
   amount: string,
   caller: KeyringPair,
@@ -371,34 +238,12 @@ export const repayVariable = async (
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.repay(...args);
     }
-    const capturedEvents: ValidateEventParameters[] = [];
-    const unsubscribePromises = await subscribeOnEvents(testEnv, reserveSymbol, (eventName, event, sourceContract, timestamp) => {
-      capturedEvents.push({ eventName, event, sourceContract, timestamp });
-    });
 
-    const qq = await lendingPool.withSigner(caller).query.repay(...args);
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.repay(...args));
-    await transferNoop();
-
-    const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-    const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
 
     const parametersAfter = await getCheckRepayVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
-    checkRepayVariable(
-      lendingPool.address,
-      reserve,
-      caller.address,
-      onBehalfOf.address,
-      amountToRepay,
-      parametersBefore,
-      parametersAfter,
-      eventsFromTxOnly,
-    );
-
-    unsubscribePromises.forEach((unsub) => {
-      return unsub();
-    });
+    checkRepayVariable(lendingPool, reserve, caller.address, onBehalfOf.address, amountToRepay, parametersBefore, parametersAfter, txResult);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.repay(...args)).value.ok;
@@ -440,7 +285,7 @@ export const setUseAsCollateral = async (
 
     const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool);
 
-    if (userConfigBefore.collaterals.rawNumber !== userConfigAfter.collaterals.rawNumber) {
+    if (userConfigBefore.collaterals !== userConfigAfter.collaterals) {
       expect(txResult.events).to.deep.equal([
         {
           args: {

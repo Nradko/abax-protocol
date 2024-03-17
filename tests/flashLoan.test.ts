@@ -1,18 +1,17 @@
 import { KeyringPair } from '@polkadot/keyring/types';
-import BN from 'bn.js';
-import { makeSuite, TestEnv, TokenReserve } from './scenarios/utils/make-suite';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
-import { deployFlashLoanReceiverMock } from './setup/deploymentHelpers';
-import { expect } from './setup/chai';
+import FlashLoanReceiverMockDeployer from 'typechain/deployers/flash_loan_receiver_mock';
 import { FlashLoanReceiverError, LendingPoolErrorBuilder, PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool';
-import { E18, E6 } from '@abaxfinance/utils';
-import { ROLES } from './consts';
+import { E18bn, E6bn } from 'wookashwackomytest-polkahat-network-helpers';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
+import { ROLES } from './consts';
+import { TestEnv, TokenReserve, makeSuite } from './scenarios/utils/make-suite';
+import { expect } from './setup/chai';
 
 const FLASH_BORROWER = ROLES['FLASH_BORROWER'];
 
 makeSuite('Flash Loan', (getTestEnv) => {
-  const amountWETHToDeposit = new BN((10 * E18).toString());
+  const amountWETHToDeposit = E18bn.muln(10);
   let testEnv: TestEnv;
   let depositor: KeyringPair;
   let reserveWETH: TokenReserve;
@@ -23,7 +22,7 @@ makeSuite('Flash Loan', (getTestEnv) => {
     depositor = testEnv.users[0];
     reserveWETH = testEnv.reserves['WETH'];
     lendingPool = testEnv.lendingPool;
-    flashLoanReceiver = await deployFlashLoanReceiverMock(depositor);
+    flashLoanReceiver = (await new FlashLoanReceiverMockDeployer(testEnv.api, depositor).new()).contract;
     await reserveWETH.underlying.tx.mint(depositor.address, amountWETHToDeposit);
     await reserveWETH.underlying.withSigner(depositor).tx.approve(lendingPool.address, amountWETHToDeposit);
     await lendingPool.withSigner(depositor).tx.deposit(reserveWETH.underlying.address, depositor.address, amountWETHToDeposit, []);
@@ -44,8 +43,8 @@ makeSuite('Flash Loan', (getTestEnv) => {
     await lendingPool.tx.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []);
     const wethPoolBalance2 = await testEnv.reserves['WETH'].underlying.query.balanceOf(lendingPool.address);
 
-    const diff1 = wethPoolBalance1.value.unwrap().rawNumber.sub(wethPoolBalance0.value.unwrap().rawNumber);
-    const diff2 = wethPoolBalance2.value.unwrap().rawNumber.sub(wethPoolBalance1.value.unwrap().rawNumber);
+    const diff1 = wethPoolBalance1.value.unwrap().sub(wethPoolBalance0.value.unwrap());
+    const diff2 = wethPoolBalance2.value.unwrap().sub(wethPoolBalance1.value.unwrap());
     expect(diff1.toString()).to.equal(amountToBorrow.divn(1000).toString());
     expect(diff2.toString()).to.equal(amountToBorrow.divn(10000).toString());
   });
@@ -77,7 +76,7 @@ makeSuite('Flash Loan', (getTestEnv) => {
       .rejected;
   });
   it('Takes WETH flashloan - the amount is bigger than the available liquidity', async () => {
-    const amountToBorrow = amountWETHToDeposit.addn(E6);
+    const amountToBorrow = amountWETHToDeposit.add(E6bn);
     const res = (await lendingPool.query.flashLoan(testEnv.users[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).value.ok;
     await expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.PSP22Error(PSP22ErrorBuilder.InsufficientBalance()));
   });

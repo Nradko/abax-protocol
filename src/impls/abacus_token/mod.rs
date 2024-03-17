@@ -7,12 +7,14 @@ use ink::{
 };
 use pendzl::{
     contracts::token::psp22::{PSP22Error, PSP22Internal, Transfer},
-    traits::{Balance, Storage},
+    traits::{Balance, StorageFieldGetter},
 };
 
 use self::storage::AbacusTokenStorage;
 
-pub trait AbacusTokenImpl: Storage<AbacusTokenStorage> + PSP22Internal {
+pub trait AbacusTokenImpl:
+    StorageFieldGetter<AbacusTokenStorage> + PSP22Internal
+{
     fn emit_transfer_events(
         &mut self,
         events: Vec<TransferEventData>,

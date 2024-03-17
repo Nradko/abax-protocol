@@ -4,7 +4,7 @@ use abax_traits::{
 };
 use pendzl::{
     contracts::access::access_control::AccessControlError,
-    traits::{AccountId, Balance, Storage},
+    traits::{AccountId, Balance, StorageFieldGetter},
 };
 
 use ink::prelude::*;
@@ -12,7 +12,7 @@ use ink::prelude::*;
 use super::{internal::AssetPrices, storage::LendingPoolStorage};
 
 pub trait LendingPoolVTokenInterfaceImpl:
-    Storage<LendingPoolStorage> + EmitBorrowEvents
+    StorageFieldGetter<LendingPoolStorage> + EmitBorrowEvents
 {
     fn total_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = Self::env().block_timestamp();

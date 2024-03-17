@@ -5,8 +5,8 @@ import path from 'path';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { StoredContractInfo } from 'tests/setup/nodePersistence';
 import LendingPool from 'typechain/contracts/lending_pool';
-import { getArgvObj } from '@abaxfinance/utils';
-import { getContractObject } from '@abaxfinance/contract-helpers';
+import { getArgvObj } from 'wookashwackomytest-utils';
+import { getContractObject } from 'wookashwackomytest-contract-helpers';
 
 const RESERVE_TOKEN_ADDRESSES: string[] = [
   '5CRTAHVoub9SZDQXvaaHH8xT1ScYyUvKGPoEo8vTnzv6KWAs',

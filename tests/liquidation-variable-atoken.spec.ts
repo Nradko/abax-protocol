@@ -1,5 +1,4 @@
-import { replaceNumericPropsWithStrings } from '@abaxfinance/contract-helpers';
-import { E18 } from '@abaxfinance/utils';
+import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
@@ -10,6 +9,9 @@ import { toE18String } from './helpers/converters';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
+import { E18bn, toE } from 'wookashwackomytest-polkahat-network-helpers';
+
+const E18 = parseInt(toE(18, 1).toString()); //TODO
 
 makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -161,12 +163,12 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
         expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
-        expect.soft(borrowersDAIDataBefore.debt.rawNumber.gtn(0)).to.be.true;
-        expect.soft(liquidatorsWETHDataAfter.deposit.rawNumber.gt(new BN((0.8 * E18).toString()))).to.be.true;
-        expect.soft(borrowersWETHDataAfter.deposit.rawNumber.lt(new BN((0.2 * E18).toString()))).to.be.true;
+        expect.soft(borrowersDAIDataBefore.debt.gtn(0)).to.be.true;
+        expect.soft(liquidatorsWETHDataAfter.deposit.gt(E18bn.muln(8).divn(10))).to.be.true;
+        expect.soft(borrowersWETHDataAfter.deposit.lt(E18bn.muln(8).divn(10))).to.be.true;
         expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');
         expect.soft(daiReserveDataAfter.totalDeposit.toString()).to.equal(daiReserveDataBefore.totalDeposit.toString());
-        expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
+        expect.soft(lendingPoolDAIBalanceAfter.gt(lendingPoolDAIBalanceBefore)).to.be.true;
         expect.flushSoft();
       });
     });
@@ -303,19 +305,19 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
         expect
           .soft(
-            liquidatorsWETHDataAfter.deposit.rawNumber.toString(),
+            liquidatorsWETHDataAfter.deposit.toString(),
             'liquidator received the exactly the minimal amount he provided as it was the maximal minimal amount he could provide',
           )
           .to.equal((0.87109375 * E18).toString());
         expect
-          .soft(borrowersWETHDataAfter.deposit.rawNumber.toString(), 'liquidated user supply is decreased by what the liquidator have received')
+          .soft(borrowersWETHDataAfter.deposit.toString(), 'liquidated user supply is decreased by what the liquidator have received')
           .to.equal(((1 - 0.87109375) * E18).toString());
         expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');
         expect.soft(daiReserveDataAfter.totalDeposit.toString()).to.equal(daiReserveDataBefore.totalDeposit.toString());
-        expect.soft(lendingPoolDAIBalanceAfter.rawNumber.gt(lendingPoolDAIBalanceBefore.rawNumber)).to.be.true;
+        expect.soft(lendingPoolDAIBalanceAfter.gt(lendingPoolDAIBalanceBefore)).to.be.true;
 
         const txRes = await tx;
-        expect.soft(replaceNumericPropsWithStrings(txRes.events)).to.deep.equal([
+        expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
             name: 'Liquidation',
             args: {

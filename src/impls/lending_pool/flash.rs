@@ -13,7 +13,7 @@ use ink::{
 
 use pendzl::{
     contracts::access::access_control,
-    traits::{AccountId, Balance, Storage},
+    traits::{AccountId, Balance, StorageFieldGetter},
 };
 
 use super::{
@@ -22,7 +22,7 @@ use super::{
 };
 
 pub trait LendingPoolFlashImpl:
-    Storage<LendingPoolStorage>
+    StorageFieldGetter<LendingPoolStorage>
     + EmitFlashEvents
     + access_control::AccessControlInternal
 {
@@ -60,7 +60,7 @@ pub trait LendingPoolFlashImpl:
 
         build_call::<DefaultEnvironment>()
             .call(receiver)
-            .call_flags(CallFlags::default().set_allow_reentry(true))
+            .call_flags(CallFlags::ALLOW_REENTRY)
             .exec_input(
                 ExecutionInput::new(ink::env::call::Selector::new(
                     ink::selector_bytes!(

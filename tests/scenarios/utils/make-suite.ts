@@ -1,7 +1,7 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 import { ChildProcess } from 'child_process';
 import { apiProviderWrapper } from 'tests/setup/helpers';
-import { readContractsFromFile, restartAndRestoreNodeState, sleep, storeTimestamp } from 'tests/setup/nodePersistence';
+import { readContractsFromFile, restartAndRestoreNodeState, storeTimestamp } from 'tests/setup/nodePersistence';
 import ATokenContract from '../../../typechain/contracts/a_token';
 import BalanceViewer from '../../../typechain/contracts/balance_viewer';
 import DiaOracleContract from '../../../typechain/contracts/dia_oracle';
@@ -10,6 +10,7 @@ import PriceFeedProvider from '../../../typechain/contracts/price_feed_provider'
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
 import StableToken from '../../../typechain/contracts/stable_token';
 import VTokenContract from '../../../typechain/contracts/v_token';
+import { ApiPromise } from '@polkadot/api';
 
 export type TokenReserve = {
   underlying: PSP22Emitable;
@@ -38,6 +39,7 @@ export interface TestEnv {
   aTokenCodeHash: string;
   vTokenCodeHash: string;
   balanceViewer: BalanceViewer;
+  api: ApiPromise;
 }
 
 function makeSuiteInternal(

@@ -1,6 +1,5 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import { maxBy } from 'lodash';
 import { AccessControlError } from 'typechain/types-arguments/lending_pool';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
@@ -9,9 +8,8 @@ import { MAX_U128 } from './consts';
 import { getCheckRedeemParameters } from './scenarios/utils/actions';
 import { checkRedeem } from './scenarios/utils/comparisons';
 import { TestEnv, TokenReserve, makeSuite } from './scenarios/utils/make-suite';
-import { increaseBlockTimestamp, subscribeOnEvents } from './scenarios/utils/misc';
-import { ValidateEventParameters } from './scenarios/utils/validateEvents';
 import { expect } from './setup/chai';
+import { time } from 'wookashwackomytest-polkahat-network-helpers';
 
 makeSuite('Unit Message', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -77,8 +75,8 @@ makeSuite('Unit Message', (getTestEnv) => {
         //Assert
         const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
         const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
-        expect(userReserveDataAfter.deposit.rawNumber.toString()).to.be.equal('0');
-        expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
+        expect(userReserveDataAfter.deposit.toString()).to.be.equal('0');
+        expect(userBalanceAfter.toString()).to.be.equal(mintedAmount.toString());
       });
 
       it('Some interest accumulation when reddeming at the later time', async () => {
@@ -88,14 +86,14 @@ makeSuite('Unit Message', (getTestEnv) => {
         await lendingPool.withSigner(testUser).tx.deposit(reserve.underlying.address, testUser.address, depositAmount, []);
         const DAY = 24 * 60 * 60 * 1000;
         //Act
-        await increaseBlockTimestamp(DAY);
+        await time.increase(DAY);
         await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
         const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
         const userBalanceAfter = (await reserve.underlying.query.balanceOf(testUser.address)).value.ok!;
-        expect(userReserveDataAfter.deposit.rawNumber.toNumber()).to.be.greaterThan(0);
-        expect(userBalanceAfter.rawNumber.toString()).to.be.equal(mintedAmount.toString());
+        expect(userReserveDataAfter.deposit.toNumber()).to.be.greaterThan(0);
+        expect(userBalanceAfter.toString()).to.be.equal(mintedAmount.toString());
       });
 
       it('Exact interest accumulation when reddeming at the later time | withdrawing deposited amount', async () => {
@@ -112,22 +110,9 @@ makeSuite('Unit Message', (getTestEnv) => {
           testUser,
         );
         //Act
-        await increaseBlockTimestamp(DAY);
+        await time.increase(DAY);
 
-        const capturedEvents: ValidateEventParameters[] = [];
-        const unsubscribePromises = await subscribeOnEvents(testEnv, 'DAI', (eventName, event, sourceContract, timestamp) => {
-          capturedEvents.push({
-            eventName,
-            event,
-            sourceContract,
-            timestamp,
-          });
-        });
-
-        await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
-
-        const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-        const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
+        const tx = await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
         const redeemParametersAfter = await getCheckRedeemParameters(
@@ -138,19 +123,7 @@ makeSuite('Unit Message', (getTestEnv) => {
           testUser,
         );
 
-        checkRedeem(
-          lendingPool.address,
-          reserve,
-          testUser.address,
-          testUser.address,
-          depositAmount,
-          redeemParametersBefore,
-          redeemParametersAfter,
-          eventsFromTxOnly,
-        );
-        unsubscribePromises.forEach((unsub) => {
-          return unsub();
-        });
+        await checkRedeem(lendingPool, reserve, testUser.address, testUser.address, depositAmount, redeemParametersBefore, redeemParametersAfter, tx);
       });
 
       it('Exact interest accumulation when reddeming at the later time | withdrawing ALL ', async () => {
@@ -167,22 +140,9 @@ makeSuite('Unit Message', (getTestEnv) => {
           testUser,
         );
         //Act
-        await increaseBlockTimestamp(DAY);
+        await time.increase(DAY);
 
-        const capturedEvents: ValidateEventParameters[] = [];
-        const unsubscribePromises = await subscribeOnEvents(testEnv, 'DAI', (eventName, event, sourceContract, timestamp) => {
-          capturedEvents.push({
-            eventName,
-            event,
-            sourceContract,
-            timestamp,
-          });
-        });
-
-        await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, MAX_U128, []);
-
-        const latestEventTimestamp = maxBy(capturedEvents, 'timestamp')?.timestamp;
-        const eventsFromTxOnly = capturedEvents.filter((e) => e.timestamp === latestEventTimestamp);
+        const tx = await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, MAX_U128, []);
 
         //Assert
         const redeemParametersAfter = await getCheckRedeemParameters(
@@ -193,19 +153,16 @@ makeSuite('Unit Message', (getTestEnv) => {
           testUser,
         );
 
-        checkRedeem(
-          lendingPool.address,
+        await checkRedeem(
+          lendingPool,
           reserve,
           testUser.address,
           testUser.address,
           new BN(MAX_U128),
           redeemParametersBefore,
           redeemParametersAfter,
-          eventsFromTxOnly,
+          tx,
         );
-        unsubscribePromises.forEach((unsub) => {
-          return unsub();
-        });
       });
     });
   });
