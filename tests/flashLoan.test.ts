@@ -1,7 +1,12 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 import FlashLoanReceiverMock from 'typechain/contracts/flash_loan_receiver_mock';
 import FlashLoanReceiverMockDeployer from 'typechain/deployers/flash_loan_receiver_mock';
-import { FlashLoanReceiverError, LendingPoolErrorBuilder, PSP22ErrorBuilder } from 'typechain/types-returns/lending_pool';
+import {
+  FlashLoanReceiverError,
+  FlashLoanReceiverErrorBuilder,
+  LendingPoolErrorBuilder,
+  PSP22ErrorBuilder,
+} from 'typechain/types-returns/lending_pool';
 import { E18bn, E6bn } from 'wookashwackomytest-polkahat-network-helpers';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { ROLES } from './consts';
@@ -54,8 +59,9 @@ makeSuite('Flash Loan', (getTestEnv) => {
     // set borrower to fail transaction
     await flashLoanReceiver.tx.setFailExecuteOperation(true);
 
-    const queryRes = (await lendingPool.query.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], [])).value.ok;
-    expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.FlashLoanReceiverError(FlashLoanReceiverError.executeOperationFailed));
+    await expect(
+      lendingPool.query.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []),
+    ).to.be.revertedWithError(LendingPoolErrorBuilder.FlashLoanReceiverError(FlashLoanReceiverErrorBuilder.ExecuteOperationFailed()));
   });
   it('tries to take a flashloan using a non contract address as receiver (revert expected)', async () => {
     const amountToBorrow = amountWETHToDeposit.divn(2);

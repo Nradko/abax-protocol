@@ -1,4 +1,6 @@
-use abax_traits::lending_pool::{EmitBorrowEvents, LendingPoolError, RuleId};
+use abax_traits::lending_pool::{
+    EmitBorrowEvents, LendingPoolError, MathError, RuleId,
+};
 use ink::prelude::vec::Vec;
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
@@ -104,7 +106,7 @@ pub trait LendingPoolBorrowImpl:
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&asset)
+            .get(asset)
             .unwrap();
         // ATOKEN
         _emit_abacus_token_transfer_event(
@@ -116,7 +118,9 @@ pub trait LendingPoolBorrowImpl:
         _emit_abacus_token_transfer_event_and_decrease_allowance(
             &abacus_tokens.v_token_address,
             &on_behalf_of,
-            (user_accumulated_debt_interest + amount) as i128,
+            (user_accumulated_debt_interest
+                .checked_add(amount)
+                .ok_or(MathError::Overflow)?) as i128,
             &(Self::env().caller()),
             amount,
         )?;
@@ -159,7 +163,7 @@ pub trait LendingPoolBorrowImpl:
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&asset)
+            .get(asset)
             .unwrap();
         // ATOKEN
         _emit_abacus_token_transfer_event(
@@ -171,7 +175,9 @@ pub trait LendingPoolBorrowImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.v_token_address,
             &on_behalf_of,
-            user_accumulated_debt_interest as i128 - amount as i128,
+            (user_accumulated_debt_interest as i128)
+                .overflowing_sub(amount as i128)
+                .0,
         )?;
         //// EVENT
         self._emit_repay_variable_event(

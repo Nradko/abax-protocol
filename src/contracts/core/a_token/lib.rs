@@ -13,19 +13,18 @@ pub mod a_token {
     use ink::codegen::Env;
     use ink::prelude::string::String;
 
-    use pendzl::contracts::token::psp22;
-    use pendzl::contracts::token::psp22::PSP22Error;
+    use pendzl::contracts::psp22;
+    use pendzl::contracts::psp22::PSP22Error;
 
     #[ink(storage)]
     #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct AToken {
         #[storage_field]
-        psp22: psp22::implementation::PSP22Data,
+        psp22: psp22::PSP22Data,
         #[storage_field]
         abacus_token: AbacusTokenStorage,
         #[storage_field]
-        metadata:
-            psp22::extensions::metadata::implementation::PSP22MetadataData,
+        metadata: psp22::metadata::PSP22MetadataData,
     }
 
     #[overrider(PSP22Internal)]
@@ -39,7 +38,7 @@ pub mod a_token {
     fn _allowance(&self, owner: &AccountId, spender: &AccountId) -> Balance {
         self.abacus_token
             .allowances
-            .get(&(*owner, *spender))
+            .get((*owner, *spender))
             .unwrap_or(0)
     }
     #[overrider(PSP22Internal)]
@@ -156,7 +155,7 @@ pub mod a_token {
             .ok_or(PSP22Error::InsufficientAllowance)?;
         self.abacus_token
             .allowances
-            .insert(&(*owner, *spender), &new_allowance);
+            .insert((*owner, *spender), &new_allowance);
         self.env().emit_event(psp22::Approval {
             owner: *owner,
             spender: *spender,
@@ -178,7 +177,7 @@ pub mod a_token {
             .ok_or(PSP22Error::Custom("Overflow".into()))?;
         self.abacus_token
             .allowances
-            .insert(&(*owner, *spender), &new_allowance);
+            .insert((*owner, *spender), &new_allowance);
         self.env().emit_event(psp22::Approval {
             owner: *owner,
             spender: *spender,

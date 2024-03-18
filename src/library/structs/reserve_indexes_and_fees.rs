@@ -70,7 +70,9 @@ impl ReserveIndexes {
         reserve_data: &ReserveData,
         timestamp: &Timestamp,
     ) -> Result<(), MathError> {
-        let delta_timestamp = timestamp - self.update_timestamp;
+        let delta_timestamp = timestamp
+            .checked_sub(self.update_timestamp)
+            .ok_or(MathError::Underflow)?;
         if delta_timestamp == 0 {
             return Ok(());
         }

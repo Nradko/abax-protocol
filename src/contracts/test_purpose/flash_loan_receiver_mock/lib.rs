@@ -8,10 +8,11 @@ pub mod flash_loan_receiver_mock {
     use ink::prelude::vec::Vec;
 
     use pendzl::{
-        contracts::token::psp22::{
-            extensions::mintable::{PSP22Mintable, PSP22MintableRef},
+        contracts::psp22::{
+            mintable::{PSP22Mintable, PSP22MintableRef},
             PSP22Ref, PSP22,
         },
+        math::errors::MathError,
         traits::StorageFieldGetter,
     };
 
@@ -74,9 +75,12 @@ pub mod flash_loan_receiver_mock {
                     }
                 }
 
-                let amount_to_return = self
-                    .custom_amount_to_approve
-                    .unwrap_or(amounts[i] + fees[i]);
+                let amount_to_return = match self.custom_amount_to_approve {
+                    Some(amount) => Ok(amount),
+                    None => amounts[i]
+                        .checked_add(fees[i])
+                        .ok_or(MathError::Overflow),
+                }?;
                 if {
                     let mut psp22: PSP22Ref = assets[i].into();
                     psp22.approve(self.env().caller(), amount_to_return)
@@ -98,14 +102,12 @@ pub mod flash_loan_receiver_mock {
 
     impl FlashLoanReceiverMock {
         #[ink(constructor)]
-        // pub fn new(lending_pool: AccountId) -> Self {
         pub fn new() -> Self {
-            let mut instance = Self::default();
-            // instance.lending_pool = lending_pool;
-            instance.custom_amount_to_approve = None;
-            instance.fail_execute_operation = false;
-            instance.simulate_balance_to_cover_fee = true;
-            instance
+            FlashLoanReceiverMock {
+                custom_amount_to_approve: None,
+                fail_execute_operation: false,
+                simulate_balance_to_cover_fee: true,
+            }
         }
 
         #[ink(message)]

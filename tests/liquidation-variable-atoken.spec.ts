@@ -284,9 +284,11 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         // liquidator is repaying 10^9 absDAI thus should return 8,7109375 * 10^17 ansWETH ~ 0,87... WETH
         const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
-        await lendingPool
-          .withSigner(liquidator)
-          .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), []);
+        await expect(
+          lendingPool
+            .withSigner(liquidator)
+            .query.liquidate(borrower.address, daiContract.address, wethContract.address, debtDaiAmount, new BN('871093750000000000000000000'), []),
+        ).to.haveOkResult();
         //Act & Assert
         const tx = lendingPool
           .withSigner(liquidator)

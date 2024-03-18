@@ -25,7 +25,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
             .unwrap()
     }
     fn view_asset_id(&self, asset: AccountId) -> Option<RuleId> {
-        self.data::<LendingPoolStorage>().asset_to_id.get(&asset)
+        self.data::<LendingPoolStorage>().asset_to_id.get(asset)
     }
     fn view_registered_assets(&self) -> Vec<AccountId> {
         self.data::<LendingPoolStorage>()
@@ -33,11 +33,11 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
     }
 
     fn view_reserve_data(&self, asset: AccountId) -> Option<ReserveData> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
                 .reserve_datas
-                .get(&asset_id),
+                .get(asset_id),
             None => None,
         }
     }
@@ -46,30 +46,30 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         &self,
         asset: AccountId,
     ) -> Option<ReserveIndexes> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
-            Some(asset_id) => Some(
+        self.data::<LendingPoolStorage>()
+            .asset_to_id
+            .get(asset)
+            .map(|asset_id| {
                 self.data::<LendingPoolStorage>()
                     .reserve_indexes_and_fees
-                    .get(&asset_id)
+                    .get(asset_id)
                     .unwrap()
-                    .indexes,
-            ),
-            None => None,
-        }
+                    .indexes
+            })
     }
 
     fn view_reserve_indexes(&self, asset: AccountId) -> Option<ReserveIndexes> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => {
                 let reserve_data = self
                     .data::<LendingPoolStorage>()
                     .reserve_datas
-                    .get(&asset_id)
+                    .get(asset_id)
                     .unwrap();
                 let mut reserve_indexes_and_fees = self
                     .data::<LendingPoolStorage>()
                     .reserve_indexes_and_fees
-                    .get(&asset_id)
+                    .get(asset_id)
                     .unwrap();
 
                 reserve_indexes_and_fees
@@ -83,27 +83,27 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
     }
 
     fn view_reserve_fees(&self, asset: AccountId) -> Option<ReserveFees> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
-            Some(asset_id) => Some(
+        self.data::<LendingPoolStorage>()
+            .asset_to_id
+            .get(asset)
+            .map(|asset_id| {
                 self.data::<LendingPoolStorage>()
                     .reserve_indexes_and_fees
-                    .get(&asset_id)
+                    .get(asset_id)
                     .unwrap()
-                    .fees,
-            ),
-            None => None,
-        }
+                    .fees
+            })
     }
 
     fn view_interest_rate_model(
         &self,
         asset: AccountId,
     ) -> Option<InterestRateModel> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
                 .interest_rate_model
-                .get(&asset_id),
+                .get(asset_id),
             None => None,
         }
     }
@@ -112,11 +112,11 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         &self,
         asset: AccountId,
     ) -> Option<ReserveRestrictions> {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
                 .reserve_restrictions
-                .get(&asset_id),
+                .get(asset_id),
             None => None,
         }
     }
@@ -126,7 +126,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
     ) -> Option<ReserveAbacusTokens> {
         self.data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&asset)
+            .get(asset)
     }
     fn view_reserve_decimal_multiplier(
         &self,
@@ -135,10 +135,9 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         self.data::<LendingPoolStorage>()
             .reserve_decimal_multiplier
             .get(
-                &self
-                    .data::<LendingPoolStorage>()
+                self.data::<LendingPoolStorage>()
                     .asset_to_id
-                    .get(&reserve_token_address)
+                    .get(reserve_token_address)
                     .unwrap(),
             )
     }
@@ -148,11 +147,11 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         asset: AccountId,
         user: AccountId,
     ) -> UserReserveData {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
                 .user_reserve_datas
-                .get(&(asset_id, user))
+                .get((asset_id, user))
                 .unwrap_or_default(),
             None => UserReserveData {
                 deposit: 0,
@@ -168,22 +167,22 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         asset: AccountId,
         user: AccountId,
     ) -> UserReserveData {
-        match self.data::<LendingPoolStorage>().asset_to_id.get(&asset) {
+        match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => {
                 let mut user_reserve_data = self
                     .data::<LendingPoolStorage>()
                     .user_reserve_datas
-                    .get(&(asset_id, user))
+                    .get((asset_id, user))
                     .unwrap_or_default();
                 let reserve_data = self
                     .data::<LendingPoolStorage>()
                     .reserve_datas
-                    .get(&asset_id)
+                    .get(asset_id)
                     .unwrap();
                 let mut reserve_indexes_and_fees = self
                     .data::<LendingPoolStorage>()
                     .reserve_indexes_and_fees
-                    .get(&asset_id)
+                    .get(asset_id)
                     .unwrap();
                 reserve_indexes_and_fees
                     .indexes
@@ -209,14 +208,14 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
     fn view_user_config(&self, user: AccountId) -> UserConfig {
         self.data::<LendingPoolStorage>()
             .user_configs
-            .get(&user)
+            .get(user)
             .unwrap_or_default()
     }
 
     fn view_market_rule(&self, market_rule_id: RuleId) -> Option<MarketRule> {
         self.data::<LendingPoolStorage>()
             .market_rules
-            .get(&market_rule_id)
+            .get(market_rule_id)
     }
 
     fn get_user_free_collateral_coefficient(

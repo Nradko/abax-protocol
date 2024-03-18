@@ -6,7 +6,7 @@ use ink::{
     primitives::AccountId,
 };
 use pendzl::{
-    contracts::token::psp22::{PSP22Error, PSP22Internal, Transfer},
+    contracts::psp22::{PSP22Error, PSP22Internal, Transfer},
     traits::{Balance, StorageFieldGetter},
 };
 

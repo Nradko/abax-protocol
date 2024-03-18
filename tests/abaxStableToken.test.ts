@@ -114,9 +114,9 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         usdaxContract.events.subscribeOnTransferEvent((event) => {
           capturedTransferEvents.push(event);
         });
-        const query = await lendingPool.withSigner(alice).query.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
         const timestampBeforeRepay = await time.increase(0);
         console.log('timestamp before Repay:', timestampBeforeRepay);
+        await expect(lendingPool.withSigner(alice).query.repay(usdaxContract.address, alice.address, initialUsdaxDebt, [])).to.haveOkResult();
         const tx = lendingPool.withSigner(alice).tx.repay(usdaxContract.address, alice.address, initialUsdaxDebt, []);
         await expect(tx).to.eventually.be.fulfilled;
         const txRes = await tx;

@@ -180,7 +180,7 @@ pub mod oracle_anchor {
 
         #[ink(message)]
         pub fn code_hash(&self) -> Hash {
-            self.env().own_code_hash().unwrap_or(Default::default())
+            self.env().own_code_hash().unwrap_or_default()
         }
 
         #[ink(message)]

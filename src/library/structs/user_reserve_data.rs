@@ -94,7 +94,7 @@ impl UserReserveData {
         self.debt =
             self.debt.checked_sub(*amount).ok_or(MathError::Underflow)?;
 
-        reserve_data.decrease_total_debt(amount);
+        reserve_data.decrease_total_debt(amount)?;
 
         Ok(())
     }
@@ -128,16 +128,22 @@ impl UserReserveData {
                 self.applied_deposit_index_e18,
             )?;
 
-            let interest_with_fee = updated_deposit_with_fee - self.deposit;
+            let interest_with_fee = updated_deposit_with_fee
+                .checked_sub(self.deposit)
+                .ok_or(MathError::Underflow)?;
 
             let fee = e0_mul_e6_to_e0_rup(
                 interest_with_fee,
                 reserve_fees.deposit_fee_e6,
             )?;
 
-            let updated_deposit = updated_deposit_with_fee.saturating_sub(fee);
+            let updated_deposit = updated_deposit_with_fee
+                .checked_sub(fee)
+                .ok_or(MathError::Underflow)?;
 
-            delta_user_deposit = updated_deposit - self.deposit;
+            delta_user_deposit = updated_deposit
+                .checked_sub(self.deposit)
+                .ok_or(MathError::Underflow)?;
             self.deposit = updated_deposit;
         }
         self.applied_deposit_index_e18 = reserve_indexes.deposit_index_e18;
@@ -152,7 +158,9 @@ impl UserReserveData {
                 self.applied_debt_index_e18,
             )?;
 
-            let interest_with_no_fee = updated_borrow_with_no_fee - self.debt;
+            let interest_with_no_fee = updated_borrow_with_no_fee
+                .checked_sub(self.debt)
+                .ok_or(MathError::Underflow)?;
 
             let fee = e0_mul_e6_to_e0_rup(
                 interest_with_no_fee,
@@ -163,7 +171,9 @@ impl UserReserveData {
                 .checked_add(fee)
                 .ok_or(MathError::Overflow)?;
 
-            delta_user_debt = updated_borrow - self.debt;
+            delta_user_debt = updated_borrow
+                .checked_sub(self.debt)
+                .ok_or(MathError::Underflow)?;
             self.debt = updated_borrow;
         }
         self.applied_debt_index_e18 = reserve_indexes.debt_index_e18;

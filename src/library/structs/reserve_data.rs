@@ -98,7 +98,10 @@ impl ReserveData {
         &mut self,
         amount: &Balance,
     ) -> Result<(), MathError> {
-        self.total_deposit = self.total_deposit - *amount;
+        self.total_deposit = self
+            .total_deposit
+            .checked_sub(*amount)
+            .ok_or(MathError::Underflow)?;
         Ok(())
     }
 
@@ -114,8 +117,15 @@ impl ReserveData {
     }
 
     // total debt can not underflow because it is a sum of user debts which are already checked for underflow.
-    pub fn decrease_total_debt(&mut self, amount: &Balance) {
-        self.total_debt = self.total_debt - *amount;
+    pub fn decrease_total_debt(
+        &mut self,
+        amount: &Balance,
+    ) -> Result<(), MathError> {
+        self.total_debt = self
+            .total_debt
+            .checked_sub(*amount)
+            .ok_or(MathError::Underflow)?;
+        Ok(())
     }
 
     pub fn add_interests(
@@ -133,9 +143,9 @@ impl ReserveData {
         }
         let total_debt = self.total_debt;
         match u64::try_from({
-            let x = U256::try_from(total_debt).unwrap();
-            let y = U256::try_from(E6_U128).unwrap();
-            let z = U256::try_from(self.total_deposit).unwrap();
+            let x = U256::from(total_debt);
+            let y = U256::from(E6_U128);
+            let z = U256::from(self.total_deposit);
             x.checked_mul(y).unwrap().checked_div(z).unwrap()
         }) {
             Ok(v) => Ok(v),

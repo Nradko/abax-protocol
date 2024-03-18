@@ -92,6 +92,8 @@ pub trait EmitManageEvents {
         &mut self,
         flash_loan_fee_e6: &u128,
     );
+
+    #[allow(clippy::too_many_arguments)]
     fn _emit_asset_registered_event(
         &mut self,
         asset: &AccountId,

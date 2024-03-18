@@ -43,14 +43,12 @@ impl AssetRules {
                 return Err(AssetRulesError::InvalidAssetRule);
             }
         }
-        if (self.collateral_coefficient_e6.is_some()
+        if ((self.collateral_coefficient_e6.is_some()
             || self.borrow_coefficient_e6.is_some())
-            && !self.penalty_e6.is_some()
-        {
-            return Err(AssetRulesError::InvalidAssetRule);
-        } else if self.collateral_coefficient_e6.is_none()
-            && self.borrow_coefficient_e6.is_none()
-            && self.penalty_e6.is_none()
+            && self.penalty_e6.is_none())
+            || (self.collateral_coefficient_e6.is_none()
+                && self.borrow_coefficient_e6.is_none()
+                && self.penalty_e6.is_none())
         {
             return Err(AssetRulesError::InvalidAssetRule);
         }

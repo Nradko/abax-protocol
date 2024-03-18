@@ -10,13 +10,13 @@ pub mod price_feed_provider {
 
     use ink::storage::{Lazy, Mapping};
 
-    use pendzl::contracts::access::ownable;
+    use pendzl::contracts::ownable;
 
     #[ink(storage)]
     #[derive(StorageFieldGetter, Default)]
     pub struct PriceFeedProvider {
         #[storage_field]
-        ownable: ownable::implementation::OwnableData,
+        ownable: ownable::OwnableData,
         oracle: Lazy<OracleGettersRef>,
         account_to_symbol: Mapping<AccountId, String>,
     }
@@ -41,7 +41,7 @@ pub mod price_feed_provider {
             symbol: String,
         ) -> Result<(), OwnableError> {
             self._only_owner()?;
-            self.account_to_symbol.insert(&asset, &symbol);
+            self.account_to_symbol.insert(asset, &symbol);
             Ok(())
         }
 
@@ -50,7 +50,7 @@ pub mod price_feed_provider {
             &mut self,
             asset: AccountId,
         ) -> Option<String> {
-            self.account_to_symbol.get(&asset)
+            self.account_to_symbol.get(asset)
         }
     }
 
@@ -66,7 +66,7 @@ pub mod price_feed_provider {
             for asset in assets {
                 let symbol = self
                     .account_to_symbol
-                    .get(&asset)
+                    .get(asset)
                     .ok_or(PriceFeedError::NoSuchAsset)?;
                 symbols.push(symbol)
             }
