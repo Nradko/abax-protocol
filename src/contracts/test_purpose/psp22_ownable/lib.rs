@@ -4,9 +4,9 @@
 #[ink::contract]
 pub mod psp22_emitable {
 
-    use pendzl::contracts::access::ownable;
-    use pendzl::contracts::token::psp22;
-    use pendzl::contracts::token::psp22::PSP22Error;
+    use pendzl::contracts::ownable;
+    use pendzl::contracts::psp22;
+    use pendzl::contracts::psp22::PSP22Error;
 
     use ink::prelude::string::String;
 
@@ -14,12 +14,11 @@ pub mod psp22_emitable {
     #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct PSP22OwnableContract {
         #[storage_field]
-        ownable: ownable::implementation::OwnableData,
+        ownable: ownable::OwnableData,
         #[storage_field]
-        psp22: psp22::implementation::PSP22Data,
+        psp22: psp22::PSP22Data,
         #[storage_field]
-        metadata:
-            psp22::extensions::metadata::implementation::PSP22MetadataData,
+        metadata: psp22::metadata::PSP22MetadataData,
     }
 
     impl PSP22OwnableContract {

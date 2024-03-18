@@ -1,6 +1,6 @@
 use ink::prelude::vec::Vec;
 use pendzl::{
-    contracts::token::psp22::PSP22Error,
+    contracts::psp22::PSP22Error,
     traits::{AccountId, Balance},
 };
 use scale::{Decode, Encode};

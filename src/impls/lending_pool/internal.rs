@@ -1,4 +1,4 @@
-use core::cmp::Ordering;
+use core::{cmp::Ordering, ops::Neg};
 
 use abax_traits::{
     abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
@@ -11,11 +11,9 @@ use ink::{
 };
 
 use pendzl::{
-    contracts::token::psp22::{
-        extensions::{
-            burnable::{PSP22Burnable, PSP22BurnableRef},
-            mintable::{PSP22Mintable, PSP22MintableRef},
-        },
+    contracts::psp22::{
+        burnable::{PSP22Burnable, PSP22BurnableRef},
+        mintable::{PSP22Mintable, PSP22MintableRef},
         {PSP22Error, PSP22Ref, PSP22},
     },
     traits::{Balance, StorageFieldGetter},
@@ -40,14 +38,14 @@ pub fn _emit_abacus_token_transfer_event(
             TransferEventData {
                 from: None,
                 to: Some(*user),
-                amount: amount_transferred as u128,
+                amount: u128::try_from(amount_transferred).unwrap(), // Ordering::Greater => amount is greater than zero
             },
         ]),
         Ordering::Less => abacus_token_contract.emit_transfer_events(vec![
             TransferEventData {
                 from: Some(*user),
                 to: None,
-                amount: (-amount_transferred) as u128,
+                amount: u128::try_from(amount_transferred.neg()).unwrap(), // Ordering::Less => amount is less than zero => neg() is positive
             },
         ]),
         Ordering::Equal => Ok(()),
@@ -75,7 +73,7 @@ pub fn _emit_abacus_token_transfer_events(
             events.push(TransferEventData {
                 from: Some(event.user),
                 to: None,
-                amount: (-event.amount) as u128,
+                amount: u128::try_from(event.amount.neg()).unwrap(), // event.amount is less than zero => neg() is positive
             })
         }
     }
@@ -150,7 +148,7 @@ impl<T: StorageFieldGetter<LendingPoolStorage>> Transfer for T {
         if self
             .data()
             .interest_rate_model
-            .contains(&self.data().asset_id(asset)?)
+            .contains(self.data().asset_id(asset)?)
         {
             let mut psp22: PSP22Ref = (*asset).into();
             psp22.transfer_from(
@@ -176,7 +174,7 @@ impl<T: StorageFieldGetter<LendingPoolStorage>> Transfer for T {
         if self
             .data()
             .interest_rate_model
-            .contains(&self.data().asset_id(asset)?)
+            .contains(self.data().asset_id(asset)?)
         {
             let mut psp22: PSP22Ref = (*asset).into();
             psp22.transfer(*to, *amount, vec![])?;

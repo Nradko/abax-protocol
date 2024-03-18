@@ -1,5 +1,7 @@
-use abax_library::math::{MathError, E18_U128};
-use abax_traits::lending_pool::{EmitLiquidateEvents, LendingPoolError};
+use abax_library::math::E18_U128;
+use abax_traits::lending_pool::{
+    EmitLiquidateEvents, LendingPoolError, MathError,
+};
 use ink::prelude::{vec::Vec, *};
 
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
@@ -63,8 +65,8 @@ pub trait LendingPoolLiquidateImpl:
         )?;
 
         let recieved_for_one_repaid_token_e18 = {
-            let x = U256::try_from(amount_to_take).unwrap();
-            let y = U256::try_from(amount_to_repay).unwrap();
+            let x = U256::from(amount_to_take);
+            let y = U256::from(amount_to_repay);
 
             match u128::try_from(
                 x.checked_mul(E18_U128.into())
@@ -92,7 +94,7 @@ pub trait LendingPoolLiquidateImpl:
         let abacus_tokens_to_repay = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&asset_to_repay)
+            .get(asset_to_repay)
             .unwrap();
         // ATOKEN
         _emit_abacus_token_transfer_event(
@@ -104,15 +106,16 @@ pub trait LendingPoolLiquidateImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens_to_repay.v_token_address,
             &liquidated_account,
-            user_accumulated_debt_interest_to_repay as i128
-                - amount_to_repay as i128,
+            (user_accumulated_debt_interest_to_repay as i128)
+                .overflowing_sub(amount_to_repay as i128)
+                .0,
         )?;
 
         //// to_take_token
         let abacus_tokens_to_take = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&asset_to_take)
+            .get(asset_to_take)
             .unwrap();
         // ATOKEN
         _emit_abacus_token_transfer_events(
@@ -120,13 +123,16 @@ pub trait LendingPoolLiquidateImpl:
             &vec![
                 TransferEventDataSimplified {
                     user: liquidated_account,
-                    amount: user_accumulated_deposit_interest_to_take as i128
-                        - amount_to_take as i128,
+                    amount: (user_accumulated_deposit_interest_to_take as i128)
+                        .overflowing_sub(amount_to_take as i128)
+                        .0,
                 },
                 TransferEventDataSimplified {
                     user: caller,
-                    amount: (caller_accumulated_deposit_interest_to_take
-                        + amount_to_take) as i128,
+                    amount: caller_accumulated_deposit_interest_to_take
+                        .checked_add(amount_to_take)
+                        .ok_or(MathError::Overflow)?
+                        as i128,
                 },
             ],
         )?;

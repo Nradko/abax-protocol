@@ -1,4 +1,6 @@
-use abax_traits::lending_pool::{EmitDepositEvents, LendingPoolError};
+use abax_traits::lending_pool::{
+    EmitDepositEvents, LendingPoolError, MathError,
+};
 use ink::prelude::vec::Vec;
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
@@ -39,13 +41,15 @@ pub trait LendingPoolDepositImpl:
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&asset)
+            .get(asset)
             .unwrap();
         // ATOKEN
         _emit_abacus_token_transfer_event(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            (user_accumulated_deposit_interest + amount) as i128,
+            (user_accumulated_deposit_interest
+                .checked_add(amount)
+                .ok_or(MathError::Overflow)?) as i128,
         )?;
         // VTOKEN
         _emit_abacus_token_transfer_event(
@@ -81,12 +85,12 @@ pub trait LendingPoolDepositImpl:
         let reserve_data_before = self
             .data::<LendingPoolStorage>()
             .reserve_datas
-            .get(&asset_id)
+            .get(asset_id)
             .unwrap();
         let user_reserve_data_before = self
             .data::<LendingPoolStorage>()
             .user_reserve_datas
-            .get(&(asset_id, on_behalf_of))
+            .get((asset_id, on_behalf_of))
             .unwrap();
 
         let (
@@ -103,12 +107,12 @@ pub trait LendingPoolDepositImpl:
         let reserve_data_after = self
             .data::<LendingPoolStorage>()
             .reserve_datas
-            .get(&asset_id)
+            .get(asset_id)
             .unwrap();
         let user_reserve_data_after = self
             .data::<LendingPoolStorage>()
             .user_reserve_datas
-            .get(&(asset_id, on_behalf_of))
+            .get((asset_id, on_behalf_of))
             .unwrap();
 
         ink::env::debug_println!(
@@ -146,13 +150,15 @@ pub trait LendingPoolDepositImpl:
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&asset)
+            .get(asset)
             .unwrap();
         // ATOKEN
         _emit_abacus_token_transfer_event_and_decrease_allowance(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            user_accumulated_deposit_interest as i128 - amount as i128,
+            (user_accumulated_deposit_interest as i128)
+                .overflowing_sub(amount as i128)
+                .0,
             &(Self::env().caller()),
             amount,
         )?;

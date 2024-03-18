@@ -49,6 +49,7 @@ pub trait LendingPoolManage {
     /// * `AlreadyRegistered` returned if asset was already registered.
     /// * `InvalidAssetRule` returned if asset rule is invalid.
     #[ink(message)]
+    #[allow(clippy::too_many_arguments)]
     fn register_asset(
         &mut self,
         asset: AccountId,

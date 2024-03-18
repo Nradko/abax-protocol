@@ -13,7 +13,7 @@ scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { version = "0.2.0-alpha",  default-features = false, features = [
+pendzl = { version = "0.2.1",  default-features = false, features = [
     "psp22",
     "access_control",
     "access_control_impl",
@@ -46,7 +46,3 @@ ink-as-dependency = []
 
 [profile.dev]
 codegen-units = 16      # Use slightly better optimizations.
-overflow-checks = false
-
-[profile.release]
-overflow-checks = false

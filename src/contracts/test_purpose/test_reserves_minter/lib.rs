@@ -5,18 +5,18 @@
 pub mod psp22_emitable {
 
     use pendzl::contracts::{
-        access::ownable,
-        token::psp22::{extensions::mintable::PSP22MintableRef, PSP22Error},
+        ownable,
+        psp22::{mintable::PSP22MintableRef, PSP22Error},
     };
 
     use ink::{prelude::vec::Vec, storage::Mapping};
-    use pendzl::contracts::token::psp22::extensions::mintable::PSP22Mintable;
+    use pendzl::contracts::psp22::mintable::PSP22Mintable;
 
     #[ink(storage)]
     #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct TestReservesMinter {
         #[storage_field]
-        ownable: ownable::implementation::OwnableData,
+        ownable: ownable::OwnableData,
         reserves_to_mint: Vec<AccountId>,
         already_minted: Mapping<AccountId, bool>,
     }
@@ -39,12 +39,12 @@ pub mod psp22_emitable {
             addreses_with_amounts: Vec<(AccountId, Balance)>,
             to: AccountId,
         ) -> Result<(), TestReservesMinterError> {
-            if !self.already_minted.contains(&to) {
+            if !self.already_minted.contains(to) {
                 for &(addr, amount) in addreses_with_amounts.iter() {
                     let mut psp22_mintable: PSP22MintableRef = addr.into();
                     psp22_mintable.mint(to, amount)?;
                 }
-                self.already_minted.insert(&to, &true);
+                self.already_minted.insert(to, &true);
             } else {
                 return Err(TestReservesMinterError::AlreadyMinted);
             }

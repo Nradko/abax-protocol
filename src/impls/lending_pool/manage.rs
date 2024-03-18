@@ -15,8 +15,8 @@ use ink::{
     primitives::{AccountId, Hash},
     ToAccountId,
 };
-use pendzl::contracts::access::access_control;
-use pendzl::contracts::token::psp22::{PSP22Ref, PSP22};
+use pendzl::contracts::access_control;
+use pendzl::contracts::psp22::{PSP22Ref, PSP22};
 use pendzl::traits::{Balance, StorageFieldGetter};
 
 use super::internal::InternalIncome;
@@ -52,6 +52,7 @@ pub trait LendingPoolManageImpl:
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn register_asset(
         &mut self,
         asset: AccountId,
@@ -118,9 +119,8 @@ pub trait LendingPoolManageImpl:
             &v_token_address,
         );
 
-        interest_rate_model.and_then(|model| {
-            self._emit_interest_rate_model_changed_event(&asset, &model);
-            Some(model)
+        interest_rate_model.iter().for_each(|model| {
+            self._emit_interest_rate_model_changed_event(&asset, model);
         });
 
         self._emit_reserve_restrictions_changed_event(
@@ -245,10 +245,8 @@ pub trait LendingPoolManageImpl:
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
 
-        for asset_rule in &market_rule {
-            if let Some(asset_rule_unwrapped) = asset_rule {
-                asset_rule_unwrapped.verify_new_rule(&None)?
-            }
+        for asset_rule in market_rule.iter().flatten() {
+            asset_rule.verify_new_rule(&None)?;
         }
 
         let market_rule_id = self
@@ -338,12 +336,18 @@ pub trait ManageInternal: StorageFieldGetter<LendingPoolStorage> {
     ) -> AccountId {
         let lending_pool: AccountId = Self::env().account_id();
 
+        let mut token_name = "Abax Deposit ".to_string();
+        token_name.push_str(&name);
+
+        let mut token_symbol = "a".to_string();
+        token_symbol.push_str(&symbol);
+
         self._instantiate_abacus_token(
             a_token_code_hash,
             &lending_pool,
             underlying_asset,
-            "Abax Deposit ".to_string() + &name,
-            "a".to_string() + &symbol,
+            token_name,
+            token_symbol,
             decimals,
         )
     }
@@ -358,12 +362,18 @@ pub trait ManageInternal: StorageFieldGetter<LendingPoolStorage> {
     ) -> AccountId {
         let lending_pool: AccountId = Self::env().account_id();
 
+        let mut token_name = "Abax Variable Debt ".to_string();
+        token_name.push_str(&name);
+
+        let mut token_symbol = "v".to_string();
+        token_symbol.push_str(&symbol);
+
         self._instantiate_abacus_token(
             v_token_code_hash,
             &lending_pool,
             underlying_asset,
-            "Abax Variable Debt ".to_string() + &name,
-            "v".to_string() + &symbol,
+            token_name,
+            token_symbol,
             decimals,
         )
     }

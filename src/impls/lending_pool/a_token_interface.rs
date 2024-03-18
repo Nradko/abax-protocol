@@ -4,7 +4,7 @@ use abax_traits::{
 };
 use ink::prelude::*;
 use pendzl::{
-    contracts::access::access_control::AccessControlError,
+    contracts::access_control::AccessControlError,
     traits::{AccountId, Balance, StorageFieldGetter},
 };
 
@@ -41,7 +41,7 @@ pub trait LendingPoolATokenInterfaceImpl:
         let reserve_abacus_tokens_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens
-            .get(&underlying_asset)
+            .get(underlying_asset)
             .ok_or(LendingPoolError::AssetNotRegistered)?;
         if Self::env().caller() != reserve_abacus_tokens_tokens.a_token_address
         {

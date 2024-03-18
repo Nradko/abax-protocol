@@ -37,13 +37,13 @@ pub mod lending_pool {
     };
     use ink::{codegen::Env, env::DefaultEnvironment, prelude::vec::Vec};
 
-    use pendzl::{contracts::access::access_control, traits::String};
+    use pendzl::{contracts::access_control, traits::String};
     /// storage of the contract
     #[ink(storage)]
     #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct LendingPool {
         #[storage_field]
-        access: access_control::implementation::AccessControlData,
+        access: access_control::AccessControlData,
         #[storage_field]
         lending_pool: LendingPoolStorage,
     }

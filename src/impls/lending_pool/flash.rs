@@ -1,7 +1,9 @@
 use abax_library::math::E6_U128;
 use abax_traits::{
     flash_loan_receiver::FlashLoanReceiverError,
-    lending_pool::{EmitFlashEvents, LendingPoolError, FLASH_BORROWER},
+    lending_pool::{
+        EmitFlashEvents, LendingPoolError, MathError, FLASH_BORROWER,
+    },
 };
 use ink::{
     env::{
@@ -12,7 +14,7 @@ use ink::{
 };
 
 use pendzl::{
-    contracts::access::access_control,
+    contracts::access_control,
     traits::{AccountId, Balance, StorageFieldGetter},
 };
 
@@ -51,8 +53,18 @@ pub trait LendingPoolFlashImpl:
             let fee = match self
                 ._has_role(FLASH_BORROWER, Some(Self::env().caller()))
             {
-                false => amounts[i] * flash_fee_e6 / E6_U128,
-                true => amounts[i] * flash_fee_e6 / E6_U128 / 10,
+                false => amounts[i]
+                    .checked_mul(flash_fee_e6)
+                    .ok_or(MathError::Overflow)?
+                    .checked_div(E6_U128)
+                    .ok_or(MathError::DivByZero)?,
+                true => amounts[i]
+                    .checked_mul(flash_fee_e6)
+                    .ok_or(MathError::Overflow)?
+                    .checked_div(E6_U128)
+                    .ok_or(MathError::DivByZero)?
+                    .checked_div(10)
+                    .unwrap(),
             };
             fees.push(fee);
             self._transfer_out(&assets[i], &receiver, &amounts[i])?;

@@ -12,7 +12,7 @@ pub mod balance_viewer {
         LendingPoolViewRef,
     };
     use pendzl::{
-        contracts::token::psp22::{PSP22Ref, PSP22},
+        contracts::psp22::{PSP22Ref, PSP22},
         traits::StorageFieldGetter,
     };
 

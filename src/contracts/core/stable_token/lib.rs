@@ -12,20 +12,20 @@ pub mod stable_token {
     use ink::prelude::string::String;
 
     use abax_traits::lending_pool::{BURNER, MINTER};
-    use pendzl::contracts::access::access_control;
-    use pendzl::contracts::token::psp22;
-    use pendzl::contracts::token::psp22::extensions::metadata;
-    use pendzl::contracts::token::psp22::PSP22Error;
+    use pendzl::contracts::access_control;
+    use pendzl::contracts::psp22;
+    use pendzl::contracts::psp22::metadata;
+    use pendzl::contracts::psp22::PSP22Error;
 
     #[ink(storage)]
     #[derive(Default, pendzl::traits::StorageFieldGetter)]
     pub struct StableToken {
         #[storage_field]
-        access: access_control::implementation::AccessControlData,
+        access: access_control::AccessControlData,
         #[storage_field]
-        psp22: psp22::implementation::PSP22Data,
+        psp22: psp22::PSP22Data,
         #[storage_field]
-        metadata: metadata::implementation::PSP22MetadataData,
+        metadata: metadata::PSP22MetadataData,
     }
 
     impl StableToken {
