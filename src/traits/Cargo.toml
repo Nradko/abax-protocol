@@ -6,13 +6,13 @@ edition = "2021"
 
 [dependencies]
 ink = { version = "5.0.0", default-features = false }
-scale = { package = "parity-scale-codec", version = "3.5.0", default-features = false, features = [
+scale = { package = "parity-scale-codec", version = "3.6.9", default-features = false, features = [
     "derive",
 ] }
 
 abax_library = { path = "../library", default-features = false }
 
-scale-info = { version = "2.7", default-features = false, features = [
+scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
