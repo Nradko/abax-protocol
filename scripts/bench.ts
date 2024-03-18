@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import { writeFileSync } from 'fs-extra';
 import FlipperMapDeployer from 'typechain/deployers/flipper_map';
 import FlipperVecDeployer from 'typechain/deployers/flipper_vec';
-import { generateRandomSignerWithBalance, getApiProviderWrapper } from 'wookashwackomytest-polkahat-network-helpers';
+import { getApiProviderWrapper } from 'wookashwackomytest-polkahat-network-helpers';
 import { _genValidGasLimitAndValue } from 'wookashwackomytest-typechain-types';
 import { getArgvObj } from 'wookashwackomytest-utils';
 

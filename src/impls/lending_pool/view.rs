@@ -150,8 +150,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => self
                 .data::<LendingPoolStorage>()
-                .user_reserve_datas
-                .get((asset_id, user))
+                .get_user_reserve_data(asset_id, &user)
                 .unwrap_or_default(),
             None => UserReserveData {
                 deposit: 0,
@@ -171,8 +170,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
             Some(asset_id) => {
                 let mut user_reserve_data = self
                     .data::<LendingPoolStorage>()
-                    .user_reserve_datas
-                    .get((asset_id, user))
+                    .get_user_reserve_data(asset_id, &user)
                     .unwrap_or_default();
                 let reserve_data = self
                     .data::<LendingPoolStorage>()

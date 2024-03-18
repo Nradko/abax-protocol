@@ -89,8 +89,7 @@ pub trait LendingPoolDepositImpl:
             .unwrap();
         let user_reserve_data_before = self
             .data::<LendingPoolStorage>()
-            .user_reserve_datas
-            .get((asset_id, on_behalf_of))
+            .get_user_reserve_data(asset_id, &on_behalf_of)
             .unwrap();
 
         let (
@@ -111,8 +110,7 @@ pub trait LendingPoolDepositImpl:
             .unwrap();
         let user_reserve_data_after = self
             .data::<LendingPoolStorage>()
-            .user_reserve_datas
-            .get((asset_id, on_behalf_of))
+            .get_user_reserve_data(asset_id, &on_behalf_of)
             .unwrap();
 
         ink::env::debug_println!(
