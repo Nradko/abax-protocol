@@ -6,3 +6,4 @@ include!("reserve_indexes_and_fees.rs");
 include!("reserve_restrictions.rs");
 include!("user_config.rs");
 include!("user_reserve_data.rs");
+include!("multi_op.rs");

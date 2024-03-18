@@ -44,7 +44,7 @@ pub struct LendingPoolStorage {
     pub user_reserve_datas: Mapping<AccountId, UserReserveDatas>,
     pub user_configs: Mapping<AccountId, UserConfig>,
     pub counter_to_user: Mapping<u128, AccountId>,
-    pub user_to_counter: Mapping<AccountId, u128>,
+    pub user_presence_lookup: Mapping<AccountId, ()>,
     pub next_counter: u128,
 
     #[lazy]
@@ -163,12 +163,12 @@ impl LendingPoolStorage {
     }
 
     fn ensure_user_registered(&mut self, account: &AccountId) {
-        if self.user_to_counter.contains(account) {
+        if self.user_presence_lookup.contains(account) {
             return;
         }
         let counter = self.next_counter;
         self.counter_to_user.insert(counter, account);
-        self.user_to_counter.insert(account, &counter);
+        self.user_presence_lookup.insert(account, &());
         self.next_counter = counter.checked_add(1).unwrap();
     }
 
@@ -628,17 +628,6 @@ impl LendingPoolStorage {
                     .ok_or(MathError::Underflow)?,
             ))
         }
-    }
-
-    pub fn check_lending_power(
-        &self,
-        user: &AccountId,
-        prices_e18: &[u128],
-    ) -> Result<(), LendingPoolError> {
-        if !self.calculate_user_lending_power_e6(user, prices_e18)?.0 {
-            return Err(LendingPoolError::InsufficientCollateral);
-        }
-        Ok(())
     }
 
     pub fn calculate_liquidated_amount_and_check_if_collateral(

@@ -8,5 +8,6 @@ use crate::math::{
 use pendzl::traits::{AccountId, Balance, Timestamp};
 use scale::{Decode, Encode};
 
+use ink::prelude::vec::Vec;
 use pendzl::math::errors::MathError;
 use primitive_types::U256;

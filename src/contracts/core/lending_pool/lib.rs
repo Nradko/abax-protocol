@@ -12,27 +12,30 @@
 pub mod lending_pool {
     use abax_impls::lending_pool::{
         a_token_interface::LendingPoolATokenInterfaceImpl,
-        borrow::LendingPoolBorrowImpl,
-        deposit::LendingPoolDepositImpl,
+        borrow::{LendingPoolBorrowImpl, LendingPoolBorrowInternalImpl},
+        deposit::{LendingPoolDepositImpl, LendingPoolDepositInternalImpl},
         flash::LendingPoolFlashImpl,
         liquidate::LendingPoolLiquidateImpl,
         maintain::LendingPoolMaintainImpl,
         manage::{LendingPoolManageImpl, ManageInternal},
+        multi_op::LendingPoolMultiOpImpl,
         storage::LendingPoolStorage,
         v_token_interface::LendingPoolVTokenInterfaceImpl,
         view::LendingPoolViewImpl,
     };
     use abax_library::structs::{
-        AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
-        ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
+        AssetRules, MultiOpParams, ReserveAbacusTokens, ReserveData,
+        ReserveFees, ReserveIndexes, ReserveRestrictions, UserConfig,
+        UserReserveData,
     };
     use abax_traits::lending_pool::{
         DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
         EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
         EmitManageEvents, InterestRateModel, LendingPoolATokenInterface,
-        LendingPoolBorrow, LendingPoolDeposit, LendingPoolError,
-        LendingPoolFlash, LendingPoolLiquidate, LendingPoolMaintain,
-        LendingPoolManage, LendingPoolVTokenInterface, LendingPoolView,
+        LendingPoolBorrow, LendingPoolBorrowInternal, LendingPoolDeposit,
+        LendingPoolDepositInternal, LendingPoolError, LendingPoolFlash,
+        LendingPoolLiquidate, LendingPoolMaintain, LendingPoolManage,
+        LendingPoolMultiOp, LendingPoolVTokenInterface, LendingPoolView,
         MarketRule, RuleId, ROLE_ADMIN,
     };
     use ink::{codegen::Env, env::DefaultEnvironment, prelude::vec::Vec};
@@ -48,7 +51,51 @@ pub mod lending_pool {
         lending_pool: LendingPoolStorage,
     }
 
+    impl LendingPoolMultiOpImpl for LendingPool {}
+    impl LendingPoolMultiOp for LendingPool {
+        #[ink(message)]
+        fn multi_op(
+            &mut self,
+            op: Vec<MultiOpParams>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolMultiOpImpl::multi_op(self, op)
+        }
+    }
+
     /// Implements core lending methods
+    impl LendingPoolDepositInternalImpl for LendingPool {}
+    impl LendingPoolDepositInternal for LendingPool {
+        fn _deposit(
+            &mut self,
+            asset: AccountId,
+            on_behalf_of: AccountId,
+            amount: Balance,
+            data: Vec<u8>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolDepositInternalImpl::_deposit(
+                self,
+                asset,
+                on_behalf_of,
+                amount,
+                data,
+            )
+        }
+        fn _redeem(
+            &mut self,
+            asset: AccountId,
+            on_behalf_of: AccountId,
+            amount: Balance,
+            data: Vec<u8>,
+        ) -> Result<(Balance, bool), LendingPoolError> {
+            LendingPoolDepositInternalImpl::_redeem(
+                self,
+                asset,
+                on_behalf_of,
+                amount,
+                data,
+            )
+        }
+    }
     impl LendingPoolDepositImpl for LendingPool {}
     impl LendingPoolDeposit for LendingPool {
         #[ink(message)]
@@ -85,6 +132,59 @@ pub mod lending_pool {
         }
     }
 
+    impl LendingPoolBorrowInternalImpl for LendingPool {}
+    impl LendingPoolBorrowInternal for LendingPool {
+        fn _choose_market_rule(
+            &mut self,
+            market_rule_id: RuleId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolBorrowInternalImpl::_choose_market_rule(
+                self,
+                market_rule_id,
+            )
+        }
+        fn _set_as_collateral(
+            &mut self,
+            asset: AccountId,
+            use_as_collateral_to_set: bool,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolBorrowInternalImpl::_set_as_collateral(
+                self,
+                asset,
+                use_as_collateral_to_set,
+            )
+        }
+        fn _borrow(
+            &mut self,
+            asset: AccountId,
+            on_behalf_of: AccountId,
+            amount: Balance,
+            data: Vec<u8>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolBorrowInternalImpl::_borrow(
+                self,
+                asset,
+                on_behalf_of,
+                amount,
+                data,
+            )
+        }
+        fn _repay(
+            &mut self,
+            asset: AccountId,
+            on_behalf_of: AccountId,
+            amount: Balance,
+            data: Vec<u8>,
+        ) -> Result<Balance, LendingPoolError> {
+            LendingPoolBorrowInternalImpl::_repay(
+                self,
+                asset,
+                on_behalf_of,
+                amount,
+                data,
+            )
+        }
+    }
     impl LendingPoolBorrowImpl for LendingPool {}
     impl LendingPoolBorrow for LendingPool {
         #[ink(message)]

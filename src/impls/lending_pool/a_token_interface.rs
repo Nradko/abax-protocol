@@ -8,10 +8,10 @@ use pendzl::{
     traits::{AccountId, Balance, StorageFieldGetter},
 };
 
-use super::{internal::AssetPrices, storage::LendingPoolStorage};
+use super::{internal::LendingPowerChecker, storage::LendingPoolStorage};
 
 pub trait LendingPoolATokenInterfaceImpl:
-    StorageFieldGetter<LendingPoolStorage> + EmitDepositEvents
+    StorageFieldGetter<LendingPoolStorage> + EmitDepositEvents + LendingPowerChecker
 {
     fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = Self::env().block_timestamp();
@@ -65,12 +65,7 @@ pub trait LendingPoolATokenInterfaceImpl:
             )?;
 
         // check if there ie enought collateral
-        let all_assets = self
-            .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
-        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
-        self.data::<LendingPoolStorage>()
-            .check_lending_power(&from, &prices_e18)?;
+        self._ensure_is_collateralized(&from)?;
 
         //// ABACUS TOKEN EVENTS
         // AToken interests are returned.

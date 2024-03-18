@@ -1,22 +1,22 @@
 use abax_traits::lending_pool::{
-    EmitDepositEvents, LendingPoolError, MathError,
+    EmitDepositEvents, LendingPoolDepositInternal, LendingPoolError, MathError,
 };
 use ink::prelude::vec::Vec;
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use super::{
     internal::{
-        AssetPrices, Transfer, _check_amount_not_zero,
+        LendingPowerChecker, Transfer, _check_amount_not_zero,
         _emit_abacus_token_transfer_event,
         _emit_abacus_token_transfer_event_and_decrease_allowance,
     },
     storage::LendingPoolStorage,
 };
 
-pub trait LendingPoolDepositImpl:
+pub trait LendingPoolDepositInternalImpl:
     StorageFieldGetter<LendingPoolStorage> + Transfer + EmitDepositEvents
 {
-    fn deposit(
+    fn _deposit(
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
@@ -69,13 +69,13 @@ pub trait LendingPoolDepositImpl:
         Ok(())
     }
 
-    fn redeem(
+    fn _redeem(
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
         mut amount: Balance,
         #[allow(unused_variables)] data: Vec<u8>,
-    ) -> Result<Balance, LendingPoolError> {
+    ) -> Result<(Balance, bool), LendingPoolError> {
         _check_amount_not_zero(amount)?;
 
         let block_timestamp = Self::env().block_timestamp();
@@ -131,16 +131,6 @@ pub trait LendingPoolDepositImpl:
             user_reserve_data_after
         );
 
-        // check if there is enought collateral
-        if was_asset_a_collateral {
-            let all_assets = self
-                .data::<LendingPoolStorage>()
-                .get_all_registered_assets();
-            let prices_e18 = self._get_assets_prices_e18(all_assets)?;
-            self.data::<LendingPoolStorage>()
-                .check_lending_power(&on_behalf_of, &prices_e18)?;
-        }
-
         //// TOKEN TRANSFERS
         self._transfer_out(&asset, &Self::env().caller(), &amount)?;
 
@@ -175,6 +165,38 @@ pub trait LendingPoolDepositImpl:
             amount,
         );
 
+        Ok((amount, was_asset_a_collateral))
+    }
+}
+pub trait LendingPoolDepositImpl:
+    StorageFieldGetter<LendingPoolStorage>
+    + LendingPoolDepositInternal
+    + LendingPowerChecker
+{
+    fn deposit(
+        &mut self,
+        asset: AccountId,
+        on_behalf_of: AccountId,
+        amount: Balance,
+        #[allow(unused_variables)] data: Vec<u8>,
+    ) -> Result<(), LendingPoolError> {
+        self._deposit(asset, on_behalf_of, amount, data)?;
+        Ok(())
+    }
+    fn redeem(
+        &mut self,
+        asset: AccountId,
+        on_behalf_of: AccountId,
+        amount: Balance,
+        #[allow(unused_variables)] data: Vec<u8>,
+    ) -> Result<Balance, LendingPoolError> {
+        let (amount, was_asset_a_collateral) =
+            self._redeem(asset, on_behalf_of, amount, data)?;
+
+        // check if there is enought collateral
+        if was_asset_a_collateral {
+            self._ensure_is_collateralized(&on_behalf_of)?;
+        }
         Ok(amount)
     }
 }

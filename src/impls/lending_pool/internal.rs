@@ -240,3 +240,32 @@ impl<T: StorageFieldGetter<LendingPoolStorage>> AssetPrices for T {
         Ok(price_feeder.get_latest_prices(assets)?)
     }
 }
+
+pub trait LendingPowerChecker {
+    fn _ensure_is_collateralized(
+        &self,
+        user: &AccountId,
+    ) -> Result<(), LendingPoolError>;
+}
+
+impl<T: StorageFieldGetter<LendingPoolStorage> + AssetPrices>
+    LendingPowerChecker for T
+{
+    fn _ensure_is_collateralized(
+        &self,
+        user: &AccountId,
+    ) -> Result<(), LendingPoolError> {
+        let all_assets = self
+            .data::<LendingPoolStorage>()
+            .get_all_registered_assets();
+        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
+        match self
+            .data::<LendingPoolStorage>()
+            .calculate_user_lending_power_e6(user, &prices_e18)?
+            .0
+        {
+            true => Ok(()),
+            false => Err(LendingPoolError::InsufficientCollateral),
+        }
+    }
+}
