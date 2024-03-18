@@ -114,8 +114,8 @@ dependencies:
     specifier: ^0.0.72
     version: 0.0.72(@polkadot/util-crypto@12.6.2)
   wookashwackomytest-polkahat-network-helpers:
-    specifier: ^0.0.20
-    version: 0.0.20
+    specifier: ^0.0.21
+    version: 0.0.21
   wookashwackomytest-typechain-compiler:
     specifier: ^0.0.43
     version: 0.0.43(@types/node@20.11.28)(typescript@5.4.2)
@@ -3952,8 +3952,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /wookashwackomytest-polkahat-network-helpers@0.0.20:
-    resolution: {integrity: sha512-8zT58RFdro37tj/PG/OzpvLSjWBKp96c843fCcJqjQj27IGWnIrmX/fDKzt5jjskEznzwu28VMmD9bK/CBXxfg==}
+  /wookashwackomytest-polkahat-network-helpers@0.0.21:
+    resolution: {integrity: sha512-75fDAsTqWQkcUYWt4QNZwgjI6YyykiTPHvTKcUy5b45QxIHDgskepTJTGXyxnAT+YkBQX3wtmaEucnovtzurAg==}
     dependencies:
       '@polkadot/api': 10.12.2
       '@polkadot/api-augment': 10.12.2

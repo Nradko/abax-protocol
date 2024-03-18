@@ -25,7 +25,7 @@
     ],
     "wrap-iife": "off",
     "no-shadow": "error",
-    "array-bracket-newline": "error",
+    "array-bracket-newline": "off",
     "brace-style": "error",
     "eqeqeq": "error",
     "complexity": "error",

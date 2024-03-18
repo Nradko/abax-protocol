@@ -57,7 +57,7 @@
     "wookashwackomytest-contract-helpers": "0.0.103",
     "wookashwackomytest-pendzl-tests": "^0.0.12",
     "wookashwackomytest-polkahat-chai-matchers": "^0.0.72",
-    "wookashwackomytest-polkahat-network-helpers": "^0.0.20",
+    "wookashwackomytest-polkahat-network-helpers": "^0.0.21",
     "wookashwackomytest-typechain-compiler": "^0.0.43",
     "wookashwackomytest-typechain-polkadot": "^0.0.43",
     "wookashwackomytest-typechain-types": "^0.0.43",
