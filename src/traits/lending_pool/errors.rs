@@ -106,3 +106,10 @@ impl From<FlashLoanReceiverError> for LendingPoolError {
         LendingPoolError::FlashLoanReceiverError(flash_error)
     }
 }
+
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+pub enum MultiOpError {
+    OperationError(u32, LendingPoolError),
+    InsufficientCollateral(AccountId),
+}

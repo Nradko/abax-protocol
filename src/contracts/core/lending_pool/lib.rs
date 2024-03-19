@@ -36,7 +36,7 @@ pub mod lending_pool {
         LendingPoolDepositInternal, LendingPoolError, LendingPoolFlash,
         LendingPoolLiquidate, LendingPoolMaintain, LendingPoolManage,
         LendingPoolMultiOp, LendingPoolVTokenInterface, LendingPoolView,
-        MarketRule, RuleId, ROLE_ADMIN,
+        MarketRule, MultiOpError, RuleId, ROLE_ADMIN,
     };
     use ink::{codegen::Env, env::DefaultEnvironment, prelude::vec::Vec};
 
@@ -57,7 +57,7 @@ pub mod lending_pool {
         fn multi_op(
             &mut self,
             op: Vec<MultiOpParams>,
-        ) -> Result<(), LendingPoolError> {
+        ) -> Result<(), MultiOpError> {
             LendingPoolMultiOpImpl::multi_op(self, op)
         }
     }

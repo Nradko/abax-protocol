@@ -1,16 +1,13 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 
 import BN from 'bn.js';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
-import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
-import LendingPoolContract from '../typechain/contracts/lending_pool';
-import { MAX_U128, ROLES } from './consts';
-import { convertToCurrencyDecimals } from './scenarios/utils/actions';
-import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
-import { expect } from './setup/chai';
-import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
-import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import ATokenContract from 'typechain/contracts/a_token';
+import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import VTokenContract from 'typechain/contracts/v_token';
+import LendingPoolContract from '../typechain/contracts/lending_pool';
+import { convertToCurrencyDecimals } from './scenarios/utils/actions';
+import { TestEnv, TestEnvReserves, makeSuite } from './scenarios/utils/make-suite';
+import { expect } from './setup/chai';
 
 makeSuite.only('Multi operations', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -25,7 +22,9 @@ makeSuite.only('Multi operations', (getTestEnv) => {
   let usdcContract: PSP22Emitable;
   let wethContract: PSP22Emitable;
   let aTokenDaiContract: ATokenContract;
+  let vTokenDaiContract: VTokenContract;
   let aTokenUsdcContract: ATokenContract;
+  let vTokenUsdcContract: VTokenContract;
   let aTokenWETHContract: ATokenContract;
 
   beforeEach('setup Env', async () => {
@@ -41,7 +40,9 @@ makeSuite.only('Multi operations', (getTestEnv) => {
     usdcContract = reserves['USDC'].underlying;
     wethContract = reserves['WETH'].underlying;
     aTokenDaiContract = reserves['DAI'].aToken;
+    vTokenDaiContract = reserves['DAI'].vToken;
     aTokenUsdcContract = reserves['USDC'].aToken;
+    vTokenUsdcContract = reserves['USDC'].vToken;
     aTokenWETHContract = reserves['WETH'].aToken;
   });
 
@@ -97,6 +98,71 @@ makeSuite.only('Multi operations', (getTestEnv) => {
 
         await expect(tx).to.changePSP22Balances(aTokenDaiContract, [bob.address], [initialDaiBalance]);
         await expect(tx).to.changePSP22Balances(aTokenUsdcContract, [bob.address], [initialUsdcBalance]);
+      });
+
+      describe('bob deposits 10000 DAI and 10000 USDC, then alice borrows 500 DAI and 1 WETH and repays 250 DAI in the same transaction', () => {
+        beforeEach('make deposit', async () => {
+          await lendingPool.withSigner(alice).tx.deposit(usdcContract.address, alice.address, initialUsdcBalance, []);
+
+          const tx = lendingPool.withSigner(bob).tx.multiOp([
+            {
+              deposit: [daiContract.address, bob.address, initialDaiBalance, []],
+            },
+            {
+              deposit: [usdcContract.address, bob.address, initialUsdcBalance, []],
+            },
+          ]);
+          await expect(tx).to.eventually.be.fulfilled;
+
+          const charliesDeposit = await convertToCurrencyDecimals(wethContract, 10);
+          await wethContract.tx.mint(charlie.address, charliesDeposit);
+          await wethContract.withSigner(charlie).tx.approve(lendingPool.address, charliesDeposit);
+          await lendingPool.withSigner(charlie).tx.deposit(wethContract.address, charlie.address, charliesDeposit, []);
+        });
+
+        it.only('borrow and repay', async () => {
+          const borrowAmountWeth = await convertToCurrencyDecimals(wethContract, 1);
+          const borrowAmountDai = await convertToCurrencyDecimals(daiContract, 250);
+          const repayAmountDai = await convertToCurrencyDecimals(daiContract, 250);
+          await daiContract.withSigner(alice).tx.approve(lendingPool.address, repayAmountDai);
+
+          await expect(
+            lendingPool.withSigner(alice).query.multiOp([
+              {
+                setAsCollateral: [usdcContract.address, true],
+              },
+              {
+                borrow: [daiContract.address, alice.address, borrowAmountDai, []],
+              },
+              {
+                borrow: [wethContract.address, alice.address, borrowAmountWeth, []],
+              },
+              {
+                repay: [daiContract.address, alice.address, repayAmountDai, []],
+              },
+            ]),
+          ).to.haveOkResult();
+
+          const tx = lendingPool.withSigner(alice).tx.multiOp([
+            {
+              setAsCollateral: [usdcContract.address, true],
+            },
+            {
+              borrow: [daiContract.address, alice.address, borrowAmountDai, []],
+            },
+            {
+              borrow: [wethContract.address, alice.address, borrowAmountWeth, []],
+            },
+            {
+              repay: [daiContract.address, alice.address, repayAmountDai, []],
+            },
+          ]);
+          await expect(tx).to.eventually.be.fulfilled;
+          const vTokenWETHContract = reserves['WETH'].vToken;
+          await expect(tx).to.changePSP22Balances(vTokenWETHContract, [alice.address], [borrowAmountWeth]);
+          await expect(tx).to.changePSP22Balances(wethContract, [alice.address], [borrowAmountWeth]);
+          await expect(tx).to.changePSP22Balances(daiContract, [alice.address], [borrowAmountDai.sub(repayAmountDai)]);
+        });
       });
     });
   });

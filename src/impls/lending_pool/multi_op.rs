@@ -1,6 +1,6 @@
 use abax_library::structs::MultiOpParams;
 use abax_traits::lending_pool::{
-    LendingPoolBorrowInternal, LendingPoolDepositInternal, LendingPoolError,
+    LendingPoolBorrowInternal, LendingPoolDepositInternal, MultiOpError,
 };
 use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
 use pendzl::traits::StorageFieldGetter;
@@ -26,14 +26,11 @@ pub trait LendingPoolMultiOpImpl:
     + LendingPoolDepositInternal
     + LendingPoolBorrowInternal
 {
-    fn multi_op(
-        &mut self,
-        op: Vec<MultiOpParams>,
-    ) -> Result<(), LendingPoolError> {
+    fn multi_op(&mut self, op: Vec<MultiOpParams>) -> Result<(), MultiOpError> {
         let mut accounts_to_check = Mapping::<u32, AccountId>::new();
         let mut presence_lookup = Mapping::<AccountId, ()>::new();
         let mut counter: u32 = 0;
-        for o in op {
+        for (i, o) in op.iter().enumerate() {
             match o {
                 MultiOpParams::Deposit {
                     asset,
@@ -41,7 +38,21 @@ pub trait LendingPoolMultiOpImpl:
                     amount,
                     data,
                 } => {
-                    self._deposit(asset, on_behalf_of, amount, data)?;
+                    self._deposit(*asset, *on_behalf_of, *amount, data.clone())
+                        .map_err(|lp_err| {
+                            MultiOpError::OperationError(i as u32, lp_err)
+                        })?;
+                }
+                MultiOpParams::Repay {
+                    asset,
+                    on_behalf_of,
+                    amount,
+                    data,
+                } => {
+                    self._repay(*asset, *on_behalf_of, *amount, data.clone())
+                        .map_err(|lp_err| {
+                        MultiOpError::OperationError(i as u32, lp_err)
+                    })?;
                 }
                 MultiOpParams::Redeem {
                     asset,
@@ -49,12 +60,15 @@ pub trait LendingPoolMultiOpImpl:
                     amount,
                     data,
                 } => {
-                    self._redeem(asset, on_behalf_of, amount, data)?;
+                    self._redeem(*asset, *on_behalf_of, *amount, data.clone())
+                        .map_err(|lp_err| {
+                            MultiOpError::OperationError(i as u32, lp_err)
+                        })?;
                     add_to_lookups(
                         &mut accounts_to_check,
                         &mut presence_lookup,
                         &mut counter,
-                        on_behalf_of,
+                        *on_behalf_of,
                     );
                 }
                 MultiOpParams::Borrow {
@@ -63,30 +77,21 @@ pub trait LendingPoolMultiOpImpl:
                     amount,
                     data,
                 } => {
-                    self._borrow(asset, on_behalf_of, amount, data)?;
+                    self._borrow(*asset, *on_behalf_of, *amount, data.clone())
+                        .map_err(|lp_err| {
+                            MultiOpError::OperationError(i as u32, lp_err)
+                        })?;
                     add_to_lookups(
                         &mut accounts_to_check,
                         &mut presence_lookup,
                         &mut counter,
-                        on_behalf_of,
-                    );
-                }
-                MultiOpParams::Repay {
-                    asset,
-                    on_behalf_of,
-                    amount,
-                    data,
-                } => {
-                    self._repay(asset, on_behalf_of, amount, data)?;
-                    add_to_lookups(
-                        &mut accounts_to_check,
-                        &mut presence_lookup,
-                        &mut counter,
-                        on_behalf_of,
+                        *on_behalf_of,
                     );
                 }
                 MultiOpParams::ChooseMarketRule { market_rule_id } => {
-                    self._choose_market_rule(market_rule_id)?;
+                    self._choose_market_rule(*market_rule_id).map_err(
+                        |lp_err| MultiOpError::OperationError(i as u32, lp_err),
+                    )?;
                     add_to_lookups(
                         &mut accounts_to_check,
                         &mut presence_lookup,
@@ -98,7 +103,10 @@ pub trait LendingPoolMultiOpImpl:
                     asset,
                     use_as_collateral,
                 } => {
-                    self._set_as_collateral(asset, use_as_collateral)?;
+                    self._set_as_collateral(*asset, *use_as_collateral)
+                        .map_err(|lp_err| {
+                            MultiOpError::OperationError(i as u32, lp_err)
+                        })?;
                     add_to_lookups(
                         &mut accounts_to_check,
                         &mut presence_lookup,
@@ -111,7 +119,8 @@ pub trait LendingPoolMultiOpImpl:
 
         for i in 0..counter {
             let user = accounts_to_check.get(i).unwrap();
-            self._ensure_is_collateralized(&user)?;
+            self._ensure_is_collateralized(&user)
+                .map_err(|_| MultiOpError::InsufficientCollateral(user))?;
         }
 
         Ok(())
