@@ -923,9 +923,9 @@ checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
 
 [[package]]
 name = "pendzl"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bef35dec4a9ab0b1451f7a8af25728b4ecb3d3d4fcc008c78a9a95194a3e2afa"
+checksum = "04e6edb068b22b8d9ceaff7ab80f646a1dc764d7d5c671b085e33af9778f0ab0"
 dependencies = [
  "ink",
  "parity-scale-codec",
@@ -936,11 +936,10 @@ dependencies = [
 
 [[package]]
 name = "pendzl_contracts"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52b167dbde850cad95b83823e75669bfda2965dfab63aee15ab13da3bca1ee9e"
+checksum = "4be73ddd2709d53c8f4ee92cce71ce6fcc6bcff4adc8c9a8ae28622614acf330"
 dependencies = [
- "ethnum",
  "hex",
  "ink",
  "parity-scale-codec",
@@ -950,11 +949,12 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e075d64e5f9f0510a9e0767e822462c6285274294089cb242f21afa2f773bfb0"
+checksum = "16389a5c2c09f1a9c3becb6c6a7f7a6b90790504044afffaab7ea63f192eb8b5"
 dependencies = [
  "const_format",
+ "ethnum",
  "ink",
  "parity-scale-codec",
  "pendzl_lang_macro",
@@ -964,9 +964,9 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang_codegen"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aaf86d44c456eb35d658375a9a7b270dfc748e7692d8cbc5313884082352006c"
+checksum = "90d71dc7341a5ee1eec7828de68bbdfb691d28ab3b2d984dfad60ee1295d8954"
 dependencies = [
  "blake2",
  "cargo_metadata",
@@ -985,9 +985,9 @@ dependencies = [
 
 [[package]]
 name = "pendzl_lang_macro"
-version = "0.2.1"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afcfa9cc9d489e80d44468178850a418b201d54b59fd297bdae40b8eb8a6db5e"
+checksum = "add1521b0badb806ac71ba84eef0a18a1cf0853b8f0154cbe13bf83371422eb3"
 dependencies = [
  "pendzl_lang_codegen",
  "proc-macro2",
