@@ -55,6 +55,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       initialDaiBalance = await convertToCurrencyDecimals(daiContract, 10000);
       await daiContract.tx.mint(alice.address, initialDaiBalance);
       await daiContract.withSigner(alice).tx.approve(lendingPool.address, initialDaiBalance);
+      const que = await lendingPool.withSigner(alice).query.deposit(daiContract.address, alice.address, initialDaiBalance, []);
       await lendingPool.withSigner(alice).tx.deposit(daiContract.address, alice.address, initialDaiBalance, []);
       await daiContract.tx.mint(bob.address, initialDaiBalance);
       await daiContract.withSigner(bob).tx.approve(lendingPool.address, initialDaiBalance);

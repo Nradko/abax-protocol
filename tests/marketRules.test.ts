@@ -90,6 +90,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
       });
       describe(`User repays WETH debt. Then`, () => {
         beforeEach('repays WETH debt', async () => {
+          const q = await lendingPool.withSigner(user).query.repay(wethContract.address, user.address, MAX_U128, []);
           await lendingPool.withSigner(user).tx.repay(wethContract.address, user.address, MAX_U128, []);
         });
         it('User tries to switch market mode and succeeds as user has enough collateral. Event should be emitted.', async () => {

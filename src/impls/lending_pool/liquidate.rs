@@ -34,7 +34,7 @@ pub trait LendingPoolLiquidateImpl:
         let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         let (collaterized, _) = self
             .data::<LendingPoolStorage>()
-            .calculate_user_lending_power_e6(
+            .calculate_lending_power_of_an_account_e6(
                 &liquidated_account,
                 &prices_e18,
             )?;

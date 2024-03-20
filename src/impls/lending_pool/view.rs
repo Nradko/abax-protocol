@@ -226,7 +226,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         let prices_e18 =
             self._get_assets_prices_e18(registered_assets).unwrap();
         self.data::<LendingPoolStorage>()
-            .calculate_user_lending_power_e6(&user, &prices_e18)
+            .calculate_lending_power_of_an_account_e6(&user, &prices_e18)
             .unwrap()
     }
 

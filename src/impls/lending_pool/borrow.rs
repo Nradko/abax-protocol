@@ -1,8 +1,10 @@
 use abax_traits::lending_pool::{
     EmitBorrowEvents, LendingPoolError, MathError, RuleId,
 };
-use ink::prelude::vec::Vec;
+use ink::prelude::{vec, vec::Vec};
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
+
+use crate::lending_pool::storage::{Action, Operation, OperationArgs};
 
 use super::{
     internal::{
@@ -30,7 +32,7 @@ pub trait LendingPoolBorrowImpl:
             .get_all_registered_assets();
         let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power(&caller, &prices_e18)?;
+            .check_lending_power_of_an_account(&caller, &prices_e18)?;
 
         self._emit_market_rule_chosen(&caller, &market_rule_id);
         Ok(())
@@ -55,7 +57,7 @@ pub trait LendingPoolBorrowImpl:
                 .get_all_registered_assets();
             let prices_e18 = self._get_assets_prices_e18(all_assets)?;
             self.data::<LendingPoolStorage>()
-                .check_lending_power(&caller, &prices_e18)?;
+                .check_lending_power_of_an_account(&caller, &prices_e18)?;
         }
 
         self._emit_collateral_set_event(
@@ -83,21 +85,16 @@ pub trait LendingPoolBorrowImpl:
             block_timestamp
         );
 
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
-            self.data::<LendingPoolStorage>().account_for_borrow(
-                &asset,
-                &on_behalf_of,
-                &amount,
-                &block_timestamp,
-            )?;
-
-        // check if there ie enought collateral
-        let all_assets = self
+        let mut actions = vec![Action {
+            op: Operation::Borrow,
+            args: OperationArgs { asset, amount },
+        }];
+        let res = self
             .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
-        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
-        self.data::<LendingPoolStorage>()
-            .check_lending_power(&on_behalf_of, &prices_e18)?;
+            .account_for_actions(&on_behalf_of, &mut actions)?;
+
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
+            res.first().unwrap();
 
         //// TOKEN TRANSFER
         self._transfer_out(&asset, &Self::env().caller(), &amount)?;
@@ -112,7 +109,7 @@ pub trait LendingPoolBorrowImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            user_accumulated_deposit_interest as i128,
+            *user_accumulated_deposit_interest as i128,
         )?;
         // VTOKEN
         _emit_abacus_token_transfer_event_and_decrease_allowance(
@@ -138,7 +135,7 @@ pub trait LendingPoolBorrowImpl:
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
-        mut amount: Balance,
+        amount: Balance,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
         _check_amount_not_zero(amount)?;
@@ -149,16 +146,23 @@ pub trait LendingPoolBorrowImpl:
             "repay  | block_timestamp {}",
             block_timestamp
         );
+        let mut actions = vec![Action {
+            op: Operation::Repay,
+            args: OperationArgs { asset, amount },
+        }];
+        let res = self
+            .data::<LendingPoolStorage>()
+            .account_for_actions(&on_behalf_of, &mut actions)?;
+
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
-            self.data::<LendingPoolStorage>().account_for_repay(
-                &asset,
-                &on_behalf_of,
-                &mut amount,
-                &block_timestamp,
-            )?;
+            res.first().unwrap();
 
         //// TOKEN TRANSFER
-        self._transfer_in(&asset, &Self::env().caller(), &amount)?;
+        self._transfer_in(
+            &asset,
+            &Self::env().caller(),
+            &actions[0].args.amount,
+        )?;
         //// ABACUS TOKEN EVENTS
         let abacus_tokens = self
             .data::<LendingPoolStorage>()
@@ -169,14 +173,14 @@ pub trait LendingPoolBorrowImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            user_accumulated_deposit_interest as i128,
+            *user_accumulated_deposit_interest as i128,
         )?;
         // VTOKEN
         _emit_abacus_token_transfer_event(
             &abacus_tokens.v_token_address,
             &on_behalf_of,
-            (user_accumulated_debt_interest as i128)
-                .overflowing_sub(amount as i128)
+            (*user_accumulated_debt_interest as i128)
+                .overflowing_sub(actions[0].args.amount as i128)
                 .0,
         )?;
         //// EVENT
@@ -184,8 +188,8 @@ pub trait LendingPoolBorrowImpl:
             asset,
             Self::env().caller(),
             on_behalf_of,
-            amount,
+            actions[0].args.amount,
         );
-        Ok(amount)
+        Ok(actions[0].args.amount)
     }
 }

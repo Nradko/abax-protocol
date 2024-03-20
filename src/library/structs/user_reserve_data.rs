@@ -14,6 +14,7 @@ pub struct UserReserveData {
     /// index that is used to accumulate debt interest.
     pub applied_debt_index_e18: u128,
 }
+
 /// type used to identify asset
 pub type AssetId = u32;
 
