@@ -18,12 +18,13 @@ pub mod lending_pool {
         liquidate::LendingPoolLiquidateImpl,
         maintain::LendingPoolMaintainImpl,
         manage::{LendingPoolManageImpl, ManageInternal},
+        multi_op::LendingPoolMultiOpImpl,
         storage::{AccountRegistrar, LendingPoolStorage},
         v_token_interface::LendingPoolVTokenInterfaceImpl,
         view::LendingPoolViewImpl,
     };
     use abax_library::structs::{
-        AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
+        Action, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
         ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
     };
     use abax_traits::lending_pool::{
@@ -32,8 +33,9 @@ pub mod lending_pool {
         EmitMaintainEvents, EmitManageEvents, InterestRateModel,
         LendingPoolATokenInterface, LendingPoolBorrow, LendingPoolDeposit,
         LendingPoolError, LendingPoolFlash, LendingPoolLiquidate,
-        LendingPoolMaintain, LendingPoolManage, LendingPoolVTokenInterface,
-        LendingPoolView, MarketRule, RuleId, ROLE_ADMIN,
+        LendingPoolMaintain, LendingPoolManage, LendingPoolMultiOp,
+        LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
+        ROLE_ADMIN,
     };
     use ink::{codegen::Env, env::DefaultEnvironment, prelude::vec::Vec};
 
@@ -48,6 +50,19 @@ pub mod lending_pool {
         lending_pool: LendingPoolStorage,
         #[storage_field]
         account_registrar: AccountRegistrar,
+    }
+
+    impl LendingPoolMultiOpImpl for LendingPool {}
+    impl LendingPoolMultiOp for LendingPool {
+        #[ink(message)]
+        fn multi_op(
+            &mut self,
+            op: Vec<Action>,
+            on_behalf_of: AccountId,
+            data: Vec<u8>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolMultiOpImpl::multi_op(self, op, on_behalf_of, data)
+        }
     }
 
     /// Implements core lending methods

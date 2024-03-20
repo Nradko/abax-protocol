@@ -4,7 +4,7 @@ use abax_traits::lending_pool::{
 use ink::prelude::{vec, vec::Vec};
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
-use crate::lending_pool::storage::{Action, Operation, OperationArgs};
+use abax_library::structs::{Action, Operation, OperationArgs};
 
 use super::{
     internal::{
@@ -92,9 +92,10 @@ pub trait LendingPoolBorrowImpl:
         let res = self
             .data::<LendingPoolStorage>()
             .account_for_actions(&on_behalf_of, &mut actions)?;
-
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
-            res.first().unwrap();
+        let (
+            _,
+            (user_accumulated_deposit_interest, user_accumulated_debt_interest),
+        ) = res.first().unwrap();
 
         //// TOKEN TRANSFER
         self._transfer_out(&asset, &Self::env().caller(), &amount)?;
@@ -153,10 +154,10 @@ pub trait LendingPoolBorrowImpl:
         let res = self
             .data::<LendingPoolStorage>()
             .account_for_actions(&on_behalf_of, &mut actions)?;
-
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
-            res.first().unwrap();
-
+        let (
+            _,
+            (user_accumulated_deposit_interest, user_accumulated_debt_interest),
+        ) = res.first().unwrap();
         //// TOKEN TRANSFER
         self._transfer_in(
             &asset,

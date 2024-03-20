@@ -9,7 +9,7 @@ use pendzl::contracts::access_control::AccessControlError;
 use pendzl::contracts::psp22::PSP22Error;
 
 use abax_library::structs::{
-    AssetRules, AssetRulesError, ReserveAbacusTokens, ReserveData,
+    Action, AssetRules, AssetRulesError, ReserveAbacusTokens, ReserveData,
     ReserveDataError, ReserveFees, ReserveIndexes, ReserveRestrictions,
     ReserveRestrictionsError, UserConfig, UserReserveData,
 };
