@@ -18,7 +18,7 @@ pub mod lending_pool {
         liquidate::LendingPoolLiquidateImpl,
         maintain::LendingPoolMaintainImpl,
         manage::{LendingPoolManageImpl, ManageInternal},
-        storage::LendingPoolStorage,
+        storage::{AccountRegistrar, LendingPoolStorage},
         v_token_interface::LendingPoolVTokenInterfaceImpl,
         view::LendingPoolViewImpl,
     };
@@ -27,13 +27,13 @@ pub mod lending_pool {
         ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
     };
     use abax_traits::lending_pool::{
-        DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
-        EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
-        EmitManageEvents, InterestRateModel, LendingPoolATokenInterface,
-        LendingPoolBorrow, LendingPoolDeposit, LendingPoolError,
-        LendingPoolFlash, LendingPoolLiquidate, LendingPoolMaintain,
-        LendingPoolManage, LendingPoolVTokenInterface, LendingPoolView,
-        MarketRule, RuleId, ROLE_ADMIN,
+        AccountRegistrarView, DecimalMultiplier, EmitBorrowEvents,
+        EmitDepositEvents, EmitFlashEvents, EmitLiquidateEvents,
+        EmitMaintainEvents, EmitManageEvents, InterestRateModel,
+        LendingPoolATokenInterface, LendingPoolBorrow, LendingPoolDeposit,
+        LendingPoolError, LendingPoolFlash, LendingPoolLiquidate,
+        LendingPoolMaintain, LendingPoolManage, LendingPoolVTokenInterface,
+        LendingPoolView, MarketRule, RuleId, ROLE_ADMIN,
     };
     use ink::{codegen::Env, env::DefaultEnvironment, prelude::vec::Vec};
 
@@ -46,6 +46,8 @@ pub mod lending_pool {
         access: access_control::AccessControlData,
         #[storage_field]
         lending_pool: LendingPoolStorage,
+        #[storage_field]
+        account_registrar: AccountRegistrar,
     }
 
     /// Implements core lending methods
@@ -100,6 +102,8 @@ pub mod lending_pool {
             asset: AccountId,
             use_as_collateral: bool,
         ) -> Result<(), LendingPoolError> {
+            self.account_registrar
+                .ensure_registered(&self.env().caller());
             LendingPoolBorrowImpl::set_as_collateral(
                 self,
                 asset,
@@ -459,6 +463,21 @@ pub mod lending_pool {
             assets: Option<Vec<AccountId>>,
         ) -> Vec<(AccountId, i128)> {
             LendingPoolViewImpl::view_protocol_income(self, assets)
+        }
+    }
+
+    impl AccountRegistrarView for LendingPool {
+        #[ink(message)]
+        fn view_counter_to_user(&self, counter: u128) -> Option<AccountId> {
+            self.account_registrar.counter_to_user.get(counter)
+        }
+        #[ink(message)]
+        fn view_user_to_counter(&self, user: AccountId) -> Option<u128> {
+            self.account_registrar.user_to_counter.get(user)
+        }
+        #[ink(message)]
+        fn view_next_counter(&self) -> u128 {
+            self.account_registrar.next_counter
         }
     }
 

@@ -21,6 +21,10 @@ use ink::storage::Mapping;
 use ink::{env::DefaultEnvironment, prelude::vec::Vec};
 use pendzl::traits::{AccountId, Balance, Timestamp};
 
+mod account_registrar;
+
+pub use account_registrar::*;
+
 pub struct OperationArgs {
     pub asset: AccountId,
     pub amount: Balance,
@@ -37,6 +41,7 @@ pub struct Action {
     pub op: Operation,
     pub args: OperationArgs,
 }
+
 #[derive(Default, Debug)]
 #[pendzl::storage_item]
 pub struct LendingPoolStorage {
@@ -62,9 +67,6 @@ pub struct LendingPoolStorage {
 
     pub user_reserve_datas: Mapping<AccountId, Vec<Option<UserReserveData>>>,
     pub user_configs: Mapping<AccountId, UserConfig>,
-    pub counter_to_user: Mapping<u128, AccountId>,
-    pub user_to_counter: Mapping<AccountId, u128>,
-    pub next_counter: u128,
 
     #[lazy]
     /// fee that must be paid while taking flash loan. 10^6 = 100%.
@@ -181,23 +183,12 @@ impl LendingPoolStorage {
             .collect()
     }
 
-    fn ensure_user_registered(&mut self, account: &AccountId) {
-        if self.user_to_counter.contains(account) {
-            return;
-        }
-        let counter = self.next_counter;
-        self.counter_to_user.insert(counter, account);
-        self.user_to_counter.insert(account, &counter);
-        self.next_counter = counter.checked_add(1).unwrap();
-    }
-
     fn insert_user_reserve_data(
         &mut self,
         asset_id: AssetId,
         account: &AccountId,
         user_reserve_data: &UserReserveData,
     ) {
-        self.ensure_user_registered(account);
         let mut user_reserve_datas = self
             .user_reserve_datas
             .get(*account)
