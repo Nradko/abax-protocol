@@ -80,12 +80,16 @@ pub trait LendingPoolMultiOpImpl:
                     );
                 }
                 Operation::Withdraw => {
-                    self._transfer_out(&asset, &on_behalf_of, &amount)?;
+                    self._transfer_out(&asset, &caller, &amount)?;
                     // ATOKEN
-                    _emit_abacus_token_transfer_event(
+                    _emit_abacus_token_transfer_event_and_decrease_allowance(
                         &abacus_tokens.a_token_address,
                         &on_behalf_of,
-                        *user_accumulated_deposit_interest as i128,
+                        (*user_accumulated_deposit_interest as i128)
+                            .overflowing_sub(actions[0].args.amount as i128)
+                            .0,
+                        &(Self::env().caller()),
+                        actions[0].args.amount,
                     )?;
                     // VTOKEN
                     _emit_abacus_token_transfer_event(
@@ -127,22 +131,19 @@ pub trait LendingPoolMultiOpImpl:
                     )
                 }
                 Operation::Repay => {
-                    self._transfer_in(&asset, &on_behalf_of, &amount)?;
-                    // ATOKEN
-                    _emit_abacus_token_transfer_event_and_decrease_allowance(
+                    self._transfer_in(&asset, &caller, &amount)?;
+                    _emit_abacus_token_transfer_event(
                         &abacus_tokens.a_token_address,
                         &on_behalf_of,
-                        (*user_accumulated_deposit_interest as i128)
-                            .overflowing_sub(amount as i128)
-                            .0,
-                        &(caller),
-                        amount,
+                        *user_accumulated_deposit_interest as i128,
                     )?;
                     // VTOKEN
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.v_token_address,
                         &on_behalf_of,
-                        *user_accumulated_debt_interest as i128,
+                        (*user_accumulated_debt_interest as i128)
+                            .overflowing_sub(actions[0].args.amount as i128)
+                            .0,
                     )?;
 
                     self._emit_repay_variable_event(
