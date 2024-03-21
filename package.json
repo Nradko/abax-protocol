@@ -56,6 +56,7 @@
     "tsx": "^4.7.1",
     "typescript": "^5.4.2",
     "wookashwackomytest-contract-helpers": "0.0.103",
+    "wookashwackomytest-find-process": "^1.4.7",
     "wookashwackomytest-pendzl-tests": "^0.0.12",
     "wookashwackomytest-polkahat-chai-matchers": "^0.0.72",
     "wookashwackomytest-polkahat-network-helpers": "^0.0.21",

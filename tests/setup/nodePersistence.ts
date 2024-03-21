@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { ChildProcess, spawn } from 'child_process';
-import findProcess from 'find-process';
+import findProcess from 'wookashwackomytest-find-process';
 import fs from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';

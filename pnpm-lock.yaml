@@ -107,6 +107,9 @@ dependencies:
   wookashwackomytest-contract-helpers:
     specifier: 0.0.103
     version: 0.0.103
+  wookashwackomytest-find-process:
+    specifier: ^1.4.7
+    version: 1.4.7
   wookashwackomytest-pendzl-tests:
     specifier: ^0.0.12
     version: 0.0.12
@@ -1584,6 +1587,11 @@ packages:
   /commander@11.0.0:
     resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
     engines: {node: '>=16'}
+    dev: false
+
+  /commander@5.1.0:
+    resolution: {integrity: sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg==}
+    engines: {node: '>= 6'}
     dev: false
 
   /concat-map@0.0.1:
@@ -3967,6 +3975,15 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: false
+
+  /wookashwackomytest-find-process@1.4.7:
+    resolution: {integrity: sha512-ArbCBZEhek1INBxlK+yadiVb/trAf5nrTkVzI2KUr7IXfl+Vi+B8bkQBQnRenFjyGkVXDkzJDZ/pH9jCZU6MAw==}
+    hasBin: true
+    dependencies:
+      chalk: 4.1.2
+      commander: 5.1.0
+      loglevel: 1.9.1
     dev: false
 
   /wookashwackomytest-pendzl-tests@0.0.12:
