@@ -519,7 +519,7 @@ impl LendingPoolStorage {
         &mut self,
         account: &AccountId,
         actions: &mut [Action],
-    ) -> Result<Vec<(Operation, (u128, u128))>, LendingPoolError> {
+    ) -> Result<Vec<(u128, u128)>, LendingPoolError> {
         let mut user_datas = self
             .user_reserve_datas
             .get(account)
@@ -533,20 +533,17 @@ impl LendingPoolStorage {
 
         let timestamp = ink::env::block_timestamp::<DefaultEnvironment>();
 
-        let mut results: Vec<(Operation, (u128, u128))> = Vec::new();
+        let mut results: Vec<(u128, u128)> = Vec::new();
         let mut must_check_collateralization = false;
         for action in actions.iter_mut() {
             match action.op {
-                Operation::Deposit => results.push((
-                    action.op,
-                    self.account_for_deposit(
-                        &mut user_datas,
-                        &mut user_config,
-                        &action.args.asset,
-                        &action.args.amount,
-                        &timestamp,
-                    )?,
-                )),
+                Operation::Deposit => results.push(self.account_for_deposit(
+                    &mut user_datas,
+                    &mut user_config,
+                    &action.args.asset,
+                    &action.args.amount,
+                    &timestamp,
+                )?),
 
                 Operation::Withdraw => {
                     let (
@@ -561,11 +558,8 @@ impl LendingPoolStorage {
                         &timestamp,
                     )?;
                     results.push((
-                        action.op,
-                        (
-                            user_accumulated_deposit_interest,
-                            user_accumulated_debt_interest,
-                        ),
+                        user_accumulated_deposit_interest,
+                        user_accumulated_debt_interest,
                     ));
                     if was_asset_a_collateral {
                         must_check_collateralization = true;
@@ -573,28 +567,22 @@ impl LendingPoolStorage {
                 }
 
                 Operation::Borrow => {
-                    results.push((
-                        action.op,
-                        self.account_for_borrow(
-                            &mut user_datas,
-                            &mut user_config,
-                            &action.args.asset,
-                            &action.args.amount,
-                            &timestamp,
-                        )?,
-                    ));
-                    must_check_collateralization = true;
-                }
-                Operation::Repay => results.push((
-                    action.op,
-                    self.account_for_repay(
+                    results.push(self.account_for_borrow(
                         &mut user_datas,
                         &mut user_config,
                         &action.args.asset,
-                        &mut action.args.amount,
+                        &action.args.amount,
                         &timestamp,
-                    )?,
-                )),
+                    )?);
+                    must_check_collateralization = true;
+                }
+                Operation::Repay => results.push(self.account_for_repay(
+                    &mut user_datas,
+                    &mut user_config,
+                    &action.args.asset,
+                    &mut action.args.amount,
+                    &timestamp,
+                )?),
             };
         }
 

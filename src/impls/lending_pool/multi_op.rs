@@ -35,17 +35,12 @@ pub trait LendingPoolMultiOpImpl:
 
         for (
             i,
-            (
-                op,
-                (
-                    user_accumulated_deposit_interest,
-                    user_accumulated_debt_interest,
-                ),
-            ),
+            (user_accumulated_deposit_interest, user_accumulated_debt_interest),
         ) in res.iter().enumerate()
         {
             let asset = actions[i].args.asset;
             let amount = actions[i].args.amount;
+            let op = actions[i].op;
             let abacus_tokens = abacus_tokens
                 .get(asset)
                 .or_else(|| {
@@ -59,7 +54,7 @@ pub trait LendingPoolMultiOpImpl:
                 })
                 .unwrap();
 
-            match *op {
+            match op {
                 Operation::Deposit => {
                     self._transfer_in(&asset, &Self::env().caller(), &amount)?;
                     // ATOKEN

@@ -92,10 +92,8 @@ pub trait LendingPoolBorrowImpl:
         let res = self
             .data::<LendingPoolStorage>()
             .account_for_actions(&on_behalf_of, &mut actions)?;
-        let (
-            _,
-            (user_accumulated_deposit_interest, user_accumulated_debt_interest),
-        ) = res.first().unwrap();
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
+            res.first().unwrap();
 
         //// TOKEN TRANSFER
         self._transfer_out(&asset, &Self::env().caller(), &amount)?;
@@ -154,10 +152,8 @@ pub trait LendingPoolBorrowImpl:
         let res = self
             .data::<LendingPoolStorage>()
             .account_for_actions(&on_behalf_of, &mut actions)?;
-        let (
-            _,
-            (user_accumulated_deposit_interest, user_accumulated_debt_interest),
-        ) = res.first().unwrap();
+        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
+            res.first().unwrap();
         //// TOKEN TRANSFER
         self._transfer_in(
             &asset,
