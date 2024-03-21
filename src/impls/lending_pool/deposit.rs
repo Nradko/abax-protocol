@@ -73,7 +73,7 @@ pub trait LendingPoolDepositImpl:
         Ok(())
     }
 
-    fn redeem(
+    fn withdraw(
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,
@@ -162,7 +162,7 @@ pub trait LendingPoolDepositImpl:
         )?;
 
         //// EVENT
-        self._emit_redeem_event(
+        self._emit_withdraw_event(
             asset,
             Self::env().caller(),
             on_behalf_of,

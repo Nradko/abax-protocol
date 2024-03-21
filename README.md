@@ -16,34 +16,23 @@ This repository contains source code for Abax Protocol smart contracts as well a
 
 ### Prerequisites
 
-- To build Abax Protocol you need to have prepared rust environment, with cargo-contract compatible with ink! 4.x .
-  Follow official guides on how to set up/migrate to the environment that supports ink! 4.x:
-- https://use.ink/faq/migrating-from-ink-3-to-4/#compatibility
+- To build Abax Protocol you need to have prepared rust environment, with cargo-contract compatible with ink! 5.x .
+  Follow official guides on how to set up/migrate to the environment that supports ink! 5.x:
 - https://use.ink/getting-started/setup
+- https://use.ink/faq/migrating-from-ink-3-to-4/#compatibility
+- https://use.ink/faq/migrating-from-ink-4-to-5#compatibility
 
-- To run tests and use convenience scripts you have to run `yarn`/`yarn install` command to install required npm packages.
+- To run tests and use convenience scripts you have to run `pnpm`/`pnpm install` command to install required npm packages.
 
-### Required versions to compile
-
-Since newest releases of rustc nigthly and cargo-contract may introduce issues with building contracts here are the latest versions contracts were confirmed to compile correctly.
-
-Cargo contract:
-
-- cargo-contract-contract 3.0.1-unknown-x86_64-unknown-linux-gnu
-
-Rust:
-
-- nightly-2023-03-21-x86_64-unknown-linux-gnu
-
-**Note**: Most of the node scripts will display much more information if you set an environment variable `DEBUG` (eg. `env DEBUG=1 yarn test`).
+**Note**: Most of the node scripts will display much more information if you set an environment variable `DEBUG` (eg. `env DEBUG=1 pnpm test`).
 
 ### Build
 
 We've prepared some convenience scripts that somehow simplify the build process and streamline it to be usable from the root repo's directory.
 
-- `yarn build` - allows you to build all contracts contained in the `src` folder, have the artifacts copied over to the `artifacts` folder, generate typechain types and measure the amount of time the build took. In addition `build.log`/`build.log.html` are created with the details of the build process - useful since the console output of `cargo contract build` for all contracts is lenghty.
+- `pnpm build` - allows you to build all contracts contained in the `src` folder, have the artifacts copied over to the `artifacts` folder, generate typechain types and measure the amount of time the build took. In addition `build.log`/`build.log.html` are created with the details of the build process - useful since the console output of `cargo contract build` for all contracts is lenghty.
   For preview we recommend to use either browser (`build.log.html`) or [`ANSI Colors`](https://marketplace.visualstudio.com/items?itemName=iliazeus.vscode-ansi) (`build.log`)
-- `yarn cs <contract_name>` - allows you to build single contract and have its artifacts copied over to the `artifacts` folder.
+- `pnpm cs <contract_name>` - allows you to build single contract and have its artifacts copied over to the `artifacts` folder.
 
 ### Deployment
 
@@ -51,9 +40,9 @@ Currently, only test deployment, onto local chain is supported by scripts - curr
 
 Assuming you've build all contracts here are the steps to have contracts deployed and available for interactions:
 
-1. Run `yarn localNode` - this will spin up `substrate-contracts-node` with some opinionated, predefined by us settings including logging, max connection limit to the web socket etc. Running node directly from CLI might cause tests to fail partially/randomly.
-   **Warning/Note** `yarn test` does kill the process of the local node to make test execution avaiable.
-1. Run `yarn deployTest` to deploy contracts. The command will output a `deployedContracts.json` file that contains addresses of each deployed contract. The mentioned file is being used later on for test purposes but might serve simply as a lookup file.
+1. Run `pnpm localNode` - this will spin up `substrate-contracts-node` with some opinionated, predefined by us settings including logging, max connection limit to the web socket etc. Running node directly from CLI might cause tests to fail partially/randomly.
+   **Warning/Note** `pnpm test` does kill the process of the local node to make test execution avaiable.
+1. Run `pnpm deployTest` to deploy contracts. The command will output a `deployedContracts.json` file that contains addresses of each deployed contract. The mentioned file is being used later on for test purposes but might serve simply as a lookup file.
 
 ## Tests
 
@@ -66,7 +55,7 @@ Tests consist of regular test suites (created via `describe`/`makeSuite`) and a 
 
 ### Test execution
 
-_TL;DR; To run tests it is sufficient to run `yarn build` and `yarn test`._
+_TL;DR; To run tests it is sufficient to run `pnpm build` and `pnpm test`._
 
 **Note** Contract event testing is unstable at the moment and some tests may fail because of that. In order to rerun failed tests apply `mocha`'s `only` to selected test suites (eg `describe.only` instead of `describe`/ `makeSuite.only` instead of `makeSuite`, `it.only` instead of `it`).
 **Note2** In order to narrow down test execution of scenario tests use hardcoded settings from `scenariosRunner.test.ts`.
@@ -95,32 +84,20 @@ const selectedScenarios: string[] = [];
 const skipScenarios = true;
 ```
 
-### `yarn test` explanation:
+### `pnpm test` explanation:
 
 Test execution consists of a set of simple steps:
 
 1. Clear db backup/test artifacts from previous run
-1. Deploy, set up contracts (using `yarn deployTest`) and store/persist node's db
+1. Deploy, set up contracts (using `pnpm deployTest`) and store/persist node's db
 1. run `mocha`
 1. For every set of tests that require a "clean setup", instead of reruning deployment, use the database state saved previously. The caveat of doing that is that we have to restart the node (details in `nodePersistence.ts`). That being said thanks to doing that tests perform couple of times better than using `redspot`. This operation happens in `before` hooks, notably most used in the `makeSuite` test suite wrapper from `make-suite.ts`.
 
-- `yarn test` is what that will perform all of the steps mentioned previously and on top of that store logs of node in the `substrate-contracts-node.testrun.log` file (note that with the given approach the node is being restarted so keeping track of logs in the console is rather annoying). The `substrate-contracts-node.testrun.retouched.log` log file contains the same data with the exception of UInt8 arrays being swapped with proper addresses. In the future, we plan to add removal of duplicate logs (happening because of the node itself ).
-
-## Benchmarking
-
-**Disclaimer** Due to frequent code updates and the migration to ink!4 the code for benchmarking/creating graphs is not up to date and its execution will fail.
-
-- `scripts/benchmarking` folder contains a set of benchmarks. Each of them is runnable via `npx tsx <path_to_the_benchmark>`. After its execution a set of output files will be produced:
-
-  - plot(s) (created using `chart.js`)
-  - results in csv format
-  - results in json format
-
-- `scripts/benchmarking/utils.ts` contains a `measureTime` function used in `queryVsNonQuery.ts` file that may be used for performance testing.
+- `pnpm test` is what that will perform all of the steps mentioned previously and on top of that store logs of node in the `substrate-contracts-node.testrun.log` file (note that with the given approach the node is being restarted so keeping track of logs in the console is rather annoying). The `substrate-contracts-node.testrun.retouched.log` log file contains the same data with the exception of UInt8 arrays being swapped with proper addresses. In the future, we plan to add removal of duplicate logs (happening because of the node itself ).
 
 ## Other useful commands
 
 1. Allow to allocate more memory for node:
    `echo 'export NODE_OPTIONS="--max-old-space-size=8192"' >> ~/.bashrc`
 2. Run test scenario file in debug (targetting persistent local node):
-   `npm run test:debug <test_scenario_file_name>`
+   `pnpm test:debug <test_scenario_file_name>`

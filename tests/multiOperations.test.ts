@@ -12,7 +12,7 @@ import { Operation } from 'typechain/types-arguments/lending_pool';
 import { getContractEventsFromTx, stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
 import { LendingPoolEvent } from 'typechain/events/enum';
 
-makeSuite.only('Multi operations', (getTestEnv) => {
+makeSuite('Multi operations', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
@@ -233,7 +233,6 @@ makeSuite.only('Multi operations', (getTestEnv) => {
           const [borrowEvents, allEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.BorrowVariable);
           const [repayEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.RepayVariable);
 
-          console.log(allEvents);
           expect(borrowEvents.length).to.equal(2);
           expect(repayEvents.length).to.equal(1);
           expect(allEvents.length).to.equal(3);
@@ -261,6 +260,8 @@ makeSuite.only('Multi operations', (getTestEnv) => {
               amount: repayAmountDai,
             }),
           );
+
+          //TODO rest of checks
         });
       });
     });

@@ -1,9 +1,9 @@
 {
-  "title": "LendingPool: Redeem negative test cases",
-  "description": "Redeem function.",
+  "title": "LendingPool: Withdraw negative test cases",
+  "description": "Withdraw function.",
   "stories": [
     {
-      "description": "Users 0 Deposits 1000 DAI and tries to redeem 0 DAI (revert expected)",
+      "description": "Users 0 Deposits 1000 DAI and tries to withdraw 0 DAI (revert expected)",
       "actions": [
         {
           "name": "mint",
@@ -32,7 +32,7 @@
           "expected": "success"
         },
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "DAI",
             "amount": "0",
@@ -44,7 +44,7 @@
       ]
     },
     {
-      "description": "Users 0 tries to redeem 1100 DAI from the 1000 DAI deposited, he redeems successfully 1000DAI (1100DAI is casted to 1000DAI)",
+      "description": "Users 0 tries to withdraw 1100 DAI from the 1000 DAI deposited, he withdraws successfully 1000DAI (1100DAI is casted to 1000DAI)",
       "actions": [
         {
           "name": "mint",
@@ -73,7 +73,7 @@
           "expected": "success"
         },
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "DAI",
             "amount": "1100",
@@ -84,7 +84,7 @@
       ]
     },
     {
-      "description": "User 1 deposits 1 WETH, borrows 100 DAI (variable rate), tries to redeem the 1 WETH deposited (revert expected)",
+      "description": "User 1 deposits 1 WETH, borrows 100 DAI (variable rate), tries to withdraw the 1 WETH deposited (revert expected)",
       "actions": [
         {
           "name": "mint",
@@ -158,7 +158,7 @@
           "expected": "success"
         },
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "WETH",
             "amount": "1",

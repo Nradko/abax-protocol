@@ -102,7 +102,7 @@ pub trait LendingPoolATokenInterfaceImpl:
             to,
             amount,
         );
-        self._emit_redeem_event(
+        self._emit_withdraw_event(
             underlying_asset,
             Self::env().caller(),
             from,

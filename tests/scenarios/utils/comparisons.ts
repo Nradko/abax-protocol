@@ -19,7 +19,7 @@ export interface CheckDepositParameters {
   timestamp: number;
 }
 
-export interface CheckRedeemParameters {
+export interface CheckWithdrawParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
   userReserveData: UserReserveData;
@@ -156,14 +156,14 @@ export const checkDeposit = async (
   expect.flushSoft();
 };
 
-export const checkRedeem = async (
+export const checkWithdraw = async (
   lendingPool: LendingPoolContract,
   reserveToken: TokenReserve,
   caller: string,
   onBehalfOf: string,
   amount: BN,
-  parBefore: CheckRedeemParameters,
-  parAfter: CheckRedeemParameters,
+  parBefore: CheckWithdrawParameters,
+  parAfter: CheckWithdrawParameters,
   tx: SignAndSendSuccessResponse,
 ) => {
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
@@ -171,7 +171,7 @@ export const checkRedeem = async (
     ? amount
     : parBefore.userReserveData.deposit.add(userInterests.supply);
 
-  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Redeem, {
+  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Withdraw, {
     asset: reserveToken.underlying.address,
     amount: amount,
     caller: caller,
@@ -182,98 +182,101 @@ export const checkRedeem = async (
   const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount.neg(), userInterests.supply, true, 'Redeem | AToken Transfer Event');
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount.neg(), userInterests.supply, true, 'Withdraw | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.variableBorrow, true, 'Redeem | VToken Transfer Event');
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.variableBorrow, true, 'Withdraw | VToken Transfer Event');
 
   // ReserveData Checks
-  // total_deposit <- decreases on Redeem
+  // total_deposit <- decreases on Withdraw
   let before = parBefore.reserveData.totalDeposit;
   let expected = before.add(userInterests.supply).sub(amount);
   let actual = parAfter.reserveData.totalDeposit;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Redeem | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Withdraw | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Redeem | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Withdraw | ReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
 
-  // deposit <- decreases on Redeem
+  // deposit <- decreases on Withdraw
   before = parBefore.userReserveData.deposit;
   expected = before.add(userInterests.supply).sub(amount);
   actual = parAfter.userReserveData.deposit;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
-      `Redeem | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Withdraw | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     );
   }
   expect
     .soft(
       actual.toString(),
-      `Redeem | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Withdraw | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
   // Underlying Balances Checks
-  // LendingPool Balance <- decreases on Redeem
+  // LendingPool Balance <- decreases on Withdraw
   before = parBefore.poolBalance;
   expected = before.sub(amount);
   actual = parAfter.poolBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Redeem | Underlying Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Withdraw | Underlying Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Redeem | Underlying Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Withdraw | Underlying Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
-  // Caller Balance <- increases on Redeem
+  // Caller Balance <- increases on Withdraw
   before = parBefore.callerBalance;
   expected = before.add(amount);
   actual = parAfter.callerBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Redeem | Underlying Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Withdraw | Underlying Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Redeem | Underlying Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Withdraw | Underlying Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
   // // AToken Checks
-  // // balance <- decrease on Redeem
+  // // balance <- decrease on Withdraw
   before = parBefore.aBalance;
   expected = before.add(userInterests.supply).sub(amount);
   actual = parAfter.aBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Redeem | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Withdraw | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(actual.toString(), `Redeem | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
+    .soft(actual.toString(), `Withdraw | AToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
 
-  // alowance <- decrease on Redeem
+  // alowance <- decrease on Withdraw
   if (parBefore.aAllowance !== undefined && parAfter.aAllowance !== undefined) {
     before = parBefore.aAllowance;
     expected = before.sub(amount);
     actual = parAfter.aAllowance;
 
     expect
-      .soft(actual.toString(), `Redeem | AToken Allowance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
+      .soft(
+        actual.toString(),
+        `Withdraw | AToken Allowance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      )
       .to.equal(expected.toString());
   }
 

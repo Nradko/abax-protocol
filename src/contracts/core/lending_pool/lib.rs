@@ -1,7 +1,7 @@
 //! #LendingPoolContract
 //!
 //! This is the core contract of Abacus Lending Protocol that provide users the follwoing functionalities:
-//!   deposit, redeem, borrow_variable, repay_variable, borrow_stable, repay_stable
+//!   deposit, withdraw, borrow_variable, repay_variable, borrow_stable, repay_stable
 //!
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
@@ -85,14 +85,14 @@ pub mod lending_pool {
             )
         }
         #[ink(message)]
-        fn redeem(
+        fn withdraw(
             &mut self,
             asset: AccountId,
             on_behalf_of: AccountId,
             amount: Balance,
             data: Vec<u8>,
         ) -> Result<Balance, LendingPoolError> {
-            LendingPoolDepositImpl::redeem(
+            LendingPoolDepositImpl::withdraw(
                 self,
                 asset,
                 on_behalf_of,
@@ -621,7 +621,7 @@ pub mod lending_pool {
         amount: Balance,
     }
     #[ink::event]
-    pub struct Redeem {
+    pub struct Withdraw {
         #[ink(topic)]
         asset: AccountId,
         caller: AccountId,
@@ -808,14 +808,14 @@ pub mod lending_pool {
             });
         }
 
-        fn _emit_redeem_event(
+        fn _emit_withdraw_event(
             &mut self,
             asset: AccountId,
             caller: AccountId,
             on_behalf_of: AccountId,
             amount: Balance,
         ) {
-            self.env().emit_event(Redeem {
+            self.env().emit_event(Withdraw {
                 asset,
                 caller,
                 on_behalf_of,

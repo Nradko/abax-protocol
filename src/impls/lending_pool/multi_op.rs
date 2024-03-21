@@ -1,7 +1,6 @@
 use abax_library::structs::{Action, Operation, ReserveAbacusTokens};
 use abax_traits::lending_pool::{
     EmitBorrowEvents, EmitDepositEvents, LendingPoolError, MathError,
-    MultiOpError,
 };
 use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
 use pendzl::traits::StorageFieldGetter;
@@ -24,7 +23,7 @@ pub trait LendingPoolMultiOpImpl:
         &mut self,
         op: Vec<Action>,
         on_behalf_of: AccountId,
-        data: Vec<u8>,
+        _data: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         let mut actions = op.clone();
         let act_slice = actions.as_mut_slice();
@@ -94,7 +93,7 @@ pub trait LendingPoolMultiOpImpl:
                         &on_behalf_of,
                         *user_accumulated_debt_interest as i128,
                     )?;
-                    self._emit_redeem_event(
+                    self._emit_withdraw_event(
                         asset,
                         caller,
                         on_behalf_of,

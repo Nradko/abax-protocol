@@ -16,11 +16,11 @@ import VToken from '../../../typechain/contracts/v_token';
 import {
   CheckBorrowVariableParameters,
   CheckDepositParameters,
-  CheckRedeemParameters,
+  CheckWithdrawParameters,
   CheckRepayVariableParameters,
   checkBorrowVariable,
   checkDeposit,
-  checkRedeem,
+  checkWithdraw,
   checkRepayVariable,
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
@@ -136,7 +136,7 @@ export const deposit = async (
   }
 };
 
-export const redeem = async (
+export const withdraw = async (
   reserveSymbol: string,
   amount: string,
   caller: KeyringPair,
@@ -148,31 +148,31 @@ export const redeem = async (
   const { lendingPool, reserves } = testEnv;
   const reserve: TokenReserve = reserves[reserveSymbol];
 
-  const parametersBefore = await getCheckRedeemParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
+  const parametersBefore = await getCheckWithdrawParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
   let amountToWithdraw: BN;
   if (amount) {
     amountToWithdraw = await convertToCurrencyDecimals(reserve.underlying, amount);
   } else {
     amountToWithdraw = new BN(MAX_U128);
   }
-  const args: Parameters<typeof lendingPool.tx.redeem> = [reserve.underlying.address, onBehalfOf.address, amountToWithdraw, []];
+  const args: Parameters<typeof lendingPool.tx.withdraw> = [reserve.underlying.address, onBehalfOf.address, amountToWithdraw, []];
 
   if (expectedResult === 'success') {
     if (process.env.DEBUG) {
-      const { gasConsumed } = await lendingPool.withSigner(caller).query.redeem(...args);
+      const { gasConsumed } = await lendingPool.withSigner(caller).query.withdraw(...args);
     }
 
-    const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.redeem(...args));
+    const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.withdraw(...args));
 
-    const parametersAfter = await getCheckRedeemParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
+    const parametersAfter = await getCheckWithdrawParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
 
-    await checkRedeem(lendingPool, reserve, caller.address, onBehalfOf.address, amountToWithdraw, parametersBefore, parametersAfter, txResult);
+    await checkWithdraw(lendingPool, reserve, caller.address, onBehalfOf.address, amountToWithdraw, parametersBefore, parametersAfter, txResult);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
-      const queryRes = (await lendingPool.withSigner(caller).query.redeem(...args)).value.ok;
+      const queryRes = (await lendingPool.withSigner(caller).query.withdraw(...args)).value.ok;
       expect(queryRes).to.have.deep.property('err', getExpectedError(expectedErrorName));
     } else {
-      await expect(lendingPool.withSigner(caller).tx.redeem(...args)).to.eventually.be.rejected;
+      await expect(lendingPool.withSigner(caller).tx.withdraw(...args)).to.eventually.be.rejected;
     }
   }
 };
@@ -363,13 +363,13 @@ export const getCheckDepositParameters = async (
   };
 };
 
-export const getCheckRedeemParameters = async (
+export const getCheckWithdrawParameters = async (
   lendingPool: LendingPool,
   underlying: PSP22Emitable,
   aToken: AToken,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
-): Promise<CheckRedeemParameters> => {
+): Promise<CheckWithdrawParameters> => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
