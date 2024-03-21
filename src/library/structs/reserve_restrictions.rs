@@ -18,6 +18,12 @@ pub struct ReserveRestrictions {
     pub minimal_debt: Balance,
 }
 
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+pub enum Want {
+    Deposit,
+    Borrow,
+}
+
 impl ReserveRestrictions {
     pub fn new(
         maximal_total_deposit: &Option<Balance>,
@@ -45,6 +51,7 @@ pub enum ReserveRestrictionsError {
     MinimalDebt,
     /// returned if after the action minimal collaetral restricion would be no satisfied.
     MinimalCollateral,
+    SameAssetBorrowedAndDeposited,
 }
 
 impl ReserveRestrictions {
@@ -94,6 +101,24 @@ impl ReserveRestrictions {
     ) -> Result<(), ReserveRestrictionsError> {
         if user_reserve_data.deposit < self.minimal_collateral {
             return Err(ReserveRestrictionsError::MinimalCollateral);
+        }
+        Ok(())
+    }
+
+    pub fn ensure_has_no_both_borrow_and_deposit(
+        &self,
+        user_reserve_data: &UserReserveData,
+        want: Want,
+    ) -> Result<(), ReserveRestrictionsError> {
+        if want == Want::Deposit && user_reserve_data.debt != 0 {
+            return Err(
+                ReserveRestrictionsError::SameAssetBorrowedAndDeposited,
+            );
+        }
+        if want == Want::Borrow && user_reserve_data.deposit != 0 {
+            return Err(
+                ReserveRestrictionsError::SameAssetBorrowedAndDeposited,
+            );
         }
         Ok(())
     }

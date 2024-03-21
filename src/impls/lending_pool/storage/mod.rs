@@ -6,7 +6,7 @@ use abax_library::{
     structs::{
         Action, AssetId, AssetRules, Operation, ReserveAbacusTokens,
         ReserveData, ReserveFees, ReserveIndexesAndFees, ReserveRestrictions,
-        UserConfig, UserReserveData,
+        UserConfig, UserReserveData, Want,
     },
 };
 use abax_traits::{
@@ -225,6 +225,10 @@ impl LendingPoolStorage {
         )?;
 
         reserve_restrictions.check_max_total_deposit(&reserve_data)?;
+        reserve_restrictions.ensure_has_no_both_borrow_and_deposit(
+            user_reserve_data,
+            Want::Deposit,
+        )?;
 
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?
@@ -416,6 +420,10 @@ impl LendingPoolStorage {
 
         reserve_restrictions.check_debt_restrictions(user_reserve_data)?;
         reserve_restrictions.check_max_total_debt(&reserve_data)?;
+        reserve_restrictions.ensure_has_no_both_borrow_and_deposit(
+            user_reserve_data,
+            Want::Borrow,
+        )?;
 
         if let Some(params) = interest_rate_model {
             reserve_data.recalculate_current_rates(&params)?
