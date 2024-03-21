@@ -9,7 +9,8 @@ import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { TestEnv, TestEnvReserves, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { Operation } from 'typechain/types-arguments/lending_pool';
-import { getContractEventsFromTx } from 'wookashwackomytest-polkahat-chai-matchers';
+import { getContractEventsFromTx, stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { LendingPoolEvent } from 'typechain/events/enum';
 
 makeSuite.only('Multi operations', (getTestEnv) => {
   let testEnv: TestEnv;
@@ -229,31 +230,37 @@ makeSuite.only('Multi operations', (getTestEnv) => {
           await expect(tx).to.changePSP22Balances(daiContract, [alice.address], [borrowAmountDai.sub(repayAmountDai)]);
 
           const txRes = await tx;
-          const [borrowEvents, allEvents] = getContractEventsFromTx(txRes, lendingPool as any, 'BorrowVariable');
-          const [repayEvents] = getContractEventsFromTx(txRes, lendingPool as any, 'Repay');
+          const [borrowEvents, allEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.BorrowVariable);
+          const [repayEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.RepayVariable);
 
           console.log(allEvents);
           expect(borrowEvents.length).to.equal(2);
           expect(repayEvents.length).to.equal(1);
           expect(allEvents.length).to.equal(3);
-          expect(borrowEvents[0].args).to.equal({
-            asset: daiContract.address,
-            caller: alice.address,
-            onBehalfOf: alice.address,
-            amount: borrowAmountDai,
-          });
-          expect(borrowEvents[1].args).to.equal({
-            asset: wethContract.address,
-            caller: alice.address,
-            onBehalfOf: alice.address,
-            amount: borrowAmountWeth,
-          });
-          expect(repayEvents[0].args).to.equal({
-            asset: daiContract.address,
-            caller: alice.address,
-            onBehalfOf: alice.address,
-            amount: repayAmountDai,
-          });
+          expect(stringifyNumericProps(borrowEvents[0].args)).to.deep.equal(
+            stringifyNumericProps({
+              asset: daiContract.address,
+              caller: alice.address,
+              onBehalfOf: alice.address,
+              amount: borrowAmountDai,
+            }),
+          );
+          expect(stringifyNumericProps(borrowEvents[1].args)).to.deep.equal(
+            stringifyNumericProps({
+              asset: wethContract.address,
+              caller: alice.address,
+              onBehalfOf: alice.address,
+              amount: borrowAmountWeth,
+            }),
+          );
+          expect(stringifyNumericProps(repayEvents[0].args)).to.deep.equal(
+            stringifyNumericProps({
+              asset: daiContract.address,
+              caller: alice.address,
+              onBehalfOf: alice.address,
+              amount: repayAmountDai,
+            }),
+          );
         });
       });
     });

@@ -29,6 +29,7 @@ pub trait LendingPoolMultiOpImpl:
         let mut actions = op.clone();
         let act_slice = actions.as_mut_slice();
         let res = self.data().account_for_actions(&on_behalf_of, act_slice)?;
+        let caller = Self::env().caller();
 
         let mut abacus_tokens =
             Mapping::<AccountId, ReserveAbacusTokens>::new();
@@ -56,7 +57,7 @@ pub trait LendingPoolMultiOpImpl:
 
             match op {
                 Operation::Deposit => {
-                    self._transfer_in(&asset, &Self::env().caller(), &amount)?;
+                    self._transfer_in(&asset, &caller, &amount)?;
                     // ATOKEN
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.a_token_address,
@@ -72,6 +73,12 @@ pub trait LendingPoolMultiOpImpl:
                         &on_behalf_of,
                         *user_accumulated_debt_interest as i128,
                     )?;
+                    self._emit_deposit_event(
+                        asset,
+                        caller,
+                        on_behalf_of,
+                        amount,
+                    );
                 }
                 Operation::Withdraw => {
                     self._transfer_out(&asset, &on_behalf_of, &amount)?;
@@ -87,9 +94,15 @@ pub trait LendingPoolMultiOpImpl:
                         &on_behalf_of,
                         *user_accumulated_debt_interest as i128,
                     )?;
+                    self._emit_redeem_event(
+                        asset,
+                        caller,
+                        on_behalf_of,
+                        amount,
+                    );
                 }
                 Operation::Borrow => {
-                    self._transfer_out(&asset, &Self::env().caller(), &amount)?;
+                    self._transfer_out(&asset, &caller, &amount)?;
                     // ATOKEN
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.a_token_address,
@@ -104,9 +117,15 @@ pub trait LendingPoolMultiOpImpl:
                             .checked_add(amount)
                             .ok_or(MathError::Overflow)?)
                             as i128,
-                        &(Self::env().caller()),
+                        &(caller),
                         amount,
                     )?;
+                    self._emit_borrow_variable_event(
+                        asset,
+                        caller,
+                        on_behalf_of,
+                        amount,
+                    )
                 }
                 Operation::Repay => {
                     self._transfer_in(&asset, &on_behalf_of, &amount)?;
@@ -117,7 +136,7 @@ pub trait LendingPoolMultiOpImpl:
                         (*user_accumulated_deposit_interest as i128)
                             .overflowing_sub(amount as i128)
                             .0,
-                        &(Self::env().caller()),
+                        &(caller),
                         amount,
                     )?;
                     // VTOKEN
@@ -126,6 +145,13 @@ pub trait LendingPoolMultiOpImpl:
                         &on_behalf_of,
                         *user_accumulated_debt_interest as i128,
                     )?;
+
+                    self._emit_repay_variable_event(
+                        asset,
+                        caller,
+                        on_behalf_of,
+                        amount,
+                    );
                 }
             }
         }
