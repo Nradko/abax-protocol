@@ -13,6 +13,10 @@ const printHelp = () => {
 };
 
 (async (args: Record<string, unknown>) => {
+  console.log(args);
+  console.log(process.argv);
+  console.log(process.argv0);
+  console.log(process.execArgv);
   if (require.main !== module) return;
   const contractsRootPath = './src/contracts';
   const contractName = (args['name'] as string) ?? process.argv[2];

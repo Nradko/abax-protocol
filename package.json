@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "cs": "npx tsx ./scripts/compile/compileSingleContract.ts",
+    "postcs": "pnpm generateTypes",
     "ts": "tsc --noEmit --incremental --preserveWatchOutput --pretty",
     "ts:w": "tsc --noEmit --incremental --preserveWatchOutput --pretty --watch",
     "build:debug": "./build.sh $*",
