@@ -1,7 +1,7 @@
 [package]
 name = "balance_viewer"
 version = "0.1.1"
-authors = [""]
+authors = ["Łukasz Łakomy", "Konrad Wierzbik"]
 edition = "2021"
 
 [dependencies]
@@ -13,9 +13,7 @@ scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { version = "0.2.1",  default-features = false, features = [
-    "psp22",
-] }
+pendzl = { version = "0.2.1", default-features = false, features = ["psp22"] }
 
 abax_traits = { path = "../../../traits", default-features = false }
 abax_impls = { path = "../../../impls", default-features = false }
