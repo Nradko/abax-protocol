@@ -27,7 +27,9 @@ pub trait LendingPoolMultiOpImpl:
     ) -> Result<(), LendingPoolError> {
         let mut actions = op.clone();
         let act_slice = actions.as_mut_slice();
-        let res = self.data().account_for_actions(&on_behalf_of, act_slice)?;
+        let res = self
+            .data()
+            .account_for_account_actions(&on_behalf_of, act_slice)?;
         let caller = Self::env().caller();
 
         let mut abacus_tokens =

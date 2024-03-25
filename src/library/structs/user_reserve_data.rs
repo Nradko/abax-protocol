@@ -45,7 +45,7 @@ impl UserReserveData {
         reserve_data: &mut ReserveData,
         reserve_restrictions: &ReserveRestrictions,
         amount: &u128,
-    ) -> Result<bool, MathError> {
+    ) -> Result<(), MathError> {
         if *amount == self.deposit {
             user_config.deposits &= !(1_u128 << asset_id);
         }
@@ -56,13 +56,10 @@ impl UserReserveData {
 
         reserve_data.decrease_total_deposit(amount)?;
 
-        let is_asset_a_collateral =
-            (user_config.collaterals & (1_u128 << asset_id)) > 0;
-
         if self.deposit < reserve_restrictions.minimal_collateral {
             user_config.collaterals &= !(1_u128 << asset_id);
         }
-        Ok(is_asset_a_collateral)
+        Ok(())
     }
 
     pub fn increase_user_debt(

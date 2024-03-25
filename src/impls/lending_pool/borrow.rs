@@ -78,20 +78,13 @@ pub trait LendingPoolBorrowImpl:
     ) -> Result<(), LendingPoolError> {
         _check_amount_not_zero(amount)?;
 
-        let block_timestamp = Self::env().block_timestamp();
-        ink::env::debug_println!("BORROW");
-        ink::env::debug_println!(
-            "borrow | block_timestamp {}",
-            block_timestamp
-        );
-
         let mut actions = vec![Action {
             op: Operation::Borrow,
             args: OperationArgs { asset, amount },
         }];
         let res = self
             .data::<LendingPoolStorage>()
-            .account_for_actions(&on_behalf_of, &mut actions)?;
+            .account_for_account_actions(&on_behalf_of, &mut actions)?;
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             res.first().unwrap();
 
@@ -138,20 +131,14 @@ pub trait LendingPoolBorrowImpl:
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<Balance, LendingPoolError> {
         _check_amount_not_zero(amount)?;
-        let block_timestamp = Self::env().block_timestamp();
 
-        ink::env::debug_println!("REPAY");
-        ink::env::debug_println!(
-            "repay  | block_timestamp {}",
-            block_timestamp
-        );
         let mut actions = vec![Action {
             op: Operation::Repay,
             args: OperationArgs { asset, amount },
         }];
         let res = self
             .data::<LendingPoolStorage>()
-            .account_for_actions(&on_behalf_of, &mut actions)?;
+            .account_for_account_actions(&on_behalf_of, &mut actions)?;
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             res.first().unwrap();
         //// TOKEN TRANSFER

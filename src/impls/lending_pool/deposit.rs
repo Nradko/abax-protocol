@@ -32,7 +32,7 @@ pub trait LendingPoolDepositImpl:
         }];
         let res = self
             .data::<LendingPoolStorage>()
-            .account_for_actions(&on_behalf_of, &mut actions)?;
+            .account_for_account_actions(&on_behalf_of, &mut actions)?;
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             res.first().unwrap();
         //// TOKEN TRANSFERS
@@ -82,54 +82,15 @@ pub trait LendingPoolDepositImpl:
     ) -> Result<Balance, LendingPoolError> {
         _check_amount_not_zero(amount)?;
 
-        let asset_id =
-            self.data::<LendingPoolStorage>().asset_id(&asset).unwrap();
-        let reserve_data_before = self
-            .data::<LendingPoolStorage>()
-            .reserve_datas
-            .get(asset_id)
-            .unwrap();
-        let user_reserve_data_before = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve_data(asset_id, &on_behalf_of)
-            .unwrap();
-
         let mut actions = vec![Action {
             op: Operation::Withdraw,
             args: OperationArgs { asset, amount },
         }];
         let res = self
             .data::<LendingPoolStorage>()
-            .account_for_actions(&on_behalf_of, &mut actions)?;
+            .account_for_account_actions(&on_behalf_of, &mut actions)?;
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
             res.first().unwrap();
-        let reserve_data_after = self
-            .data::<LendingPoolStorage>()
-            .reserve_datas
-            .get(asset_id)
-            .unwrap();
-        let user_reserve_data_after = self
-            .data::<LendingPoolStorage>()
-            .get_user_reserve_data(asset_id, &on_behalf_of)
-            .unwrap();
-
-        ink::env::debug_println!(
-            "reserve_data_before: {:?}",
-            reserve_data_before
-        );
-        ink::env::debug_println!(
-            "reserve_data_after: {:?}",
-            reserve_data_after
-        );
-
-        ink::env::debug_println!(
-            "user_reserve_data_before: {:?}",
-            user_reserve_data_before
-        );
-        ink::env::debug_println!(
-            "user_reserve_data_after: {:?}",
-            user_reserve_data_after
-        );
 
         //// TOKEN TRANSFERS
         self._transfer_out(
