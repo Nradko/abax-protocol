@@ -49,7 +49,7 @@ function makeSuiteInternal(
   skipRegenerateEnvBeforeEach = false,
 ) {
   let hasAnyStoryStepFailed = false;
-  (mode === 'none' ? describe : describe[mode])(`[Scenario Suite] ${name}`, () => {
+  (mode === 'none' ? describe : describe[mode])(`[Make Suite] ${name}`, () => {
     let suiteTestEnv: TestEnv;
     let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
     before(async () => {

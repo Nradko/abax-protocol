@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { ChildProcess, spawn } from 'child_process';
-import findProcess from 'find-process';
+import findProcess from 'wookashwackomytest-find-process';
 import fs from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
@@ -200,7 +200,8 @@ async function restoreTestChainState(oldContractsNodeProcess: ChildProcess | und
 
     const existingProcessesListeningOnPort = await findProcess('port', 9944, { logLevel: 'error' });
     for (const p of existingProcessesListeningOnPort) {
-      console.log(chalk.yellow(`Killing process `) + chalk.magenta(p.name) + `(${chalk.italic(p.cmd)})` + ` occupying test port\n\n`);
+      if (process.env.DEBUG)
+        console.log(chalk.yellow(`Killing process `) + chalk.magenta(p.name) + `(${chalk.italic(p.cmd)})` + ` occupying test port\n\n`);
       process.kill(p.pid);
       await sleep(50);
     }

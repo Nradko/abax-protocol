@@ -26,23 +26,23 @@ pub trait LendingPoolDeposit {
         amount: Balance,
         data: Vec<u8>,
     ) -> Result<(), LendingPoolError>;
-    /// is used by a user0, to redeem on an account of on_behalf_of an asset to LendingPool.
-    /// Redeem can fail if the user has current debt and redeeming would make the user's position undercollateralized.
+    /// is used by a user0, to withdraw on an account of on_behalf_of an asset to LendingPool.
+    /// Withdraw can fail if the user has current debt and withdrawing would make the user's position undercollateralized.
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
     /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
-    ///     user0 is making redeem. If user0 != user1 then the allowance of on appropriate AToken will be decreased.
-    /// * `amount` - the number of tokens to be redeemed. if greater then deposit_amount then only deposit_amopunt will be withdrawn.
+    ///     user0 is making withdraw. If user0 != user1 then the allowance of on appropriate AToken will be decreased.
+    /// * `amount` - the number of tokens to be withdrawed. if greater then deposit_amount then only deposit_amopunt will be withdrawn.
     /// * `data` - additional data currently unused.
     ///
     /// # Errors
     /// * `AmountNotGreaterThanZero` returned if `amount`  == 0.
     /// * `AssetNotRegistered` returned if the `asset` is not registered in the `LendingPool`.
     /// * `Inactive` returned if the reserve coresponding to the `asset` is inactive.
-    /// * `InsufficientCollateral` returned if the 'asset' is used as colalteral by 'on_behalf_of" and after redeem the 'on_behalf_of' would become undercollaterized.
+    /// * `InsufficientCollateral` returned if the 'asset' is used as colalteral by 'on_behalf_of" and after withdraw the 'on_behalf_of' would become undercollaterized.
     /// * `PSP22Error` returned if transfer of `asset`fails.
     #[ink(message)]
-    fn redeem(
+    fn withdraw(
         &mut self,
         asset: AccountId,
         on_behalf_of: AccountId,

@@ -1,7 +1,7 @@
 //! #LendingPoolContract
 //!
 //! This is the core contract of Abacus Lending Protocol that provide users the follwoing functionalities:
-//!   deposit, redeem, borrow_variable, repay_variable, borrow_stable, repay_stable
+//!   deposit, withdraw, borrow_variable, repay_variable, borrow_stable, repay_stable
 //!
 //! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
 
@@ -18,22 +18,24 @@ pub mod lending_pool {
         liquidate::LendingPoolLiquidateImpl,
         maintain::LendingPoolMaintainImpl,
         manage::{LendingPoolManageImpl, ManageInternal},
-        storage::LendingPoolStorage,
+        multi_op::LendingPoolMultiOpImpl,
+        storage::{AccountRegistrar, LendingPoolStorage},
         v_token_interface::LendingPoolVTokenInterfaceImpl,
         view::LendingPoolViewImpl,
     };
     use abax_library::structs::{
-        AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
+        Action, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
         ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
     };
     use abax_traits::lending_pool::{
-        DecimalMultiplier, EmitBorrowEvents, EmitDepositEvents,
-        EmitFlashEvents, EmitLiquidateEvents, EmitMaintainEvents,
-        EmitManageEvents, InterestRateModel, LendingPoolATokenInterface,
-        LendingPoolBorrow, LendingPoolDeposit, LendingPoolError,
-        LendingPoolFlash, LendingPoolLiquidate, LendingPoolMaintain,
-        LendingPoolManage, LendingPoolVTokenInterface, LendingPoolView,
-        MarketRule, RuleId, ROLE_ADMIN,
+        AccountRegistrarView, DecimalMultiplier, EmitBorrowEvents,
+        EmitDepositEvents, EmitFlashEvents, EmitLiquidateEvents,
+        EmitMaintainEvents, EmitManageEvents, InterestRateModel,
+        LendingPoolATokenInterface, LendingPoolBorrow, LendingPoolDeposit,
+        LendingPoolError, LendingPoolFlash, LendingPoolLiquidate,
+        LendingPoolMaintain, LendingPoolManage, LendingPoolMultiOp,
+        LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
+        ROLE_ADMIN,
     };
     use ink::{codegen::Env, env::DefaultEnvironment, prelude::vec::Vec};
 
@@ -46,6 +48,21 @@ pub mod lending_pool {
         access: access_control::AccessControlData,
         #[storage_field]
         lending_pool: LendingPoolStorage,
+        #[storage_field]
+        account_registrar: AccountRegistrar,
+    }
+
+    impl LendingPoolMultiOpImpl for LendingPool {}
+    impl LendingPoolMultiOp for LendingPool {
+        #[ink(message)]
+        fn multi_op(
+            &mut self,
+            op: Vec<Action>,
+            on_behalf_of: AccountId,
+            data: Vec<u8>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolMultiOpImpl::multi_op(self, op, on_behalf_of, data)
+        }
     }
 
     /// Implements core lending methods
@@ -68,14 +85,14 @@ pub mod lending_pool {
             )
         }
         #[ink(message)]
-        fn redeem(
+        fn withdraw(
             &mut self,
             asset: AccountId,
             on_behalf_of: AccountId,
             amount: Balance,
             data: Vec<u8>,
         ) -> Result<Balance, LendingPoolError> {
-            LendingPoolDepositImpl::redeem(
+            LendingPoolDepositImpl::withdraw(
                 self,
                 asset,
                 on_behalf_of,
@@ -100,6 +117,8 @@ pub mod lending_pool {
             asset: AccountId,
             use_as_collateral: bool,
         ) -> Result<(), LendingPoolError> {
+            self.account_registrar
+                .ensure_registered(&self.env().caller());
             LendingPoolBorrowImpl::set_as_collateral(
                 self,
                 asset,
@@ -462,6 +481,21 @@ pub mod lending_pool {
         }
     }
 
+    impl AccountRegistrarView for LendingPool {
+        #[ink(message)]
+        fn view_counter_to_user(&self, counter: u128) -> Option<AccountId> {
+            self.account_registrar.counter_to_user.get(counter)
+        }
+        #[ink(message)]
+        fn view_user_to_counter(&self, user: AccountId) -> Option<u128> {
+            self.account_registrar.user_to_counter.get(user)
+        }
+        #[ink(message)]
+        fn view_next_counter(&self) -> u128 {
+            self.account_registrar.next_counter
+        }
+    }
+
     impl LendingPoolATokenInterfaceImpl for LendingPool {}
     impl LendingPoolATokenInterface for LendingPool {
         #[ink(message)]
@@ -587,7 +621,7 @@ pub mod lending_pool {
         amount: Balance,
     }
     #[ink::event]
-    pub struct Redeem {
+    pub struct Withdraw {
         #[ink(topic)]
         asset: AccountId,
         caller: AccountId,
@@ -774,14 +808,14 @@ pub mod lending_pool {
             });
         }
 
-        fn _emit_redeem_event(
+        fn _emit_withdraw_event(
             &mut self,
             asset: AccountId,
             caller: AccountId,
             on_behalf_of: AccountId,
             amount: Balance,
         ) {
-            self.env().emit_event(Redeem {
+            self.env().emit_event(Withdraw {
                 asset,
                 caller,
                 on_behalf_of,

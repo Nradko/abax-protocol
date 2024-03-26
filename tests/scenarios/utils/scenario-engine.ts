@@ -1,5 +1,5 @@
 import { TestEnv } from './make-suite';
-import { mint, approve, deposit, borrow, redeem, repay, setUseAsCollateral, increaseAllowance } from './actions';
+import { mint, approve, deposit, borrow, withdraw, repay, setUseAsCollateral, increaseAllowance } from './actions';
 import { KeyringPair } from '@polkadot/keyring/types';
 
 export interface Action {
@@ -64,15 +64,15 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
       await deposit(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
       break;
     }
-    case 'redeem':
+    case 'withdraw':
       {
         const { amount } = action.args;
 
         if (amount === '' || amount === undefined) {
-          throw `Invalid amount to redeem from the ${reserve} reserve`;
+          throw `Invalid amount to withdraw from the ${reserve} reserve`;
         }
 
-        await redeem(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
+        await withdraw(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
       }
       break;
     case 'borrow': {

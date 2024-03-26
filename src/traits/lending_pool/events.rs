@@ -7,7 +7,7 @@ pub trait EmitDepositEvents {
         on_behalf_of: AccountId,
         amount: Balance,
     );
-    fn _emit_redeem_event(
+    fn _emit_withdraw_event(
         &mut self,
         asset: AccountId,
         caller: AccountId,

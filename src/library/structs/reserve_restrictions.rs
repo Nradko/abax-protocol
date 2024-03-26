@@ -10,7 +10,7 @@ pub struct ReserveRestrictions {
     /// maximal allowad total debt
     pub maximal_total_debt: Option<Balance>,
     /// minimal collateral that can be used by each user.
-    /// if user's collateral drops below this value (during redeem) then it will be automatically turned off (as collateral).
+    /// if user's collateral drops below this value (during withdraw) then it will be automatically turned off (as collateral).
     /// it may happen during liquidation that users collateral will drop below this value.
     pub minimal_collateral: Balance,
     /// minimal debt that can be taken and maintained by each user.

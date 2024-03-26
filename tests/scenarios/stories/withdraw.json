@@ -1,6 +1,6 @@
 {
-  "title": "LendingPool: redeem",
-  "description": "redeem function.",
+  "title": "LendingPool: withdraw",
+  "description": "withdraw function.",
   "skipRegenerateEnvBeforeEach": true,
   "stories": [
     {
@@ -44,10 +44,10 @@
       ]
     },
     {
-      "description": "User 0 redeems half of the deposited DAI",
+      "description": "User 0 withdraws half of the deposited DAI",
       "actions": [
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "DAI",
             "amount": "500",
@@ -58,10 +58,10 @@
       ]
     },
     {
-      "description": "User 0 redeems remaining half of the deposited DAI",
+      "description": "User 0 withdraws remaining half of the deposited DAI",
       "actions": [
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "DAI",
             "amount": "500",
@@ -103,10 +103,10 @@
       ]
     },
     {
-      "description": "User 0 redeems half of the deposited USDC",
+      "description": "User 0 withdraws half of the deposited USDC",
       "actions": [
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "USDC",
             "amount": "500",
@@ -117,10 +117,10 @@
       ]
     },
     {
-      "description": "User 0 redeems remaining half of the deposited USDC",
+      "description": "User 0 withdraws remaining half of the deposited USDC",
       "actions": [
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "USDC",
             "amount": "500",
@@ -162,10 +162,10 @@
       ]
     },
     {
-      "description": "User 0 redeems half of the deposited WETH",
+      "description": "User 0 withdraws half of the deposited WETH",
       "actions": [
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "WETH",
             "amount": "0.5",
@@ -176,10 +176,10 @@
       ]
     },
     {
-      "description": "User 0 redeems remaining half of the deposited WETH",
+      "description": "User 0 withdraws remaining half of the deposited WETH",
       "actions": [
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "WETH",
             "amount": "0.5",
@@ -190,7 +190,7 @@
       ]
     },
     {
-      "description": "Users 0 and 1 Deposit 1000 DAI, both redeem",
+      "description": "Users 0 and 1 Deposit 1000 DAI, both withdraw",
       "actions": [
         {
           "name": "mint",
@@ -228,7 +228,7 @@
           "expected": "success"
         },
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "DAI",
             "amount": "1000",
@@ -237,7 +237,7 @@
           "expected": "success"
         },
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "DAI",
             "amount": "1000",
@@ -248,7 +248,7 @@
       ]
     },
     {
-      "description": "Users 0 deposits 1000 DAI, user 1 Deposit 1000 USDC and 1 WETH, borrows (variable) 100 DAI. User 1 tries to redeem all the USDC",
+      "description": "Users 0 deposits 1000 DAI, user 1 Deposit 1000 USDC and 1 WETH, borrows (variable) 100 DAI. User 1 tries to withdraw all the USDC",
       "actions": [
         {
           "name": "deposit",
@@ -340,7 +340,7 @@
           "expected": "success"
         },
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "USDC",
             "amount": "1000",
@@ -351,10 +351,10 @@
       ]
     },
     {
-      "description": "User 1 tries to redeem 0.05 WETH",
+      "description": "User 1 tries to withdraw 0.05 WETH",
       "actions": [
         {
-          "name": "redeem",
+          "name": "withdraw",
           "args": {
             "reserve": "WETH",
             "amount": "0.05",

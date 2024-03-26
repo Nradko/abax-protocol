@@ -5,8 +5,8 @@ import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { MAX_U128 } from './consts';
-import { getCheckRedeemParameters } from './scenarios/utils/actions';
-import { checkRedeem } from './scenarios/utils/comparisons';
+import { getCheckWithdrawParameters } from './scenarios/utils/actions';
+import { checkWithdraw } from './scenarios/utils/comparisons';
 import { TestEnv, TokenReserve, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { time } from 'wookashwackomytest-polkahat-network-helpers';
@@ -47,7 +47,7 @@ makeSuite('Unit Message', (getTestEnv) => {
       });
     });
 
-    describe('Redeem | User supplies DAI (with non-zero utilization rate) and earns interest', () => {
+    describe('Withdraw | User supplies DAI (with non-zero utilization rate) and earns interest', () => {
       let reserve: TokenReserve;
       let mintedAmount;
       beforeEach(async () => {
@@ -70,7 +70,7 @@ makeSuite('Unit Message', (getTestEnv) => {
         await lendingPool.withSigner(testUser).tx.deposit(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Act
-        await testEnv.lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
+        await testEnv.lendingPool.withSigner(testUser).tx.withdraw(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
         const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
@@ -87,7 +87,7 @@ makeSuite('Unit Message', (getTestEnv) => {
         const DAY = 24 * 60 * 60 * 1000;
         //Act
         await time.increase(DAY);
-        await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
+        await lendingPool.withSigner(testUser).tx.withdraw(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
         const userReserveDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.underlying.address, testUser.address)).value.ok!;
@@ -102,7 +102,7 @@ makeSuite('Unit Message', (getTestEnv) => {
         const depositAmount = mintedAmount.div(new BN(10));
         await lendingPool.withSigner(testUser).tx.deposit(reserve.underlying.address, testUser.address, depositAmount, []);
         const DAY = 24 * 60 * 60 * 1000;
-        const redeemParametersBefore = await getCheckRedeemParameters(
+        const withdrawParametersBefore = await getCheckWithdrawParameters(
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
@@ -112,10 +112,10 @@ makeSuite('Unit Message', (getTestEnv) => {
         //Act
         await time.increase(DAY);
 
-        const tx = await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, depositAmount, []);
+        const tx = await lendingPool.withSigner(testUser).tx.withdraw(reserve.underlying.address, testUser.address, depositAmount, []);
 
         //Assert
-        const redeemParametersAfter = await getCheckRedeemParameters(
+        const withdrawParametersAfter = await getCheckWithdrawParameters(
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
@@ -123,7 +123,16 @@ makeSuite('Unit Message', (getTestEnv) => {
           testUser,
         );
 
-        await checkRedeem(lendingPool, reserve, testUser.address, testUser.address, depositAmount, redeemParametersBefore, redeemParametersAfter, tx);
+        await checkWithdraw(
+          lendingPool,
+          reserve,
+          testUser.address,
+          testUser.address,
+          depositAmount,
+          withdrawParametersBefore,
+          withdrawParametersAfter,
+          tx,
+        );
       });
 
       it('Exact interest accumulation when reddeming at the later time | withdrawing ALL ', async () => {
@@ -132,7 +141,7 @@ makeSuite('Unit Message', (getTestEnv) => {
         const depositAmount = mintedAmount.div(new BN(10));
         await lendingPool.withSigner(testUser).tx.deposit(reserve.underlying.address, testUser.address, depositAmount, []);
         const DAY = 24 * 60 * 60 * 1000;
-        const redeemParametersBefore = await getCheckRedeemParameters(
+        const withdrawParametersBefore = await getCheckWithdrawParameters(
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
@@ -142,10 +151,10 @@ makeSuite('Unit Message', (getTestEnv) => {
         //Act
         await time.increase(DAY);
 
-        const tx = await lendingPool.withSigner(testUser).tx.redeem(reserve.underlying.address, testUser.address, MAX_U128, []);
+        const tx = await lendingPool.withSigner(testUser).tx.withdraw(reserve.underlying.address, testUser.address, MAX_U128, []);
 
         //Assert
-        const redeemParametersAfter = await getCheckRedeemParameters(
+        const withdrawParametersAfter = await getCheckWithdrawParameters(
           lendingPool,
           reserve.underlying,
           testEnv.reserves['DAI'].aToken,
@@ -153,14 +162,14 @@ makeSuite('Unit Message', (getTestEnv) => {
           testUser,
         );
 
-        await checkRedeem(
+        await checkWithdraw(
           lendingPool,
           reserve,
           testUser.address,
           testUser.address,
           new BN(MAX_U128),
-          redeemParametersBefore,
-          redeemParametersAfter,
+          withdrawParametersBefore,
+          withdrawParametersAfter,
           tx,
         );
       });

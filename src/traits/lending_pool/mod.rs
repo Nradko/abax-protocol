@@ -14,3 +14,5 @@ include!("manage_roles.rs");
 include!("manage.rs");
 include!("v_token_interface.rs");
 include!("view.rs");
+include!("account_registrar.rs");
+include!("multi_op.rs");

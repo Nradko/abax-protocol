@@ -9,7 +9,7 @@ import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suit
 import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
 import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
-import { BorrowVariable, Deposit, Redeem, RepayVariable } from 'typechain/event-types/lending_pool';
+import { BorrowVariable, Deposit, Withdraw, RepayVariable } from 'typechain/event-types/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 import { time } from 'wookashwackomytest-polkahat-network-helpers';
@@ -55,6 +55,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       initialDaiBalance = await convertToCurrencyDecimals(daiContract, 10000);
       await daiContract.tx.mint(alice.address, initialDaiBalance);
       await daiContract.withSigner(alice).tx.approve(lendingPool.address, initialDaiBalance);
+      const que = await lendingPool.withSigner(alice).query.deposit(daiContract.address, alice.address, initialDaiBalance, []);
       await lendingPool.withSigner(alice).tx.deposit(daiContract.address, alice.address, initialDaiBalance, []);
       await daiContract.tx.mint(bob.address, initialDaiBalance);
       await daiContract.withSigner(bob).tx.approve(lendingPool.address, initialDaiBalance);
@@ -341,9 +342,9 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               lendingPool.events.subscribeOnDepositEvent((event) => {
                 capturedDepositEvents.push(event);
               });
-              const capturedRedeemEvents: Redeem[] = [];
-              lendingPool.events.subscribeOnRedeemEvent((event) => {
-                capturedRedeemEvents.push(event);
+              const capturedWithdrawEvents: Withdraw[] = [];
+              lendingPool.events.subscribeOnWithdrawEvent((event) => {
+                capturedWithdrawEvents.push(event);
               });
               const capturedTransferEvents: Transfer[] = [];
               vTokenWETHContract.events.subscribeOnTransferEvent((event) => {
@@ -379,7 +380,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               ]);
 
-              expect(stringifyNumericProps(capturedRedeemEvents), 'LendingPool Redeem event').to.deep.equal([
+              expect(stringifyNumericProps(capturedWithdrawEvents), 'LendingPool Withdraw event').to.deep.equal([
                 {
                   asset: wethContract.address,
                   caller: aTokenWETHContract.address,

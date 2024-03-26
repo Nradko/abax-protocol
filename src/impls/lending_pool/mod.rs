@@ -6,6 +6,7 @@ pub mod internal;
 pub mod liquidate;
 pub mod maintain;
 pub mod manage;
+pub mod multi_op;
 pub mod storage;
 pub mod v_token_interface;
 pub mod view;

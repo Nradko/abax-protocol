@@ -73,7 +73,7 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .get_all_registered_assets();
         let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power(&to, &prices_e18)?;
+            .check_lending_power_of_an_account(&to, &prices_e18)?;
 
         //// ABACUS TOKEN EVENTS
         // AToken interests
