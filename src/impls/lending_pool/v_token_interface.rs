@@ -1,18 +1,18 @@
 use abax_traits::{
     abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
-    lending_pool::{EmitBorrowEvents, LendingPoolError},
+    lending_pool::{Borrow, LendingPoolError, Repay},
 };
 use pendzl::{
     contracts::access_control::AccessControlError,
     traits::{AccountId, Balance, StorageFieldGetter},
 };
 
-use ink::prelude::*;
+use ink::{env::DefaultEnvironment, prelude::*};
 
 use super::{internal::AssetPrices, storage::LendingPoolStorage};
 
 pub trait LendingPoolVTokenInterfaceImpl:
-    StorageFieldGetter<LendingPoolStorage> + EmitBorrowEvents
+    StorageFieldGetter<LendingPoolStorage>
 {
     fn total_debt_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = Self::env().block_timestamp();
@@ -99,18 +99,19 @@ pub trait LendingPoolVTokenInterfaceImpl:
         // VToken intersts are returned
 
         //// EVENT
-        self._emit_repay_variable_event(
-            underlying_asset,
-            Self::env().caller(),
-            from,
+
+        ink::env::emit_event::<DefaultEnvironment, Repay>(Repay {
+            asset: underlying_asset,
+            caller: Self::env().caller(),
+            on_behalf_of: from,
             amount,
-        );
-        self._emit_borrow_variable_event(
-            underlying_asset,
-            Self::env().caller(),
-            to,
+        });
+        ink::env::emit_event::<DefaultEnvironment, Borrow>(Borrow {
+            asset: underlying_asset,
+            caller: Self::env().caller(),
+            on_behalf_of: to,
             amount,
-        );
+        });
 
         Ok((from_accumulated_debt_interest, to_accumulated_debt_interest))
     }

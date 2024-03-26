@@ -1,8 +1,11 @@
 use abax_library::structs::{Action, Operation, ReserveAbacusTokens};
 use abax_traits::lending_pool::{
-    EmitBorrowEvents, EmitDepositEvents, LendingPoolError, MathError,
+    Borrow, Deposit, LendingPoolError, MathError, Repay, Withdraw,
 };
-use ink::{prelude::vec::Vec, primitives::AccountId, storage::Mapping};
+use ink::{
+    env::DefaultEnvironment, prelude::vec::Vec, primitives::AccountId,
+    storage::Mapping,
+};
 use pendzl::traits::StorageFieldGetter;
 
 use super::{
@@ -14,10 +17,7 @@ use super::{
 };
 
 pub trait LendingPoolMultiOpImpl:
-    StorageFieldGetter<LendingPoolStorage>
-    + Transfer
-    + EmitDepositEvents
-    + EmitBorrowEvents
+    StorageFieldGetter<LendingPoolStorage> + Transfer
 {
     fn multi_op(
         &mut self,
@@ -74,11 +74,13 @@ pub trait LendingPoolMultiOpImpl:
                         &on_behalf_of,
                         *user_accumulated_debt_interest as i128,
                     )?;
-                    self._emit_deposit_event(
-                        asset,
-                        caller,
-                        on_behalf_of,
-                        amount,
+                    ink::env::emit_event::<DefaultEnvironment, Deposit>(
+                        Deposit {
+                            asset,
+                            caller,
+                            on_behalf_of,
+                            amount,
+                        },
                     );
                 }
                 Operation::Withdraw => {
@@ -99,11 +101,14 @@ pub trait LendingPoolMultiOpImpl:
                         &on_behalf_of,
                         *user_accumulated_debt_interest as i128,
                     )?;
-                    self._emit_withdraw_event(
-                        asset,
-                        caller,
-                        on_behalf_of,
-                        amount,
+
+                    ink::env::emit_event::<DefaultEnvironment, Withdraw>(
+                        Withdraw {
+                            asset,
+                            caller,
+                            on_behalf_of,
+                            amount,
+                        },
                     );
                 }
                 Operation::Borrow => {
@@ -125,12 +130,14 @@ pub trait LendingPoolMultiOpImpl:
                         &(caller),
                         amount,
                     )?;
-                    self._emit_borrow_variable_event(
-                        asset,
-                        caller,
-                        on_behalf_of,
-                        amount,
-                    )
+                    ink::env::emit_event::<DefaultEnvironment, Borrow>(
+                        Borrow {
+                            asset,
+                            caller,
+                            on_behalf_of,
+                            amount,
+                        },
+                    );
                 }
                 Operation::Repay => {
                     self._transfer_in(&asset, &caller, &amount)?;
@@ -148,12 +155,12 @@ pub trait LendingPoolMultiOpImpl:
                             .0,
                     )?;
 
-                    self._emit_repay_variable_event(
+                    ink::env::emit_event::<DefaultEnvironment, Repay>(Repay {
                         asset,
                         caller,
                         on_behalf_of,
                         amount,
-                    );
+                    });
                 }
             }
         }

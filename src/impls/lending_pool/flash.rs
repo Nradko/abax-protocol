@@ -1,9 +1,7 @@
 use abax_library::math::E6_U128;
 use abax_traits::{
     flash_loan_receiver::FlashLoanReceiverError,
-    lending_pool::{
-        EmitFlashEvents, LendingPoolError, MathError, FLASH_BORROWER,
-    },
+    lending_pool::{FlashLoan, LendingPoolError, MathError, FLASH_BORROWER},
 };
 use ink::{
     env::{
@@ -24,9 +22,7 @@ use super::{
 };
 
 pub trait LendingPoolFlashImpl:
-    StorageFieldGetter<LendingPoolStorage>
-    + EmitFlashEvents
-    + access_control::AccessControlInternal
+    StorageFieldGetter<LendingPoolStorage> + access_control::AccessControlInternal
 {
     fn flash_loan(
         &mut self,
@@ -96,13 +92,13 @@ pub trait LendingPoolFlashImpl:
                 &amounts[i].checked_add(fees[i]).unwrap(),
             )?;
 
-            self._emit_flash_loan_event(
+            ink::env::emit_event::<DefaultEnvironment, FlashLoan>(FlashLoan {
                 receiver,
-                Self::env().account_id(),
-                assets[i],
-                amounts[i],
-                fees[i],
-            );
+                caller: Self::env().account_id(),
+                asset: assets[i],
+                amount: amounts[i],
+                fee: fees[i],
+            });
         }
         Ok(())
     }
