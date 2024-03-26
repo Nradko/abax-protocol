@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "a_token"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",
@@ -16,7 +16,7 @@ dependencies = [
 
 [[package]]
 name = "abax_contracts"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_library",
  "ink",
@@ -27,7 +27,7 @@ dependencies = [
 
 [[package]]
 name = "abax_library"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "ink",
  "parity-scale-codec",
@@ -72,7 +72,7 @@ checksum = "f1fdabc7756949593fe60f30ec81974b613357de856987752631dea1e3394c80"
 
 [[package]]
 name = "balance_viewer"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",
@@ -316,7 +316,7 @@ dependencies = [
 
 [[package]]
 name = "dia_oracle"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",
@@ -381,7 +381,7 @@ dependencies = [
 
 [[package]]
 name = "flash_loan_receiver_mock"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",
@@ -786,7 +786,7 @@ dependencies = [
 
 [[package]]
 name = "lending_pool"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",
@@ -1025,7 +1025,7 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "price_feed_provider"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",
@@ -1078,7 +1078,7 @@ dependencies = [
 
 [[package]]
 name = "psp22_emitable"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_library",
  "ink",
@@ -1089,7 +1089,7 @@ dependencies = [
 
 [[package]]
 name = "psp22_ownable"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_library",
  "ink",
@@ -1426,7 +1426,7 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "stable_token"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",
@@ -1507,7 +1507,7 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "test_reserves_minter"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_library",
  "ink",
@@ -1614,7 +1614,7 @@ checksum = "7e33648dd74328e622c7be51f3b40a303c63f93e6fa5f08778b6203a4c25c20f"
 
 [[package]]
 name = "v_token"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "abax_contracts",
  "abax_library",

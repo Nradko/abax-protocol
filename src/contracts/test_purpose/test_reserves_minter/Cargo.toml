@@ -1,6 +1,6 @@
 [package]
 name = "test_reserves_minter"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Łukasz Łakomy", "Konrad Wierzbik"]
 edition = "2021"
 
