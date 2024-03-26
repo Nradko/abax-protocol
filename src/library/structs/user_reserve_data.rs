@@ -1,5 +1,16 @@
+use pendzl::{math::errors::MathError, traits::Balance};
+
+use crate::math::{
+    e0_mul_e18_div_e18_to_e0_rdown, e0_mul_e18_div_e18_to_e0_rup,
+    e0_mul_e6_to_e0_rup, E18_U128,
+};
+
+use super::{
+    ReserveData, ReserveFees, ReserveIndexes, ReserveRestrictions, UserConfig,
+};
+
 /// stores data of user
-#[derive(Debug, Default, Encode, Decode, Clone, Copy)]
+#[derive(Debug, Default, scale::Encode, scale::Decode, Clone, Copy)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)

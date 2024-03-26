@@ -1,10 +1,9 @@
 [workspace]
 members = [
     "library",
-    "traits",
+    "contract_modules",
     "contracts/periphery/**",
     "contracts/core/**",
     "contracts/test_purpose/**",
-    "impls",
 ]
 resolver = "2"

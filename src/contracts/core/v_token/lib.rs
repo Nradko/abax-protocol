@@ -3,10 +3,10 @@
 #[pendzl::implementation(PSP22, PSP22Metadata)]
 #[ink::contract]
 pub mod v_token {
-    use abax_impls::abacus_token::{
-        storage::AbacusTokenStorage, AbacusTokenImpl,
+    use abax_contracts::abacus_token::implementation::{
+        AbacusTokenImpl, AbacusTokenStorage,
     };
-    use abax_traits::{
+    use abax_contracts::{
         abacus_token::{AbacusToken, TransferEventData},
         lending_pool::{
             LendingPoolVTokenInterface, LendingPoolVTokenInterfaceRef,

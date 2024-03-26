@@ -1,7 +1,7 @@
 pub type Bitmap128 = u128;
 
 /// stores information about which asset is deposited, used as collatearl and borrowed by an user and which `market_rule_id` the user has chosen.
-#[derive(Debug, Default, Encode, Decode)]
+#[derive(Debug, Default, scale::Encode, scale::Decode)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)

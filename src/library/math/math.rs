@@ -2,6 +2,8 @@ use pendzl::math::errors::MathError;
 
 use primitive_types::U256;
 
+use super::{E10_U128, E18_U128, E6_U128, E8_U128};
+
 // a*b/d + x + y
 pub fn mul_div_add_add_u64(
     a: u64,

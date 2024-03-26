@@ -1,5 +1,15 @@
+use pendzl::{
+    math::{errors::MathError, operations::mul_div},
+    traits::Balance,
+};
+
+use crate::math::{
+    e18_mul_e18_div_e18_to_e18_rdown,
+    interest_rate_math::utilization_rate_to_interest_rate_e18, E6_U128, E6_U64,
+};
+
 /// Contains most often used data of a reserve
-#[derive(Debug, Encode, Decode)]
+#[derive(Debug, scale::Encode, scale::Decode)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -21,7 +31,7 @@ pub struct ReserveData {
     pub current_debt_rate_e18: u64,
 }
 
-#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum ReserveDataError {
     /// returned if activating, disactivating, freezing, unfreezing action is redundant.
@@ -142,12 +152,12 @@ impl ReserveData {
             return Ok(E6_U64);
         }
         let total_debt = self.total_debt;
-        match u64::try_from({
-            let x = U256::from(total_debt);
-            let y = U256::from(E6_U128);
-            let z = U256::from(self.total_deposit);
-            x.checked_mul(y).unwrap().checked_div(z).unwrap()
-        }) {
+        match u64::try_from(mul_div(
+            total_debt,
+            E6_U128,
+            self.total_deposit,
+            pendzl::math::operations::Rounding::Down,
+        )?) {
             Ok(v) => Ok(v),
             _ => Err(MathError::Overflow),
         }

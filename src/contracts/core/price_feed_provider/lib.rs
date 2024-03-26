@@ -3,8 +3,8 @@
 #[pendzl::implementation(Ownable)]
 #[ink::contract]
 pub mod price_feed_provider {
-    use abax_traits::dia_oracle::{OracleGetters, OracleGettersRef};
-    use abax_traits::price_feed::{PriceFeed, PriceFeedError};
+    use abax_contracts::dia_oracle::{OracleGetters, OracleGettersRef};
+    use abax_contracts::price_feed::{PriceFeed, PriceFeedError};
     use ink::prelude::string::String;
     use ink::prelude::{vec::Vec, *};
 

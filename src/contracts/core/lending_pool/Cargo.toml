@@ -13,14 +13,14 @@ scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { version = "0.2.1",  default-features = false, features = [
+pendzl = { version = "0.2.3", default-features = false, features = [
     "psp22",
     "access_control",
     "access_control_impl",
 ] }
 
-abax_impls = { path = "../../../impls", default-features = false }
-abax_traits = { path = "../../../traits", default-features = false }
+
+abax_contracts = { path = "../../../contract_modules", default-features = false }
 abax_library = { path = "../../../library", default-features = false }
 
 [lib]
@@ -36,13 +36,12 @@ std = [
     "scale-info",
     "scale-info/std",
 
-    # These dependencies
-    "abax_traits/std",
     "abax_library/std",
-    "abax_impls/std",
+    "abax_contracts/std",
+
     "pendzl/std",
 ]
 ink-as-dependency = []
 
 [profile.dev]
-codegen-units = 16      # Use slightly better optimizations.
+codegen-units = 16 # Use slightly better optimizations.

@@ -1,5 +1,9 @@
+use pendzl::traits::Balance;
+
+use super::{ReserveData, UserReserveData};
+
 /// Stores restrictions made on the reserve
-#[derive(Debug, Encode, Decode, Default, Copy, Clone)]
+#[derive(Debug, scale::Encode, scale::Decode, Default, Copy, Clone)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -34,7 +38,7 @@ impl ReserveRestrictions {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum ReserveRestrictionsError {
     /// returned if after the action total debt of an asset is freater than the maximal total debt restriocion.

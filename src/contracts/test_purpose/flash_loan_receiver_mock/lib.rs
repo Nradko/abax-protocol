@@ -2,7 +2,7 @@
 
 #[ink::contract]
 pub mod flash_loan_receiver_mock {
-    use abax_traits::flash_loan_receiver::{
+    use abax_contracts::flash_loan_receiver::{
         FlashLoanReceiver, FlashLoanReceiverError,
     };
     use ink::prelude::vec::Vec;
