@@ -1,3 +1,7 @@
-include!("constants.rs");
-include!("math.rs");
-include!("interest_rate_math.rs");
+mod constants;
+mod math;
+
+pub use constants::*;
+pub use math::*;
+
+pub mod interest_rate_math;

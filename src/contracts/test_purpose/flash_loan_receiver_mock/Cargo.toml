@@ -20,8 +20,7 @@ pendzl = { version = "0.2.1", default-features = false, features = [
     "access_control",
 ] }
 
-abax_traits = { path = "../../../traits", default-features = false }
-abax_impls = { path = "../../../impls", default-features = false }
+abax_contracts = { path = "../../../contract_modules", default-features = false }
 abax_library = { path = "../../../library", default-features = false }
 
 
@@ -38,10 +37,9 @@ std = [
     "scale-info",
     "scale-info/std",
 
-    # These dependencies
-    "abax_traits/std",
-    "abax_impls/std",
+    "abax_contracts/std",
     "abax_library/std",
+
     "pendzl/std",
 ]
 ink-as-dependency = []

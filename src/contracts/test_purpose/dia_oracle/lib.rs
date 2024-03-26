@@ -4,7 +4,7 @@ pub use self::oracle_anchor::TokenPriceStorageRef;
 
 #[ink::contract]
 pub mod oracle_anchor {
-    use abax_traits::dia_oracle::{OracleGetters, OracleSetters};
+    use abax_contracts::dia_oracle::{OracleGetters, OracleSetters};
     use ink::env::DefaultEnvironment;
     use ink::prelude::string::String;
     use ink::prelude::vec::Vec;

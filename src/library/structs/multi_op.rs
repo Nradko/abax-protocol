@@ -1,4 +1,7 @@
-#[derive(Debug, Encode, Decode, Clone)]
+use ink::primitives::AccountId;
+use pendzl::traits::Balance;
+
+#[derive(Debug, scale::Encode, scale::Decode, Clone)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -7,7 +10,7 @@ pub struct OperationArgs {
     pub asset: AccountId,
     pub amount: Balance,
 }
-#[derive(Debug, Encode, Eq, PartialEq, Copy, Decode, Clone)]
+#[derive(Debug, Eq, PartialEq, Copy, scale::Encode, scale::Decode, Clone)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -18,7 +21,7 @@ pub enum Operation {
     Borrow,
     Repay,
 }
-#[derive(Debug, Encode, Decode, Clone)]
+#[derive(Debug, scale::Encode, scale::Decode, Clone)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
