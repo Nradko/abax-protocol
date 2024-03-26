@@ -9,7 +9,7 @@ import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suit
 import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
 import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
-import { BorrowVariable, Deposit, Withdraw, RepayVariable } from 'typechain/event-types/lending_pool';
+import { Borrow, Deposit, Withdraw, Repay } from 'typechain/event-types/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
 import { time } from 'wookashwackomytest-polkahat-network-helpers';
@@ -211,12 +211,12 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
             await lendingPool.withSigner(bob).tx.setAsCollateral(reserves['USDC'].underlying.address, true);
           });
           it('Alice should be able to transfer vWETH to Bob and Transfer event should be emitted', async () => {
-            const capturedRepayEvents: RepayVariable[] = [];
-            lendingPool.events.subscribeOnRepayVariableEvent((event) => {
+            const capturedRepayEvents: Repay[] = [];
+            lendingPool.events.subscribeOnRepayEvent((event) => {
               capturedRepayEvents.push(event);
             });
-            const capturedBorrowEvents: BorrowVariable[] = [];
-            lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
+            const capturedBorrowEvents: Borrow[] = [];
+            lendingPool.events.subscribeOnBorrowEvent((event) => {
               capturedBorrowEvents.push(event);
             });
             const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
@@ -266,12 +266,12 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               await time.increase(ONE_YEAR.toNumber());
             });
             it('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
-              const capturedRepayEvents: RepayVariable[] = [];
-              lendingPool.events.subscribeOnRepayVariableEvent((event) => {
+              const capturedRepayEvents: Repay[] = [];
+              lendingPool.events.subscribeOnRepayEvent((event) => {
                 capturedRepayEvents.push(event);
               });
-              const capturedBorrowEvents: BorrowVariable[] = [];
-              lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
+              const capturedBorrowEvents: Borrow[] = [];
+              lendingPool.events.subscribeOnBorrowEvent((event) => {
                 capturedBorrowEvents.push(event);
               });
               const capturedTransferEvents: Transfer[] = [];
@@ -404,12 +404,12 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 await vTokenWETHContract.withSigner(charlie).tx.increaseAllowance(alice.address, aliceDebt);
               });
               it('Alice should be able to transfer vWETH to Charlie and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
-                const capturedRepayEvents: RepayVariable[] = [];
-                lendingPool.events.subscribeOnRepayVariableEvent((event) => {
+                const capturedRepayEvents: Repay[] = [];
+                lendingPool.events.subscribeOnRepayEvent((event) => {
                   capturedRepayEvents.push(event);
                 });
-                const capturedBorrowEvents: RepayVariable[] = [];
-                lendingPool.events.subscribeOnBorrowVariableEvent((event) => {
+                const capturedBorrowEvents: Repay[] = [];
+                lendingPool.events.subscribeOnBorrowEvent((event) => {
                   capturedBorrowEvents.push(event);
                 });
                 const capturedTransferEvents: Transfer[] = [];

@@ -230,8 +230,8 @@ makeSuite('Multi operations', (getTestEnv) => {
           await expect(tx).to.changePSP22Balances(daiContract, [alice.address], [borrowAmountDai.sub(repayAmountDai)]);
 
           const txRes = await tx;
-          const [borrowEvents, allEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.BorrowVariable);
-          const [repayEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.RepayVariable);
+          const [borrowEvents, allEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.Borrow);
+          const [repayEvents] = getContractEventsFromTx(txRes, lendingPool as any, LendingPoolEvent.Repay);
 
           expect(borrowEvents.length).to.equal(2);
           expect(repayEvents.length).to.equal(1);

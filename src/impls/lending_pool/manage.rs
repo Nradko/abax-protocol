@@ -4,10 +4,14 @@ use abax_library::structs::{
 };
 use abax_traits::dummy::DummyRef;
 use abax_traits::lending_pool::{
-    EmitManageEvents, InterestRateModel, LendingPoolError, MarketRule,
-    ASSET_LISTING_ADMIN, EMERGENCY_ADMIN, PARAMETERS_ADMIN,
-    STABLECOIN_RATE_ADMIN, TREASURY,
+    AssetRegistered, AssetRulesChanged, FlashLoanFeeChanged, IncomeTaken,
+    InterestRateModel, LendingPoolError, MarketRule, PriceFeedProviderChanged,
+    ReserveActivated, ReserveFeesChanged, ReserveFreezed,
+    ReserveInterestRateModelChanged, ReserveRestrictionsChanged,
+    StablecoinDebtRateChanged, ASSET_LISTING_ADMIN, EMERGENCY_ADMIN,
+    PARAMETERS_ADMIN, STABLECOIN_RATE_ADMIN, TREASURY,
 };
+use ink::env::DefaultEnvironment;
 use ink::prelude::string::{String, ToString};
 use ink::{
     env::call::ExecutionInput,
@@ -23,7 +27,7 @@ use super::internal::InternalIncome;
 use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolManageImpl:
-    ManageInternal + EmitManageEvents + access_control::AccessControlInternal
+    ManageInternal + access_control::AccessControlInternal
 {
     fn set_price_feed_provider(
         &mut self,
@@ -34,7 +38,11 @@ pub trait LendingPoolManageImpl:
 
         self.data::<LendingPoolStorage>()
             .account_for_price_feed_provider_change(&price_feed_provider);
-        self._emit_price_feed_provider_changed_event(&price_feed_provider);
+        ink::env::emit_event::<DefaultEnvironment, PriceFeedProviderChanged>(
+            PriceFeedProviderChanged {
+                price_feed_provider,
+            },
+        );
         Ok(())
     }
 
@@ -48,7 +56,9 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .flash_loan_fee_e6
             .set(&flash_loan_fee_e6);
-        self._emit_flash_loan_fee_e6_changed_event(&flash_loan_fee_e6);
+        ink::env::emit_event::<DefaultEnvironment, FlashLoanFeeChanged>(
+            FlashLoanFeeChanged { flash_loan_fee_e6 },
+        );
         Ok(())
     }
 
@@ -108,27 +118,47 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .account_for_asset_rule_change(&0, &asset, &asset_rules)?;
 
-        self._emit_asset_registered_event(
-            &asset,
-            name,
-            symbol,
-            decimals,
-            &a_token_code_hash,
-            &v_token_code_hash,
-            &a_token_address,
-            &v_token_address,
+        ink::env::emit_event::<DefaultEnvironment, AssetRegistered>(
+            AssetRegistered {
+                asset,
+                name,
+                symbol,
+                decimals,
+                a_token_code_hash,
+                v_token_code_hash,
+                a_token_address,
+                v_token_address,
+            },
         );
 
         interest_rate_model.iter().for_each(|model| {
-            self._emit_interest_rate_model_changed_event(&asset, model);
+            ink::env::emit_event::<
+                DefaultEnvironment,
+                ReserveInterestRateModelChanged,
+            >(ReserveInterestRateModelChanged {
+                asset,
+                interest_rate_model: model.clone(),
+            });
         });
 
-        self._emit_reserve_restrictions_changed_event(
-            &asset,
-            reserve_restrictions,
+        ink::env::emit_event::<DefaultEnvironment, ReserveFeesChanged>(
+            ReserveFeesChanged {
+                asset,
+                reserve_fees,
+            },
         );
-        self._emit_asset_rules_changed_event(&0, &asset, &asset_rules);
-        self._emit_reserve_fees_changed_event(&asset, &reserve_fees);
+        ink::env::emit_event::<DefaultEnvironment, ReserveRestrictionsChanged>(
+            ReserveRestrictionsChanged {
+                asset,
+                reserve_restrictions,
+            },
+        );
+        ink::env::emit_event::<DefaultEnvironment, ReserveRestrictionsChanged>(
+            ReserveRestrictionsChanged {
+                asset,
+                reserve_restrictions: reserve_restrictions.clone(),
+            },
+        );
         Ok(())
     }
 
@@ -143,7 +173,9 @@ pub trait LendingPoolManageImpl:
         self.data::<LendingPoolStorage>()
             .account_for_changing_activity(&asset, active)?;
 
-        self._emit_reserve_activated_event(&asset, active);
+        ink::env::emit_event::<DefaultEnvironment, ReserveActivated>(
+            ReserveActivated { asset, active },
+        );
 
         Ok(())
     }
@@ -158,7 +190,12 @@ pub trait LendingPoolManageImpl:
 
         self.data::<LendingPoolStorage>()
             .account_for_changing_is_freezed(&asset, freeze)?;
-        self._emit_reserve_freezed_event(&asset, freeze);
+        ink::env::emit_event::<DefaultEnvironment, ReserveFreezed>(
+            ReserveFreezed {
+                asset,
+                freezed: !freeze,
+            },
+        );
         Ok(())
     }
 
@@ -176,9 +213,11 @@ pub trait LendingPoolManageImpl:
                 &reserve_restrictions,
             )?;
 
-        self._emit_reserve_restrictions_changed_event(
-            &asset,
-            reserve_restrictions,
+        ink::env::emit_event::<DefaultEnvironment, ReserveRestrictionsChanged>(
+            ReserveRestrictionsChanged {
+                asset,
+                reserve_restrictions,
+            },
         );
 
         Ok(())
@@ -199,10 +238,14 @@ pub trait LendingPoolManageImpl:
                 &interest_rate_model,
                 &timestamp,
             )?;
-        self._emit_interest_rate_model_changed_event(
-            &asset,
-            &interest_rate_model,
-        );
+
+        ink::env::emit_event::<
+            DefaultEnvironment,
+            ReserveInterestRateModelChanged,
+        >(ReserveInterestRateModelChanged {
+            asset,
+            interest_rate_model,
+        });
         Ok(())
     }
 
@@ -216,7 +259,12 @@ pub trait LendingPoolManageImpl:
 
         self.data::<LendingPoolStorage>()
             .account_for_reserve_fees_change(&asset, &reserve_fees)?;
-        self._emit_reserve_fees_changed_event(&asset, &reserve_fees);
+        ink::env::emit_event::<DefaultEnvironment, ReserveFeesChanged>(
+            ReserveFeesChanged {
+                asset,
+                reserve_fees,
+            },
+        );
         Ok(())
     }
 
@@ -233,7 +281,12 @@ pub trait LendingPoolManageImpl:
                 &asset,
                 &debt_rate_e18,
             )?;
-        self._emit_stablecoin_debt_rate_changed(&asset, &debt_rate_e18);
+        ink::env::emit_event::<DefaultEnvironment, StablecoinDebtRateChanged>(
+            StablecoinDebtRateChanged {
+                asset,
+                debt_rate_e18,
+            },
+        );
 
         Ok(())
     }
@@ -259,10 +312,16 @@ pub trait LendingPoolManageImpl:
 
         for asset_id in 0..market_rule.len() {
             if let Some(asset_rules) = market_rule[asset_id] {
-                self._emit_asset_rules_changed_event(
-                    &market_rule_id,
-                    &registerd_assets[asset_id],
-                    &asset_rules,
+                ink::env::emit_event::<DefaultEnvironment, AssetRulesChanged>(
+                    AssetRulesChanged {
+                        market_rule_id,
+                        asset: registerd_assets[asset_id],
+                        collateral_coefficient_e6: asset_rules
+                            .collateral_coefficient_e6,
+                        borrow_coefficient_e6: asset_rules
+                            .borrow_coefficient_e6,
+                        penalty_e6: asset_rules.penalty_e6,
+                    },
                 );
             }
         }
@@ -286,10 +345,15 @@ pub trait LendingPoolManageImpl:
                 &asset_rules,
             )?;
 
-        self._emit_asset_rules_changed_event(
-            &market_rule_id,
-            &asset,
-            &asset_rules,
+        ink::env::emit_event::<DefaultEnvironment, AssetRulesChanged>(
+            AssetRulesChanged {
+                market_rule_id,
+                asset,
+                collateral_coefficient_e6: asset_rules
+                    .collateral_coefficient_e6,
+                borrow_coefficient_e6: asset_rules.borrow_coefficient_e6,
+                penalty_e6: asset_rules.penalty_e6,
+            },
         );
 
         Ok(())
@@ -318,7 +382,11 @@ pub trait LendingPoolManageImpl:
         {
             let mut psp22: PSP22Ref = asset_and_amount.0.into();
             psp22.transfer(to, asset_and_amount.1 as Balance, vec![])?;
-            self._emit_income_taken(&asset_and_amount.0);
+            ink::env::emit_event::<DefaultEnvironment, IncomeTaken>(
+                IncomeTaken {
+                    asset: asset_and_amount.0,
+                },
+            );
         }
 
         Ok(assets_and_amounts)

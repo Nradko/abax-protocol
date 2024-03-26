@@ -71,7 +71,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
 
       expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
         {
-          name: 'BorrowVariable',
+          name: 'Borrow',
           args: {
             amount: initialUsdaxDebt.toString(),
             onBehalfOf: alice.address,
@@ -141,7 +141,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         });
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'RepayVariable',
+            name: 'Repay',
             args: {
               amount: initialUsdaxDebt.toString(),
               onBehalfOf: alice.address,

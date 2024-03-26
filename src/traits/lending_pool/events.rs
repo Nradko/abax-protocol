@@ -1,148 +1,182 @@
 use ink::prelude::string::String;
-pub trait EmitDepositEvents {
-    fn _emit_deposit_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
-    fn _emit_withdraw_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
+
+#[ink::event]
+pub struct Deposit {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub caller: AccountId,
+    #[ink(topic)]
+    pub on_behalf_of: AccountId,
+    pub amount: Balance,
+}
+#[ink::event]
+pub struct Withdraw {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub caller: AccountId,
+    #[ink(topic)]
+    pub on_behalf_of: AccountId,
+    pub amount: Balance,
 }
 
-pub trait EmitBorrowEvents {
-    fn _emit_market_rule_chosen(
-        &mut self,
-        user: &AccountId,
-        market_rule_id: &RuleId,
-    );
-    fn _emit_collateral_set_event(
-        &mut self,
-        asset: AccountId,
-        user: AccountId,
-        set: bool,
-    );
-    fn _emit_borrow_variable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
-    fn _emit_repay_variable_event(
-        &mut self,
-        asset: AccountId,
-        caller: AccountId,
-        on_behalf_of: AccountId,
-        amount: Balance,
-    );
+#[ink::event]
+pub struct MarketRuleChosen {
+    #[ink(topic)]
+    pub caller: AccountId,
+    pub market_rule_id: RuleId,
 }
 
-pub trait EmitConfigureEvents {
-    fn _emit_choose_rule_event(&mut self, caller: AccountId, rule_id: u64);
+#[ink::event]
+pub struct CollateralSet {
+    #[ink(topic)]
+    pub caller: AccountId,
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub set: bool,
 }
 
-pub trait EmitFlashEvents {
-    fn _emit_flash_loan_event(
-        &mut self,
-        receiver: AccountId,
-        caller: AccountId,
-        asset: AccountId,
-        amount: u128,
-        fee: u128,
-    );
+#[ink::event]
+pub struct Borrow {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub caller: AccountId,
+    #[ink(topic)]
+    pub on_behalf_of: AccountId,
+    pub amount: Balance,
+}
+#[ink::event]
+pub struct Repay {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub caller: AccountId,
+    #[ink(topic)]
+    pub on_behalf_of: AccountId,
+    pub amount: Balance,
 }
 
-pub trait EmitLiquidateEvents {
-    fn _emit_liquidation_variable_event(
-        &mut self,
-        liquidator: AccountId,
-        user: AccountId,
-        asset_to_rapay: AccountId,
-        asset_to_take: AccountId,
-        amount_repaid: Balance,
-        amount_taken: Balance,
-    );
+#[ink::event]
+pub struct FlashLoan {
+    #[ink(topic)]
+    pub receiver: AccountId,
+    #[ink(topic)]
+    pub caller: AccountId,
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub amount: u128,
+    pub fee: u128,
 }
 
-pub trait EmitMaintainEvents {
-    fn _emit_accumulate_interest_event(&mut self, asset: &AccountId);
-    fn _emit_accumulate_user_interest_event(
-        &mut self,
-        asset: &AccountId,
-        user: &AccountId,
-    );
-    fn _emit_rebalance_rate_event(
-        &mut self,
-        asset: &AccountId,
-        user: &AccountId,
-    );
+#[ink::event]
+pub struct Liquidation {
+    pub liquidator: AccountId,
+    #[ink(topic)]
+    pub liquidated_account: AccountId,
+    #[ink(topic)]
+    pub asset_to_repay: AccountId,
+    #[ink(topic)]
+    pub asset_to_take: AccountId,
+    pub amount_repaid: Balance,
+    pub amount_taken: Balance,
+}
+#[ink::event]
+pub struct InterestsAccumulated {
+    #[ink(topic)]
+    pub asset: AccountId,
 }
 
-pub trait EmitManageEvents {
-    fn _emit_price_feed_provider_changed_event(&mut self, asset: &AccountId);
+#[ink::event]
+pub struct UserInterestsAccumulated {
+    #[ink(topic)]
+    pub asset: AccountId,
+    #[ink(topic)]
+    pub user: AccountId,
+}
 
-    fn _emit_flash_loan_fee_e6_changed_event(
-        &mut self,
-        flash_loan_fee_e6: &u128,
-    );
+#[ink::event]
+pub struct RateRebalanced {
+    #[ink(topic)]
+    pub asset: AccountId,
+    #[ink(topic)]
+    pub user: AccountId,
+}
 
-    #[allow(clippy::too_many_arguments)]
-    fn _emit_asset_registered_event(
-        &mut self,
-        asset: &AccountId,
-        name: String,
-        symbol: String,
-        decimals: u8,
-        a_token_code_hash: &[u8; 32],
-        v_token_code_hash: &[u8; 32],
-        a_token_address: &AccountId,
-        v_token_address: &AccountId,
-    );
+#[ink::event]
+pub struct AssetRegistered {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub decimals: u8,
+    pub name: String,
+    pub symbol: String,
+    pub a_token_code_hash: [u8; 32],
+    pub v_token_code_hash: [u8; 32],
+    pub a_token_address: AccountId,
+    pub v_token_address: AccountId,
+}
 
-    fn _emit_reserve_activated_event(
-        &mut self,
-        asset: &AccountId,
-        active: bool,
-    );
-    fn _emit_reserve_freezed_event(&mut self, asset: &AccountId, freezed: bool);
+#[ink::event]
+pub struct PriceFeedProviderChanged {
+    pub price_feed_provider: AccountId,
+}
+#[ink::event]
+pub struct FlashLoanFeeChanged {
+    pub flash_loan_fee_e6: u128,
+}
 
-    fn _emit_interest_rate_model_changed_event(
-        &mut self,
-        asset: &AccountId,
-        interest_rate_model: &InterestRateModel,
-    );
+#[ink::event]
+pub struct ReserveActivated {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub active: bool,
+}
 
-    fn _emit_reserve_restrictions_changed_event(
-        &mut self,
-        asset: &AccountId,
-        new_restrictions: ReserveRestrictions,
-    );
+#[ink::event]
+pub struct ReserveFreezed {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub freezed: bool,
+}
 
-    fn _emit_asset_rules_changed_event(
-        &mut self,
-        market_rule_id: &u32,
-        asset: &AccountId,
-        asset_rules: &AssetRules,
-    );
+#[ink::event]
+pub struct ReserveInterestRateModelChanged {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub interest_rate_model: InterestRateModel,
+}
 
-    fn _emit_stablecoin_debt_rate_changed(
-        &mut self,
-        asset: &AccountId,
-        debt_rate_e18: &u64,
-    );
+#[ink::event]
+pub struct ReserveRestrictionsChanged {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub reserve_restrictions: ReserveRestrictions,
+}
 
-    fn _emit_reserve_fees_changed_event(
-        &mut self,
-        asset: &AccountId,
-        reserve_fees: &ReserveFees,
-    );
+#[ink::event]
+pub struct ReserveFeesChanged {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub reserve_fees: ReserveFees,
+}
 
-    fn _emit_income_taken(&mut self, asset: &AccountId);
+#[ink::event]
+pub struct AssetRulesChanged {
+    #[ink(topic)]
+    pub market_rule_id: RuleId,
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub collateral_coefficient_e6: Option<u128>,
+    pub borrow_coefficient_e6: Option<u128>,
+    pub penalty_e6: Option<u128>,
+}
+
+#[ink::event]
+pub struct IncomeTaken {
+    #[ink(topic)]
+    pub asset: AccountId,
+}
+
+#[ink::event]
+pub struct StablecoinDebtRateChanged {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub debt_rate_e18: u64,
 }

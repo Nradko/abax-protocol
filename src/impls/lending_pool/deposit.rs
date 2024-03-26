@@ -1,7 +1,10 @@
 use abax_traits::lending_pool::{
-    EmitDepositEvents, LendingPoolError, MathError,
+    Deposit, LendingPoolError, MathError, Withdraw,
 };
-use ink::prelude::{vec, vec::Vec};
+use ink::{
+    env::DefaultEnvironment,
+    prelude::{vec, vec::Vec},
+};
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use abax_library::structs::{Action, Operation, OperationArgs};
@@ -15,7 +18,7 @@ use super::{
 };
 
 pub trait LendingPoolDepositImpl:
-    StorageFieldGetter<LendingPoolStorage> + Transfer + EmitDepositEvents
+    StorageFieldGetter<LendingPoolStorage> + Transfer
 {
     fn deposit(
         &mut self,
@@ -63,12 +66,12 @@ pub trait LendingPoolDepositImpl:
         )?;
 
         //// EVENT
-        self._emit_deposit_event(
+        ink::env::emit_event::<DefaultEnvironment, Deposit>(Deposit {
             asset,
-            Self::env().caller(),
+            caller: Self::env().caller(),
             on_behalf_of,
             amount,
-        );
+        });
 
         Ok(())
     }
@@ -123,12 +126,12 @@ pub trait LendingPoolDepositImpl:
         )?;
 
         //// EVENT
-        self._emit_withdraw_event(
+        ink::env::emit_event::<DefaultEnvironment, Withdraw>(Withdraw {
             asset,
-            Self::env().caller(),
+            caller: Self::env().caller(),
             on_behalf_of,
-            actions[0].args.amount,
-        );
+            amount: actions[0].args.amount,
+        });
 
         Ok(actions[0].args.amount)
     }
