@@ -50,10 +50,14 @@ pub trait LendingPoolLiquidateImpl:
             amount_to_take,
             user_accumulated_deposit_interest_to_repay,
             user_accumulated_debt_interest_to_repay,
-            user_accumulated_deposit_interest_to_take,
-            user_accumulated_debt_interest_to_take,
-            caller_accumulated_deposit_interest_to_take,
-            caller_accumulated_debt_interest_to_take,
+            (
+                user_accumulated_deposit_interest_to_take,
+                user_accumulated_debt_interest_to_take,
+            ),
+            (
+                caller_accumulated_deposit_interest_to_take,
+                caller_accumulated_debt_interest_to_take,
+            ),
         ) = self.data::<LendingPoolStorage>().account_for_liquidate(
             &caller,
             &liquidated_account,
