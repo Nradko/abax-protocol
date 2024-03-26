@@ -1,7 +1,7 @@
 mod constants;
-mod math;
+mod operations;
 
 pub use constants::*;
-pub use math::*;
+pub use operations::*;
 
 pub mod interest_rate_math;
