@@ -1,8 +1,9 @@
 use abax_library::math::E18_U128;
-use abax_traits::lending_pool::{
-    EmitLiquidateEvents, LendingPoolError, MathError,
+use abax_traits::lending_pool::{LendingPoolError, Liquidation, MathError};
+use ink::{
+    env::DefaultEnvironment,
+    prelude::{vec::Vec, *},
 };
-use ink::prelude::{vec::Vec, *};
 
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 use primitive_types::U256;
@@ -16,7 +17,7 @@ use super::{
 };
 
 pub trait LendingPoolLiquidateImpl:
-    StorageFieldGetter<LendingPoolStorage> + Transfer + EmitLiquidateEvents
+    StorageFieldGetter<LendingPoolStorage> + Transfer
 {
     fn liquidate(
         &mut self,
@@ -156,14 +157,14 @@ pub trait LendingPoolLiquidateImpl:
         )?;
 
         // EVENT
-        self._emit_liquidation_variable_event(
-            caller,
+        ink::env::emit_event::<DefaultEnvironment, Liquidation>(Liquidation {
+            liquidator: caller,
             liquidated_account,
             asset_to_repay,
             asset_to_take,
-            amount_to_repay,
-            amount_to_take,
-        );
+            amount_repaid: amount_to_repay,
+            amount_taken: amount_to_take,
+        });
 
         Ok((amount_to_repay, amount_to_take))
     }

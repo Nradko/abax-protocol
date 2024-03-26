@@ -14,14 +14,14 @@ import LendingPool from '../../../typechain/contracts/lending_pool';
 import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
 import VToken from '../../../typechain/contracts/v_token';
 import {
-  CheckBorrowVariableParameters,
+  CheckBorrowParameters,
   CheckDepositParameters,
   CheckWithdrawParameters,
-  CheckRepayVariableParameters,
-  checkBorrowVariable,
+  CheckRepayParameters,
+  checkBorrow,
   checkDeposit,
   checkWithdraw,
-  checkRepayVariable,
+  checkRepay,
 } from './comparisons';
 import { TestEnv, TokenReserve } from './make-suite';
 
@@ -189,7 +189,7 @@ export const borrow = async (
   const { lendingPool, reserves } = testEnv;
   const reserve: TokenReserve = reserves[reserveSymbol];
 
-  const parametersBefore = await getCheckBorrowVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
+  const parametersBefore = await getCheckBorrowParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
   const amountToBorrow = await convertToCurrencyDecimals(reserve.underlying, amount);
   const args: Parameters<typeof lendingPool.tx.borrow> = [reserve.underlying.address, onBehalfOf.address, amountToBorrow, [0]];
@@ -201,9 +201,9 @@ export const borrow = async (
 
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.borrow(...args));
 
-    const parametersAfter = await getCheckBorrowVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
+    const parametersAfter = await getCheckBorrowParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
-    checkBorrowVariable(lendingPool, reserve, caller.address, onBehalfOf.address, amountToBorrow, parametersBefore, parametersAfter, txResult);
+    checkBorrow(lendingPool, reserve, caller.address, onBehalfOf.address, amountToBorrow, parametersBefore, parametersAfter, txResult);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.borrow(...args)).value.ok;
@@ -226,7 +226,7 @@ export const repay = async (
   const { lendingPool, reserves } = testEnv;
   const reserve: TokenReserve = reserves[reserveSymbol];
 
-  const parametersBefore = await getCheckRepayVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
+  const parametersBefore = await getCheckRepayParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
   let amountToRepay: BN;
   if (amount) {
     amountToRepay = await convertToCurrencyDecimals(reserve.underlying, amount);
@@ -241,9 +241,9 @@ export const repay = async (
 
     const { txResult, txCost } = await runAndRetrieveTxCost(caller, () => lendingPool.withSigner(caller).tx.repay(...args));
 
-    const parametersAfter = await getCheckRepayVariableParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
+    const parametersAfter = await getCheckRepayParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
-    checkRepayVariable(lendingPool, reserve, caller.address, onBehalfOf.address, amountToRepay, parametersBefore, parametersAfter, txResult);
+    checkRepay(lendingPool, reserve, caller.address, onBehalfOf.address, amountToRepay, parametersBefore, parametersAfter, txResult);
   } else if (expectedResult === 'revert') {
     if (expectedErrorName) {
       const queryRes = (await lendingPool.withSigner(caller).query.repay(...args)).value.ok;
@@ -384,13 +384,13 @@ export const getCheckWithdrawParameters = async (
   };
 };
 
-export const getCheckBorrowVariableParameters = async (
+export const getCheckBorrowParameters = async (
   lendingPool: LendingPool,
   underlying: PSP22Emitable,
   vToken: VToken,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
-): Promise<CheckBorrowVariableParameters> => {
+): Promise<CheckBorrowParameters> => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
@@ -405,13 +405,13 @@ export const getCheckBorrowVariableParameters = async (
   };
 };
 
-export const getCheckRepayVariableParameters = async (
+export const getCheckRepayParameters = async (
   lendingPool: LendingPool,
   reserve: PSP22Emitable,
   vToken: VToken,
   caller: KeyringPair,
   onBehalfOf: KeyringPair,
-): Promise<CheckRepayVariableParameters> => {
+): Promise<CheckRepayParameters> => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
     ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),

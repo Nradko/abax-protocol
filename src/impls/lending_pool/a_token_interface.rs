@@ -1,8 +1,8 @@
 use abax_traits::{
     abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
-    lending_pool::{EmitDepositEvents, LendingPoolError},
+    lending_pool::{Deposit, LendingPoolError, Withdraw},
 };
-use ink::prelude::*;
+use ink::{env::DefaultEnvironment, prelude::*};
 use pendzl::{
     contracts::access_control::AccessControlError,
     traits::{AccountId, Balance, StorageFieldGetter},
@@ -11,7 +11,7 @@ use pendzl::{
 use super::{internal::AssetPrices, storage::LendingPoolStorage};
 
 pub trait LendingPoolATokenInterfaceImpl:
-    StorageFieldGetter<LendingPoolStorage> + EmitDepositEvents
+    StorageFieldGetter<LendingPoolStorage>
 {
     fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance {
         let timestamp = Self::env().block_timestamp();
@@ -94,18 +94,18 @@ pub trait LendingPoolATokenInterfaceImpl:
         }
 
         //// EVENT
-        self._emit_deposit_event(
-            underlying_asset,
-            Self::env().caller(),
-            to,
+        ink::env::emit_event::<DefaultEnvironment, Deposit>(Deposit {
+            asset: underlying_asset,
+            caller: Self::env().caller(),
+            on_behalf_of: to,
             amount,
-        );
-        self._emit_withdraw_event(
-            underlying_asset,
-            Self::env().caller(),
-            from,
+        });
+        ink::env::emit_event::<DefaultEnvironment, Withdraw>(Withdraw {
+            asset: underlying_asset,
+            caller: Self::env().caller(),
+            on_behalf_of: from,
             amount,
-        );
+        });
 
         Ok((
             from_accumulated_deposit_interest,

@@ -30,7 +30,7 @@ export interface CheckWithdrawParameters {
   timestamp: number;
 }
 
-export interface CheckBorrowVariableParameters {
+export interface CheckBorrowParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
   userReserveData: UserReserveData;
@@ -41,7 +41,7 @@ export interface CheckBorrowVariableParameters {
   timestamp: number;
 }
 
-export interface CheckRepayVariableParameters {
+export interface CheckRepayParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
   userReserveData: UserReserveData;
@@ -283,19 +283,19 @@ export const checkWithdraw = async (
   expect.flushSoft();
 };
 
-export const checkBorrowVariable = async (
+export const checkBorrow = async (
   lendingPool: LendingPoolContract,
   reserveToken: TokenReserve,
   caller: string,
   onBehalfOf: string,
   amount: BN,
-  parBefore: CheckBorrowVariableParameters,
-  parAfter: CheckBorrowVariableParameters,
+  parBefore: CheckBorrowParameters,
+  parAfter: CheckBorrowParameters,
   tx: SignAndSendSuccessResponse,
 ) => {
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
 
-  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.BorrowVariable, {
+  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Borrow, {
     asset: reserveToken.underlying.address,
     amount: amount,
     caller: caller,
@@ -306,9 +306,9 @@ export const checkBorrowVariable = async (
   const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'BorrowVariable | AToken Transfer Event');
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'Borrow | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, amount, userInterests.variableBorrow, true, 'BorrowVariable | VToken Transfer Event');
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, amount, userInterests.variableBorrow, true, 'Borrow | VToken Transfer Event');
 
   // ReserveData Checks
   // total_debt <- increases on borrow
@@ -317,107 +317,93 @@ export const checkBorrowVariable = async (
   let actual = parAfter.reserveData.totalDebt;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(
-      `BorrowVariable | ReserveData | total_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
+    console.log(`Borrow | ReserveData | total_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `BorrowVariable | ReserveData | total_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Borrow | ReserveData | total_debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.almostDeepEqual(expected.toString());
 
   // UserReserveData Checks
   // timestamp should be set to reserve data timestamp
 
-  // variable_borroved <- increases on BorrowVariable
+  // variable_borroved <- increases on Borrow
   before = parBefore.userReserveData.debt;
   expected = before.add(userInterests.variableBorrow).add(amount);
   actual = parAfter.userReserveData.debt;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`BorrowVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Borrow | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `BorrowVariable | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Borrow | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
   // Underlying Balances Checks
-  // LendingPool Balance <- decreases on BorrowVariable
+  // LendingPool Balance <- decreases on Borrow
   before = parBefore.poolBalance;
   expected = before.sub(amount);
   actual = parAfter.poolBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`BorrowVariable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Borrow | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(
-      actual.toString(),
-      `BorrowVariable | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
+    .soft(actual.toString(), `Borrow | Pool Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
 
-  // Caller Balance <- increases on BorrowVariable
+  // Caller Balance <- increases on Borrow
   before = parBefore.callerBalance;
   expected = before.add(amount);
   actual = parAfter.callerBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`BorrowVariable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Borrow | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(
-      actual.toString(),
-      `BorrowVariable | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
+    .soft(actual.toString(), `Borrow | Caller Balace | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
 
   // // VToken Checks
-  // // balnce <- increase on BorrowVariable
+  // // balnce <- increase on Borrow
   before = parBefore.vBalance;
   expected = before.add(userInterests.variableBorrow).add(amount);
   actual = parAfter.vBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`BorrowVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Borrow | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(
-      actual.toString(),
-      `BorrowVariable | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
+    .soft(actual.toString(), `Borrow | VToken Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
 
-  // allowance <- decrease on BorrowVariable
+  // allowance <- decrease on Borrow
   if (parBefore.vAllowance !== undefined && parAfter.vAllowance !== undefined) {
     before = parBefore.vAllowance;
     expected = before.sub(amount);
     actual = parAfter.vAllowance;
 
     expect
-      .soft(
-        actual.toString(),
-        `BorrowVariable | VToken Allowance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
-      )
+      .soft(actual.toString(), `Borrow | VToken Allowance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`)
       .to.equal(expected.toString());
   }
 
   expect.flushSoft();
 };
 
-export const checkRepayVariable = async (
+export const checkRepay = async (
   lendingPool: LendingPoolContract,
   reserveToken: TokenReserve,
   caller: string,
   onBehalfOf: string,
   amountArg: BN | null,
-  parBefore: CheckRepayVariableParameters,
-  parAfter: CheckRepayVariableParameters,
+  parBefore: CheckRepayParameters,
+  parAfter: CheckRepayParameters,
   tx: SignAndSendSuccessResponse,
 ) => {
   const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
@@ -425,7 +411,7 @@ export const checkRepayVariable = async (
     ? amountArg
     : parBefore.userReserveData.debt.add(userInterests.variableBorrow);
 
-  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.RepayVariable, {
+  await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Repay, {
     asset: reserveToken.underlying.address,
     amount: amountToUse,
     caller: caller,
@@ -436,103 +422,81 @@ export const checkRepayVariable = async (
   const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'RepayVariable | AToken Transfer Event');
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'Repay | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(
-    vTokenEvents[0],
-    onBehalfOf,
-    amountToUse.neg(),
-    userInterests.variableBorrow,
-    true,
-    'RepayVariable | VToken Transfer Event',
-  );
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, amountToUse.neg(), userInterests.variableBorrow, true, 'Repay | VToken Transfer Event');
 
   // ReserveData Checks
   // total_debt <- decreases on repayVariable
   let before = parBefore.reserveData.totalDebt;
   if (before.sub(amountToUse).lten(0))
-    console.log(
-      'RepayVariable | ReserveData | total_debt - repay of the amount would cause an underflow. No loss happens. Expecting total_debt to equal 0',
-    );
+    console.log('Repay | ReserveData | total_debt - repay of the amount would cause an underflow. No loss happens. Expecting total_debt to equal 0');
 
   let expected = before.add(userInterests.variableBorrow).sub(amountToUse);
   let actual = parAfter.reserveData.totalDebt;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(
-      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
+    console.log(`Repay | ReserveData | total_debt | \n before: ${before} \n amount: ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `RepayVariable | ReserveData | total_debt | \n before: ${before} \n amount: ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Repay | ReserveData | total_debt | \n before: ${before} \n amount: ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.almostEqualOrEqualNumberE12(expected.toString());
 
   // UserReserveData Checks
-  // variable_borroved <- decreases on RepayVariable
+  // variable_borroved <- decreases on Repay
   before = parBefore.userReserveData.debt;
   expected = before.add(userInterests.variableBorrow).sub(amountToUse);
   actual = parAfter.userReserveData.debt;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(
-      `RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
-    );
+    console.log(`Repay | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `RepayVariable | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Repay | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
   // Underlying Balances Checks
-  // LendingPool Balance <- increases on RepayVariable
+  // LendingPool Balance <- increases on Repay
   before = parBefore.poolBalance;
   expected = before.add(amountToUse);
   actual = parAfter.poolBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`RepayVariable | Pool Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Repay | Pool Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(
-      actual.toString(),
-      `RepayVariable | Pool Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
+    .soft(actual.toString(), `Repay | Pool Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equalUpTo1Digit(expected.toString());
 
-  // Caller Balance <- decreases on RepayVariable
+  // Caller Balance <- decreases on Repay
   before = parBefore.callerBalance;
   expected = before.sub(amountToUse);
   actual = parAfter.callerBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`RepayVariable | Caller Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Repay | Caller Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(
-      actual.toString(),
-      `RepayVariable | Caller Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
+    .soft(actual.toString(), `Repay | Caller Balace | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equalUpTo1Digit(expected.toString());
 
   // // VToken Checks
-  // // balnce <- decreases on RepayVariable
+  // // balnce <- decreases on Repay
   before = parBefore.vBalance;
   expected = before.sub(amountToUse);
   actual = parAfter.vBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`RepayVariable | VToken Balance | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Repay | VToken Balance | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(
-      actual.toString(),
-      `RepayVariable | VToken Balance | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
-    )
+    .soft(actual.toString(), `Repay | VToken Balance | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
   expect.flushSoft();
 };

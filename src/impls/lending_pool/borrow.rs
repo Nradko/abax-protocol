@@ -1,7 +1,11 @@
 use abax_traits::lending_pool::{
-    EmitBorrowEvents, LendingPoolError, MathError, RuleId,
+    Borrow, CollateralSet, LendingPoolError, MarketRuleChosen, MathError,
+    Repay, RuleId,
 };
-use ink::prelude::{vec, vec::Vec};
+use ink::{
+    env::DefaultEnvironment,
+    prelude::{vec, vec::Vec},
+};
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use abax_library::structs::{Action, Operation, OperationArgs};
@@ -16,7 +20,7 @@ use super::{
 };
 
 pub trait LendingPoolBorrowImpl:
-    StorageFieldGetter<LendingPoolStorage> + EmitBorrowEvents
+    StorageFieldGetter<LendingPoolStorage>
 {
     fn choose_market_rule(
         &mut self,
@@ -34,7 +38,12 @@ pub trait LendingPoolBorrowImpl:
         self.data::<LendingPoolStorage>()
             .check_lending_power_of_an_account(&caller, &prices_e18)?;
 
-        self._emit_market_rule_chosen(&caller, &market_rule_id);
+        ink::env::emit_event::<DefaultEnvironment, MarketRuleChosen>(
+            MarketRuleChosen {
+                caller,
+                market_rule_id,
+            },
+        );
         Ok(())
     }
     fn set_as_collateral(
@@ -60,10 +69,12 @@ pub trait LendingPoolBorrowImpl:
                 .check_lending_power_of_an_account(&caller, &prices_e18)?;
         }
 
-        self._emit_collateral_set_event(
-            asset,
-            caller,
-            use_as_collateral_to_set,
+        ink::env::emit_event::<DefaultEnvironment, CollateralSet>(
+            CollateralSet {
+                caller,
+                asset,
+                set: use_as_collateral_to_set,
+            },
         );
 
         Ok(())
@@ -114,12 +125,12 @@ pub trait LendingPoolBorrowImpl:
             amount,
         )?;
         //// emit event
-        self._emit_borrow_variable_event(
+        ink::env::emit_event::<DefaultEnvironment, Borrow>(Borrow {
             asset,
-            Self::env().caller(),
+            caller: Self::env().caller(),
             on_behalf_of,
             amount,
-        );
+        });
         Ok(())
     }
 
@@ -168,12 +179,12 @@ pub trait LendingPoolBorrowImpl:
                 .0,
         )?;
         //// EVENT
-        self._emit_repay_variable_event(
+        ink::env::emit_event::<DefaultEnvironment, Repay>(Repay {
             asset,
-            Self::env().caller(),
+            caller: Self::env().caller(),
             on_behalf_of,
-            actions[0].args.amount,
-        );
+            amount: actions[0].args.amount,
+        });
         Ok(actions[0].args.amount)
     }
 }
