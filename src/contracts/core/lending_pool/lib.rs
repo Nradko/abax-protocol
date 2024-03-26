@@ -31,9 +31,8 @@ pub mod lending_pool {
         AccountRegistrarView, DecimalMultiplier, EmitBorrowEvents,
         EmitDepositEvents, EmitFlashEvents, EmitLiquidateEvents,
         EmitMaintainEvents, EmitManageEvents, InterestRateModel,
-        LendingPoolATokenInterface, LendingPoolBorrow, LendingPoolDeposit,
-        LendingPoolError, LendingPoolFlash, LendingPoolLiquidate,
-        LendingPoolMaintain, LendingPoolManage, LendingPoolMultiOp,
+        LendingPoolATokenInterface, LendingPoolActions, LendingPoolError,
+        LendingPoolFlash, LendingPoolMaintain, LendingPoolManage,
         LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
         ROLE_ADMIN,
     };
@@ -52,22 +51,33 @@ pub mod lending_pool {
         account_registrar: AccountRegistrar,
     }
 
-    impl LendingPoolMultiOpImpl for LendingPool {}
-    impl LendingPoolMultiOp for LendingPool {
-        #[ink(message)]
-        fn multi_op(
-            &mut self,
-            op: Vec<Action>,
-            on_behalf_of: AccountId,
-            data: Vec<u8>,
-        ) -> Result<(), LendingPoolError> {
-            LendingPoolMultiOpImpl::multi_op(self, op, on_behalf_of, data)
-        }
-    }
-
-    /// Implements core lending methods
     impl LendingPoolDepositImpl for LendingPool {}
-    impl LendingPoolDeposit for LendingPool {
+    impl LendingPoolBorrowImpl for LendingPool {}
+    impl LendingPoolLiquidateImpl for LendingPool {}
+    impl LendingPoolMultiOpImpl for LendingPool {}
+
+    impl LendingPoolActions for LendingPool {
+        #[ink(message)]
+        fn choose_market_rule(
+            &mut self,
+            market_rule_id: RuleId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolBorrowImpl::choose_market_rule(self, market_rule_id)
+        }
+        #[ink(message)]
+        fn set_as_collateral(
+            &mut self,
+            asset: AccountId,
+            use_as_collateral: bool,
+        ) -> Result<(), LendingPoolError> {
+            self.account_registrar
+                .ensure_registered(&self.env().caller());
+            LendingPoolBorrowImpl::set_as_collateral(
+                self,
+                asset,
+                use_as_collateral,
+            )
+        }
         #[ink(message)]
         fn deposit(
             &mut self,
@@ -100,31 +110,7 @@ pub mod lending_pool {
                 data,
             )
         }
-    }
 
-    impl LendingPoolBorrowImpl for LendingPool {}
-    impl LendingPoolBorrow for LendingPool {
-        #[ink(message)]
-        fn choose_market_rule(
-            &mut self,
-            market_rule_id: RuleId,
-        ) -> Result<(), LendingPoolError> {
-            LendingPoolBorrowImpl::choose_market_rule(self, market_rule_id)
-        }
-        #[ink(message)]
-        fn set_as_collateral(
-            &mut self,
-            asset: AccountId,
-            use_as_collateral: bool,
-        ) -> Result<(), LendingPoolError> {
-            self.account_registrar
-                .ensure_registered(&self.env().caller());
-            LendingPoolBorrowImpl::set_as_collateral(
-                self,
-                asset,
-                use_as_collateral,
-            )
-        }
         #[ink(message)]
         fn borrow(
             &mut self,
@@ -157,29 +143,17 @@ pub mod lending_pool {
                 data,
             )
         }
-    }
 
-    impl LendingPoolFlashImpl for LendingPool {}
-    impl LendingPoolFlash for LendingPool {
         #[ink(message)]
-        fn flash_loan(
+        fn multi_op(
             &mut self,
-            receiver: AccountId,
-            assets: Vec<AccountId>,
-            amounts: Vec<Balance>,
-            receiver_params: Vec<u8>,
+            actions: Vec<Action>,
+            on_behalf_of: AccountId,
+            data: Vec<u8>,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolFlashImpl::flash_loan(
-                self,
-                receiver,
-                assets,
-                amounts,
-                receiver_params,
-            )
+            LendingPoolMultiOpImpl::multi_op(self, actions, on_behalf_of, data)
         }
-    }
-    impl LendingPoolLiquidateImpl for LendingPool {}
-    impl LendingPoolLiquidate for LendingPool {
+
         #[ink(message)]
         fn liquidate(
             &mut self,
@@ -203,6 +177,27 @@ pub mod lending_pool {
             Ok(res)
         }
     }
+
+    impl LendingPoolFlashImpl for LendingPool {}
+    impl LendingPoolFlash for LendingPool {
+        #[ink(message)]
+        fn flash_loan(
+            &mut self,
+            receiver: AccountId,
+            assets: Vec<AccountId>,
+            amounts: Vec<Balance>,
+            receiver_params: Vec<u8>,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolFlashImpl::flash_loan(
+                self,
+                receiver,
+                assets,
+                amounts,
+                receiver_params,
+            )
+        }
+    }
+
     impl LendingPoolMaintainImpl for LendingPool {}
     impl LendingPoolMaintain for LendingPool {
         #[ink(message)]
