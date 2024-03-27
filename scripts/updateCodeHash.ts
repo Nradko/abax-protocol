@@ -1,5 +1,5 @@
-import { LendingPool, getContractObject } from 'wookashwackomytest-contract-helpers';
-import { getArgvObj } from 'wookashwackomytest-utils';
+import { LendingPool, getContractObject } from '@abaxfinance/contract-helpers';
+import { getArgvObj } from '@abaxfinance/utils';
 import Keyring from '@polkadot/keyring';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import chalk from 'chalk';

@@ -13,8 +13,8 @@ import VTokenContract from 'typechain/contracts/v_token';
 import BalanceViewerDeployer from 'typechain/deployers/balance_viewer';
 import Psp22OwnableDeployer from 'typechain/deployers/psp22_ownable';
 import TestReservesMinterDeployer from 'typechain/deployers/test_reserves_minter';
-import { toE } from 'wookashwackomytest-polkahat-network-helpers';
-import { getArgvObj } from 'wookashwackomytest-utils';
+import { toE } from '@c-forge/polkahat-network-helpers';
+import { getArgvObj } from '@abaxfinance/utils';
 
 const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
   reserveTokens: [

@@ -1,6 +1,6 @@
 import { createTestKeyring } from '@polkadot/keyring/testing';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { ApiProviderWrapper } from 'wookashwackomytest-polkahat-network-helpers';
+import { ApiProviderWrapper } from '@c-forge/polkahat-network-helpers';
 
 export const apiProviderWrapper = new ApiProviderWrapper(process.env.WS_ENDPOINT ?? 'ws://127.0.0.1:9944');
 export const getSigners = () => {

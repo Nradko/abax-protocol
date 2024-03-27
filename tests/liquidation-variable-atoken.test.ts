@@ -1,4 +1,4 @@
-import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
@@ -9,7 +9,7 @@ import { toE18String } from './helpers/converters';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import { E18bn, toE } from 'wookashwackomytest-polkahat-network-helpers';
+import { E18bn, toE } from '@c-forge/polkahat-network-helpers';
 
 const E18 = parseInt(toE(18, 1).toString()); //TODO
 

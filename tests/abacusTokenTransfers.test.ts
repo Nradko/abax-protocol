@@ -6,13 +6,13 @@ import VToken from 'typechain/contracts/v_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
-import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 import { expect } from './setup/chai';
 import { ONE_YEAR } from './consts';
 import { Borrow, Deposit, Withdraw, Repay } from 'typechain/event-types/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 import { PSP22ErrorBuilder } from 'typechain/types-returns/a_token';
-import { time } from 'wookashwackomytest-polkahat-network-helpers';
+import { time } from '@c-forge/polkahat-network-helpers';
 
 makeSuite('AbaxToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
