@@ -27,7 +27,7 @@ impl AssetRules {
     /// 3) that penalty is Some
     ///
     /// * `old_rule` - rule that is overwritten by Self
-    pub fn verify_new_rule(
+    pub fn validate_new_rule(
         &self,
         old_rule: &Option<AssetRules>,
     ) -> Result<(), AssetRulesError> {

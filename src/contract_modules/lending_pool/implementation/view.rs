@@ -12,10 +12,7 @@ use pendzl::traits::{AccountId, StorageFieldGetter};
 
 use ink::prelude::vec::Vec;
 
-use super::{
-    internal::{AssetPrices, InternalIncome},
-    storage::LendingPoolStorage,
-};
+use super::{internal::InternalIncome, storage::LendingPoolStorage};
 
 pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
     fn view_flash_loan_fee_e6(&self) -> u128 {
@@ -221,13 +218,8 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         &self,
         user: AccountId,
     ) -> (bool, u128) {
-        let registered_assets = self
-            .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
-        let prices_e18 =
-            self._get_assets_prices_e18(registered_assets).unwrap();
         self.data::<LendingPoolStorage>()
-            .calculate_lending_power_of_an_account_e6(&user, &prices_e18)
+            .calculate_lending_power_of_an_account_e6(&user)
             .unwrap()
     }
 

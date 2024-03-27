@@ -67,7 +67,7 @@ impl ReserveData {
         Ok(())
     }
 
-    pub fn check_activeness(&self) -> Result<(), ReserveDataError> {
+    pub fn ensure_activated(&self) -> Result<(), ReserveDataError> {
         if !self.activated {
             return Err(ReserveDataError::Inactive);
         }
@@ -85,7 +85,7 @@ impl ReserveData {
         Ok(())
     }
 
-    pub fn check_is_freezed(&self) -> Result<(), ReserveDataError> {
+    pub fn ensure_not_freezed(&self) -> Result<(), ReserveDataError> {
         if self.freezed {
             return Err(ReserveDataError::Freezed);
         }

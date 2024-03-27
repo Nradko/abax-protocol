@@ -15,7 +15,7 @@ use pendzl::{
 
 use super::{
     internal::{
-        AssetPrices, Transfer, TransferEventDataSimplified,
+        Transfer, TransferEventDataSimplified,
         _emit_abacus_token_transfer_event, _emit_abacus_token_transfer_events,
     },
     storage::LendingPoolStorage,
@@ -33,21 +33,14 @@ pub trait LendingPoolLiquidateImpl:
         minimum_recieved_for_one_repaid_token_e18: u128,
         #[allow(unused_variables)] data: Vec<u8>,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        // check if there ie enought collateral
-        let all_assets = self
+        // ensure account is undercollaterized
+        match self
             .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
-        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
-        let (collaterized, _) = self
-            .data::<LendingPoolStorage>()
-            .calculate_lending_power_of_an_account_e6(
-                &liquidated_account,
-                &prices_e18,
-            )?;
-
-        if collaterized {
-            return Err(LendingPoolError::Collaterized);
-        }
+            .ensure_collateralized_by_account(&liquidated_account)
+        {
+            Ok(_) => Err(LendingPoolError::Collaterized),
+            Err(_) => Ok(()),
+        }?;
 
         let timestamp = Self::env().block_timestamp();
         let caller = Self::env().caller();
@@ -69,7 +62,6 @@ pub trait LendingPoolLiquidateImpl:
         ) = self.data::<LendingPoolStorage>().account_for_liquidate(
             &caller,
             &liquidated_account,
-            &prices_e18,
             &asset_to_repay,
             &asset_to_take,
             &mut amount_to_repay,
