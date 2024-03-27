@@ -5,7 +5,7 @@ pub mod flash_loan_receiver_mock {
     use abax_contracts::flash_loan_receiver::{
         FlashLoanReceiver, FlashLoanReceiverError,
     };
-    use ink::prelude::vec::Vec;
+    use ink::prelude::{string::ToString, vec::Vec};
 
     use pendzl::{
         contracts::psp22::{

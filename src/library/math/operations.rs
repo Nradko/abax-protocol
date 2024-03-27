@@ -1,4 +1,7 @@
-use pendzl::math::errors::MathError;
+use pendzl::math::{
+    errors::MathError,
+    operations::{mul_div, Rounding},
+};
 
 use primitive_types::U256;
 
@@ -32,17 +35,7 @@ pub fn e18_mul_e18_to_e18_rdown(a: u128, b: u128) -> Result<u128, MathError> {
     if b == E18_U128 {
         return Ok(a);
     }
-    let x = U256::from(a);
-    let y = U256::from(b);
-    match u128::try_from(
-        x.checked_mul(y)
-            .unwrap()
-            .checked_div(E18_U128.into())
-            .unwrap(),
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
+    mul_div(a, b, E18_U128, Rounding::Down)
 }
 
 pub fn e18_mul_e18_to_e18_rup(a: u128, b: u128) -> Result<u128, MathError> {
@@ -55,22 +48,10 @@ pub fn e18_mul_e18_to_e18_rup(a: u128, b: u128) -> Result<u128, MathError> {
     if b == E18_U128 {
         return Ok(a);
     }
-    let x = U256::from(a);
-    let y = U256::from(b);
-    match u128::try_from(
-        x.checked_mul(y)
-            .unwrap()
-            .checked_div(E18_U128.into())
-            .unwrap()
-            .checked_add(1.into())
-            .unwrap(),
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
+    mul_div(a, b, E18_U128, Rounding::Up)
 }
 
-pub fn e18_mul_e0_to_e18_rdown(a: u64, b: u64) -> u128 {
+pub fn e18_mul_e0_to_e18(a: u64, b: u64) -> u128 {
     if a == 0 || b == 0 {
         return 0;
     }
@@ -79,71 +60,19 @@ pub fn e18_mul_e0_to_e18_rdown(a: u64, b: u64) -> u128 {
     x.checked_mul(y).unwrap()
 }
 
-pub fn e18_mul_e0_to_e18_rup(a: u64, b: u64) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
-    let x: u128 = a.into();
-    let y: u128 = b.into();
-    x.checked_mul(y)
-        .unwrap()
-        .checked_add(1)
-        .ok_or(MathError::Overflow)
-}
-
-// pub fn e24_mul_e0_to_e18_rup(a: u128, b: u128) -> Result<u128, MathError> {
-//     if a == 0 || b == 0 {
-//         return Ok(0);
-//     }
-//     let x = U256::try_from(a).unwrap();
-//     let y = U256::try_from(b).unwrap();
-//     match u128::try_from(
-//         x.checked_mul(y)
-//             .unwrap()
-//             .checked_div(E6_U128.into())
-//             .unwrap()
-//             .checked_add(1.into())
-//             .unwrap(),
-//     ) {
-//         Ok(v) => Ok(v),
-//         _ => Err(MathError::Overflow),
-//     }
-// }
-
 pub fn e18_mul_e0_to_e0_rdown(a: u128, b: u128) -> Result<u128, MathError> {
     if a == 0 || b == 0 {
         return Ok(0);
     }
-    let x = U256::from(a);
-    let y = U256::from(b);
-    match u128::try_from(
-        x.checked_mul(y)
-            .unwrap()
-            .checked_div(E18_U128.into())
-            .unwrap(),
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
+
+    mul_div(a, b, E18_U128, Rounding::Down)
 }
 
 pub fn e18_mul_e0_to_e0_rup(a: u128, b: u128) -> Result<u128, MathError> {
     if a == 0 || b == 0 {
         return Ok(0);
     }
-    let x = U256::from(a);
-    let y = U256::from(b);
-    match u128::try_from(
-        x.checked_mul(y)
-            .unwrap()
-            .checked_div(E18_U128.into())
-            .unwrap()
-            .checked_add(1.into())
-            .unwrap(),
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
+    mul_div(a, b, E18_U128, Rounding::Up)
 }
 
 pub fn e18_mul_e18_div_e18_to_e18_rdown(
@@ -157,10 +86,8 @@ pub fn e18_mul_e18_div_e18_to_e18_rdown(
     if c == 0 {
         return Err(MathError::DivByZero);
     }
-    let x = U256::from(a);
-    let y = U256::from(b);
-    let z = U256::from(c);
-    match u64::try_from(x.checked_mul(y).unwrap().checked_div(z).unwrap()) {
+
+    match u64::try_from(mul_div(a, b as u128, c, Rounding::Down)?) {
         Ok(v) => Ok(v),
         _ => Err(MathError::Overflow),
     }
@@ -177,19 +104,7 @@ pub fn e0_mul_e18_div_e18_to_e0_rdown(
     if c == 0 {
         return Err(MathError::DivByZero);
     }
-    let x = U256::from(a);
-    let y = U256::from(b);
-    let z = U256::from(c);
-    // x*y cant overflow and z != 0
-    match u128::try_from(
-        x.checked_mul(y)
-            .ok_or(MathError::Overflow)?
-            .checked_div(z)
-            .ok_or(MathError::DivByZero)?,
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
+    mul_div(a, b, c, Rounding::Down)
 }
 
 pub fn e0_mul_e18_div_e18_to_e0_rup(
@@ -203,85 +118,21 @@ pub fn e0_mul_e18_div_e18_to_e0_rup(
     if c == 0 {
         return Err(MathError::DivByZero);
     }
-    let x = U256::from(a);
-    let y = U256::from(b);
-    let z = U256::from(c);
-    // x*y cant overflow and z != 0
-    match u128::try_from(
-        x.checked_mul(y)
-            .ok_or(MathError::Overflow)?
-            .checked_div(z)
-            .ok_or(MathError::DivByZero)?,
-    ) {
-        Ok(v) => v.checked_add(1).ok_or(MathError::Overflow),
-        _ => Err(MathError::Overflow),
-    }
+    mul_div(a, b, c, Rounding::Up)
 }
 
 pub fn e0_mul_e6_to_e0_rup(a: u128, b: u32) -> Result<u128, MathError> {
     if a == 0 || b == 0 {
         return Ok(0);
     }
-
-    let x = U256::from(a);
-    let y = U256::from(b);
-    let e6_u256 = U256::from(E6_U128);
-
-    //x * y + 1 can't overflow, e6_u256 != 0
-    match u128::try_from(
-        x.checked_mul(y)
-            .ok_or(MathError::Overflow)?
-            .checked_div(e6_u256)
-            .ok_or(MathError::DivByZero)?
-            .checked_add(1.into())
-            .ok_or(MathError::Overflow)?,
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
-}
-
-pub fn e18_mul_e6_div_e0_to_e18_rdown(
-    a: U256,
-    b: u128,
-    c: u128,
-) -> Result<u64, MathError> {
-    if a.is_zero() || b == 0 {
-        return Ok(0);
-    }
-    if c == 0 {
-        return Err(MathError::DivByZero);
-    }
-    let x = a;
-    let y = U256::from(b);
-    let z = U256::from(c);
-    match u64::try_from(
-        x.checked_mul(y)
-            .unwrap()
-            .checked_div(z.checked_mul(E6_U128.into()).unwrap())
-            .unwrap(),
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
+    mul_div(a, b as u128, E6_U128, Rounding::Up)
 }
 
 pub fn e8_mul_e6_to_e6_rdown(a: u128, b: u128) -> Result<u128, MathError> {
     if a == 0 || b == 0 {
         return Ok(0);
     }
-
-    let x = U256::from(a);
-    let y = U256::from(b);
-    match u128::try_from(
-        x.checked_mul(y)
-            .unwrap()
-            .checked_div(E8_U128.into())
-            .unwrap(),
-    ) {
-        Ok(v) => Ok(v),
-        _ => Err(MathError::Overflow),
-    }
+    mul_div(a, b, E8_U128, Rounding::Down)
 }
 
 pub fn calculate_amount_to_take(
