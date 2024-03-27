@@ -1,8 +1,8 @@
 use pendzl::{math::errors::MathError, traits::Timestamp};
 
 use crate::math::{
-    e18_mul_e0_to_e18_rdown, e18_mul_e0_to_e18_rup, e18_mul_e18_to_e18_rdown,
-    e18_mul_e18_to_e18_rup, E18_U128,
+    e18_mul_e0_to_e18, e18_mul_e18_to_e18_rdown, e18_mul_e18_to_e18_rup,
+    E18_U128,
 };
 
 use super::ReserveData;
@@ -93,7 +93,7 @@ impl ReserveIndexes {
             && reserve_data.total_deposit != 0
         {
             deposit_index_multiplier_e18 = deposit_index_multiplier_e18
-                .checked_add(e18_mul_e0_to_e18_rdown(
+                .checked_add(e18_mul_e0_to_e18(
                     reserve_data.current_deposit_rate_e18,
                     delta_timestamp,
                 ))
@@ -110,10 +110,10 @@ impl ReserveIndexes {
             && reserve_data.total_debt != 0
         {
             debt_index_multiplier_e18 = debt_index_multiplier_e18
-                .checked_add(e18_mul_e0_to_e18_rup(
+                .checked_add(e18_mul_e0_to_e18(
                     reserve_data.current_debt_rate_e18,
                     delta_timestamp,
-                )?)
+                ))
                 .ok_or(MathError::Overflow)?;
             self.debt_index_e18 = e18_mul_e18_to_e18_rup(
                 self.debt_index_e18,

@@ -10,7 +10,7 @@ use crate::lending_pool::{
 pub type LendingPoolManageRef =
     contract_ref!(LendingPoolManage, DefaultEnvironment);
 
-/// Trait containing `AccessControl` messages used to manage 'LendingPool' parameters. USed by **managers**.
+/// Trait containing `AccessControl` messages used to manage 'LendingPool' parameters. Used by **managers**.
 #[ink::trait_definition]
 pub trait LendingPoolManage {
     /// Sets a `price_feed_provider` - a contract that implements PriceFeed and will be used to get prices from.
