@@ -10,29 +10,24 @@
 #[pendzl::implementation(AccessControl)]
 #[ink::contract]
 pub mod lending_pool {
-    use abax_impls::lending_pool::{
-        a_token_interface::LendingPoolATokenInterfaceImpl,
-        borrow::LendingPoolBorrowImpl,
-        deposit::LendingPoolDepositImpl,
-        flash::LendingPoolFlashImpl,
-        liquidate::LendingPoolLiquidateImpl,
-        maintain::LendingPoolMaintainImpl,
-        manage::{LendingPoolManageImpl, ManageInternal},
-        multi_op::LendingPoolMultiOpImpl,
-        storage::{AccountRegistrar, LendingPoolStorage},
-        v_token_interface::LendingPoolVTokenInterfaceImpl,
-        view::LendingPoolViewImpl,
+    use abax_contracts::lending_pool::implementation::{
+        LendingPoolATokenInterfaceImpl, LendingPoolBorrowImpl,
+        LendingPoolDepositImpl, LendingPoolFlashImpl, LendingPoolLiquidateImpl,
+        LendingPoolMaintainImpl, LendingPoolMultiOpImpl,
+        LendingPoolVTokenInterfaceImpl, LendingPoolViewImpl,
+        {AccountRegistrar, LendingPoolStorage},
+        {LendingPoolManageImpl, ManageInternal},
     };
-    use abax_library::structs::{
-        Action, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
-        ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
-    };
-    use abax_traits::lending_pool::{
-        AccountRegistrarView, DecimalMultiplier, FlashLoanFeeChanged,
+    use abax_contracts::lending_pool::{
+        events::FlashLoanFeeChanged, AccountRegistrarView, DecimalMultiplier,
         InterestRateModel, LendingPoolATokenInterface, LendingPoolActions,
         LendingPoolError, LendingPoolFlash, LendingPoolMaintain,
         LendingPoolManage, LendingPoolVTokenInterface, LendingPoolView,
         MarketRule, RuleId, ROLE_ADMIN,
+    };
+    use abax_library::structs::{
+        Action, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
+        ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
     };
     use ink::{env::DefaultEnvironment, prelude::vec::Vec};
 

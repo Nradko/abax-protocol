@@ -1,3 +1,12 @@
+use pendzl::{math::errors::MathError, traits::Timestamp};
+
+use crate::math::{
+    e18_mul_e0_to_e18_rdown, e18_mul_e0_to_e18_rup, e18_mul_e18_to_e18_rdown,
+    e18_mul_e18_to_e18_rup, E18_U128,
+};
+
+use super::ReserveData;
+
 /// Stores data used to accumulate deposit and debt interest rates.
 #[derive(Debug, scale::Encode, scale::Decode)]
 #[cfg_attr(
@@ -20,7 +29,7 @@ impl ReserveIndexesAndFees {
 }
 
 /// reserve fees
-#[derive(Debug, Encode, Decode, Clone, Copy)]
+#[derive(Debug, scale::Encode, scale::Decode, Clone, Copy)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -42,7 +51,7 @@ impl ReserveFees {
 }
 
 /// Stores data used to accumulate deposit and debt interest rates.
-#[derive(Debug, Encode, Decode)]
+#[derive(Debug, scale::Encode, scale::Decode)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)

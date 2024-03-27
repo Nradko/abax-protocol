@@ -1,5 +1,7 @@
+use ink::primitives::AccountId;
+
 /// Stores AccountIds of PSP22(PSP55) contracts that are wrappers of deposit(debt).
-#[derive(Debug, Encode, Decode, Clone, Copy)]
+#[derive(Debug, scale::Encode, scale::Decode, Clone, Copy)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)

@@ -1,5 +1,5 @@
 /// Defines rules on which asset can be borrowed and used as collateral.
-#[derive(Debug, Default, Encode, Decode, Clone, Copy)]
+#[derive(Debug, Default, scale::Encode, scale::Decode, Clone, Copy)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
@@ -13,7 +13,7 @@ pub struct AssetRules {
     pub penalty_e6: Option<u128>,
 }
 
-#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum AssetRulesError {
     /// returned if the asset_rule to be set is invalid.

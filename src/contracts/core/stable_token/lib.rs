@@ -11,7 +11,7 @@
 pub mod stable_token {
     use ink::prelude::string::String;
 
-    use abax_traits::lending_pool::{BURNER, MINTER};
+    use abax_contracts::lending_pool::{BURNER, MINTER};
     use pendzl::contracts::access_control;
     use pendzl::contracts::psp22;
     use pendzl::contracts::psp22::metadata;

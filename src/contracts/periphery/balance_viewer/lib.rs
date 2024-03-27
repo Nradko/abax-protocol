@@ -3,13 +3,13 @@
 #[ink::contract]
 pub mod balance_viewer {
 
+    use abax_contracts::lending_pool::{
+        DecimalMultiplier, InterestRateModel, LendingPoolView,
+        LendingPoolViewRef,
+    };
     use abax_library::structs::{
         ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
         ReserveRestrictions, UserReserveData,
-    };
-    use abax_traits::lending_pool::{
-        DecimalMultiplier, InterestRateModel, LendingPoolView,
-        LendingPoolViewRef,
     };
     use pendzl::{
         contracts::psp22::{PSP22Ref, PSP22},

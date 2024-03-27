@@ -1,3 +1,7 @@
+use pendzl::math::errors::MathError;
+
+use super::E6_U64;
+
 // calcualtes prev_step + (step-prev_step)*(step_position-utilization_rate)/(step_position - prev_step_position) + 1
 pub fn calculate_interest_rate_e18(
     prev_step: u64,
