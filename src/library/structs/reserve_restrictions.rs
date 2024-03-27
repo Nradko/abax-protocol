@@ -52,7 +52,7 @@ pub enum ReserveRestrictionsError {
 }
 
 impl ReserveRestrictions {
-    pub fn check_max_total_deposit(
+    pub fn ensure_max_total_deposit_not_reached(
         &self,
         reserve_data: &ReserveData,
     ) -> Result<(), ReserveRestrictionsError> {
@@ -66,7 +66,7 @@ impl ReserveRestrictions {
         }
     }
 
-    pub fn check_max_total_debt(
+    pub fn ensure_max_total_debt_not_reached(
         &self,
         reserve_data: &ReserveData,
     ) -> Result<(), ReserveRestrictionsError> {
@@ -80,7 +80,7 @@ impl ReserveRestrictions {
         }
     }
 
-    pub fn check_debt_restrictions(
+    pub fn ensure_debt_exceeds_minimum(
         &self,
         user_reserve_data: &UserReserveData,
     ) -> Result<(), ReserveRestrictionsError> {
@@ -92,7 +92,7 @@ impl ReserveRestrictions {
         Ok(())
     }
 
-    pub fn check_collateral_restrictions(
+    pub fn ensure_collateral_exceeds_minimum(
         &self,
         user_reserve_data: &UserReserveData,
     ) -> Result<(), ReserveRestrictionsError> {

@@ -14,6 +14,7 @@ use super::ReserveData;
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct ReserveIndexesAndFees {
+    /// indexes used during calculations
     pub indexes: ReserveIndexes,
     /// fee is used to accumulate users debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
     pub fees: ReserveFees,

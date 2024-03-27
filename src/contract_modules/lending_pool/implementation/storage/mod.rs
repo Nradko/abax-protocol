@@ -65,6 +65,7 @@ pub struct LendingPoolStorage {
     pub flash_loan_fee_e6: u128,
 }
 
+/// Holds references to reserve related data used during accounting for actions.
 struct ReserveDataContext<'a> {
     asset_id: u32,
     reserve_data: &'a mut ReserveData,
@@ -72,6 +73,7 @@ struct ReserveDataContext<'a> {
     reserve_restrictions: &'a ReserveRestrictions,
 }
 
+/// Used to accumulate interests for each user.
 struct InterestsAcc {
     items: Vec<(u128, u128)>,
 }
@@ -84,10 +86,10 @@ impl InterestsAcc {
     }
     pub fn update_at(
         &mut self,
-        user_id: u32,
+        index: u32,
         interests: (u128, u128),
     ) -> Result<(), MathError> {
-        let to_modify = self.items.get_mut(user_id as usize).unwrap();
+        let to_modify = self.items.get_mut(index as usize).unwrap();
         to_modify.0 = to_modify
             .0
             .checked_add(interests.0)
@@ -224,7 +226,6 @@ impl LendingPoolStorage {
         let mut reserve_indexes_and_fees =
             self.get_reserve_indexes_and_fees(asset_id);
         let reserve_restrictions = self.get_reserve_restrictions(asset_id);
-        let interest_rate_model = self.interest_rate_model.get(asset_id);
 
         reserve_indexes_and_fees
             .indexes
@@ -330,7 +331,7 @@ impl LendingPoolStorage {
             }
         }
 
-        if let Some(params) = interest_rate_model {
+        if let Some(params) = self.interest_rate_model.get(asset_id) {
             reserve_data.recalculate_current_rates(&params)?
         }
 
@@ -348,8 +349,8 @@ impl LendingPoolStorage {
         user_config: &mut UserConfig,
         amount: &Balance,
     ) -> Result<(u128, u128), LendingPoolError> {
-        reserve_ctx.reserve_data.check_activeness()?;
-        reserve_ctx.reserve_data.check_is_freezed()?;
+        reserve_ctx.reserve_data.ensure_activated()?;
+        reserve_ctx.reserve_data.ensure_not_freezed()?;
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
@@ -364,7 +365,7 @@ impl LendingPoolStorage {
 
         reserve_ctx
             .reserve_restrictions
-            .check_max_total_deposit(reserve_ctx.reserve_data)?;
+            .ensure_max_total_deposit_not_reached(reserve_ctx.reserve_data)?;
 
         Ok((
             user_accumulated_deposit_interest,
@@ -380,7 +381,7 @@ impl LendingPoolStorage {
         amount: &mut Balance,
         can_mutate_amount: bool,
     ) -> Result<(u128, u128), LendingPoolError> {
-        reserve_ctx.reserve_data.check_activeness()?;
+        reserve_ctx.reserve_data.ensure_activated()?;
 
         if user_reserve_data.deposit == 0 {
             return Err(LendingPoolError::AmountNotGreaterThanZero);
@@ -417,8 +418,8 @@ impl LendingPoolStorage {
         user_config: &mut UserConfig,
         amount: &Balance,
     ) -> Result<(u128, u128), LendingPoolError> {
-        reserve_ctx.reserve_data.check_activeness()?;
-        reserve_ctx.reserve_data.check_is_freezed()?;
+        reserve_ctx.reserve_data.ensure_activated()?;
+        reserve_ctx.reserve_data.ensure_not_freezed()?;
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
@@ -433,10 +434,10 @@ impl LendingPoolStorage {
 
         reserve_ctx
             .reserve_restrictions
-            .check_debt_restrictions(user_reserve_data)?;
+            .ensure_debt_exceeds_minimum(user_reserve_data)?;
         reserve_ctx
             .reserve_restrictions
-            .check_max_total_debt(reserve_ctx.reserve_data)?;
+            .ensure_max_total_debt_not_reached(reserve_ctx.reserve_data)?;
 
         Ok((
             user_accumulated_deposit_interest,
@@ -452,7 +453,7 @@ impl LendingPoolStorage {
         amount: &mut Balance,
         can_mutate_amount: bool,
     ) -> Result<(u128, u128), LendingPoolError> {
-        reserve_ctx.reserve_data.check_activeness()?;
+        reserve_ctx.reserve_data.ensure_activated()?;
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
@@ -472,7 +473,7 @@ impl LendingPoolStorage {
         )?;
         reserve_ctx
             .reserve_restrictions
-            .check_debt_restrictions(user_reserve_data)?;
+            .ensure_debt_exceeds_minimum(user_reserve_data)?;
 
         Ok((
             user_accumulated_deposit_interest,
@@ -486,7 +487,6 @@ impl LendingPoolStorage {
         &mut self,
         caller: &AccountId,
         liquidated_account: &AccountId,
-        prices_e18: &[u128],
         asset_to_repay: &AccountId,
         asset_to_take: &AccountId,
         amount_to_repay: &mut Balance,
@@ -526,8 +526,9 @@ impl LendingPoolStorage {
             liquidated_user_accumulated_debt_interest_to_repay,
         ) = res.first().unwrap();
 
+        let prices_e18 = self.get_assets_prices_e18()?;
         let mut amount_to_take = self
-            .calculate_liquidated_amount_and_check_if_collateral(
+            .calculate_liquidated_amount_and_ensure_collateralized(
                 liquidated_account,
                 asset_to_repay_id,
                 asset_to_take_id,
@@ -712,7 +713,7 @@ impl LendingPoolStorage {
 
         if use_as_collateral_to_set {
             reserve_restrictions
-                .check_collateral_restrictions(&user_reserve_data)?
+                .ensure_collateral_exceeds_minimum(&user_reserve_data)?
         };
 
         if use_as_collateral_to_set {
@@ -753,6 +754,7 @@ impl LendingPoolStorage {
     /*
     CALCUALTION SECTION - calculating and checking lending power, liquidation calculations.
     */
+
     pub fn calculate_lending_power_e6(
         &self,
         user_reserve_datas: &[Option<UserReserveData>],
@@ -858,61 +860,54 @@ impl LendingPoolStorage {
     pub fn calculate_lending_power_of_an_account_e6(
         &self,
         account: &AccountId,
-        prices_e18: &[u128],
     ) -> Result<(bool, u128), LendingPoolError> {
+        let prices_e18 = self.get_assets_prices_e18()?;
         let user_reserve_datas = self.get_user_datas(account);
         let user_config = self.get_user_config(account);
 
         self.calculate_lending_power_e6(
             &user_reserve_datas,
             &user_config,
-            prices_e18,
+            &prices_e18,
         )
     }
 
-    pub fn check_lending_power_of_an_account(
+    pub fn ensure_collateralized_by_account(
         &self,
         account: &AccountId,
-        prices_e18: &[u128],
     ) -> Result<(), LendingPoolError> {
         let user_reserve_datas = self.get_user_datas(account);
         let user_config = self.get_user_config(account);
-        self.check_lending_power(&user_reserve_datas, &user_config, prices_e18)
+        self.ensure_collateralized_from_raw(&user_reserve_datas, &user_config)
     }
 
     fn ensure_collateralized_from_raw(
-        &mut self,
+        &self,
         user_datas: &[Option<UserReserveData>],
         user_config: &UserConfig,
     ) -> Result<(), LendingPoolError> {
-        let all_assets = self.get_all_registered_assets();
-        let price_feeder: PriceFeedRef =
-            self.price_feed_provider.get().unwrap().into();
-        let prices_e18 = price_feeder.get_latest_prices(all_assets)?;
-        self.check_lending_power(user_datas, user_config, &prices_e18)?;
+        let prices_e18 = self.get_assets_prices_e18()?;
+        self.ensure_collateralized(user_datas, user_config, &prices_e18)?;
         Ok(())
     }
 
-    pub fn check_lending_power(
+    fn ensure_collateralized(
         &self,
         user_reserve_datas: &[Option<UserReserveData>],
         user_config: &UserConfig,
         prices_e18: &[u128],
     ) -> Result<(), LendingPoolError> {
-        if !self
-            .calculate_lending_power_e6(
-                user_reserve_datas,
-                user_config,
-                prices_e18,
-            )?
-            .0
-        {
-            return Err(LendingPoolError::InsufficientCollateral);
+        match self.calculate_lending_power_e6(
+            user_reserve_datas,
+            user_config,
+            prices_e18,
+        )? {
+            (false, _) => Err(LendingPoolError::InsufficientCollateral),
+            _ => Ok(()),
         }
-        Ok(())
     }
 
-    pub fn calculate_liquidated_amount_and_check_if_collateral(
+    pub fn calculate_liquidated_amount_and_ensure_collateralized(
         &self,
         user: &AccountId,
         asset_to_repay_id: u32,
@@ -1007,19 +1002,6 @@ impl LendingPoolStorage {
 
         self.reserve_abacus_tokens
             .insert(asset, reserve_abacus_tokens);
-
-        Ok(())
-    }
-
-    pub fn register_rule(
-        &mut self,
-        market_rule: &MarketRule,
-    ) -> Result<(), LendingPoolError> {
-        let id = self.next_rule_id.get_or_default();
-
-        self.market_rules.insert(id, market_rule);
-        self.next_rule_id
-            .set(&(id.checked_add(1).ok_or(MathError::Overflow)?));
 
         Ok(())
     }
@@ -1122,7 +1104,7 @@ impl LendingPoolStorage {
         &mut self,
         market_rule: &MarketRule,
     ) -> u32 {
-        let rule_id = self.next_rule_id.get().unwrap_or(0);
+        let rule_id = self.next_rule_id.get_or_default();
         self.market_rules.insert(rule_id, market_rule);
         self.next_rule_id.set(&(rule_id.checked_add(1).unwrap()));
         rule_id
@@ -1142,7 +1124,7 @@ impl LendingPoolStorage {
         }
         market_rule[asset_id as usize] = Some(*asset_rules);
         let old_asset_rule = market_rule[asset_id as usize];
-        asset_rules.verify_new_rule(&old_asset_rule)?;
+        asset_rules.validate_new_rule(&old_asset_rule)?;
         self.market_rules.insert(market_rule_id, &market_rule);
         Ok(())
     }
@@ -1349,6 +1331,13 @@ impl LendingPoolStorage {
 
     fn get_user_config(&self, account: &AccountId) -> UserConfig {
         self.user_configs.get(account).unwrap_or_default()
+    }
+
+    fn get_assets_prices_e18(&self) -> Result<Vec<u128>, LendingPoolError> {
+        let all_assets = self.get_all_registered_assets();
+        let price_feeder: PriceFeedRef =
+            self.price_feed_provider.get().unwrap().into();
+        Ok(price_feeder.get_latest_prices(all_assets)?)
     }
 }
 
