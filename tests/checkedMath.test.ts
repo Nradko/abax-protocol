@@ -5,7 +5,7 @@ import { TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { apiProviderWrapper } from './setup/helpers';
 import { readContractsFromFile, restartAndRestoreNodeState } from './setup/nodePersistence';
-import { E6bn } from 'wookashwackomytest-polkahat-network-helpers';
+import { E6bn } from '@c-forge/polkahat-network-helpers';
 
 const U128_MAX_VALUE = new BN('340282366920938463463374607431768211455');
 describe('Checked Math', () => {

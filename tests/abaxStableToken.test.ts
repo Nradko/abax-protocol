@@ -1,4 +1,4 @@
-import { LendingPoolErrorBuilder } from 'wookashwackomytest-contract-helpers';
+import { LendingPoolErrorBuilder } from '@abaxfinance/contract-helpers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import PSP22Emitable from 'typechain/contracts/psp22_emitable';
@@ -9,8 +9,8 @@ import { ONE_YEAR } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { TestEnv, TestEnvReserves, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
-import { time } from 'wookashwackomytest-polkahat-network-helpers';
+import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
+import { time } from '@c-forge/polkahat-network-helpers';
 
 makeSuite('AbaxStableToken', (getTestEnv) => {
   let testEnv: TestEnv;

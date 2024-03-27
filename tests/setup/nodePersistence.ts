@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { ChildProcess, spawn } from 'child_process';
-import findProcess from 'wookashwackomytest-find-process';
+import findProcess from '@c-forge/find-process';
 import fs from 'fs-extra';
 import path from 'path';
 import { TestEnv } from 'tests/scenarios/utils/make-suite';
@@ -13,8 +13,8 @@ import PriceFeedProvider from '../../typechain/contracts/price_feed_provider';
 import VToken from '../../typechain/contracts/v_token';
 import StableToken from '../../typechain/contracts/stable_token';
 import { apiProviderWrapper, getSigners } from './helpers';
-import { getContractObject } from 'wookashwackomytest-contract-helpers';
-import { time } from 'wookashwackomytest-polkahat-network-helpers';
+import { getContractObject } from '@abaxfinance/contract-helpers';
+import { time } from '@c-forge/polkahat-network-helpers';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
 

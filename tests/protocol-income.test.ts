@@ -1,7 +1,7 @@
 // import { ChildProcess } from 'child_process';
 // import { deployAndConfigureSystem, DeploymentConfig } from 'tests/setup/deploymentHelpers';
 // import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
-// import { E6, E8 } from 'wookashwackomytest-utils';
+// import { E6, E8 } from '@abaxfinance/utils';
 // import { expect } from './setup/chai';
 // import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './setup/helpers';
 // import { restartAndRestoreNodeState, sleep, waitFor } from './setup/nodePersistence';

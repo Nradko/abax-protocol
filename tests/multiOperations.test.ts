@@ -9,7 +9,7 @@ import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { TestEnv, TestEnvReserves, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { Operation } from 'typechain/types-arguments/lending_pool';
-import { getContractEventsFromTx, stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { getContractEventsFromTx, stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 import { LendingPoolEvent } from 'typechain/events/enum';
 
 makeSuite('Multi operations', (getTestEnv) => {

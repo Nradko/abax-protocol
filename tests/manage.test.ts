@@ -9,7 +9,7 @@ import { ROLE_NAMES, ROLES } from './consts';
 import { getAbaxTokenMetadata } from './helpers/abacusTokenData';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import BN from 'bn.js';
-import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 
 makeSuite('Menage tests', (getTestEnv) => {
   const adminOf: Record<string, KeyringPair> = {};

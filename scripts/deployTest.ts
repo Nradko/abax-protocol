@@ -1,10 +1,10 @@
 import { deployAndConfigureSystem } from 'tests/setup/deploymentHelpers';
 import path from 'path';
-import { getArgvObj } from 'wookashwackomytest-utils';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import { storeTimestamp } from 'tests/setup/nodePersistence';
-import { time } from 'wookashwackomytest-polkahat-network-helpers';
+import { time } from '@c-forge/polkahat-network-helpers';
 
 (async (args: Record<string, string>) => {
   if (require.main !== module) return;

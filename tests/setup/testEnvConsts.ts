@@ -1,4 +1,4 @@
-import { parseAmountToBN } from 'wookashwackomytest-utils';
+import { parseAmountToBN } from '@abaxfinance/utils';
 import BN from 'bn.js';
 
 export const oneEther = new BN(Math.pow(10, 18).toString());

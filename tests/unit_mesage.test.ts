@@ -9,7 +9,7 @@ import { getCheckWithdrawParameters } from './scenarios/utils/actions';
 import { checkWithdraw } from './scenarios/utils/comparisons';
 import { TestEnv, TokenReserve, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import { time } from 'wookashwackomytest-polkahat-network-helpers';
+import { time } from '@c-forge/polkahat-network-helpers';
 
 makeSuite('Unit Message', (getTestEnv) => {
   let testEnv: TestEnv;
