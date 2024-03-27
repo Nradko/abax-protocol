@@ -13,7 +13,7 @@ pub type LendingPoolManageRef =
 /// Trait containing `AccessControl` messages used to manage 'LendingPool' parameters. Used by **managers**.
 #[ink::trait_definition]
 pub trait LendingPoolManage {
-    /// Sets a `price_feed_provider` - a contract that implements PriceFeed and will be used to get prices from.
+    /// Sets `price_feed_provider` - a contract that implements PriceFeed and will be used to get prices from.
     ///
     /// * `price_feed_provider` AccountId (a.k.a. address) of a contract.
     ///

@@ -3,7 +3,6 @@ use core::{cmp::Ordering, ops::Neg};
 use crate::{
     abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
     lending_pool::LendingPoolError,
-    price_feed::{PriceFeed, PriceFeedRef},
 };
 use ink::{
     prelude::{vec::Vec, *},
@@ -219,24 +218,5 @@ impl<T: StorageFieldGetter<LendingPoolStorage>> InternalIncome for T {
             result.push((*asset, income));
         }
         Ok(result)
-    }
-}
-
-pub trait AssetPrices {
-    fn _get_assets_prices_e18(
-        &self,
-        assets: Vec<AccountId>,
-    ) -> Result<Vec<u128>, LendingPoolError>;
-}
-
-impl<T: StorageFieldGetter<LendingPoolStorage>> AssetPrices for T {
-    fn _get_assets_prices_e18(
-        &self,
-        assets: Vec<AccountId>,
-    ) -> Result<Vec<u128>, LendingPoolError> {
-        let price_feeder: PriceFeedRef =
-            self.data().price_feed_provider.get().unwrap().into();
-
-        Ok(price_feeder.get_latest_prices(assets)?)
     }
 }

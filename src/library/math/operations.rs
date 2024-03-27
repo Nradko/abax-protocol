@@ -7,28 +7,7 @@ use primitive_types::U256;
 
 use super::{E10_U128, E18_U128, E6_U128, E8_U128};
 
-// a*b/d + x + y
-pub fn mul_div_add_add_u64(
-    a: u64,
-    b: u64,
-    d: u64,
-    x: u64,
-    y: u64,
-) -> Result<u64, MathError> {
-    a.checked_mul(b)
-        .ok_or(MathError::Overflow)?
-        .checked_div(d)
-        .ok_or(MathError::DivByZero)?
-        .checked_add(x)
-        .ok_or(MathError::Overflow)?
-        .checked_add(y)
-        .ok_or(MathError::Overflow)
-}
-
 pub fn e18_mul_e18_to_e18_rdown(a: u128, b: u128) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
     if a == E18_U128 {
         return Ok(b);
     }
@@ -39,9 +18,6 @@ pub fn e18_mul_e18_to_e18_rdown(a: u128, b: u128) -> Result<u128, MathError> {
 }
 
 pub fn e18_mul_e18_to_e18_rup(a: u128, b: u128) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
     if a == E18_U128 {
         return Ok(b);
     }
@@ -52,27 +28,7 @@ pub fn e18_mul_e18_to_e18_rup(a: u128, b: u128) -> Result<u128, MathError> {
 }
 
 pub fn e18_mul_e0_to_e18(a: u64, b: u64) -> u128 {
-    if a == 0 || b == 0 {
-        return 0;
-    }
-    let x: u128 = a.into();
-    let y: u128 = b.into();
-    x.checked_mul(y).unwrap()
-}
-
-pub fn e18_mul_e0_to_e0_rdown(a: u128, b: u128) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
-
-    mul_div(a, b, E18_U128, Rounding::Down)
-}
-
-pub fn e18_mul_e0_to_e0_rup(a: u128, b: u128) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
-    mul_div(a, b, E18_U128, Rounding::Up)
+    mul_div(a.into(), b.into(), 1, Rounding::Down).unwrap()
 }
 
 pub fn e18_mul_e18_div_e18_to_e18_rdown(
@@ -80,13 +36,6 @@ pub fn e18_mul_e18_div_e18_to_e18_rdown(
     b: u64,
     c: u128,
 ) -> Result<u64, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
-    if c == 0 {
-        return Err(MathError::DivByZero);
-    }
-
     match u64::try_from(mul_div(a, b as u128, c, Rounding::Down)?) {
         Ok(v) => Ok(v),
         _ => Err(MathError::Overflow),
@@ -98,12 +47,6 @@ pub fn e0_mul_e18_div_e18_to_e0_rdown(
     b: u128,
     c: u128,
 ) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
-    if c == 0 {
-        return Err(MathError::DivByZero);
-    }
     mul_div(a, b, c, Rounding::Down)
 }
 
@@ -112,26 +55,14 @@ pub fn e0_mul_e18_div_e18_to_e0_rup(
     b: u128,
     c: u128,
 ) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
-    if c == 0 {
-        return Err(MathError::DivByZero);
-    }
     mul_div(a, b, c, Rounding::Up)
 }
 
 pub fn e0_mul_e6_to_e0_rup(a: u128, b: u32) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
     mul_div(a, b as u128, E6_U128, Rounding::Up)
 }
 
 pub fn e8_mul_e6_to_e6_rdown(a: u128, b: u128) -> Result<u128, MathError> {
-    if a == 0 || b == 0 {
-        return Ok(0);
-    }
     mul_div(a, b, E8_U128, Rounding::Down)
 }
 
@@ -182,9 +113,6 @@ pub fn calculate_asset_amount_value_e8(
     price_e18: &u128,
     decimal_multplier: &u128,
 ) -> u128 {
-    let a = U256::from(*amount);
-    let b = U256::from(*price_e18);
-    let c = U256::from(decimal_multplier.checked_mul(E10_U128).unwrap()); // here e18 coming from price is adjusted to e8 // this should not fail as long decimal multiplier is smaller than 3 *10^28
-
-    u128::try_from(a.checked_mul(b).unwrap().checked_div(c).unwrap()).unwrap()
+    let denominator = decimal_multplier.checked_mul(E10_U128).unwrap(); // here e18 coming from price is adjusted to e8 // this should not fail as long decimal multiplier is smaller than 3 *10^28
+    mul_div(*amount, *price_e18, denominator, Rounding::Down).unwrap()
 }

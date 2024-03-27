@@ -301,7 +301,7 @@ pub trait LendingPoolManageImpl:
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
 
         for asset_rule in market_rule.iter().flatten() {
-            asset_rule.verify_new_rule(&None)?;
+            asset_rule.validate_new_rule(&None)?;
         }
 
         let market_rule_id = self

@@ -15,8 +15,7 @@ use abax_library::structs::{Action, Operation, OperationArgs};
 
 use super::{
     internal::{
-        AssetPrices, Transfer, _check_amount_not_zero,
-        _emit_abacus_token_transfer_event,
+        Transfer, _check_amount_not_zero, _emit_abacus_token_transfer_event,
         _emit_abacus_token_transfer_event_and_decrease_allowance,
     },
     storage::LendingPoolStorage,
@@ -34,12 +33,8 @@ pub trait LendingPoolBorrowImpl:
             .account_for_market_rule_change(&caller, market_rule_id)?;
 
         // check if there ie enought collateral
-        let all_assets = self
-            .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
-        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power_of_an_account(&caller, &prices_e18)?;
+            .ensure_collateralized_by_account(&caller)?;
 
         ink::env::emit_event::<DefaultEnvironment, MarketRuleChosen>(
             MarketRuleChosen {
@@ -64,12 +59,8 @@ pub trait LendingPoolBorrowImpl:
 
         // if the collateral is turned off collateralization must be checked
         if !use_as_collateral_to_set {
-            let all_assets = self
-                .data::<LendingPoolStorage>()
-                .get_all_registered_assets();
-            let prices_e18 = self._get_assets_prices_e18(all_assets)?;
             self.data::<LendingPoolStorage>()
-                .check_lending_power_of_an_account(&caller, &prices_e18)?;
+                .ensure_collateralized_by_account(&caller)?;
         }
 
         ink::env::emit_event::<DefaultEnvironment, CollateralSet>(

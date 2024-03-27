@@ -12,7 +12,7 @@ use pendzl::{
 
 use ink::{env::DefaultEnvironment, prelude::*};
 
-use super::{internal::AssetPrices, storage::LendingPoolStorage};
+use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolVTokenInterfaceImpl:
     StorageFieldGetter<LendingPoolStorage>
@@ -69,12 +69,8 @@ pub trait LendingPoolVTokenInterfaceImpl:
             )?;
 
         // check if there ie enought collateral
-        let all_assets = self
-            .data::<LendingPoolStorage>()
-            .get_all_registered_assets();
-        let prices_e18 = self._get_assets_prices_e18(all_assets)?;
         self.data::<LendingPoolStorage>()
-            .check_lending_power_of_an_account(&to, &prices_e18)?;
+            .ensure_collateralized_by_account(&to)?;
 
         //// ABACUS TOKEN EVENTS
         // AToken interests
