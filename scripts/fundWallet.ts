@@ -1,9 +1,9 @@
 import { convertToCurrencyDecimals } from 'tests/scenarios/utils/actions';
-import { getArgvObj } from 'wookashwackomytest-utils';
+import { getArgvObj } from '@abaxfinance/utils';
 import chalk from 'chalk';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
 import { readContractsFromFile } from 'tests/setup/nodePersistence';
-import { toE } from 'wookashwackomytest-polkahat-network-helpers';
+import { toE } from '@c-forge/polkahat-network-helpers';
 
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;

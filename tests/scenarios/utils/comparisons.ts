@@ -4,8 +4,8 @@ import LendingPoolContract from 'typechain/contracts/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
 import { ReserveData, ReserveIndexes, UserReserveData } from 'typechain/types-returns/lending_pool';
-import { getContractEventsFromTx } from 'wookashwackomytest-polkahat-chai-matchers';
-import { SignAndSendSuccessResponse } from 'wookashwackomytest-typechain-types';
+import { getContractEventsFromTx } from '@c-forge/polkahat-chai-matchers';
+import { SignAndSendSuccessResponse } from '@c-forge/typechain-types';
 import { TokenReserve } from './make-suite';
 
 const BN_ZERO = new BN(0);

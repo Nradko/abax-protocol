@@ -8,7 +8,7 @@ import { MAX_U128, ROLES } from './consts';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
 import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 
 const PARAMETERS_ADMIN = ROLES['PARAMETERS_ADMIN'];
 makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1', (getTestEnv) => {

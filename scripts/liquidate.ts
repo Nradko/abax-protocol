@@ -1,5 +1,5 @@
-import { LendingPool, LendingPoolErrorBuilder, Psp22Ownable, getContractObject } from 'wookashwackomytest-contract-helpers';
-import { getArgvObj } from 'wookashwackomytest-utils';
+import { LendingPool, LendingPoolErrorBuilder, Psp22Ownable, getContractObject } from '@abaxfinance/contract-helpers';
+import { getArgvObj } from '@abaxfinance/utils';
 import { ApiPromise } from '@polkadot/api';
 import Keyring from '@polkadot/keyring';
 import BN from 'bn.js';
@@ -8,7 +8,7 @@ import { apiProviderWrapper } from 'tests/setup/helpers';
 import { isEqual } from 'lodash';
 import type { WeightV2 } from '@polkadot/types/interfaces';
 import { bnToBn } from '@polkadot/util';
-import { stringifyNumericProps } from 'wookashwackomytest-polkahat-chai-matchers';
+import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 
 const LENDING_POOL_ADDRESS = '5CaYwwWqGqVEDSYVmMi7qhV9T3kLQmKeF5VGxiz6jt4sZrPE';
 

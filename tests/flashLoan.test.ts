@@ -7,7 +7,7 @@ import {
   LendingPoolErrorBuilder,
   PSP22ErrorBuilder,
 } from 'typechain/types-returns/lending_pool';
-import { E18bn, E6bn } from 'wookashwackomytest-polkahat-network-helpers';
+import { E18bn, E6bn } from '@c-forge/polkahat-network-helpers';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { ROLES } from './consts';
 import { TestEnv, TokenReserve, makeSuite } from './scenarios/utils/make-suite';

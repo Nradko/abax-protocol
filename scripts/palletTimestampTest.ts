@@ -1,4 +1,4 @@
-import { getArgvObj } from 'wookashwackomytest-utils';
+import { getArgvObj } from '@abaxfinance/utils';
 import { ApiPromise } from '@polkadot/api';
 import chalk from 'chalk';
 import { apiProviderWrapper, getSigners } from 'tests/setup/helpers';
