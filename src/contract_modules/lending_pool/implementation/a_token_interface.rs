@@ -53,10 +53,8 @@ pub trait LendingPoolATokenInterfaceImpl:
 
         let timestamp = Self::env().block_timestamp();
         let (
-            from_accumulated_deposit_interest,
-            from_accumulated_debt_interest,
-            to_accumulated_deposit_interest,
-            to_accumulated_debt_interest,
+            (from_accumulated_deposit_interest, from_accumulated_debt_interest),
+            (to_accumulated_deposit_interest, to_accumulated_debt_interest),
         ) = self
             .data::<LendingPoolStorage>()
             .account_for_deposit_transfer_from_to(
