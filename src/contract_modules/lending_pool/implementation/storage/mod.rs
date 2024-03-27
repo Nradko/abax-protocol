@@ -23,10 +23,6 @@ use pendzl::{
     traits::{AccountId, Balance, Timestamp},
 };
 
-mod account_registrar;
-
-pub use account_registrar::*;
-
 #[derive(Debug)]
 pub enum ReserveAction<'a> {
     Deposit(u32, &'a Balance),
