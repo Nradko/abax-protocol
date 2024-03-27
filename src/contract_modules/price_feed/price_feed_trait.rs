@@ -9,6 +9,7 @@ pub type PriceFeedRef = contract_ref!(PriceFeed, DefaultEnvironment);
 
 #[ink::trait_definition]
 pub trait PriceFeed {
+    /// Returns the latest price of the given 'assets'.
     #[ink(message)]
     fn get_latest_prices(
         &self,

@@ -14,7 +14,8 @@ use crate::lending_pool::{
 pub type LendingPoolViewRef =
     contract_ref!(LendingPoolView, DefaultEnvironment);
 
-/// Trait containing non-mutable messages - use of this trait should be omitted in smart contracts.
+/// Trait containing non-mutable messages - this trait should not be called by other smart contracts.
+/// The main use of this trait is to read data from the `LendingPool`'s storage to the off-chain world.
 #[ink::trait_definition]
 pub trait LendingPoolView {
     #[ink(message)]

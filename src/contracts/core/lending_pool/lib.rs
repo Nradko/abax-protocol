@@ -475,11 +475,11 @@ pub mod lending_pool {
 
     impl AccountRegistrarView for LendingPool {
         #[ink(message)]
-        fn view_counter_to_user(&self, counter: u128) -> Option<AccountId> {
+        fn view_counter_to_account(&self, counter: u128) -> Option<AccountId> {
             self.account_registrar.counter_to_user.get(counter)
         }
         #[ink(message)]
-        fn view_user_to_counter(&self, user: AccountId) -> Option<u128> {
+        fn view_account_to_counter(&self, user: AccountId) -> Option<u128> {
             self.account_registrar.user_to_counter.get(user)
         }
         #[ink(message)]

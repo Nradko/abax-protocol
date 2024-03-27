@@ -9,6 +9,15 @@ pub type FlashLoanReceiverRef =
 
 #[ink::trait_definition]
 pub trait FlashLoanReceiver {
+    /// Called by lending protocol to execute the operation after flash loan is given and before it is paid back.
+    ///
+    /// # Note
+    /// - The function should not pay the tokens back to the lending protocol. The tokens are automatically paid back after the function is executed.
+    /// - After the function is executed, the contract should have enough tokens to cover the flash loan amount and fees.
+    /// - After the function is executed, the lending pool should have allowance to transfer apropariate amount of each asset.
+    ///
+    /// # Errors
+    /// May return FlashLoanReceiverError.
     #[ink(message)]
     fn execute_operation(
         &mut self,

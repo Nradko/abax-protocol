@@ -1,6 +1,7 @@
 use ink::primitives::AccountId;
 use pendzl::traits::Balance;
 
+/// Arguments for operations in multi-op
 #[derive(Debug, scale::Encode, scale::Decode, Clone)]
 #[cfg_attr(
     feature = "std",
@@ -10,6 +11,8 @@ pub struct OperationArgs {
     pub asset: AccountId,
     pub amount: Balance,
 }
+
+/// possible operations in multi-op
 #[derive(Debug, Eq, PartialEq, Copy, scale::Encode, scale::Decode, Clone)]
 #[cfg_attr(
     feature = "std",
@@ -21,6 +24,8 @@ pub enum Operation {
     Borrow,
     Repay,
 }
+
+/// Action to be executed in multi-op
 #[derive(Debug, scale::Encode, scale::Decode, Clone)]
 #[cfg_attr(
     feature = "std",
