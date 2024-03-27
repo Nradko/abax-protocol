@@ -4,10 +4,7 @@ use pendzl::math::errors::MathError;
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum FlashLoanReceiverError {
     MathErorr(MathError),
-    InsufficientBalance,
-    AssetNotMintable,
-    CantApprove,
-    ExecuteOperationFailed,
+    Custom(String),
 }
 
 impl From<MathError> for FlashLoanReceiverError {

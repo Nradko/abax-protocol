@@ -6,8 +6,8 @@ pub type MarketRule = Vec<Option<AssetRules>>;
 /// type used to identigy rule
 pub type RuleId = u32;
 
+/// type used to represent decimal multiplier
 pub type DecimalMultiplier = u128;
 
-pub type RoleType = u32;
-
+/// type used to represent interest rate model
 pub type InterestRateModel = [u64; 7];
