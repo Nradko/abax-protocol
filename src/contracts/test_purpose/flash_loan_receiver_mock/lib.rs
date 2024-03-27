@@ -5,7 +5,7 @@ pub mod flash_loan_receiver_mock {
     use abax_contracts::flash_loan_receiver::{
         FlashLoanReceiver, FlashLoanReceiverError,
     };
-    use ink::prelude::vec::Vec;
+    use ink::prelude::{string::ToString, vec::Vec};
 
     use pendzl::{
         contracts::psp22::{
@@ -58,20 +58,26 @@ pub mod flash_loan_receiver_mock {
                     amounts,
                     fees,
                 });
-                return Err(FlashLoanReceiverError::ExecuteOperationFailed);
+                return Err(FlashLoanReceiverError::Custom(
+                    "ExecuteOperationFailed".to_string(),
+                ));
             }
             for i in 0..assets.len() {
                 let psp22: PSP22Ref = assets[i].into();
                 let balance = psp22.balance_of(self.env().account_id());
                 if amounts[i] > balance {
-                    return Err(FlashLoanReceiverError::InsufficientBalance);
+                    return Err(FlashLoanReceiverError::Custom(
+                        "InsufficientBalance".to_string(),
+                    ));
                 }
 
                 if self.simulate_balance_to_cover_fee {
                     let mut psp22: PSP22MintableRef = assets[i].into();
 
                     if psp22.mint(self.env().account_id(), fees[i]).is_err() {
-                        return Err(FlashLoanReceiverError::AssetNotMintable);
+                        return Err(FlashLoanReceiverError::Custom(
+                            "AssetNotMintable".to_string(),
+                        ));
                     }
                 }
 
@@ -87,7 +93,9 @@ pub mod flash_loan_receiver_mock {
                 }
                 .is_err()
                 {
-                    return Err(FlashLoanReceiverError::CantApprove);
+                    return Err(FlashLoanReceiverError::Custom(
+                        "CantApprove".to_string(),
+                    ));
                 }
             }
 

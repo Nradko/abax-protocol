@@ -10,20 +10,24 @@
 #[pendzl::implementation(AccessControl)]
 #[ink::contract]
 pub mod lending_pool {
-    use abax_contracts::lending_pool::implementation::{
-        LendingPoolATokenInterfaceImpl, LendingPoolBorrowImpl,
-        LendingPoolDepositImpl, LendingPoolFlashImpl, LendingPoolLiquidateImpl,
-        LendingPoolMaintainImpl, LendingPoolMultiOpImpl,
-        LendingPoolVTokenInterfaceImpl, LendingPoolViewImpl,
-        {AccountRegistrar, LendingPoolStorage},
-        {LendingPoolManageImpl, ManageInternal},
-    };
+    use abax_contracts::account_registrar::AccountRegistrarView;
     use abax_contracts::lending_pool::{
-        events::FlashLoanFeeChanged, AccountRegistrarView, DecimalMultiplier,
-        InterestRateModel, LendingPoolATokenInterface, LendingPoolActions,
-        LendingPoolError, LendingPoolFlash, LendingPoolMaintain,
-        LendingPoolManage, LendingPoolVTokenInterface, LendingPoolView,
-        MarketRule, RuleId, ROLE_ADMIN,
+        events::FlashLoanFeeChanged, DecimalMultiplier, InterestRateModel,
+        LendingPoolATokenInterface, LendingPoolActions, LendingPoolError,
+        LendingPoolFlash, LendingPoolMaintain, LendingPoolManage,
+        LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
+        ROLE_ADMIN,
+    };
+    use abax_contracts::{
+        account_registrar::implementation::AccountRegistrar,
+        lending_pool::implementation::{
+            LendingPoolATokenInterfaceImpl, LendingPoolBorrowImpl,
+            LendingPoolDepositImpl, LendingPoolFlashImpl,
+            LendingPoolLiquidateImpl, LendingPoolMaintainImpl,
+            LendingPoolMultiOpImpl, LendingPoolStorage,
+            LendingPoolVTokenInterfaceImpl, LendingPoolViewImpl,
+            {LendingPoolManageImpl, ManageInternal},
+        },
     };
     use abax_library::structs::{
         Action, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
@@ -471,11 +475,11 @@ pub mod lending_pool {
 
     impl AccountRegistrarView for LendingPool {
         #[ink(message)]
-        fn view_counter_to_user(&self, counter: u128) -> Option<AccountId> {
+        fn view_counter_to_account(&self, counter: u128) -> Option<AccountId> {
             self.account_registrar.counter_to_user.get(counter)
         }
         #[ink(message)]
-        fn view_user_to_counter(&self, user: AccountId) -> Option<u128> {
+        fn view_account_to_counter(&self, user: AccountId) -> Option<u128> {
             self.account_registrar.user_to_counter.get(user)
         }
         #[ink(message)]

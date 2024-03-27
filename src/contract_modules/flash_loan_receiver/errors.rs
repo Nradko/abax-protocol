@@ -1,13 +1,12 @@
 use pendzl::math::errors::MathError;
 
+use ink::prelude::string::String;
+
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
 pub enum FlashLoanReceiverError {
     MathErorr(MathError),
-    InsufficientBalance,
-    AssetNotMintable,
-    CantApprove,
-    ExecuteOperationFailed,
+    Custom(String),
 }
 
 impl From<MathError> for FlashLoanReceiverError {

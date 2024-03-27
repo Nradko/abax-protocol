@@ -61,7 +61,7 @@ makeSuite('Flash Loan', (getTestEnv) => {
 
     await expect(
       lendingPool.query.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []),
-    ).to.be.revertedWithError(LendingPoolErrorBuilder.FlashLoanReceiverError(FlashLoanReceiverErrorBuilder.ExecuteOperationFailed()));
+    ).to.be.revertedWithError(LendingPoolErrorBuilder.FlashLoanReceiverError(FlashLoanReceiverErrorBuilder.Custom('ExecuteOperationFailed')));
   });
   it('tries to take a flashloan using a non contract address as receiver (revert expected)', async () => {
     const amountToBorrow = amountWETHToDeposit.divn(2);

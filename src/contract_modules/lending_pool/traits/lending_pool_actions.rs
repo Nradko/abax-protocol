@@ -8,7 +8,7 @@ use crate::lending_pool::{LendingPoolError, RuleId};
 pub type LendingPoolActionsRef =
     contract_ref!(LendingPoolActions, DefaultEnvironment);
 
-/// Trait containing messges that are used by **borrowers**.
+/// Trait containing messges that are used by **lenders**, **borrowers** and **liquidators**.
 #[ink::trait_definition]
 pub trait LendingPoolActions {
     /// Callers choses a market rule caller want to use.
