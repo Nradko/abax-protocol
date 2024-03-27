@@ -870,8 +870,10 @@ impl LendingPoolStorage {
         asset_to_take: &AccountId,
         amount_to_repay: &mut Balance,
         timestamp: &Timestamp,
-    ) -> Result<(u128, u128, u128, (u128, u128), (u128, u128)), LendingPoolError>
-    {
+    ) -> Result<
+        (u128, (u128, u128), (u128, u128), (u128, u128)),
+        LendingPoolError,
+    > {
         let asset_to_repay_id = self.asset_id(asset_to_repay)?;
         let asset_to_take_id = self.asset_id(asset_to_take)?;
 
@@ -945,8 +947,10 @@ impl LendingPoolStorage {
 
         Ok((
             amount_to_take,
-            *liquidated_user_accumulated_deposit_interest_to_repay,
-            *liquidated_user_accumulated_debt_interest_to_repay,
+            (
+                *liquidated_user_accumulated_deposit_interest_to_repay,
+                *liquidated_user_accumulated_debt_interest_to_repay,
+            ),
             *res.first().unwrap(),
             *res.get(1).unwrap(),
         ))
