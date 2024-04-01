@@ -779,7 +779,7 @@ makeSuite('Menage tests', (getTestEnv) => {
   });
 
   //  reduction fee admin is allowed to
-  describe.only('While changing stablecoin rate', () => {
+  describe('While changing stablecoin rate', () => {
     const ROLES_WITH_ACCESS: string[] = ['FEE_REDUCTION_ADMIN'];
     type params = Parameters<typeof lendingPool.query.setFeeReductions>;
 
