@@ -26,5 +26,9 @@ pub const EMERGENCY_ADMIN: RoleType = ink::selector_id!("EMERGENCY_ADMIN"); // 2
 /// can assign all the roles
 pub const ROLE_ADMIN: RoleType = 0; // 0
 
+/// can modify fee reductions for accounts
+pub const FEE_REDUCTION_ADMIN: RoleType =
+    ink::selector_id!("FEE_REDUCTION_ADMIN"); // 3_092_744_775_u32
+
 /// can withdraw protocol income
 pub const TREASURY: RoleType = ink::selector_id!("TREASURY"); // 2_434_241_257_u32

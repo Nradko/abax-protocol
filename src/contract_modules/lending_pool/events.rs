@@ -191,6 +191,14 @@ pub struct AssetRulesChanged {
     pub penalty_e6: Option<u128>,
 }
 
+/// Emited when a fee reductions are set.
+#[ink::event]
+pub struct FeeReductionsSet {
+    #[ink(topic)]
+    pub asset: AccountId,
+    pub fee_reductions: (u32, u32),
+}
+
 /// Emited when a protocol income genareted in 'asset' is taken.
 #[ink::event]
 pub struct IncomeTaken {

@@ -11,9 +11,9 @@ use abax_library::{
         e8_mul_e6_to_e6_rdown,
     },
     structs::{
-        Action, AssetId, AssetRules, Operation, ReserveAbacusTokens,
-        ReserveData, ReserveFees, ReserveIndexesAndFees, ReserveRestrictions,
-        UserConfig, UserReserveData,
+        Action, AssetId, AssetRules, FeeReductions, Operation,
+        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexesAndFees,
+        ReserveRestrictions, UserConfig, UserReserveData,
     },
 };
 use ink::storage::Mapping;
@@ -354,7 +354,7 @@ impl LendingPoolStorage {
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
-                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees)?
+                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees, &user_config.fee_reductions)?
             )?;
         user_reserve_data.increase_user_deposit(
             &reserve_ctx.asset_id,
@@ -389,7 +389,7 @@ impl LendingPoolStorage {
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
-                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees)?
+                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees, &user_config.fee_reductions)?
             )?;
 
         if *amount > user_reserve_data.deposit && can_mutate_amount {
@@ -423,7 +423,7 @@ impl LendingPoolStorage {
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
-                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees)?
+                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees,&user_config.fee_reductions)?
             )?;
         user_reserve_data.increase_user_debt(
             &reserve_ctx.asset_id,
@@ -457,7 +457,7 @@ impl LendingPoolStorage {
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
-                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees)?
+                user_reserve_data.accumulate_user_interest(&reserve_ctx.reserve_indexes_and_fees.indexes, &reserve_ctx.reserve_indexes_and_fees.fees, &user_config.fee_reductions)?
             )?;
 
         if *amount > user_reserve_data.debt && can_mutate_amount {
@@ -793,6 +793,7 @@ impl LendingPoolStorage {
             user_reserve_data.accumulate_user_interest(
                 &reserve_indexes_and_fees.indexes,
                 &reserve_indexes_and_fees.fees,
+                &user_config.fee_reductions,
             )?;
 
             if ((collaterals >> asset_id) & 1) == 1 {
@@ -1144,6 +1145,17 @@ impl LendingPoolStorage {
         Ok(())
     }
 
+    pub fn account_for_set_fee_reductions(
+        &mut self,
+        account: &AccountId,
+        fee_reduction: &FeeReductions,
+    ) -> Result<(), LendingPoolError> {
+        let mut user_config = self.get_user_config(account);
+        user_config.fee_reductions = *fee_reduction;
+        self.user_configs.insert(account, &user_config);
+        Ok(())
+    }
+
     /*
         SECTION REST - getters, setters, ensure methods, etc.
     */
@@ -1177,6 +1189,7 @@ impl LendingPoolStorage {
             self.get_reserve_indexes_and_fees(asset_id);
         let (mut user_reserve_data, _) =
             self.get_user_reserve_data(asset_id, user);
+        let user_config = self.get_user_config(user);
 
         reserve_indexes_and_fees
             .indexes
@@ -1184,6 +1197,7 @@ impl LendingPoolStorage {
         user_reserve_data.accumulate_user_interest(
             &reserve_indexes_and_fees.indexes,
             &reserve_indexes_and_fees.fees,
+            &user_config.fee_reductions,
         )?;
 
         Ok(user_reserve_data.deposit)
@@ -1217,12 +1231,14 @@ impl LendingPoolStorage {
             self.get_reserve_indexes_and_fees(asset_id);
         let (mut user_reserve_data, _) =
             self.get_user_reserve_data(asset_id, user);
+        let user_config = self.get_user_config(user);
         reserve_indexes_and_fees
             .indexes
             .update(&reserve_data, timestamp)?;
         user_reserve_data.accumulate_user_interest(
             &reserve_indexes_and_fees.indexes,
             &reserve_indexes_and_fees.fees,
+            &user_config.fee_reductions,
         )?;
 
         Ok(user_reserve_data.debt)

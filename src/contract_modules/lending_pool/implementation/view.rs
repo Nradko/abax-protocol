@@ -180,6 +180,12 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                     .reserve_indexes_and_fees
                     .get(asset_id)
                     .unwrap();
+                let user_config = self
+                    .data::<LendingPoolStorage>()
+                    .user_configs
+                    .get(user)
+                    .unwrap_or_default();
+
                 reserve_indexes_and_fees
                     .indexes
                     .update(&reserve_data, &Self::env().block_timestamp())
@@ -188,6 +194,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                     .accumulate_user_interest(
                         &reserve_indexes_and_fees.indexes,
                         &reserve_indexes_and_fees.fees,
+                        &user_config.fee_reductions,
                     )
                     .unwrap();
                 user_reserve_data

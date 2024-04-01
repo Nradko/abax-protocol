@@ -29,6 +29,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     adminOf['STABLECOIN_RATE_ADMIN'] = users[3];
     adminOf['EMERGENCY_ADMIN'] = users[4];
     adminOf['TREASURY'] = users[5];
+    adminOf['FEE_REDUCTION_ADMIN'] = users[6];
 
     for (const role_name of ROLES_NAMES.filter((role) => role !== 'ROLE_ADMIN')) {
       const role = ROLES[role_name];
@@ -771,6 +772,37 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveData = (await lendingPool.query.viewReserveData(stableAddress)).value.ok!;
         expect.soft(reserveData.currentDebtRateE18.toString()).to.deep.equal(debtRateE18.toString());
         expect.soft(reserveData.currentDepositRateE18.toString()).to.deep.equal('0');
+
+        expect.flushSoft();
+      });
+    }
+  });
+
+  //  reduction fee admin is allowed to
+  describe.only('While changing stablecoin rate', () => {
+    const ROLES_WITH_ACCESS: string[] = ['FEE_REDUCTION_ADMIN'];
+    type params = Parameters<typeof lendingPool.query.setFeeReductions>;
+
+    it('roles with no permission should fail with Err MissingRole', async () => {
+      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      for (const role_name of ROLES_WITH_NO_ACCESS) {
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setFeeReductions(adminOf[role_name].address, [1, 1])).value.ok;
+        expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
+      }
+      expect.flushSoft();
+    });
+    for (const role_name of ROLES_WITH_ACCESS) {
+      it(role_name + ' should succeed', async () => {
+        const address = users[0].address;
+        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setFeeReductions(address, [1, 1]);
+        await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
+        await expect(tx).to.emitEvent(lendingPool, 'FeeReductionsSet', {
+          asset: address,
+          feeReductions: [1, 1],
+        });
+
+        const config = (await lendingPool.query.viewUserConfig(address)).value.ok!;
+        expect.soft(config.feeReductions).to.deep.equal([1, 1]);
 
         expect.flushSoft();
       });

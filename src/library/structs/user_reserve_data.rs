@@ -2,11 +2,12 @@ use pendzl::{math::errors::MathError, traits::Balance};
 
 use crate::math::{
     e0_mul_e18_div_e18_to_e0_rdown, e0_mul_e18_div_e18_to_e0_rup,
-    e0_mul_e6_to_e0_rup, E18_U128,
+    e0_mul_e6_to_e0_rup, E18_U128, E6_U32,
 };
 
 use super::{
-    ReserveData, ReserveFees, ReserveIndexes, ReserveRestrictions, UserConfig,
+    FeeReductions, ReserveData, ReserveFees, ReserveIndexes,
+    ReserveRestrictions, UserConfig,
 };
 
 /// stores data of user
@@ -116,6 +117,7 @@ impl UserReserveData {
         &mut self,
         reserve_indexes: &ReserveIndexes,
         reserve_fees: &ReserveFees,
+        (deposit_fee_reduction_e6, debt_fee_reduction_e6): &FeeReductions,
     ) -> Result<(Balance, Balance), MathError> {
         if self.applied_deposit_index_e18 >= reserve_indexes.deposit_index_e18
             && self.applied_debt_index_e18 >= reserve_indexes.debt_index_e18
@@ -141,10 +143,14 @@ impl UserReserveData {
                 .checked_sub(self.deposit)
                 .ok_or(MathError::Underflow)?;
 
-            let fee = e0_mul_e6_to_e0_rup(
+            let pre_fee = e0_mul_e6_to_e0_rup(
                 interest_with_fee,
                 reserve_fees.deposit_fee_e6,
             )?;
+            let fee_part_e6 =
+                E6_U32.checked_sub(*deposit_fee_reduction_e6).unwrap();
+
+            let fee = e0_mul_e6_to_e0_rup(pre_fee, fee_part_e6)?;
 
             let updated_deposit = updated_deposit_with_fee
                 .checked_sub(fee)
@@ -171,10 +177,15 @@ impl UserReserveData {
                 .checked_sub(self.debt)
                 .ok_or(MathError::Underflow)?;
 
-            let fee = e0_mul_e6_to_e0_rup(
+            let pre_fee = e0_mul_e6_to_e0_rup(
                 interest_with_no_fee,
                 reserve_fees.debt_fee_e6,
             )?;
+
+            let fee_part_e6 =
+                E6_U32.checked_sub(*debt_fee_reduction_e6).unwrap();
+
+            let fee = e0_mul_e6_to_e0_rup(pre_fee, fee_part_e6)?;
 
             let updated_borrow = updated_borrow_with_no_fee
                 .checked_add(fee)

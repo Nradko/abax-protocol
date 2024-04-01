@@ -17,6 +17,7 @@ export const ROLE_NAMES = [
   'EMERGENCY_ADMIN',
   'FLASH_BORROWER',
   'TREASURY',
+  'FEE_REDUCTION_ADMIN',
 ] as const;
 
 export const ROLES: Record<(typeof ROLE_NAMES)[number], number> = {
@@ -27,6 +28,7 @@ export const ROLES: Record<(typeof ROLE_NAMES)[number], number> = {
   EMERGENCY_ADMIN: 297099943,
   FLASH_BORROWER: 1112475474,
   TREASURY: 2434241257,
+  FEE_REDUCTION_ADMIN: 3_092_744_775,
 };
 
 // export const ROLE_ADMIN = 0;

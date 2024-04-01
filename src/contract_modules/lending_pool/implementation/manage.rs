@@ -1,4 +1,6 @@
 use crate::dummy::DummyRef;
+use crate::lending_pool::events::FeeReductionsSet;
+use crate::lending_pool::FEE_REDUCTION_ADMIN;
 use crate::lending_pool::{
     events::{
         AssetRegistered, AssetRulesChanged, FlashLoanFeeChanged, IncomeTaken,
@@ -10,7 +12,7 @@ use crate::lending_pool::{
     EMERGENCY_ADMIN, PARAMETERS_ADMIN, STABLECOIN_RATE_ADMIN, TREASURY,
 };
 use abax_library::structs::{
-    AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
+    AssetRules, FeeReductions, ReserveAbacusTokens, ReserveData, ReserveFees,
     ReserveRestrictions,
 };
 use ink::env::DefaultEnvironment;
@@ -355,6 +357,27 @@ pub trait LendingPoolManageImpl:
                     .collateral_coefficient_e6,
                 borrow_coefficient_e6: asset_rules.borrow_coefficient_e6,
                 penalty_e6: asset_rules.penalty_e6,
+            },
+        );
+
+        Ok(())
+    }
+
+    fn set_fee_reductions(
+        &mut self,
+        account: AccountId,
+        fee_reductions: FeeReductions,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        self._ensure_has_role(FEE_REDUCTION_ADMIN, Some(caller))?;
+
+        self.data::<LendingPoolStorage>()
+            .account_for_set_fee_reductions(&account, &fee_reductions)?;
+
+        ink::env::emit_event::<DefaultEnvironment, FeeReductionsSet>(
+            FeeReductionsSet {
+                asset: account,
+                fee_reductions,
             },
         );
 
