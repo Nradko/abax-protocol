@@ -1,5 +1,6 @@
-use crate::lending_pool::{
-    DecimalMultiplier, InterestRateModel, MarketRule, RuleId,
+use crate::{
+    fee_reduction::{FeeReduction, FeeReductionRef},
+    lending_pool::{DecimalMultiplier, InterestRateModel, MarketRule, RuleId},
 };
 use abax_library::{
     math::E18_U128,
@@ -180,11 +181,14 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                     .reserve_indexes_and_fees
                     .get(asset_id)
                     .unwrap();
-                let user_config = self
+                let fee_reduction_provider: FeeReductionRef = self
                     .data::<LendingPoolStorage>()
-                    .user_configs
-                    .get(user)
-                    .unwrap_or_default();
+                    .fee_reduction_provider
+                    .get()
+                    .unwrap()
+                    .into();
+                let fee_reductions =
+                    fee_reduction_provider.get_fee_reductions(user);
 
                 reserve_indexes_and_fees
                     .indexes
@@ -194,7 +198,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                     .accumulate_user_interest(
                         &reserve_indexes_and_fees.indexes,
                         &reserve_indexes_and_fees.fees,
-                        &user_config.fee_reductions,
+                        &fee_reductions,
                     )
                     .unwrap();
                 user_reserve_data

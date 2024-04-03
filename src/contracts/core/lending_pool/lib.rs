@@ -30,9 +30,8 @@ pub mod lending_pool {
         },
     };
     use abax_library::structs::{
-        Action, AssetRules, FeeReductions, ReserveAbacusTokens, ReserveData,
-        ReserveFees, ReserveIndexes, ReserveRestrictions, UserConfig,
-        UserReserveData,
+        Action, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
+        ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
     };
     use ink::{env::DefaultEnvironment, prelude::vec::Vec};
 
@@ -221,6 +220,17 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
+        fn set_fee_reduction_provider(
+            &mut self,
+            fee_reduction_provider: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_fee_reduction_provider(
+                self,
+                fee_reduction_provider,
+            )
+        }
+
+        #[ink(message)]
         fn set_flash_loan_fee_e6(
             &mut self,
             flash_loan_fee_e6: u128,
@@ -333,19 +343,6 @@ pub mod lending_pool {
                 market_rule_id,
                 asset,
                 asset_rules,
-            )
-        }
-
-        #[ink(message)]
-        fn set_fee_reductions(
-            &mut self,
-            account: AccountId,
-            fee_reductions: FeeReductions,
-        ) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::set_fee_reductions(
-                self,
-                account,
-                fee_reductions,
             )
         }
 

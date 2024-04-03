@@ -133,6 +133,12 @@ pub struct PriceFeedProviderChanged {
     pub price_feed_provider: AccountId,
 }
 
+/// Emited when a fee reduction provider is changed.
+#[ink::event]
+pub struct FeeReductionChanged {
+    pub fee_reduction_provider: AccountId,
+}
+
 /// Emited when a flash loan fee is changed.
 #[ink::event]
 pub struct FlashLoanFeeChanged {
@@ -189,14 +195,6 @@ pub struct AssetRulesChanged {
     pub collateral_coefficient_e6: Option<u128>,
     pub borrow_coefficient_e6: Option<u128>,
     pub penalty_e6: Option<u128>,
-}
-
-/// Emited when a fee reductions are set.
-#[ink::event]
-pub struct FeeReductionsSet {
-    #[ink(topic)]
-    pub asset: AccountId,
-    pub fee_reductions: (u32, u32),
 }
 
 /// Emited when a protocol income genareted in 'asset' is taken.

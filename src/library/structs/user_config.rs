@@ -1,6 +1,3 @@
-/// (deposit_fee_reductino_e6, debt_fee_reduction_e6)
-pub type FeeReductions = (u32, u32);
-
 pub type Bitmap128 = u128;
 
 /// stores information about which asset is deposited, used as collatearl and borrowed by an user and which `market_rule_id` the user has chosen.
@@ -18,6 +15,4 @@ pub struct UserConfig {
     pub borrows: Bitmap128,
     /// id of `MarketRule` chosen by user
     pub market_rule_id: u32,
-    /// fee reductions for the user
-    pub fee_reductions: FeeReductions,
 }

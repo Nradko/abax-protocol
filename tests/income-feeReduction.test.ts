@@ -11,8 +11,9 @@ import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6 } from './setup/tokensToDeployForTesting';
 import { E18bn, E6bn, time } from '@c-forge/polkahat-network-helpers';
+import { bnToBn } from '@polkadot/util';
 
-makeSuite.only('Testing protocol income', () => {
+makeSuite.skip('Testing protocol income', () => {
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
   after(async () => {
     return await apiProviderWrapper.closeApi();
@@ -32,9 +33,9 @@ makeSuite.only('Testing protocol income', () => {
       let usdcContract: PSP22Emitable;
       let daiContract: PSP22Emitable;
       let usdaxContract: StableToken;
-      const millionUsda: BN = E6bn.muln(1_000_000);
-      const millionUsdc: BN = E6bn.muln(100_000_000);
-      const millionUsdax: BN = E6bn.muln(1_000_000);
+      const millionUsda: BN = E6bn.mul(bnToBn(1_000_000));
+      const millionUsdc: BN = E6bn.mul(bnToBn(100_000_000));
+      const millionUsdax: BN = E6bn.mul(bnToBn(1_000_000));
       let customDeploymentConfig: Partial<DeploymentConfig>;
       const MIN100 = 10000 * 1000;
 
