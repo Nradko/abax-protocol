@@ -192,7 +192,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveDecimalMultiplier = (await lendingPool.query.viewReserveDecimalMultiplier(PARAMS.asset)).value.ok!.toString();
         expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
           activated: true,
-          freezed: false,
+          frozen: false,
           totalDeposit: '0',
           currentDepositRateE18: '0',
           totalDebt: '0',
@@ -326,7 +326,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveDecimalMultiplier = (await lendingPool.query.viewReserveDecimalMultiplier(PARAMS.asset)).value.ok!.toString();
         expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
           activated: true,
-          freezed: false,
+          frozen: false,
           totalDeposit: '0',
           currentDepositRateE18: '0',
           totalDebt: '0',
@@ -406,9 +406,9 @@ makeSuite('Menage tests', (getTestEnv) => {
   });
 
   // emergencyAdmin, globalAdmin are allowed to
-  describe('While changing reserve is freezed', () => {
+  describe('While changing reserve is frozen', () => {
     const ROLES_WITH_ACCESS: string[] = ['EMERGENCY_ADMIN'];
-    type params = Parameters<typeof lendingPool.query.setReserveIsFreezed>;
+    type params = Parameters<typeof lendingPool.query.setReserveIsFrozen>;
     const PARAMS = {
       asset: '',
       active: true,
@@ -419,7 +419,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     it('roles with no permission should fail with Err MissingRole', async () => {
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
-        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsFreezed(...(Object.values(PARAMS) as params))).value.ok;
+        const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsFrozen(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
       }
       expect.flushSoft();
@@ -429,16 +429,16 @@ makeSuite('Menage tests', (getTestEnv) => {
         const reserveDataBefore = (await lendingPool.query.viewReserveData(PARAMS.asset)).value.ok!;
         expect.soft(reserveDataBefore.activated).to.equal(true);
 
-        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setReserveIsFreezed(...(Object.values(PARAMS) as params));
+        const tx = lendingPool.withSigner(adminOf[role_name]).tx.setReserveIsFrozen(...(Object.values(PARAMS) as params));
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'ReserveFreezed',
+            name: 'ReserveFrozen',
             args: {
               asset: PARAMS.asset,
-              freezed: PARAMS.active,
+              frozen: PARAMS.active,
             },
           },
         ]);
@@ -452,7 +452,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     it('roles with permission should fail to activate already activated reserve with Err AlreadyActivated', async () => {
       for (const role_name of ROLES_WITH_ACCESS) {
         const queryRes = (
-          await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsFreezed(...(Object.values({ ...PARAMS, active: false }) as params))
+          await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsFrozen(...(Object.values({ ...PARAMS, active: false }) as params))
         ).value.ok;
         expect.soft(queryRes).to.have.deep.property('err', { reserveDataError: 'AlreadySet' });
       }

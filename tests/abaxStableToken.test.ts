@@ -56,7 +56,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
 
       expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
         activated: true,
-        freezed: false,
+        frozen: false,
         currentDebtRateE18: '350000',
         currentDepositRateE18: '0',
         totalDebt: '10000000000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
@@ -127,7 +127,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
 
         expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
           activated: true,
-          freezed: false,
+          frozen: false,
           currentDebtRateE18: '350000',
           currentDepositRateE18: '0',
           totalDebt: '110376000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]

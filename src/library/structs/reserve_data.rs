@@ -18,7 +18,7 @@ pub struct ReserveData {
     /// are any actions allowed?
     pub activated: bool,
     /// are borrows and deposits frozen?
-    pub freezed: bool,
+    pub frozen: bool,
 
     /// total deposit of underlying asset. It is sum of deposits and  of accumulated interests. Total deposit of aToken.
     pub total_deposit: Balance,
@@ -39,14 +39,14 @@ pub enum ReserveDataError {
     /// returned if reserve is inactive
     Inactive,
     /// returned if reserve is frozen
-    Freezed,
+    Frozen,
 }
 
 impl Default for ReserveData {
     fn default() -> Self {
         ReserveData {
             activated: true,
-            freezed: false,
+            frozen: false,
             total_deposit: 0,
             current_deposit_rate_e18: 0,
             total_debt: 0,
@@ -74,20 +74,20 @@ impl ReserveData {
         Ok(())
     }
 
-    pub fn set_is_freezed(
+    pub fn set_is_frozen(
         &mut self,
         freeze: bool,
     ) -> Result<(), ReserveDataError> {
-        if self.freezed == freeze {
+        if self.frozen == freeze {
             return Err(ReserveDataError::AlreadySet);
         }
         self.activated = freeze;
         Ok(())
     }
 
-    pub fn ensure_not_freezed(&self) -> Result<(), ReserveDataError> {
-        if self.freezed {
-            return Err(ReserveDataError::Freezed);
+    pub fn ensure_not_frozen(&self) -> Result<(), ReserveDataError> {
+        if self.frozen {
+            return Err(ReserveDataError::Frozen);
         }
         Ok(())
     }

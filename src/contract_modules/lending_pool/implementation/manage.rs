@@ -3,7 +3,7 @@ use crate::lending_pool::{
     events::{
         AssetRegistered, AssetRulesChanged, FlashLoanFeeChanged, IncomeTaken,
         PriceFeedProviderChanged, ReserveActivated, ReserveFeesChanged,
-        ReserveFreezed, ReserveInterestRateModelChanged,
+        ReserveFrozen, ReserveInterestRateModelChanged,
         ReserveRestrictionsChanged, StablecoinDebtRateChanged,
     },
     InterestRateModel, LendingPoolError, MarketRule, ASSET_LISTING_ADMIN,
@@ -182,7 +182,7 @@ pub trait LendingPoolManageImpl:
         Ok(())
     }
 
-    fn set_reserve_is_freezed(
+    fn set_reserve_is_frozen(
         &mut self,
         asset: AccountId,
         freeze: bool,
@@ -191,11 +191,11 @@ pub trait LendingPoolManageImpl:
         self._ensure_has_role(EMERGENCY_ADMIN, Some(caller))?;
 
         self.data::<LendingPoolStorage>()
-            .account_for_changing_is_freezed(&asset, freeze)?;
-        ink::env::emit_event::<DefaultEnvironment, ReserveFreezed>(
-            ReserveFreezed {
+            .account_for_changing_is_frozen(&asset, freeze)?;
+        ink::env::emit_event::<DefaultEnvironment, ReserveFrozen>(
+            ReserveFrozen {
                 asset,
-                freezed: !freeze,
+                frozen: !freeze,
             },
         );
         Ok(())
