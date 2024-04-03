@@ -4,7 +4,7 @@ use pendzl::traits::Balance;
 
 use super::{InterestRateModel, RuleId};
 
-/// Emited when a deposit of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
+/// Emitted when a deposit of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
 /// The data coresponding to asset and (asset, on_behalf_of) is updated (interests are accumulated).
 #[ink::event]
 pub struct Deposit {
@@ -15,7 +15,7 @@ pub struct Deposit {
     pub on_behalf_of: AccountId,
     pub amount: Balance,
 }
-/// Emited when a withdraw of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
+/// Emitted when a withdraw of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
 /// The data coresponding to asset and (asset, on_behalf_of) is updated (interests are accumulated).
 #[ink::event]
 pub struct Withdraw {
@@ -27,7 +27,7 @@ pub struct Withdraw {
     pub amount: Balance,
 }
 
-/// Emited when a market rule is chosen.
+/// Emitted when a market rule is chosen.
 #[ink::event]
 pub struct MarketRuleChosen {
     #[ink(topic)]
@@ -35,7 +35,7 @@ pub struct MarketRuleChosen {
     pub market_rule_id: RuleId,
 }
 
-/// Emited when an `asset` is enabled or disabled as collateral by the `caller`.
+/// Emitted when an `asset` is enabled or disabled as collateral by the `caller`.
 #[ink::event]
 pub struct CollateralSet {
     #[ink(topic)]
@@ -45,7 +45,7 @@ pub struct CollateralSet {
     pub set: bool,
 }
 
-/// Emited when a borrow of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
+/// Emitted when a borrow of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
 /// The data coresponding to asset and (asset, on_behalf_of) is updated (interests are accumulated).
 #[ink::event]
 pub struct Borrow {
@@ -57,7 +57,7 @@ pub struct Borrow {
     pub amount: Balance,
 }
 
-/// Emited when a repay of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
+/// Emitted when a repay of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
 /// The data coresponding to asset and (asset, on_behalf_of) is updated (interests are accumulated).
 #[ink::event]
 pub struct Repay {
@@ -69,7 +69,7 @@ pub struct Repay {
     pub amount: Balance,
 }
 
-/// Emited when a flash loan of `amount` in `asset` is initiated by `caller` to the `receiver`.
+/// Emitted when a flash loan of `amount` in `asset` is initiated by `caller` to the `receiver`.
 /// The receiver pays back the `amount` and `fee` in the same transaction.
 #[ink::event]
 pub struct FlashLoan {
@@ -83,7 +83,7 @@ pub struct FlashLoan {
     pub fee: u128,
 }
 
-/// Emited when a liquidation is made by 'liquidator' on 'liquidated_account'.
+/// Emitted when a liquidation is made by 'liquidator' on 'liquidated_account'.
 /// The liquidator takes 'amount_taken' of 'asset_to_take' and repays 'amount_repaid' of 'asset_to_repay'.
 ///
 /// # Note
@@ -103,7 +103,7 @@ pub struct Liquidation {
     pub amount_taken: Balance,
 }
 
-/// Emited when a interest indexes are updated in reserve coreespoding to asset.
+/// Emitted when a interest indexes are updated in reserve coreespoding to asset.
 ///
 /// # Note
 /// This event is not emitted when Deposit, Withdraw, Borrow, Repay, Liquidation events are emitted eventhougth the interest indexes are updated.
@@ -113,7 +113,7 @@ pub struct InterestsAccumulated {
     pub asset: AccountId,
 }
 
-/// Emited when an asset is registered.
+/// Emitted when an asset is registered.
 #[ink::event]
 pub struct AssetRegistered {
     #[ink(topic)]
@@ -127,19 +127,19 @@ pub struct AssetRegistered {
     pub v_token_address: AccountId,
 }
 
-/// Emited when a price feed provider is changed.
+/// Emitted when a price feed provider is changed.
 #[ink::event]
 pub struct PriceFeedProviderChanged {
     pub price_feed_provider: AccountId,
 }
 
-/// Emited when a flash loan fee is changed.
+/// Emitted when a flash loan fee is changed.
 #[ink::event]
 pub struct FlashLoanFeeChanged {
     pub flash_loan_fee_e6: u128,
 }
 
-/// Emited when a reserve is activated.
+/// Emitted when a reserve is activated.
 #[ink::event]
 pub struct ReserveActivated {
     #[ink(topic)]
@@ -147,7 +147,7 @@ pub struct ReserveActivated {
     pub active: bool,
 }
 
-/// Emited when a reserve is frozen.
+/// Emitted when a reserve is frozen.
 #[ink::event]
 pub struct ReserveFrozen {
     #[ink(topic)]
@@ -155,7 +155,7 @@ pub struct ReserveFrozen {
     pub frozen: bool,
 }
 
-/// Emited when a interest rate model is changed.
+/// Emitted when a interest rate model is changed.
 #[ink::event]
 pub struct ReserveInterestRateModelChanged {
     #[ink(topic)]
@@ -163,7 +163,7 @@ pub struct ReserveInterestRateModelChanged {
     pub interest_rate_model: InterestRateModel,
 }
 
-/// Emited when a reserve restrictions are changed.
+/// Emitted when a reserve restrictions are changed.
 #[ink::event]
 pub struct ReserveRestrictionsChanged {
     #[ink(topic)]
@@ -171,7 +171,7 @@ pub struct ReserveRestrictionsChanged {
     pub reserve_restrictions: ReserveRestrictions,
 }
 
-/// Emited when a reserve fees are changed.
+/// Emitted when a reserve fees are changed.
 #[ink::event]
 pub struct ReserveFeesChanged {
     #[ink(topic)]
@@ -179,7 +179,7 @@ pub struct ReserveFeesChanged {
     pub reserve_fees: ReserveFees,
 }
 
-/// Emited when an asset rules in an martket rule are changed.
+/// Emitted when an asset rules in an martket rule are changed.
 #[ink::event]
 pub struct AssetRulesChanged {
     #[ink(topic)]
@@ -191,14 +191,14 @@ pub struct AssetRulesChanged {
     pub penalty_e6: Option<u128>,
 }
 
-/// Emited when a protocol income genareted in 'asset' is taken.
+/// Emitted when a protocol income genareted in 'asset' is taken.
 #[ink::event]
 pub struct IncomeTaken {
     #[ink(topic)]
     pub asset: AccountId,
 }
 
-/// Emited when stablecoin debt rate is changed.
+/// Emitted when stablecoin debt rate is changed.
 #[ink::event]
 pub struct StablecoinDebtRateChanged {
     #[ink(topic)]
