@@ -16,7 +16,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
-  let users: KeyringPair[];
+  let accounts: KeyringPair[];
   let alice: KeyringPair;
   let usdcContract: PSP22Emitable;
   let usdaxContract: StableToken;
@@ -25,8 +25,8 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
     testEnv = getTestEnv();
     lendingPool = testEnv.lendingPool;
     reserves = testEnv.reserves;
-    users = testEnv.users;
-    alice = users[0];
+    accounts = testEnv.accounts;
+    alice = accounts[0];
     usdcContract = reserves['USDC'].underlying;
     usdaxContract = testEnv.stables['USDax'].underlying;
   });
@@ -52,7 +52,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
       await expect(tx).to.eventually.be.fulfilled;
       const txRes = await tx;
       const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
-      const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
+      const accountReserveData = (await lendingPool.query.viewUnupdatedAccountReserveData(usdaxContract.address, alice.address)).value.ok!;
 
       expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
         activated: true,
@@ -62,7 +62,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         totalDebt: '10000000000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
         totalDeposit: '0',
       });
-      expect.soft(stringifyNumericProps(userReserveData)).to.deep.equal({
+      expect.soft(stringifyNumericProps(accountReserveData)).to.deep.equal({
         appliedDebtIndexE18: '1000000000000000000', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6 +1))
         appliedDepositIndexE18: '1000000000000000000',
         debt: '10000000000', // same as totalDebt above +1
@@ -123,7 +123,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         const timestampAfterRepay = await time.increase(0);
         console.log('timestamp before Repay:', timestampAfterRepay);
         const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
-        const userReserveData = (await lendingPool.query.viewUnupdatedUserReserveData(usdaxContract.address, alice.address)).value.ok!;
+        const accountReserveData = (await lendingPool.query.viewUnupdatedAccountReserveData(usdaxContract.address, alice.address)).value.ok!;
 
         expect.soft(stringifyNumericProps(reserveData)).to.deep.equal({
           activated: true,
@@ -133,7 +133,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
           totalDebt: '110376000', // [3.5 * 10^11 * YearInMS] / 10^24 * 10^10  [[curent_debt_rate * time] * debt]
           totalDeposit: '0',
         });
-        expect.soft(stringifyNumericProps(userReserveData)).to.deep.equal({
+        expect.soft(stringifyNumericProps(accountReserveData)).to.deep.equal({
           appliedDebtIndexE18: '1011037600000000000', // 10^18 * (10^18 +(3.5 * 10^11 * YearInMS / E6))
           appliedDepositIndexE18: '1000000000000000000',
           debt: '110376000', // same as totalDebt above

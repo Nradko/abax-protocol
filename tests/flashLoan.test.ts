@@ -24,7 +24,7 @@ makeSuite('Flash Loan', (getTestEnv) => {
   let lendingPool: LendingPoolContract;
   beforeEach(async () => {
     testEnv = getTestEnv();
-    depositor = testEnv.users[0];
+    depositor = testEnv.accounts[0];
     reserveWETH = testEnv.reserves['WETH'];
     lendingPool = testEnv.lendingPool;
     flashLoanReceiver = (await new FlashLoanReceiverMockDeployer(testEnv.api, depositor).new()).contract;
@@ -39,7 +39,7 @@ makeSuite('Flash Loan', (getTestEnv) => {
     await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
   });
 
-  it('for flashBorrower taking WETH flashloan is cheaper than for other user', async () => {
+  it('for flashBorrower taking WETH flashloan is cheaper than for other account', async () => {
     const amountToBorrow = amountWETHToDeposit.divn(2);
     const wethPoolBalance0 = await testEnv.reserves['WETH'].underlying.query.balanceOf(lendingPool.address);
     await lendingPool.tx.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []);
@@ -65,25 +65,25 @@ makeSuite('Flash Loan', (getTestEnv) => {
   });
   it('tries to take a flashloan using a non contract address as receiver (revert expected)', async () => {
     const amountToBorrow = amountWETHToDeposit.divn(2);
-    await expect(lendingPool.query.flashLoan(testEnv.users[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).to.eventually.be
+    await expect(lendingPool.query.flashLoan(testEnv.accounts[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).to.eventually.be
       .rejected;
   });
   it('Takes WETH flashloan - does not approve the transfer of the funds', async () => {
     const amountToBorrow = amountWETHToDeposit.divn(2);
     const amountToApprove = amountToBorrow.divn(2);
     await flashLoanReceiver.tx.setCustomAmountToApprove(amountToApprove);
-    await expect(lendingPool.query.flashLoan(testEnv.users[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).to.eventually.be
+    await expect(lendingPool.query.flashLoan(testEnv.accounts[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).to.eventually.be
       .rejected;
   });
   it('Takes WETH flashloan - does not have sufficient balance to cover the fee', async () => {
     const amountToBorrow = amountWETHToDeposit.divn(2);
     await flashLoanReceiver.tx.setSimulateBalanceToCoverFee(false);
-    await expect(lendingPool.query.flashLoan(testEnv.users[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).to.eventually.be
+    await expect(lendingPool.query.flashLoan(testEnv.accounts[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).to.eventually.be
       .rejected;
   });
   it('Takes WETH flashloan - the amount is bigger than the available liquidity', async () => {
     const amountToBorrow = amountWETHToDeposit.add(E6bn);
-    const res = (await lendingPool.query.flashLoan(testEnv.users[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).value.ok;
+    const res = (await lendingPool.query.flashLoan(testEnv.accounts[1].address, [reserveWETH.underlying.address], [amountToBorrow], [])).value.ok;
     await expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.PSP22Error(PSP22ErrorBuilder.InsufficientBalance()));
   });
 });

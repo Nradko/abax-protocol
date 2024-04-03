@@ -36,7 +36,7 @@ function getLiquidationSignerSpender() {
   return keyring.createFromUri(process.env.SEED ?? '', {}, 'sr25519');
 }
 
-async function tryLiquidate(userAddress: string) {
+async function tryLiquidate(accountAddress: string) {
   const api = await apiProviderWrapper.getAndWaitForReady();
   const liquidationSignerSpender = await getLiquidationSignerSpender();
   const lendingPool = getContractObject(LendingPool, LENDING_POOL_ADDRESS, liquidationSignerSpender, api);
@@ -57,19 +57,20 @@ async function tryLiquidate(userAddress: string) {
 
   //DEBUG
   const biggestDebtReserveBefore = (await lendingPool.query.viewReserveData(WETH_ADDR)).value.ok!;
-  const borrowerBiggestDebtReserveBefore = (await lendingPool.query.viewUserReserveData(WETH_ADDR, userAddress)).value.ok!;
-  const borrowerBiggestCollateralReserveBefore = (await lendingPool.query.viewUserReserveData(AZERO_ADDR, userAddress)).value.ok!;
-  const liquidationSpenderBiggestDebtReserveBefore = (await lendingPool.query.viewUserReserveData(WETH_ADDR, liquidationSignerSpender.address)).value
-    .ok!;
-  const liqudationSpenderBiggestCollateralReserveBefore = (await lendingPool.query.viewUserReserveData(AZERO_ADDR, liquidationSignerSpender.address))
+  const borrowerBiggestDebtReserveBefore = (await lendingPool.query.viewAccountReserveData(WETH_ADDR, accountAddress)).value.ok!;
+  const borrowerBiggestCollateralReserveBefore = (await lendingPool.query.viewAccountReserveData(AZERO_ADDR, accountAddress)).value.ok!;
+  const liquidationSpenderBiggestDebtReserveBefore = (await lendingPool.query.viewAccountReserveData(WETH_ADDR, liquidationSignerSpender.address))
     .value.ok!;
+  const liqudationSpenderBiggestCollateralReserveBefore = (
+    await lendingPool.query.viewAccountReserveData(AZERO_ADDR, liquidationSignerSpender.address)
+  ).value.ok!;
 
   const biggestDebtPSPBalanceOfLendingPool = (
     await getContractObject(Psp22Ownable, WETH_ADDR, liquidationSignerSpender, api).query.balanceOf(lendingPool.address)
   ).value.ok!;
-  const queryResD = await lendingPool.query.getUserFreeCollateralCoefficient(userAddress);
+  const queryResD = await lendingPool.query.getAccountFreeCollateralCoefficient(accountAddress);
   console.log({
-    userAddress,
+    accountAddress,
     collateralized: stringifyNumericProps(queryResD.value.ok!)[0],
     collateralCoefficient: stringifyNumericProps(queryResD.value.ok!)[1],
   });
@@ -77,30 +78,31 @@ async function tryLiquidate(userAddress: string) {
 
   const queryRes = await lendingPool
     .withSigner(liquidationSignerSpender)
-    .query.liquidate(userAddress, WETH_ADDR, AZERO_ADDR, amountToRepay, minimumTokenReceivedE18, []);
+    .query.liquidate(accountAddress, WETH_ADDR, AZERO_ADDR, amountToRepay, minimumTokenReceivedE18, []);
   try {
     queryRes.value.unwrapRecursively();
     console.log('Succesfully queried liquidation');
     const tx = await lendingPool
       .withSigner(liquidationSignerSpender)
-      .tx.liquidate(userAddress, WETH_ADDR, AZERO_ADDR, amountToRepay, minimumTokenReceivedE18, [], { gasLimit: getMaxGasLimit(api) });
-    console.log(`${userAddress}| Liquidation success: ${tx.blockHash?.toString()} | events: ${JSON.stringify(stringifyNumericProps(tx.events))}`);
-    const queryResAfter = await lendingPool.query.getUserFreeCollateralCoefficient(userAddress);
+      .tx.liquidate(accountAddress, WETH_ADDR, AZERO_ADDR, amountToRepay, minimumTokenReceivedE18, [], { gasLimit: getMaxGasLimit(api) });
+    console.log(`${accountAddress}| Liquidation success: ${tx.blockHash?.toString()} | events: ${JSON.stringify(stringifyNumericProps(tx.events))}`);
+    const queryResAfter = await lendingPool.query.getAccountFreeCollateralCoefficient(accountAddress);
 
     const biggestDebtReserveAfter = (await lendingPool.query.viewReserveData(WETH_ADDR.toString())).value.ok!;
     const biggestDebtPSPBalanceOfLendingPoolAfter = (
       await getContractObject(Psp22Ownable, WETH_ADDR, liquidationSignerSpender, api).query.balanceOf(lendingPool.address)
     ).value.ok!;
-    const borrowerBiggestDebtReserveAfter = (await lendingPool.query.viewUserReserveData(WETH_ADDR, userAddress)).value.ok!;
+    const borrowerBiggestDebtReserveAfter = (await lendingPool.query.viewAccountReserveData(WETH_ADDR, accountAddress)).value.ok!;
 
-    const borrowerBiggestCollateralReserveAfter = (await lendingPool.query.viewUserReserveData(AZERO_ADDR, userAddress)).value.ok!;
-    const liquidationSpenderBiggestDebtReserveAfter = (await lendingPool.query.viewUserReserveData(WETH_ADDR, liquidationSignerSpender.address)).value
-      .ok!;
-    const liqudationSpenderBiggestCollateralReserveAfter = (await lendingPool.query.viewUserReserveData(AZERO_ADDR, liquidationSignerSpender.address))
+    const borrowerBiggestCollateralReserveAfter = (await lendingPool.query.viewAccountReserveData(AZERO_ADDR, accountAddress)).value.ok!;
+    const liquidationSpenderBiggestDebtReserveAfter = (await lendingPool.query.viewAccountReserveData(WETH_ADDR, liquidationSignerSpender.address))
       .value.ok!;
+    const liqudationSpenderBiggestCollateralReserveAfter = (
+      await lendingPool.query.viewAccountReserveData(AZERO_ADDR, liquidationSignerSpender.address)
+    ).value.ok!;
 
     console.log({
-      userAddress,
+      accountAddress,
       collateralized: stringifyNumericProps(queryResAfter.value.ok!)[0],
       collateralCoefficient: stringifyNumericProps(queryResAfter.value.ok!)[1],
       biggestDebtReserveBefore: stringifyNumericProps(biggestDebtReserveBefore),
@@ -117,10 +119,10 @@ async function tryLiquidate(userAddress: string) {
       liqudationSpenderBiggestCollateralReserveAfter: stringifyNumericProps(liqudationSpenderBiggestCollateralReserveAfter),
     });
   } catch (e) {
-    console.error(`${userAddress}| liquidation unsuccessfull`);
+    console.error(`${accountAddress}| liquidation unsuccessfull`);
     console.error(e);
     if (isEqual(LendingPoolErrorBuilder.Collaterized(), e)) {
-      console.log(`${userAddress}| user was collateralized`);
+      console.log(`${accountAddress}| account was collateralized`);
       return false;
     }
   }

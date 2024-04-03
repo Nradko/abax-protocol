@@ -3,7 +3,7 @@ use ink::primitives::AccountId;
 #[ink::trait_definition]
 pub trait AccountRegistrarView {
     /// Returns the current counter value.
-    /// Represents the number of registered users.
+    /// Represents the number of registered accounts.
     #[ink(message)]
     fn view_next_counter(&self) -> u128;
     /// Returns the account associated with the given `counter`.

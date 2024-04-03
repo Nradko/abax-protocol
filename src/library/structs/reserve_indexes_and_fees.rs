@@ -16,7 +16,7 @@ use super::ReserveData;
 pub struct ReserveIndexesAndFees {
     /// indexes used during calculations
     pub indexes: ReserveIndexes,
-    /// fee is used to accumulate users debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
+    /// fee is used to accumulate accounts debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
     pub fees: ReserveFees,
 }
 
@@ -36,9 +36,9 @@ impl ReserveIndexesAndFees {
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct ReserveFees {
-    /// fee is used to accumulate users debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
+    /// fee is used to accumulate accounts debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
     pub debt_fee_e6: u32,
-    /// fee is used to accumulate users deposit interest. The real rate is the current_deposit_rate * (1-fee). 10^6 =100%
+    /// fee is used to accumulate accounts deposit interest. The real rate is the current_deposit_rate * (1-fee). 10^6 =100%
     pub deposit_fee_e6: u32,
 }
 

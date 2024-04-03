@@ -21,23 +21,23 @@ describe('Checked Math', () => {
     getContractsNodeProcess()?.kill();
   });
 
-  it('Trigger overflow by setAsColalteral, during value calculation in getUserCollateralCoefficient', async () => {
+  it('Trigger overflow by setAsColalteral, during value calculation in getAccountCollateralCoefficient', async () => {
     const reserveSymbol = 'DAI';
     const reserve2Symbol = 'USDC';
     const reserve = testEnv.reserves[reserveSymbol].underlying;
     const reserve2 = testEnv.reserves[reserve2Symbol].underlying;
-    const user = testEnv.users[0];
+    const account = testEnv.accounts[0];
     const amountToDeposit = U128_MAX_VALUE.sub(E6bn);
 
-    await reserve.tx.mint(user.address, U128_MAX_VALUE);
-    await approve(reserveSymbol, user, testEnv, U128_MAX_VALUE);
-    await reserve2.tx.mint(user.address, U128_MAX_VALUE);
-    await approve(reserve2Symbol, user, testEnv, U128_MAX_VALUE);
+    await reserve.tx.mint(account.address, U128_MAX_VALUE);
+    await approve(reserveSymbol, account, testEnv, U128_MAX_VALUE);
+    await reserve2.tx.mint(account.address, U128_MAX_VALUE);
+    await approve(reserve2Symbol, account, testEnv, U128_MAX_VALUE);
 
-    await testEnv.lendingPool.withSigner(user).tx.deposit(reserve.address, user.address, amountToDeposit, []);
-    await testEnv.lendingPool.withSigner(user).tx.deposit(reserve2.address, user.address, amountToDeposit, []);
-    await testEnv.lendingPool.withSigner(user).tx.setAsCollateral(reserve.address, true);
-    await testEnv.lendingPool.withSigner(user).tx.setAsCollateral(reserve2.address, true);
-    await expect(testEnv.lendingPool.withSigner(user).tx.setAsCollateral(reserve.address, false)).to.eventually.be.rejected;
+    await testEnv.lendingPool.withSigner(account).tx.deposit(reserve.address, account.address, amountToDeposit, []);
+    await testEnv.lendingPool.withSigner(account).tx.deposit(reserve2.address, account.address, amountToDeposit, []);
+    await testEnv.lendingPool.withSigner(account).tx.setAsCollateral(reserve.address, true);
+    await testEnv.lendingPool.withSigner(account).tx.setAsCollateral(reserve2.address, true);
+    await expect(testEnv.lendingPool.withSigner(account).tx.setAsCollateral(reserve.address, false)).to.eventually.be.rejected;
   });
 });

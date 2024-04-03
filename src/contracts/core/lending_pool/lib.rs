@@ -1,9 +1,9 @@
 //! #LendingPoolContract
 //!
-//! This is the core contract of Abacus Lending Protocol that provide users the follwoing functionalities:
+//! This is the core contract of Abacus Lending Protocol that provide accounts the follwoing functionalities:
 //!   deposit, withdraw, borrow_variable, repay_variable, borrow_stable, repay_stable
 //!
-//! The remaining contracts are Abacus Tokens that are tokenization of user deposits and debts.
+//! The remaining contracts are Abacus Tokens that are tokenization of account deposits and debts.
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
@@ -30,8 +30,9 @@ pub mod lending_pool {
         },
     };
     use abax_library::structs::{
-        Action, AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
-        ReserveIndexes, ReserveRestrictions, UserConfig, UserReserveData,
+        AccountConfig, AccountReserveData, Action, AssetRules,
+        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
+        ReserveRestrictions,
     };
     use ink::{env::DefaultEnvironment, prelude::vec::Vec};
 
@@ -425,26 +426,26 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        fn view_unupdated_user_reserve_data(
+        fn view_unupdated_account_reserve_data(
             &self,
             asset: AccountId,
             account: AccountId,
-        ) -> UserReserveData {
-            LendingPoolViewImpl::view_unupdated_user_reserve_data(
+        ) -> AccountReserveData {
+            LendingPoolViewImpl::view_unupdated_account_reserve_data(
                 self, asset, account,
             )
         }
         #[ink(message)]
-        fn view_user_reserve_data(
+        fn view_account_reserve_data(
             &self,
             asset: AccountId,
             account: AccountId,
-        ) -> UserReserveData {
-            LendingPoolViewImpl::view_user_reserve_data(self, asset, account)
+        ) -> AccountReserveData {
+            LendingPoolViewImpl::view_account_reserve_data(self, asset, account)
         }
         #[ink(message)]
-        fn view_user_config(&self, user: AccountId) -> UserConfig {
-            LendingPoolViewImpl::view_user_config(self, user)
+        fn view_account_config(&self, account: AccountId) -> AccountConfig {
+            LendingPoolViewImpl::view_account_config(self, account)
         }
         #[ink(message)]
         fn view_market_rule(
@@ -454,13 +455,13 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_market_rule(self, market_rule_id)
         }
         #[ink(message)]
-        fn get_user_free_collateral_coefficient(
+        fn get_account_free_collateral_coefficient(
             &self,
-            user_address: AccountId,
+            account_address: AccountId,
         ) -> (bool, u128) {
-            LendingPoolViewImpl::get_user_free_collateral_coefficient(
+            LendingPoolViewImpl::get_account_free_collateral_coefficient(
                 self,
-                user_address,
+                account_address,
             )
         }
 
@@ -476,11 +477,11 @@ pub mod lending_pool {
     impl AccountRegistrarView for LendingPool {
         #[ink(message)]
         fn view_counter_to_account(&self, counter: u128) -> Option<AccountId> {
-            self.account_registrar.counter_to_user.get(counter)
+            self.account_registrar.counter_to_account.get(counter)
         }
         #[ink(message)]
-        fn view_account_to_counter(&self, user: AccountId) -> Option<u128> {
-            self.account_registrar.user_to_counter.get(user)
+        fn view_account_to_counter(&self, account: AccountId) -> Option<u128> {
+            self.account_registrar.account_to_counter.get(account)
         }
         #[ink(message)]
         fn view_next_counter(&self) -> u128 {
@@ -498,15 +499,15 @@ pub mod lending_pool {
             )
         }
         #[ink(message)]
-        fn user_deposit_of(
+        fn account_deposit_of(
             &self,
             underlying_asset: AccountId,
-            user: AccountId,
+            account: AccountId,
         ) -> Balance {
-            LendingPoolATokenInterfaceImpl::user_deposit_of(
+            LendingPoolATokenInterfaceImpl::account_deposit_of(
                 self,
                 underlying_asset,
-                user,
+                account,
             )
         }
         #[ink(message)]
@@ -537,15 +538,15 @@ pub mod lending_pool {
             )
         }
         #[ink(message)]
-        fn user_debt_of(
+        fn account_debt_of(
             &self,
             underlying_asset: AccountId,
-            user: AccountId,
+            account: AccountId,
         ) -> Balance {
-            LendingPoolVTokenInterfaceImpl::user_debt_of(
+            LendingPoolVTokenInterfaceImpl::account_debt_of(
                 self,
                 underlying_asset,
-                user,
+                account,
             )
         }
         #[ink(message)]

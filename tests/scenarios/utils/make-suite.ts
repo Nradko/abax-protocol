@@ -29,7 +29,7 @@ export type StableReserve = {
 export type TestEnvReserves = Record<string, TokenReserve>;
 export type TestEnvStables = Record<string, StableReserve>;
 export interface TestEnv {
-  users: KeyringPair[];
+  accounts: KeyringPair[];
   owner: KeyringPair;
   lendingPool: LendingPoolContract;
   reserves: TestEnvReserves;

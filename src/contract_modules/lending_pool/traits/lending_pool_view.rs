@@ -1,6 +1,6 @@
 use abax_library::structs::{
-    ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
-    ReserveRestrictions, UserConfig, UserReserveData,
+    AccountConfig, AccountReserveData, ReserveAbacusTokens, ReserveData,
+    ReserveFees, ReserveIndexes, ReserveRestrictions,
 };
 use ink::{
     contract_ref, env::DefaultEnvironment, prelude::vec::Vec,
@@ -56,25 +56,25 @@ pub trait LendingPoolView {
         asset: AccountId,
     ) -> Option<DecimalMultiplier>;
     #[ink(message)]
-    fn view_unupdated_user_reserve_data(
+    fn view_unupdated_account_reserve_data(
         &self,
         asset: AccountId,
         account: AccountId,
-    ) -> UserReserveData;
+    ) -> AccountReserveData;
     #[ink(message)]
-    fn view_user_reserve_data(
+    fn view_account_reserve_data(
         &self,
         asset: AccountId,
         account: AccountId,
-    ) -> UserReserveData;
+    ) -> AccountReserveData;
     #[ink(message)]
-    fn view_user_config(&self, user: AccountId) -> UserConfig;
+    fn view_account_config(&self, account: AccountId) -> AccountConfig;
     #[ink(message)]
     fn view_market_rule(&self, market_rule_id: RuleId) -> Option<MarketRule>;
     #[ink(message)]
-    fn get_user_free_collateral_coefficient(
+    fn get_account_free_collateral_coefficient(
         &self,
-        user_address: AccountId,
+        account_address: AccountId,
     ) -> (bool, u128);
 
     #[ink(message)]

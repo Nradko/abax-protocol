@@ -6,16 +6,17 @@ use crate::math::{
 };
 
 use super::{
-    ReserveData, ReserveFees, ReserveIndexes, ReserveRestrictions, UserConfig,
+    AccountConfig, ReserveData, ReserveFees, ReserveIndexes,
+    ReserveRestrictions,
 };
 
-/// stores data of user
+/// stores data of account
 #[derive(Debug, Default, scale::Encode, scale::Decode, Clone, Copy)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct UserReserveData {
+pub struct AccountReserveData {
     /// underlying asset amount of deposit plus accumulated interest.
     pub deposit: Balance,
     /// underlying asset amount of debt plus accumulated interest.
@@ -29,15 +30,15 @@ pub struct UserReserveData {
 /// type used to identify asset
 pub type AssetId = u32;
 
-impl UserReserveData {
-    pub fn increase_user_deposit(
+impl AccountReserveData {
+    pub fn increase_account_deposit(
         &mut self,
         asset_id: &AssetId,
-        user_config: &mut UserConfig,
+        account_config: &mut AccountConfig,
         reserve_data: &mut ReserveData,
         amount: &u128,
     ) -> Result<(), MathError> {
-        user_config.deposits |= 1_u128 << *asset_id;
+        account_config.deposits |= 1_u128 << *asset_id;
 
         self.deposit = self
             .deposit
@@ -49,16 +50,16 @@ impl UserReserveData {
         Ok(())
     }
 
-    pub fn decrease_user_deposit(
+    pub fn decrease_account_deposit(
         &mut self,
         asset_id: &AssetId,
-        user_config: &mut UserConfig,
+        account_config: &mut AccountConfig,
         reserve_data: &mut ReserveData,
         reserve_restrictions: &ReserveRestrictions,
         amount: &u128,
     ) -> Result<(), MathError> {
         if *amount == self.deposit {
-            user_config.deposits &= !(1_u128 << asset_id);
+            account_config.deposits &= !(1_u128 << asset_id);
         }
         self.deposit = self
             .deposit
@@ -68,19 +69,19 @@ impl UserReserveData {
         reserve_data.decrease_total_deposit(amount)?;
 
         if self.deposit < reserve_restrictions.minimal_collateral {
-            user_config.collaterals &= !(1_u128 << asset_id);
+            account_config.collaterals &= !(1_u128 << asset_id);
         }
         Ok(())
     }
 
-    pub fn increase_user_debt(
+    pub fn increase_account_debt(
         &mut self,
         asset_id: &AssetId,
-        user_config: &mut UserConfig,
+        account_config: &mut AccountConfig,
         reserve_data: &mut ReserveData,
         amount: &u128,
     ) -> Result<(), MathError> {
-        user_config.borrows |= 1_u128 << *asset_id;
+        account_config.borrows |= 1_u128 << *asset_id;
 
         self.debt =
             self.debt.checked_add(*amount).ok_or(MathError::Overflow)?;
@@ -90,15 +91,15 @@ impl UserReserveData {
         Ok(())
     }
 
-    pub fn decrease_user_debt(
+    pub fn decrease_account_debt(
         &mut self,
         asset_id: &AssetId,
-        user_config: &mut UserConfig,
+        account_config: &mut AccountConfig,
         reserve_data: &mut ReserveData,
         amount: &u128,
     ) -> Result<(), MathError> {
         if *amount == self.debt {
-            user_config.borrows &= !(1_u128 << asset_id);
+            account_config.borrows &= !(1_u128 << asset_id);
         }
         self.debt =
             self.debt.checked_sub(*amount).ok_or(MathError::Underflow)?;
@@ -112,7 +113,7 @@ impl UserReserveData {
     ///
     /// # Returns
     /// (accumulated_deposit_interest, accumulated_debt_interest)
-    pub fn accumulate_user_interest(
+    pub fn accumulate_account_interest(
         &mut self,
         reserve_indexes: &ReserveIndexes,
         reserve_fees: &ReserveFees,
@@ -123,8 +124,10 @@ impl UserReserveData {
             return Ok((0, 0));
         }
 
-        let (mut delta_user_deposit, mut delta_user_debt): (Balance, Balance) =
-            (0, 0);
+        let (mut delta_account_deposit, mut delta_account_debt): (
+            Balance,
+            Balance,
+        ) = (0, 0);
 
         if self.deposit != 0
             && self.applied_deposit_index_e18 != 0
@@ -150,7 +153,7 @@ impl UserReserveData {
                 .checked_sub(fee)
                 .ok_or(MathError::Underflow)?;
 
-            delta_user_deposit = updated_deposit
+            delta_account_deposit = updated_deposit
                 .checked_sub(self.deposit)
                 .ok_or(MathError::Underflow)?;
             self.deposit = updated_deposit;
@@ -180,18 +183,18 @@ impl UserReserveData {
                 .checked_add(fee)
                 .ok_or(MathError::Overflow)?;
 
-            delta_user_debt = updated_borrow
+            delta_account_debt = updated_borrow
                 .checked_sub(self.debt)
                 .ok_or(MathError::Underflow)?;
             self.debt = updated_borrow;
         }
         self.applied_debt_index_e18 = reserve_indexes.debt_index_e18;
 
-        Ok((delta_user_deposit, delta_user_debt))
+        Ok((delta_account_deposit, delta_account_debt))
     }
 }
 
-impl UserReserveData {
+impl AccountReserveData {
     pub fn my_default() -> Self {
         Self {
             deposit: 0,

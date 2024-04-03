@@ -4,8 +4,8 @@ use crate::lending_pool::{
 use abax_library::{
     math::E18_U128,
     structs::{
-        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
-        ReserveRestrictions, UserConfig, UserReserveData,
+        AccountConfig, AccountReserveData, ReserveAbacusTokens, ReserveData,
+        ReserveFees, ReserveIndexes, ReserveRestrictions,
     },
 };
 use pendzl::traits::{AccountId, StorageFieldGetter};
@@ -139,18 +139,18 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
             )
     }
 
-    fn view_unupdated_user_reserve_data(
+    fn view_unupdated_account_reserve_data(
         &self,
         asset: AccountId,
-        user: AccountId,
-    ) -> UserReserveData {
+        account: AccountId,
+    ) -> AccountReserveData {
         match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => {
                 self.data::<LendingPoolStorage>()
-                    .get_user_reserve_data(asset_id, &user)
+                    .get_account_reserve_data(asset_id, &account)
                     .0
             }
-            None => UserReserveData {
+            None => AccountReserveData {
                 deposit: 0,
                 debt: 0,
                 applied_deposit_index_e18: E18_U128,
@@ -159,16 +159,16 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         }
     }
 
-    fn view_user_reserve_data(
+    fn view_account_reserve_data(
         &self,
         asset: AccountId,
-        user: AccountId,
-    ) -> UserReserveData {
+        account: AccountId,
+    ) -> AccountReserveData {
         match self.data::<LendingPoolStorage>().asset_to_id.get(asset) {
             Some(asset_id) => {
-                let mut user_reserve_data = self
+                let mut account_reserve_data = self
                     .data::<LendingPoolStorage>()
-                    .get_user_reserve_data(asset_id, &user)
+                    .get_account_reserve_data(asset_id, &account)
                     .0;
                 let reserve_data = self
                     .data::<LendingPoolStorage>()
@@ -184,15 +184,15 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                     .indexes
                     .update(&reserve_data, &Self::env().block_timestamp())
                     .unwrap();
-                user_reserve_data
-                    .accumulate_user_interest(
+                account_reserve_data
+                    .accumulate_account_interest(
                         &reserve_indexes_and_fees.indexes,
                         &reserve_indexes_and_fees.fees,
                     )
                     .unwrap();
-                user_reserve_data
+                account_reserve_data
             }
-            None => UserReserveData {
+            None => AccountReserveData {
                 deposit: 0,
                 debt: 0,
                 applied_deposit_index_e18: E18_U128,
@@ -201,10 +201,10 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         }
     }
 
-    fn view_user_config(&self, user: AccountId) -> UserConfig {
+    fn view_account_config(&self, account: AccountId) -> AccountConfig {
         self.data::<LendingPoolStorage>()
-            .user_configs
-            .get(user)
+            .account_configs
+            .get(account)
             .unwrap_or_default()
     }
 
@@ -214,12 +214,12 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
             .get(market_rule_id)
     }
 
-    fn get_user_free_collateral_coefficient(
+    fn get_account_free_collateral_coefficient(
         &self,
-        user: AccountId,
+        account: AccountId,
     ) -> (bool, u128) {
         self.data::<LendingPoolStorage>()
-            .calculate_lending_power_of_an_account_e6(&user)
+            .calculate_lending_power_of_an_account_e6(&account)
             .unwrap()
     }
 

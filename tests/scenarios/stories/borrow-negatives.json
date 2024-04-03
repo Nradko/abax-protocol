@@ -4,14 +4,14 @@
   "note": "include cases for invalid rate modes if we introduce a common interface-like method for borrow",
   "stories": [
     {
-      "description": "User 0 deposits 1000 DAI, user 1 deposits 1 WETH as collateral and tries to borrow too much DAI (revert expected)",
+      "description": "Account 0 deposits 1000 DAI, account 1 deposits 1 WETH as collateral and tries to borrow too much DAI (revert expected)",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "DAI",
             "amount": "99999999",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -19,7 +19,7 @@
           "name": "approve",
           "args": {
             "reserve": "DAI",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -28,7 +28,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "99999999",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -38,7 +38,7 @@
             "reserve": "DAI",
             "amount": "99999999",
             "borrowRateMode": "variable",
-            "user": "1"
+            "account": "1"
           },
           "expected": "revert",
           "revertMessage": "InsufficientCollateral"

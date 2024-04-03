@@ -74,7 +74,7 @@ describe('Custom deployment', () => {
           stableTokens: [],
         },
         priceOverridesE18: { BOI: '5000000000000000000', WMN: '50000000000000000' },
-        users: getSignersWithoutOwner(signers, 5),
+        accounts: getSignersWithoutOwner(signers, 5),
         owner: signers[5],
       };
       testEnv = await deployAndConfigureSystem(customDeploymentConfig);

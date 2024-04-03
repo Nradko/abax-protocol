@@ -32,7 +32,7 @@ pub mod v_token {
     fn _balance_of(&self, owner: &AccountId) -> Balance {
         let lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
-        lending_pool.user_debt_of(self.abacus_token.underlying_asset, *owner)
+        lending_pool.account_debt_of(self.abacus_token.underlying_asset, *owner)
     }
 
     #[overrider(PSP22Internal)]

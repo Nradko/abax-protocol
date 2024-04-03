@@ -3,7 +3,7 @@ import { expect } from 'tests/setup/chai';
 import LendingPoolContract from 'typechain/contracts/lending_pool';
 import { Transfer } from 'typechain/event-types/a_token';
 import { AnyAbaxContractEvent, ContractsEvents } from 'typechain/events/enum';
-import { ReserveData, ReserveIndexes, UserReserveData } from 'typechain/types-returns/lending_pool';
+import { ReserveData, ReserveIndexes, AccountReserveData } from 'typechain/types-returns/lending_pool';
 import { getContractEventsFromTx } from '@c-forge/polkahat-chai-matchers';
 import { SignAndSendSuccessResponse } from '@c-forge/typechain-types';
 import { TokenReserve } from './make-suite';
@@ -12,7 +12,7 @@ const BN_ZERO = new BN(0);
 export interface CheckDepositParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
-  userReserveData: UserReserveData;
+  accountReserveData: AccountReserveData;
   poolBalance: BN;
   callerBalance: BN;
   aBalance: BN;
@@ -22,7 +22,7 @@ export interface CheckDepositParameters {
 export interface CheckWithdrawParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
-  userReserveData: UserReserveData;
+  accountReserveData: AccountReserveData;
   poolBalance: BN;
   callerBalance: BN;
   aBalance: BN;
@@ -33,7 +33,7 @@ export interface CheckWithdrawParameters {
 export interface CheckBorrowParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
-  userReserveData: UserReserveData;
+  accountReserveData: AccountReserveData;
   poolBalance: BN;
   callerBalance: BN;
   vBalance: BN;
@@ -44,7 +44,7 @@ export interface CheckBorrowParameters {
 export interface CheckRepayParameters {
   reserveData: ReserveData;
   reserveIndexes: ReserveIndexes;
-  userReserveData: UserReserveData;
+  accountReserveData: AccountReserveData;
   poolBalance: BN;
   callerBalance: BN;
   vBalance: BN;
@@ -65,7 +65,7 @@ export const checkDeposit = async (
   parAfter: CheckDepositParameters,
   tx: SignAndSendSuccessResponse,
 ) => {
-  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
+  const accountInterests = getAccountInterests(parBefore.accountReserveData, parAfter.reserveIndexes);
 
   await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Deposit, {
     asset: reserveToken.underlying.address,
@@ -78,14 +78,14 @@ export const checkDeposit = async (
   const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount, userInterests.supply, true, 'Deposit | AToken Transfer Event');
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount, accountInterests.supply, true, 'Deposit | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.variableBorrow, true, 'Deposit | VToken Transfer Event');
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, accountInterests.variableBorrow, true, 'Deposit | VToken Transfer Event');
 
   // ReserveData Checks
   // total_deposit <- increases on deposit
   let before = parBefore.reserveData.totalDeposit;
-  let expected = before.add(amount).add(userInterests.supply);
+  let expected = before.add(amount).add(accountInterests.supply);
   let actual = parAfter.reserveData.totalDeposit;
 
   if (expected.toString() !== actual.toString()) {
@@ -98,19 +98,19 @@ export const checkDeposit = async (
     )
     .to.equal(expected.toString());
 
-  // UserReserveData Checks
+  // AccountReserveData Checks
   // timestamp should be set to reserve data timestamp
 
   // deposit <- increases on deposit
-  before = parBefore.userReserveData.deposit;
-  expected = before.add(amount).add(userInterests.supply);
-  actual = parAfter.userReserveData.deposit;
+  before = parBefore.accountReserveData.deposit;
+  expected = before.add(amount).add(accountInterests.supply);
+  actual = parAfter.accountReserveData.deposit;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Deposit | UserReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Deposit | AccountReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
-    .soft(actual.toString(), `Deposit | UserReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`)
+    .soft(actual.toString(), `Deposit | AccountReserveData | total_deposit | before:\n expected: ${expected} \n actual: ${actual}\n`)
     .to.equal(expected.toString());
 
   // Underlying Asset Checks
@@ -141,16 +141,16 @@ export const checkDeposit = async (
   // AToken Checks
   //balance <- increase od Deposit
   before = parBefore.aBalance;
-  expected = before.add(amount).add(userInterests.supply);
+  expected = before.add(amount).add(accountInterests.supply);
   actual = parAfter.aBalance;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Deposit | AToken user Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Deposit | AToken account Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Deposit | AToken user Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Deposit | AToken account Balance | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
   expect.flushSoft();
@@ -166,10 +166,10 @@ export const checkWithdraw = async (
   parAfter: CheckWithdrawParameters,
   tx: SignAndSendSuccessResponse,
 ) => {
-  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  amount = amount.lt(parBefore.userReserveData.deposit.add(userInterests.supply))
+  const accountInterests = getAccountInterests(parBefore.accountReserveData, parAfter.reserveIndexes);
+  amount = amount.lt(parBefore.accountReserveData.deposit.add(accountInterests.supply))
     ? amount
-    : parBefore.userReserveData.deposit.add(userInterests.supply);
+    : parBefore.accountReserveData.deposit.add(accountInterests.supply);
 
   await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Withdraw, {
     asset: reserveToken.underlying.address,
@@ -182,14 +182,14 @@ export const checkWithdraw = async (
   const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount.neg(), userInterests.supply, true, 'Withdraw | AToken Transfer Event');
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, amount.neg(), accountInterests.supply, true, 'Withdraw | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.variableBorrow, true, 'Withdraw | VToken Transfer Event');
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, BN_ZERO, accountInterests.variableBorrow, true, 'Withdraw | VToken Transfer Event');
 
   // ReserveData Checks
   // total_deposit <- decreases on Withdraw
   let before = parBefore.reserveData.totalDeposit;
-  let expected = before.add(userInterests.supply).sub(amount);
+  let expected = before.add(accountInterests.supply).sub(amount);
   let actual = parAfter.reserveData.totalDeposit;
 
   if (expected.toString() !== actual.toString()) {
@@ -202,23 +202,23 @@ export const checkWithdraw = async (
     )
     .to.equal(expected.toString());
 
-  // UserReserveData Checks
+  // AccountReserveData Checks
   // timestamp should be set to reserve data timestamp
 
   // deposit <- decreases on Withdraw
-  before = parBefore.userReserveData.deposit;
-  expected = before.add(userInterests.supply).sub(amount);
-  actual = parAfter.userReserveData.deposit;
+  before = parBefore.accountReserveData.deposit;
+  expected = before.add(accountInterests.supply).sub(amount);
+  actual = parAfter.accountReserveData.deposit;
 
   if (expected.toString() !== actual.toString()) {
     console.log(
-      `Withdraw | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Withdraw | AccountReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     );
   }
   expect
     .soft(
       actual.toString(),
-      `Withdraw | UserReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Withdraw | AccountReserveData | total_deposit | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equal(expected.toString());
 
@@ -256,7 +256,7 @@ export const checkWithdraw = async (
   // // AToken Checks
   // // balance <- decrease on Withdraw
   before = parBefore.aBalance;
-  expected = before.add(userInterests.supply).sub(amount);
+  expected = before.add(accountInterests.supply).sub(amount);
   actual = parAfter.aBalance;
 
   if (expected.toString() !== actual.toString()) {
@@ -293,7 +293,7 @@ export const checkBorrow = async (
   parAfter: CheckBorrowParameters,
   tx: SignAndSendSuccessResponse,
 ) => {
-  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
+  const accountInterests = getAccountInterests(parBefore.accountReserveData, parAfter.reserveIndexes);
 
   await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Borrow, {
     asset: reserveToken.underlying.address,
@@ -306,14 +306,14 @@ export const checkBorrow = async (
   const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'Borrow | AToken Transfer Event');
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, accountInterests.supply, true, 'Borrow | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, amount, userInterests.variableBorrow, true, 'Borrow | VToken Transfer Event');
+  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, amount, accountInterests.variableBorrow, true, 'Borrow | VToken Transfer Event');
 
   // ReserveData Checks
   // total_debt <- increases on borrow
   let before = parBefore.reserveData.totalDebt;
-  let expected = before.add(userInterests.variableBorrow).add(amount);
+  let expected = before.add(accountInterests.variableBorrow).add(amount);
   let actual = parAfter.reserveData.totalDebt;
 
   if (expected.toString() !== actual.toString()) {
@@ -326,21 +326,21 @@ export const checkBorrow = async (
     )
     .to.almostDeepEqual(expected.toString());
 
-  // UserReserveData Checks
+  // AccountReserveData Checks
   // timestamp should be set to reserve data timestamp
 
   // variable_borroved <- increases on Borrow
-  before = parBefore.userReserveData.debt;
-  expected = before.add(userInterests.variableBorrow).add(amount);
-  actual = parAfter.userReserveData.debt;
+  before = parBefore.accountReserveData.debt;
+  expected = before.add(accountInterests.variableBorrow).add(amount);
+  actual = parAfter.accountReserveData.debt;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Borrow | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Borrow | AccountReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Borrow | UserReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Borrow | AccountReserveData | debt | \n before: ${before} \n amount ${amount} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
@@ -372,7 +372,7 @@ export const checkBorrow = async (
   // // VToken Checks
   // // balnce <- increase on Borrow
   before = parBefore.vBalance;
-  expected = before.add(userInterests.variableBorrow).add(amount);
+  expected = before.add(accountInterests.variableBorrow).add(amount);
   actual = parAfter.vBalance;
 
   if (expected.toString() !== actual.toString()) {
@@ -406,10 +406,10 @@ export const checkRepay = async (
   parAfter: CheckRepayParameters,
   tx: SignAndSendSuccessResponse,
 ) => {
-  const userInterests = getUserInterests(parBefore.userReserveData, parAfter.reserveIndexes);
-  const amountToUse = amountArg?.lte(parBefore.userReserveData.debt.add(userInterests.variableBorrow))
+  const accountInterests = getAccountInterests(parBefore.accountReserveData, parAfter.reserveIndexes);
+  const amountToUse = amountArg?.lte(parBefore.accountReserveData.debt.add(accountInterests.variableBorrow))
     ? amountArg
-    : parBefore.userReserveData.debt.add(userInterests.variableBorrow);
+    : parBefore.accountReserveData.debt.add(accountInterests.variableBorrow);
 
   await expect(tx).to.emitEvent(lendingPool, ContractsEvents.LendingPoolEvent.Repay, {
     asset: reserveToken.underlying.address,
@@ -422,9 +422,16 @@ export const checkRepay = async (
   const [vTokenEvents] = getContractEventsFromTx(tx, reserveToken.vToken as any, ContractsEvents.VTokenEvent.Transfer);
 
   // AToken
-  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, userInterests.supply, true, 'Repay | AToken Transfer Event');
+  checkAbacusTokenTransferEvent(aTokenEvents[0], onBehalfOf, BN_ZERO, accountInterests.supply, true, 'Repay | AToken Transfer Event');
   // VToken
-  checkAbacusTokenTransferEvent(vTokenEvents[0], onBehalfOf, amountToUse.neg(), userInterests.variableBorrow, true, 'Repay | VToken Transfer Event');
+  checkAbacusTokenTransferEvent(
+    vTokenEvents[0],
+    onBehalfOf,
+    amountToUse.neg(),
+    accountInterests.variableBorrow,
+    true,
+    'Repay | VToken Transfer Event',
+  );
 
   // ReserveData Checks
   // total_debt <- decreases on repayVariable
@@ -432,7 +439,7 @@ export const checkRepay = async (
   if (before.sub(amountToUse).lten(0))
     console.log('Repay | ReserveData | total_debt - repay of the amount would cause an underflow. No loss happens. Expecting total_debt to equal 0');
 
-  let expected = before.add(userInterests.variableBorrow).sub(amountToUse);
+  let expected = before.add(accountInterests.variableBorrow).sub(amountToUse);
   let actual = parAfter.reserveData.totalDebt;
 
   if (expected.toString() !== actual.toString()) {
@@ -445,19 +452,19 @@ export const checkRepay = async (
     )
     .to.almostEqualOrEqualNumberE12(expected.toString());
 
-  // UserReserveData Checks
+  // AccountReserveData Checks
   // variable_borroved <- decreases on Repay
-  before = parBefore.userReserveData.debt;
-  expected = before.add(userInterests.variableBorrow).sub(amountToUse);
-  actual = parAfter.userReserveData.debt;
+  before = parBefore.accountReserveData.debt;
+  expected = before.add(accountInterests.variableBorrow).sub(amountToUse);
+  actual = parAfter.accountReserveData.debt;
 
   if (expected.toString() !== actual.toString()) {
-    console.log(`Repay | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
+    console.log(`Repay | AccountReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`);
   }
   expect
     .soft(
       actual.toString(),
-      `Repay | UserReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
+      `Repay | AccountReserveData | debt | \n before: ${before} \n amount ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     )
     .to.equalUpTo1Digit(expected.toString());
 
@@ -501,17 +508,20 @@ export const checkRepay = async (
   expect.flushSoft();
 };
 
-const getUserInterests = (userReserveData: UserReserveData, reserveIndexesAfter: ReserveIndexes): Interests => {
-  const supplyInterest = userReserveData.appliedDepositIndexE18.eqn(0)
+const getAccountInterests = (accountReserveData: AccountReserveData, reserveIndexesAfter: ReserveIndexes): Interests => {
+  const supplyInterest = accountReserveData.appliedDepositIndexE18.eqn(0)
     ? new BN(0)
-    : userReserveData.deposit.mul(reserveIndexesAfter.depositIndexE18).div(userReserveData.appliedDepositIndexE18).sub(userReserveData.deposit);
+    : accountReserveData.deposit
+        .mul(reserveIndexesAfter.depositIndexE18)
+        .div(accountReserveData.appliedDepositIndexE18)
+        .sub(accountReserveData.deposit);
   if (supplyInterest !== new BN(0)) {
     supplyInterest.addn(1);
   }
 
-  const variableBorrowInterest = userReserveData.appliedDepositIndexE18.eqn(0)
+  const variableBorrowInterest = accountReserveData.appliedDepositIndexE18.eqn(0)
     ? new BN(0)
-    : userReserveData.debt.mul(reserveIndexesAfter.debtIndexE18).div(userReserveData.appliedDebtIndexE18).sub(userReserveData.debt);
+    : accountReserveData.debt.mul(reserveIndexesAfter.debtIndexE18).div(accountReserveData.appliedDebtIndexE18).sub(accountReserveData.debt);
   if (variableBorrowInterest !== new BN(0)) {
     variableBorrowInterest.addn(1);
   }
@@ -547,7 +557,7 @@ const getReserveInterests = (
 
 const checkAbacusTokenTransferEvent = (
   abacusTokenTransferEventArg: { args: AnyAbaxContractEvent } | undefined,
-  user: string,
+  account: string,
   amount: BN | number | string,
   interest: BN | number | string,
   add: boolean,
@@ -562,11 +572,11 @@ const checkAbacusTokenTransferEvent = (
       if (abacusTokenTransferEventArg === undefined) console.log(messagge + ' | not emitted');
       const abacusTokenTransferEvent = abacusTokenTransferEventArg?.args as any as Transfer;
       if (amountTransferred.isNeg()) {
-        if (abacusTokenTransferEvent?.from?.toString() !== user) console.log(messagge + ' | from');
+        if (abacusTokenTransferEvent?.from?.toString() !== account) console.log(messagge + ' | from');
         if (abacusTokenTransferEvent?.to?.toString() !== undefined) console.log(messagge + 'to');
       } else {
         if (abacusTokenTransferEvent?.from?.toString() !== undefined) console.log(messagge + ' | from');
-        if (abacusTokenTransferEvent?.to?.toString() !== user) console.log(messagge + 'to');
+        if (abacusTokenTransferEvent?.to?.toString() !== account) console.log(messagge + 'to');
       }
       if (abacusTokenTransferEvent?.value?.toString() !== amountTransferred.abs().toString()) console.log(messagge + 'value');
     }
@@ -580,11 +590,11 @@ const checkAbacusTokenTransferEvent = (
   expect(abacusTokenTransferEventArg, messagge + ' | not emitted').not.to.be.undefined;
   const abacusTokenTransferEvent = abacusTokenTransferEventArg?.args as any as Transfer;
   if (amountTransferred.isNeg()) {
-    expect.soft(abacusTokenTransferEvent?.from?.toString(), messagge + ' | from').to.equal(user);
+    expect.soft(abacusTokenTransferEvent?.from?.toString(), messagge + ' | from').to.equal(account);
     expect.soft(abacusTokenTransferEvent?.to?.toString(), messagge + 'to').to.equal(undefined);
   } else {
     expect.soft(abacusTokenTransferEvent?.from?.toString(), messagge + ' | from').to.equal(undefined);
-    expect.soft(abacusTokenTransferEvent?.to?.toString(), messagge + ' | to').to.equal(user);
+    expect.soft(abacusTokenTransferEvent?.to?.toString(), messagge + ' | to').to.equal(account);
   }
   expect.soft(abacusTokenTransferEvent?.value?.toString(), messagge + ' | value').to.equalUpTo1Digit(amountTransferred.abs().toString());
 };

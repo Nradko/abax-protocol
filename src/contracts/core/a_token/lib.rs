@@ -31,7 +31,8 @@ pub mod a_token {
     fn _balance_of(&self, owner: &AccountId) -> Balance {
         let lending_pool: LendingPoolATokenInterfaceRef =
             self.abacus_token.lending_pool.into();
-        lending_pool.user_deposit_of(self.abacus_token.underlying_asset, *owner)
+        lending_pool
+            .account_deposit_of(self.abacus_token.underlying_asset, *owner)
     }
 
     #[overrider(PSP22Internal)]

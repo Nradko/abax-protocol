@@ -13,18 +13,18 @@ import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 const PARAMETERS_ADMIN = ROLES['PARAMETERS_ADMIN'];
 makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1', (getTestEnv) => {
   let testEnv: TestEnv;
-  let users: KeyringPair[];
+  let accounts: KeyringPair[];
   let owner: KeyringPair;
-  let user: KeyringPair;
+  let account: KeyringPair;
   let parametersAdmin: KeyringPair;
   let lendingPool: LendingPoolContract;
   beforeEach('create MarketRule for Stablecoins only with id 1', async () => {
     testEnv = getTestEnv();
     lendingPool = testEnv.lendingPool;
     owner = testEnv.owner;
-    users = testEnv.users;
-    user = users[0];
-    parametersAdmin = users[6];
+    accounts = testEnv.accounts;
+    account = accounts[0];
+    parametersAdmin = accounts[6];
 
     await lendingPool.withSigner(owner).tx.grantRole(PARAMETERS_ADMIN, parametersAdmin.address);
     await lendingPool
@@ -36,83 +36,83 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
         null,
       ]);
   });
-  describe('User poses 10_000 of USDC,DAI and 1 WETH. User deposits 5_000 each stable coin and 0.5WETH and set them all as collaterals. Then user takes loan 2_500 of USDC and DAI and 0.25 of WETH. Then...', () => {
+  describe('Account poses 10_000 of USDC,DAI and 1 WETH. Account deposits 5_000 each stable coin and 0.5WETH and set them all as collaterals. Then account takes loan 2_500 of USDC and DAI and 0.25 of WETH. Then...', () => {
     let daiContract: PSP22Emitable;
     let wethContract: PSP22Emitable;
     let usdcContract: PSP22Emitable;
 
-    let daiUserBalance: BN;
-    let usdcUserBalance: BN;
-    let wethUserBalance: BN;
+    let daiAccountBalance: BN;
+    let usdcAccountBalance: BN;
+    let wethAccountBalance: BN;
 
     beforeEach('make deposits and take loans', async () => {
       daiContract = testEnv.reserves['DAI'].underlying;
       usdcContract = testEnv.reserves['USDC'].underlying;
       wethContract = testEnv.reserves['WETH'].underlying;
 
-      daiUserBalance = await convertToCurrencyDecimals(daiContract, 10000);
-      usdcUserBalance = await convertToCurrencyDecimals(usdcContract, 10000);
-      wethUserBalance = await convertToCurrencyDecimals(wethContract, 1);
+      daiAccountBalance = await convertToCurrencyDecimals(daiContract, 10000);
+      usdcAccountBalance = await convertToCurrencyDecimals(usdcContract, 10000);
+      wethAccountBalance = await convertToCurrencyDecimals(wethContract, 1);
       // mint tokens
-      await daiContract.tx.mint(user.address, daiUserBalance);
-      await usdcContract.tx.mint(user.address, usdcUserBalance);
-      await wethContract.tx.mint(user.address, wethUserBalance);
+      await daiContract.tx.mint(account.address, daiAccountBalance);
+      await usdcContract.tx.mint(account.address, usdcAccountBalance);
+      await wethContract.tx.mint(account.address, wethAccountBalance);
       // aprove lending pool
-      await daiContract.withSigner(user).tx.approve(lendingPool.address, daiUserBalance);
-      await usdcContract.withSigner(user).tx.approve(lendingPool.address, usdcUserBalance);
-      await wethContract.withSigner(user).tx.approve(lendingPool.address, wethUserBalance);
+      await daiContract.withSigner(account).tx.approve(lendingPool.address, daiAccountBalance);
+      await usdcContract.withSigner(account).tx.approve(lendingPool.address, usdcAccountBalance);
+      await wethContract.withSigner(account).tx.approve(lendingPool.address, wethAccountBalance);
       // deposit
-      await lendingPool.withSigner(user).tx.deposit(daiContract.address, user.address, daiUserBalance.divn(2), []);
-      await lendingPool.withSigner(user).tx.deposit(usdcContract.address, user.address, usdcUserBalance.divn(2), []);
-      await lendingPool.withSigner(user).tx.deposit(wethContract.address, user.address, wethUserBalance.divn(2), []);
+      await lendingPool.withSigner(account).tx.deposit(daiContract.address, account.address, daiAccountBalance.divn(2), []);
+      await lendingPool.withSigner(account).tx.deposit(usdcContract.address, account.address, usdcAccountBalance.divn(2), []);
+      await lendingPool.withSigner(account).tx.deposit(wethContract.address, account.address, wethAccountBalance.divn(2), []);
       // set as collateral
-      await lendingPool.withSigner(user).tx.setAsCollateral(daiContract.address, true);
-      await lendingPool.withSigner(user).tx.setAsCollateral(usdcContract.address, true);
-      await lendingPool.withSigner(user).tx.setAsCollateral(wethContract.address, true);
+      await lendingPool.withSigner(account).tx.setAsCollateral(daiContract.address, true);
+      await lendingPool.withSigner(account).tx.setAsCollateral(usdcContract.address, true);
+      await lendingPool.withSigner(account).tx.setAsCollateral(wethContract.address, true);
 
-      await lendingPool.withSigner(user).tx.borrow(daiContract.address, user.address, daiUserBalance.divn(4), []);
-      await lendingPool.withSigner(user).tx.borrow(usdcContract.address, user.address, usdcUserBalance.divn(4), []);
-      await lendingPool.withSigner(user).tx.borrow(wethContract.address, user.address, wethUserBalance.divn(4), []);
+      await lendingPool.withSigner(account).tx.borrow(daiContract.address, account.address, daiAccountBalance.divn(4), []);
+      await lendingPool.withSigner(account).tx.borrow(usdcContract.address, account.address, usdcAccountBalance.divn(4), []);
+      await lendingPool.withSigner(account).tx.borrow(wethContract.address, account.address, wethAccountBalance.divn(4), []);
     });
 
-    it('User tries to switch market mode to stablecoin only mode. Fails with Err(LendingPoolError::RuleCollateralDisable)', async () => {
-      const queryRes = (await lendingPool.withSigner(user).query.chooseMarketRule(1)).value.ok;
+    it('Account tries to switch market mode to stablecoin only mode. Fails with Err(LendingPoolError::RuleCollateralDisable)', async () => {
+      const queryRes = (await lendingPool.withSigner(account).query.chooseMarketRule(1)).value.ok;
       expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.RuleCollateralDisable());
     });
 
-    describe(`User turns off WETH as uncollateral. Then`, () => {
+    describe(`Account turns off WETH as uncollateral. Then`, () => {
       beforeEach('removes collateral', async () => {
-        await lendingPool.withSigner(user).tx.setAsCollateral(wethContract.address, false);
+        await lendingPool.withSigner(account).tx.setAsCollateral(wethContract.address, false);
       });
-      it('User tries to switch market mode to stablecoin only mode. Fails with Err(LendingPoolError::RuleBorrowDisable)', async () => {
-        const queryRes = (await lendingPool.withSigner(user).query.chooseMarketRule(1)).value.ok;
+      it('Account tries to switch market mode to stablecoin only mode. Fails with Err(LendingPoolError::RuleBorrowDisable)', async () => {
+        const queryRes = (await lendingPool.withSigner(account).query.chooseMarketRule(1)).value.ok;
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.RuleBorrowDisable());
       });
-      describe(`User repays WETH debt. Then`, () => {
+      describe(`Account repays WETH debt. Then`, () => {
         beforeEach('repays WETH debt', async () => {
-          const q = await lendingPool.withSigner(user).query.repay(wethContract.address, user.address, MAX_U128, []);
-          await lendingPool.withSigner(user).tx.repay(wethContract.address, user.address, MAX_U128, []);
+          const q = await lendingPool.withSigner(account).query.repay(wethContract.address, account.address, MAX_U128, []);
+          await lendingPool.withSigner(account).tx.repay(wethContract.address, account.address, MAX_U128, []);
         });
-        it('User tries to switch market mode and succeeds as user has enough collateral. Event should be emitted.', async () => {
-          const txRes = await lendingPool.withSigner(user).tx.chooseMarketRule(1);
+        it('Account tries to switch market mode and succeeds as account has enough collateral. Event should be emitted.', async () => {
+          const txRes = await lendingPool.withSigner(account).tx.chooseMarketRule(1);
           expect(stringifyNumericProps(txRes.events)).to.deep.equal([
             {
               name: 'MarketRuleChosen',
               args: {
-                user: user.address,
+                account: account.address,
                 marketRuleId: '1',
               },
             },
           ]);
-          const userCollateral = (await lendingPool.query.getUserFreeCollateralCoefficient(user.address)).value.ok!;
-          expect(userCollateral[0]).to.be.equal(true);
+          const accountCollateral = (await lendingPool.query.getAccountFreeCollateralCoefficient(account.address)).value.ok!;
+          expect(accountCollateral[0]).to.be.equal(true);
         });
 
-        describe(`User changes market rule to stablecoins only. Then...`, () => {
+        describe(`Account changes market rule to stablecoins only. Then...`, () => {
           beforeEach('changing market rule', async () => {
-            await lendingPool.withSigner(user).tx.chooseMarketRule(1);
+            await lendingPool.withSigner(account).tx.chooseMarketRule(1);
           });
-          it(`After user chooses stablecoin market ParametersAdmin decreases collateralCoefficient of USDC to 0. User gets undercollateralized`, async () => {
+          it(`After account chooses stablecoin market ParametersAdmin decreases collateralCoefficient of USDC to 0. Account gets undercollateralized`, async () => {
             const txRes = await lendingPool
               .withSigner(parametersAdmin)
               .tx.modifyAssetRule(1, usdcContract.address, { collateralCoefficientE6: 0, borrowCoefficientE6: 1030000, penaltyE6: 15000 });
@@ -128,15 +128,16 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
                 },
               },
             ]);
-            const userCollateral = (await lendingPool.query.getUserFreeCollateralCoefficient(user.address)).value.ok!;
-            expect(userCollateral[0]).to.be.equal(false);
+            const accountCollateral = (await lendingPool.query.getAccountFreeCollateralCoefficient(account.address)).value.ok!;
+            expect(accountCollateral[0]).to.be.equal(false);
           });
-          it('Users tries to set WETH as collateral and fails with Err(LendingPoolError::RuleCollateralDisable))', async () => {
-            const res = (await lendingPool.withSigner(user).query.setAsCollateral(wethContract.address, true)).value.ok;
+          it('Accounts tries to set WETH as collateral and fails with Err(LendingPoolError::RuleCollateralDisable))', async () => {
+            const res = (await lendingPool.withSigner(account).query.setAsCollateral(wethContract.address, true)).value.ok;
             expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.RuleCollateralDisable());
           });
-          it('Users tries to borrow WETH  fails with Err(LendingPoolError::RuleBorrowDisable))', async () => {
-            const res = (await lendingPool.withSigner(user).query.borrow(wethContract.address, user.address, wethUserBalance.divn(4), [])).value.ok;
+          it('Accounts tries to borrow WETH  fails with Err(LendingPoolError::RuleBorrowDisable))', async () => {
+            const res = (await lendingPool.withSigner(account).query.borrow(wethContract.address, account.address, wethAccountBalance.divn(4), []))
+              .value.ok;
             expect(res).to.have.deep.property('err', LendingPoolErrorBuilder.RuleBorrowDisable());
           });
         });

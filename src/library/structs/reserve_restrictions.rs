@@ -1,6 +1,6 @@
 use pendzl::traits::Balance;
 
-use super::{ReserveData, UserReserveData};
+use super::{AccountReserveData, ReserveData};
 
 /// Stores restrictions made on the reserve
 #[derive(Debug, scale::Encode, scale::Decode, Default, Copy, Clone)]
@@ -13,12 +13,12 @@ pub struct ReserveRestrictions {
     pub maximal_total_deposit: Option<Balance>,
     /// maximal allowad total debt
     pub maximal_total_debt: Option<Balance>,
-    /// minimal collateral that can be used by each user.
-    /// if user's collateral drops below this value (during withdraw) then it will be automatically turned off (as collateral).
-    /// it may happen during liquidation that users collateral will drop below this value.
+    /// minimal collateral that can be used by each account.
+    /// if account's collateral drops below this value (during withdraw) then it will be automatically turned off (as collateral).
+    /// it may happen during liquidation that accounts collateral will drop below this value.
     pub minimal_collateral: Balance,
-    /// minimal debt that can be taken and maintained by each user.
-    /// At any time user's debt can not bee smaller than minimal debt.
+    /// minimal debt that can be taken and maintained by each account.
+    /// At any time account's debt can not bee smaller than minimal debt.
     pub minimal_debt: Balance,
 }
 
@@ -82,10 +82,10 @@ impl ReserveRestrictions {
 
     pub fn ensure_debt_exceeds_minimum(
         &self,
-        user_reserve_data: &UserReserveData,
+        account_reserve_data: &AccountReserveData,
     ) -> Result<(), ReserveRestrictionsError> {
-        if user_reserve_data.debt != 0
-            && user_reserve_data.debt < self.minimal_debt
+        if account_reserve_data.debt != 0
+            && account_reserve_data.debt < self.minimal_debt
         {
             return Err(ReserveRestrictionsError::MinimalDebt);
         }
@@ -94,9 +94,9 @@ impl ReserveRestrictions {
 
     pub fn ensure_collateral_exceeds_minimum(
         &self,
-        user_reserve_data: &UserReserveData,
+        account_reserve_data: &AccountReserveData,
     ) -> Result<(), ReserveRestrictionsError> {
-        if user_reserve_data.deposit < self.minimal_collateral {
+        if account_reserve_data.deposit < self.minimal_collateral {
             return Err(ReserveRestrictionsError::MinimalCollateral);
         }
         Ok(())

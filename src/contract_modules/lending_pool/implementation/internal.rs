@@ -28,7 +28,7 @@ pub fn _check_amount_not_zero(amount: u128) -> Result<(), LendingPoolError> {
 }
 pub fn _emit_abacus_token_transfer_event(
     abacus_token: &AccountId,
-    user: &AccountId,
+    account: &AccountId,
     amount_transferred: i128,
 ) -> Result<(), PSP22Error> {
     let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
@@ -36,13 +36,13 @@ pub fn _emit_abacus_token_transfer_event(
         Ordering::Greater => abacus_token_contract.emit_transfer_events(vec![
             TransferEventData {
                 from: None,
-                to: Some(*user),
+                to: Some(*account),
                 amount: u128::try_from(amount_transferred).unwrap(), // Ordering::Greater => amount is greater than zero
             },
         ]),
         Ordering::Less => abacus_token_contract.emit_transfer_events(vec![
             TransferEventData {
-                from: Some(*user),
+                from: Some(*account),
                 to: None,
                 amount: u128::try_from(amount_transferred.neg()).unwrap(), // Ordering::Less => amount is less than zero => neg() is positive
             },
@@ -52,7 +52,7 @@ pub fn _emit_abacus_token_transfer_event(
 }
 
 pub struct TransferEventDataSimplified {
-    pub user: AccountId,
+    pub account: AccountId,
     pub amount: i128,
 }
 
@@ -65,12 +65,12 @@ pub fn _emit_abacus_token_transfer_events(
         if event.amount > 0 {
             events.push(TransferEventData {
                 from: None,
-                to: Some(event.user),
+                to: Some(event.account),
                 amount: event.amount as u128,
             })
         } else {
             events.push(TransferEventData {
-                from: Some(event.user),
+                from: Some(event.account),
                 to: None,
                 amount: u128::try_from(event.amount.neg()).unwrap(), // event.amount is less than zero => neg() is positive
             })
@@ -83,27 +83,27 @@ pub fn _emit_abacus_token_transfer_events(
 
 pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
     abacus_token: &AccountId,
-    user: &AccountId,
+    account: &AccountId,
     amount_transferred: i128,
     spender: &AccountId,
     decrease_alowance_by: Balance,
 ) -> Result<(), PSP22Error> {
-    if *spender == *user {
+    if *spender == *account {
         _emit_abacus_token_transfer_event(
             abacus_token,
-            user,
+            account,
             amount_transferred,
         )
     } else {
         let event = if amount_transferred > 0 {
             TransferEventData {
                 from: None,
-                to: Some(*user),
+                to: Some(*account),
                 amount: amount_transferred as u128,
             }
         } else {
             TransferEventData {
-                from: Some(*user),
+                from: Some(*account),
                 to: None,
                 amount: amount_transferred as u128,
             }
@@ -112,7 +112,7 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
 
         abacus_token_contract.emit_transfer_event_and_decrease_allowance(
             event,
-            *user,
+            *account,
             *spender,
             decrease_alowance_by,
         )

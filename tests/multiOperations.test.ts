@@ -16,7 +16,7 @@ makeSuite('Multi operations', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
-  let users: KeyringPair[];
+  let accounts: KeyringPair[];
   let alice: KeyringPair;
   let bob: KeyringPair;
   let charlie: KeyringPair;
@@ -34,11 +34,11 @@ makeSuite('Multi operations', (getTestEnv) => {
     testEnv = getTestEnv();
     lendingPool = testEnv.lendingPool;
     reserves = testEnv.reserves;
-    users = testEnv.users;
-    alice = users[0];
-    bob = users[1];
-    charlie = users[2];
-    dave = users[3];
+    accounts = testEnv.accounts;
+    alice = accounts[0];
+    bob = accounts[1];
+    charlie = accounts[2];
+    dave = accounts[3];
     daiContract = reserves['DAI'].underlying;
     usdcContract = reserves['USDC'].underlying;
     wethContract = reserves['WETH'].underlying;
