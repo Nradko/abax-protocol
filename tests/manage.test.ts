@@ -15,20 +15,20 @@ makeSuite('Menage tests', (getTestEnv) => {
   const adminOf: Record<string, KeyringPair> = {};
   const ROLES_NAMES = ROLE_NAMES.filter((name) => name !== 'FLASH_BORROWER');
   let testEnv: TestEnv;
-  let users: KeyringPair[];
+  let accounts: KeyringPair[];
   let owner: KeyringPair;
   let lendingPool: LendingPoolContract;
   beforeEach('grant roles', async () => {
     testEnv = getTestEnv();
     lendingPool = testEnv.lendingPool;
     owner = testEnv.owner;
-    users = testEnv.users;
-    adminOf['ROLE_ADMIN'] = users[0];
-    adminOf['ASSET_LISTING_ADMIN'] = users[1];
-    adminOf['PARAMETERS_ADMIN'] = users[2];
-    adminOf['STABLECOIN_RATE_ADMIN'] = users[3];
-    adminOf['EMERGENCY_ADMIN'] = users[4];
-    adminOf['TREASURY'] = users[5];
+    accounts = testEnv.accounts;
+    adminOf['ROLE_ADMIN'] = accounts[0];
+    adminOf['ASSET_LISTING_ADMIN'] = accounts[1];
+    adminOf['PARAMETERS_ADMIN'] = accounts[2];
+    adminOf['STABLECOIN_RATE_ADMIN'] = accounts[3];
+    adminOf['EMERGENCY_ADMIN'] = accounts[4];
+    adminOf['TREASURY'] = accounts[5];
 
     for (const role_name of ROLES_NAMES.filter((role) => role !== 'ROLE_ADMIN')) {
       const role = ROLES[role_name];
@@ -607,7 +607,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       to: '',
     };
     beforeEach(() => {
-      PARAMS.to = users[4].address;
+      PARAMS.to = accounts[4].address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
       const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));

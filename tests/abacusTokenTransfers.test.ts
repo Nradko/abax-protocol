@@ -18,7 +18,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
-  let users: KeyringPair[];
+  let accounts: KeyringPair[];
   let alice: KeyringPair;
   let bob: KeyringPair;
   let charlie: KeyringPair;
@@ -34,11 +34,11 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
     testEnv = getTestEnv();
     lendingPool = testEnv.lendingPool;
     reserves = testEnv.reserves;
-    users = testEnv.users;
-    alice = users[0];
-    bob = users[1];
-    charlie = users[2];
-    dave = users[3];
+    accounts = testEnv.accounts;
+    alice = accounts[0];
+    bob = accounts[1];
+    charlie = accounts[2];
+    dave = accounts[3];
     daiContract = reserves['DAI'].underlying;
     usdcContract = reserves['USDC'].underlying;
     wethContract = reserves['WETH'].underlying;
@@ -108,8 +108,8 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       ]);
       const aliceBalanceAfter = (await aTokenDaiContract.query.balanceOf(alice.address)).value.ok!;
       const bobBalanceAfter = (await aTokenDaiContract.query.balanceOf(bob.address)).value.ok!;
-      const aliceDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, alice.address)).value.ok!;
-      const bobDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
+      const aliceDepositAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, alice.address)).value.ok!;
+      const bobDepositAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, bob.address)).value.ok!;
 
       expect.soft(aliceBalanceAfter.toString()).to.equal('0');
       expect.soft(aliceDepositAfter.deposit.toString()).to.equal('0');
@@ -131,8 +131,8 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       const txRes = await tx;
       const aliceBalanceAfter = (await aTokenDaiContract.query.balanceOf(alice.address)).value.ok!;
       const bobBalanceAfter = (await aTokenDaiContract.query.balanceOf(bob.address)).value.ok!;
-      const aliceDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, alice.address)).value.ok!;
-      const bobDepositAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, bob.address)).value.ok!;
+      const aliceDepositAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, alice.address)).value.ok!;
+      const bobDepositAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, bob.address)).value.ok!;
 
       expect.soft(aliceBalanceAfter.toString()).to.equal('0');
       expect.soft(aliceDepositAfter.deposit.toString()).to.equal('0');

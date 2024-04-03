@@ -3,14 +3,14 @@
   "description": "Test cases for the deposit function.",
   "stories": [
     {
-      "description": "User 0 Deposits 1000 DAI in an empty reserve",
+      "description": "Account 0 Deposits 1000 DAI in an empty reserve",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "DAI",
             "amount": "1000",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -18,7 +18,7 @@
           "name": "approve",
           "args": {
             "reserve": "DAI",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -27,21 +27,21 @@
           "args": {
             "reserve": "DAI",
             "amount": "1000",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         }
       ]
     },
     {
-      "description": "User 1 deposits 1000 DAI after user 0",
+      "description": "Account 1 deposits 1000 DAI after account 0",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "DAI",
             "amount": "1000",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -49,7 +49,7 @@
           "name": "approve",
           "args": {
             "reserve": "DAI",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -58,21 +58,21 @@
           "args": {
             "reserve": "DAI",
             "amount": "1000",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         }
       ]
     },
     {
-      "description": "User 0 deposits 1000 USDC in an empty reserve",
+      "description": "Account 0 deposits 1000 USDC in an empty reserve",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "USDC",
             "amount": "1000",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -80,7 +80,7 @@
           "name": "approve",
           "args": {
             "reserve": "USDC",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -89,21 +89,21 @@
           "args": {
             "reserve": "USDC",
             "amount": "1000",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         }
       ]
     },
     {
-      "description": "User 1 deposits 1000 USDC after user 0",
+      "description": "Account 1 deposits 1000 USDC after account 0",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "USDC",
             "amount": "1000",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -111,7 +111,7 @@
           "name": "approve",
           "args": {
             "reserve": "USDC",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -120,21 +120,21 @@
           "args": {
             "reserve": "USDC",
             "amount": "1000",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         }
       ]
     },
     {
-      "description": "User 0 deposits 1 WETH in an empty reserve",
+      "description": "Account 0 deposits 1 WETH in an empty reserve",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -142,7 +142,7 @@
           "name": "approve",
           "args": {
             "reserve": "WETH",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -151,21 +151,21 @@
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         }
       ]
     },
     {
-      "description": "User 1 deposits 0 WETH (revert expected)",
+      "description": "Account 1 deposits 0 WETH (revert expected)",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -174,7 +174,7 @@
           "args": {
             "reserve": "WETH",
             "amount": "0",
-            "user": "1"
+            "account": "1"
           },
           "expected": "revert",
           "revertMessage": "AmountNotGreaterThanZero"
@@ -182,14 +182,14 @@
       ]
     },
     {
-      "description": "User 1 deposits 0 DAI",
+      "description": "Account 1 deposits 0 DAI",
       "actions": [
         {
           "name": "deposit",
           "args": {
             "reserve": "DAI",
             "amount": "0",
-            "user": "1"
+            "account": "1"
           },
           "expected": "revert",
           "revertMessage": "AmountNotGreaterThanZero"
@@ -197,14 +197,14 @@
       ]
     },
     {
-      "description": "User 1 deposits 1 WETH after user 0",
+      "description": "Account 1 deposits 1 WETH after account 0",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -213,7 +213,7 @@
           "name": "approve",
           "args": {
             "reserve": "WETH",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -222,21 +222,21 @@
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         }
       ]
     },
     {
-      "description": "User 1 deposits 100 DAI on behalf of user 3",
+      "description": "Account 1 deposits 100 DAI on behalf of account 3",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "DAI",
             "amount": "100",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -244,7 +244,7 @@
           "name": "approve",
           "args": {
             "reserve": "DAI",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -253,7 +253,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "100",
-            "user": "1",
+            "account": "1",
             "onBehalfOf": "3"
           },
           "expected": "success"
@@ -262,14 +262,14 @@
     },
 
     {
-      "description": "User 1 deposits 200 DAI on behalf of user 2, user 2 tries to borrow 0.1 WETH",
+      "description": "Account 1 deposits 200 DAI on behalf of account 2, account 2 tries to borrow 0.1 WETH",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -277,7 +277,7 @@
           "name": "approve",
           "args": {
             "reserve": "WETH",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -286,7 +286,7 @@
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -295,7 +295,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "200",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -303,7 +303,7 @@
           "name": "approve",
           "args": {
             "reserve": "DAI",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -312,7 +312,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "200",
-            "user": "1",
+            "account": "1",
             "onBehalfOf": "2"
           },
           "expected": "success"
@@ -322,7 +322,7 @@
           "args": {
             "reserve": "DAI",
             "useAsCollateral": "true",
-            "user": "2"
+            "account": "2"
           },
           "expected": "success"
         },
@@ -332,21 +332,21 @@
             "reserve": "WETH",
             "amount": "0.1",
             "borrowRateMode": "variable",
-            "user": "2"
+            "account": "2"
           },
           "expected": "success"
         }
       ]
     },
     {
-      "description": "User 1 deposits 100 DAI on behalf of user 2, user 1 tries to borrow 0.1 WETH on behalf of user 2 (no allowance given)",
+      "description": "Account 1 deposits 100 DAI on behalf of account 2, account 1 tries to borrow 0.1 WETH on behalf of account 2 (no allowance given)",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -354,7 +354,7 @@
           "name": "approve",
           "args": {
             "reserve": "WETH",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -363,7 +363,7 @@
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -372,7 +372,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "200",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -380,7 +380,7 @@
           "name": "approve",
           "args": {
             "reserve": "DAI",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -389,7 +389,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "200",
-            "user": "1",
+            "account": "1",
             "onBehalfOf": "2"
           },
           "expected": "success"
@@ -400,7 +400,7 @@
             "reserve": "WETH",
             "amount": "0.1",
             "borrowRateMode": "variable",
-            "user": "1",
+            "account": "1",
             "onBehalfOf": "2"
           },
           "expected": "revert"
@@ -408,14 +408,14 @@
       ]
     },
     {
-      "description": "User 1 deposits 100 DAI on behalf of user 2, user 1 tries to borrow 0.1 WETH on behalf of user 2 (allowance given)",
+      "description": "Account 1 deposits 100 DAI on behalf of account 2, account 1 tries to borrow 0.1 WETH on behalf of account 2 (allowance given)",
       "actions": [
         {
           "name": "mint",
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -423,7 +423,7 @@
           "name": "approve",
           "args": {
             "reserve": "WETH",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -432,7 +432,7 @@
           "args": {
             "reserve": "WETH",
             "amount": "1",
-            "user": "0"
+            "account": "0"
           },
           "expected": "success"
         },
@@ -441,7 +441,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "200",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -449,7 +449,7 @@
           "name": "approve",
           "args": {
             "reserve": "DAI",
-            "user": "1"
+            "account": "1"
           },
           "expected": "success"
         },
@@ -458,7 +458,7 @@
           "args": {
             "reserve": "DAI",
             "amount": "200",
-            "user": "1",
+            "account": "1",
             "onBehalfOf": "2"
           },
           "expected": "success"
@@ -468,7 +468,7 @@
           "args": {
             "reserve": "DAI",
             "useAsCollateral": "true",
-            "user": "2"
+            "account": "2"
           },
           "expected": "success"
         },
@@ -477,8 +477,8 @@
           "args": {
             "reserve": "WETH",
             "amount": "1000000000000",
-            "user": "2",
-            "targetUser": "1",
+            "account": "2",
+            "targetAccount": "1",
             "lendingToken": "VToken"
           },
           "expected": "success"
@@ -489,7 +489,7 @@
             "reserve": "WETH",
             "amount": "0.1",
             "borrowRateMode": "variable",
-            "user": "1",
+            "account": "1",
             "onBehalfOf": "2"
           },
           "expected": "success"

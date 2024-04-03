@@ -40,8 +40,10 @@ pub trait LendingPoolDepositImpl:
         let res = self
             .data::<LendingPoolStorage>()
             .account_for_account_actions(&on_behalf_of, &mut actions)?;
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
-            res.first().unwrap();
+        let (
+            account_accumulated_deposit_interest,
+            account_accumulated_debt_interest,
+        ) = res.first().unwrap();
         //// TOKEN TRANSFERS
         self._transfer_in(
             &asset,
@@ -58,7 +60,7 @@ pub trait LendingPoolDepositImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            (user_accumulated_deposit_interest
+            (account_accumulated_deposit_interest
                 .checked_add(amount)
                 .ok_or(MathError::Overflow)?) as i128,
         )?;
@@ -66,7 +68,7 @@ pub trait LendingPoolDepositImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.v_token_address,
             &on_behalf_of,
-            *user_accumulated_debt_interest as i128,
+            *account_accumulated_debt_interest as i128,
         )?;
 
         //// EVENT
@@ -96,8 +98,10 @@ pub trait LendingPoolDepositImpl:
         let res = self
             .data::<LendingPoolStorage>()
             .account_for_account_actions(&on_behalf_of, &mut actions)?;
-        let (user_accumulated_deposit_interest, user_accumulated_debt_interest) =
-            res.first().unwrap();
+        let (
+            account_accumulated_deposit_interest,
+            account_accumulated_debt_interest,
+        ) = res.first().unwrap();
 
         //// TOKEN TRANSFERS
         self._transfer_out(
@@ -116,7 +120,7 @@ pub trait LendingPoolDepositImpl:
         _emit_abacus_token_transfer_event_and_decrease_allowance(
             &abacus_tokens.a_token_address,
             &on_behalf_of,
-            (*user_accumulated_deposit_interest as i128)
+            (*account_accumulated_deposit_interest as i128)
                 .overflowing_sub(actions[0].args.amount as i128)
                 .0,
             &(Self::env().caller()),
@@ -126,7 +130,7 @@ pub trait LendingPoolDepositImpl:
         _emit_abacus_token_transfer_event(
             &abacus_tokens.v_token_address,
             &on_behalf_of,
-            *user_accumulated_debt_interest as i128,
+            *account_accumulated_debt_interest as i128,
         )?;
 
         //// EVENT

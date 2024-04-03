@@ -24,11 +24,11 @@
 //   const feesD6 = [0, 100000];
 //   for (const feeD6 of feesD6) {
 //     describe(`USDC is going to be used as collateral. USDA is going to be borrowed and has feeE6 = ${feeD6}. And ...
-//     1 milion of USDA is supplied by user1 and 1 milion of USDC is supplied by user2. Then ...`, () => {
+//     1 milion of USDA is supplied by account1 and 1 milion of USDC is supplied by account2. Then ...`, () => {
 //       let testEnv: TestEnv;
-//       let user1: KeyringPair;
-//       let user2: KeyringPair;
-//       let user3: KeyringPair;
+//       let account1: KeyringPair;
+//       let account2: KeyringPair;
+//       let account3: KeyringPair;
 //       let lendingPool: LendingPoolContract;
 //       let usdcContract: PSP22Emitable;
 //       let usdaContract: PSP22Emitable;
@@ -59,25 +59,25 @@
 //           ],
 //           priceOverridesE8: { USDC: E8, USDA: E8 },
 //           owner: getSigners()[0],
-//           users: getSignersWithoutOwner(getSigners(), 0),
+//           accounts: getSignersWithoutOwner(getSigners(), 0),
 //         };
 //         testEnv = await deployAndConfigureSystem(customDeploymentConfig);
 //         millionUsda = new BN(10).pow(new BN(6 + testEnv.reserves['USDA'].decimals));
 //         millionUsdc = new BN(10).pow(new BN(6 + testEnv.reserves['USDC'].decimals));
 //         lendingPool = testEnv.lendingPool;
 //         blockTimestampProvider = testEnv.blockTimestampProvider;
-//         user1 = testEnv.users[0];
-//         user2 = testEnv.users[1];
-//         user3 = testEnv.users[2];
+//         account1 = testEnv.accounts[0];
+//         account2 = testEnv.accounts[1];
+//         account3 = testEnv.accounts[2];
 //         usdcContract = testEnv.reserves['USDC'].underlying;
 //         usdaContract = testEnv.reserves['USDA'].underlying;
 
-//         await usdaContract.tx.mint(user1.address, millionUsda);
-//         await usdaContract.withSigner(user1).tx.approve(lendingPool.address, millionUsda);
-//         await lendingPool.withSigner(user1).tx.deposit(usdaContract.address, user1.address, millionUsda, []);
-//         await usdcContract.tx.mint(user2.address, millionUsdc);
-//         await usdcContract.withSigner(user2).tx.approve(lendingPool.address, millionUsdc);
-//         await lendingPool.withSigner(user2).tx.deposit(usdcContract.address, user2.address, millionUsdc, []);
+//         await usdaContract.tx.mint(account1.address, millionUsda);
+//         await usdaContract.withSigner(account1).tx.approve(lendingPool.address, millionUsda);
+//         await lendingPool.withSigner(account1).tx.deposit(usdaContract.address, account1.address, millionUsda, []);
+//         await usdcContract.tx.mint(account2.address, millionUsdc);
+//         await usdcContract.withSigner(account2).tx.approve(lendingPool.address, millionUsdc);
+//         await lendingPool.withSigner(account2).tx.deposit(usdcContract.address, account2.address, millionUsdc, []);
 //       });
 
 //       describe(' Then 10000 seconds passes and reserves are updated. Then ... ', () => {
@@ -120,11 +120,11 @@
 //         });
 //       });
 
-//       describe.only(`User2 borrows 0.5 milion of USDA against his USDC. And ...
+//       describe.only(`Account2 borrows 0.5 milion of USDA against his USDC. And ...
 //       10000 seconds passes and reserves are updated. Then ... `, () => {
 //         beforeEach('', async () => {
-//           await lendingPool.withSigner(user2).tx.setAsCollateral(usdcContract.address, true);
-//           await lendingPool.withSigner(user2).tx.borrow(usdaContract.address, user2.address, millionUsda.divn(2), [0]);
+//           await lendingPool.withSigner(account2).tx.setAsCollateral(usdcContract.address, true);
+//           await lendingPool.withSigner(account2).tx.borrow(usdaContract.address, account2.address, millionUsda.divn(2), [0]);
 //           await blockTimestampProvider.tx.increaseBlockTimestamp(MIN100);
 //           await lendingPool.query.accumulateInterest(usdaContract.address);
 //           await lendingPool.query.accumulateInterest(usdcContract.address);
@@ -166,11 +166,11 @@
 //         });
 
 //         // it('TakeProtocolIncome should fail for not an owner', async () => {
-//         //   await lendingPool.withSigner(user1).takeProtocolIncome([],user1);
+//         //   await lendingPool.withSigner(account1).takeProtocolIncome([],account1);
 //         // });
 
-//         // it('TakeProtocolIncome should succed for an owner and transfer tokens X of USDA to the user3', async () => {
-//         //   await lendingPool.withSigner(owner).takeProtocolIncome([], user3);
+//         // it('TakeProtocolIncome should succed for an owner and transfer tokens X of USDA to the account3', async () => {
+//         //   await lendingPool.withSigner(owner).takeProtocolIncome([], account3);
 
 //         //   expect.flushSoft();
 //         // });

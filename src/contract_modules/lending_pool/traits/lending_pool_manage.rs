@@ -48,8 +48,8 @@ pub trait LendingPoolManage {
     /// * `asset_rules' - `asset`'s AssetRules that will be used in default market rule (id = 0).
     /// * `maximal_total_deposit` - maximal allowed total deposit. None for uncapped.
     /// * `maximal_total_debt` - maximal allowed total debt. None for uncapped.
-    /// * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
-    /// * `minimal_debt` - the minimal possible debt that can be taken by user.
+    /// * `minimal_collateral` - the required minimal deposit of the asset by account to turn asset to be collateral.
+    /// * `minimal_debt` - the minimal possible debt that can be taken by account.
     /// * `interest_rate_model` - targetted debt rates at utilization of 68%, 84%, 92%, 96%, 98%, 99% 100%
     /// * `income_for_suppliers_part_e6` - indicates which part of an income should suppliers be paid - in E6 notation (multiplied by 10^6)
     ///
@@ -128,8 +128,8 @@ pub trait LendingPoolManage {
     ///  * `asset` - `AccountId` of the registered asset
     ///  * `maximal_total_deposit` - maximal allowed total deposit, If exceeded no more deposits are accepted. None for uncapped total deposit.
     ///  * `maximal_total_debt` - maximal allowed total debt, If exceeded no more borrows are accepted. None for uncapped total debt.
-    ///  * `minimal_collateral` - the required minimal deposit of the asset by user to turn asset to be collateral.
-    ///  * `minimal_debt` - the minimal possible debt that can be taken by user.
+    ///  * `minimal_collateral` - the required minimal deposit of the asset by account to turn asset to be collateral.
+    ///  * `minimal_debt` - the minimal possible debt that can be taken by account.
     ///
     /// # Errors
     /// * `AccessControl::MisingRole` returned if the caller is not a PARAMETERS_ADMIN.

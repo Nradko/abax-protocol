@@ -68,11 +68,11 @@ const selectedScenarios: string[] = [];
 const skipScenarios = false;
 ```
 
-Example 2: Apply `only` to scenario titled `User 1 deposits 200 DAI on behalf of user 2, user 2 tries to borrow 0.1 WETH`
+Example 2: Apply `only` to scenario titled `Account 1 deposits 200 DAI on behalf of account 2, account 2 tries to borrow 0.1 WETH`
 
 ```
 const selectedFiles: string[] = [];
-const selectedScenarios: string[] = ['User 1 deposits 200 DAI on behalf of user 2, user 2 tries to borrow 0.1 WETH'];
+const selectedScenarios: string[] = ['Account 1 deposits 200 DAI on behalf of account 2, account 2 tries to borrow 0.1 WETH'];
 const skipScenarios = false;
 ```
 

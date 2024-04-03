@@ -42,7 +42,7 @@ pub enum LendingPoolError {
     RuleBorrowDisable,
     /// returned if one tries to use as colalteral an asset that id not allowed to be borrowed based on the market rule chosen by one.
     RuleCollateralDisable,
-    /// returned if after the action user would become undercollaterized
+    /// returned if after the action account would become undercollaterized
     InsufficientCollateral,
     /// returned if one is trying to transfer a debt one doesn't have.
     InsufficientDebt,

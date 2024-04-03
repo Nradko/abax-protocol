@@ -18,7 +18,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
   let lendingPool: LendingPoolContract;
   let oracle: DiaOracle;
   let reserves: TestEnvReserves;
-  let users: KeyringPair[];
+  let accounts: KeyringPair[];
   let supplier: KeyringPair;
   let borrower: KeyringPair;
   let liquidator: KeyringPair;
@@ -28,10 +28,10 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
     lendingPool = testEnv.lendingPool;
     reserves = testEnv.reserves;
     oracle = testEnv.oracle;
-    users = testEnv.users;
-    supplier = users[0];
-    borrower = users[1];
-    liquidator = users[2];
+    accounts = testEnv.accounts;
+    supplier = accounts[0];
+    borrower = accounts[1];
+    liquidator = accounts[2];
   });
 
   describe('Borrower deposits WETH (1WETH = 1500$) and borrows (variable) 1000 DAI (1DAI = 1$). Then ...', () => {
@@ -113,7 +113,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         await expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.NothingToRepay());
       });
 
-      it('liquidator choses a reserve to take from that the user has not marked as collaterall - liquidation fails', async () => {
+      it('liquidator choses a reserve to take from that the account has not marked as collaterall - liquidation fails', async () => {
         const queryRes = (
           await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [])
         ).value.ok;
@@ -121,9 +121,9 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidator choses a minimum for repaid token that is too big (greater than 871093750000000000000000000) - liquidation fails', async () => {
-        // for each 1 DAI user should recieve  1 / 1280 ETH
+        // for each 1 DAI account should recieve  1 / 1280 ETH
         // DAI has 6 decimals and ETH has 18 so
-        // for each 1 absDAI user should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
+        // for each 1 absDAI account should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
         // above didnt include liquidation penalty which is (1 + 0.1 (WETH) + 0.015(DAI)) = 1.115
         // in total for one absDAI liquidator should receive 7.8125 * 10^14 * 1.115 = 8,7109375 * 10^8
         // the parameter is _e18 so maximal accepted parameter is 8,7109375 * 10^26
@@ -139,8 +139,8 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       it('liquidation succeeds', async () => {
         const daiReserveDataBefore = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceBefore = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
-        // const borrowerData = await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address);
-        const borrowersDAIDataBefore = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address)).value.ok!;
+        // const borrowerData = await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, borrower.address);
+        const borrowersDAIDataBefore = (await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, borrower.address)).value.ok!;
 
         const res = await lendingPool
           .withSigner(liquidator)
@@ -154,15 +154,18 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         ).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         //Assert
-        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value
+        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getAccountFreeCollateralCoefficient(borrower.address)).value
           .ok!;
-        const borrowersDAIDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address)).value.ok!;
-        const borrowersWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, borrower.address)).value.ok!;
-        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, liquidator.address)).value.ok!;
+        const borrowersDAIDataAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, borrower.address)).value.ok!;
+        const borrowersWETHDataAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(wethContract.address, borrower.address)).value.ok!;
+        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(wethContract.address, liquidator.address)).value
+          .ok!;
         const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
-        expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
+        expect
+          .soft(borrowersDAIDataAfter.debt.toString())
+          .to.equal('0', 'account got liquidated therefore account should no longer have variable debt');
         expect.soft(borrowersDAIDataBefore.debt.gtn(0)).to.be.true;
         expect.soft(liquidatorsWETHDataAfter.deposit.gt(E18bn.muln(8).divn(10))).to.be.true;
         expect.soft(borrowersWETHDataAfter.deposit.lt(E18bn.muln(8).divn(10))).to.be.true;
@@ -252,7 +255,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         expect(queryRes).to.have.deep.property('err', LendingPoolErrorBuilder.NothingToRepay());
       });
 
-      it('liquidator choses a reserve to take from that the user has not marked as collaterall - liquidation fails', async () => {
+      it('liquidator choses a reserve to take from that the account has not marked as collaterall - liquidation fails', async () => {
         const queryRes = (
           await lendingPool.withSigner(liquidator).query.liquidate(borrower.address, daiContract.address, linkContract.address, debtDaiAmount, 1, [])
         ).value.ok;
@@ -260,9 +263,9 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidator choses a minimum for repaid token that is too big (greater than 871093750000000000000000000) - liquidation fails', async () => {
-        // for each 1 DAI user should recieve  1 / 1280 ETH
+        // for each 1 DAI account should recieve  1 / 1280 ETH
         // DAI has 6 decimals and ETH has 18 so
-        // for each 1 absDAI user should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
+        // for each 1 absDAI account should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
         // above didnt include liquidation penalty which is (1 + 0.1 (WETH) + 0.015(DAI)) = 1.115
         // in total for one absDAI liquidator should receive 7.8125 * 10^8 * 1.115 = 8,7109375 * 10^8
         // the parameter is _e18 so maximal accepted parameter is 8,7109375 * 10^26
@@ -275,9 +278,9 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
       });
 
       it('liquidation succeeds', async () => {
-        // for each 1 DAI user should recieve  1 / 1280 ETH
+        // for each 1 DAI account should recieve  1 / 1280 ETH
         // DAI has 6 decimals and ETH has 18 so
-        // for each 1 absDAI user should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
+        // for each 1 absDAI account should recieve 1/1280 * 10^12 absETH = 7.8125 & 10^8 absETH
         // above didnt include liquidation penalty which is (1 + 0.1 (WETH) + 0.015(DAI)) = 1.115
         // in total for one absDAI liquidator should receive 7.8125 * 10^8 * 1.115 = 8,7109375 * 10^8
         // the parameter is _e18 so maximal accepted parameter is 8,7109375 * 10^26
@@ -296,15 +299,18 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
 
         //Assert
-        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getUserFreeCollateralCoefficient(borrower.address)).value
+        const [collateralizedPost, collateralCoefficientPost] = (await lendingPool.query.getAccountFreeCollateralCoefficient(borrower.address)).value
           .ok!;
-        const borrowersDAIDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(daiContract.address, borrower.address)).value.ok!;
-        const borrowersWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, borrower.address)).value.ok!;
-        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUnupdatedUserReserveData(wethContract.address, liquidator.address)).value.ok!;
+        const borrowersDAIDataAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(daiContract.address, borrower.address)).value.ok!;
+        const borrowersWETHDataAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(wethContract.address, borrower.address)).value.ok!;
+        const liquidatorsWETHDataAfter = (await lendingPool.query.viewUnupdatedAccountReserveData(wethContract.address, liquidator.address)).value
+          .ok!;
         const daiReserveDataAfter = (await lendingPool.query.viewReserveData(daiContract.address)).value.ok!;
         const lendingPoolDAIBalanceAfter = (await daiContract.query.balanceOf(lendingPool.address)).value.ok!;
         expect.soft(collateralizedPost).to.be.true;
-        expect.soft(borrowersDAIDataAfter.debt.toString()).to.equal('0', 'user got liquidated therefore user should no longer have variable debt');
+        expect
+          .soft(borrowersDAIDataAfter.debt.toString())
+          .to.equal('0', 'account got liquidated therefore account should no longer have variable debt');
         expect
           .soft(
             liquidatorsWETHDataAfter.deposit.toString(),
@@ -312,7 +318,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
           )
           .to.equal((0.87109375 * E18).toString());
         expect
-          .soft(borrowersWETHDataAfter.deposit.toString(), 'liquidated user supply is decreased by what the liquidator have received')
+          .soft(borrowersWETHDataAfter.deposit.toString(), 'liquidated account supply is decreased by what the liquidator have received')
           .to.equal(((1 - 0.87109375) * E18).toString());
         expect.soft(daiReserveDataAfter.totalDebt.toString()).to.equal('0', 'all borrows got repaid therefore totalDebt should be zero');
         expect.soft(daiReserveDataAfter.totalDeposit.toString()).to.equal(daiReserveDataBefore.totalDeposit.toString());
@@ -324,7 +330,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
             name: 'Liquidation',
             args: {
               liquidator: liquidator.address,
-              user: borrower.address,
+              account: borrower.address,
               assetToRepay: daiContract.address,
               assetToTake: wethContract.address,
               amountRepaid: debtDaiAmount.toString(),

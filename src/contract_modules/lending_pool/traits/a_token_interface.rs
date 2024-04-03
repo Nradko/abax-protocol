@@ -17,24 +17,24 @@ pub trait LendingPoolATokenInterface {
     #[ink(message)]
     fn total_deposit_of(&self, underlying_asset: AccountId) -> Balance;
 
-    /// Returns the specified `user`'s account Balance of an `underlying_asset`.
+    /// Returns the specified `account`'s account Balance of an `underlying_asset`.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up deposit of.
-    /// * `user` - AccountId (aka address) of an user to look up deposit of.
+    /// * `account` - AccountId (aka address) of an account to look up deposit of.
     ///
     /// # Errors None
     #[ink(message)]
-    fn user_deposit_of(
+    fn account_deposit_of(
         &self,
         underlying_asset: AccountId,
-        user: AccountId,
+        account: AccountId,
     ) -> Balance;
 
     /// Transfers an `amount` of `underlying_asset` deposit on the behalf of `from` to the account `to`
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to transfer tokens from/to.
-    /// * `from` - AccountId (aka address) of an user to transfer from.
-    /// * `to` - AccountId (aka address) of an user to transfer to.
+    /// * `from` - AccountId (aka address) of an account to transfer from.
+    /// * `to` - AccountId (aka address) of an account to transfer to.
     ///
     /// On success a number of PSP22's `Transfer` events are emitted.
     /// The number of events and their type/values depend on the interests that may be accrued both for `from` and `to` accounts.

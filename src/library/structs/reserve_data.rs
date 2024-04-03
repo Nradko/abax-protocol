@@ -103,7 +103,7 @@ impl ReserveData {
         Ok(())
     }
 
-    // total deposit can not underflow because it is a sum of user deposits which are already checked for underflow.
+    // total deposit can not underflow because it is a sum of account deposits which are already checked for underflow.
     pub fn decrease_total_deposit(
         &mut self,
         amount: &Balance,
@@ -126,7 +126,7 @@ impl ReserveData {
         Ok(())
     }
 
-    // total debt can not underflow because it is a sum of user debts which are already checked for underflow.
+    // total debt can not underflow because it is a sum of account debts which are already checked for underflow.
     pub fn decrease_total_debt(
         &mut self,
         amount: &Balance,

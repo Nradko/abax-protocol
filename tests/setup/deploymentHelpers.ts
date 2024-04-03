@@ -68,14 +68,14 @@ export type DeploymentConfig = {
   testTokensToDeploy: TokensToDeployForTesting;
   priceOverridesE18: Record<string, string>;
   owner: KeyringPair;
-  users: KeyringPair[];
+  accounts: KeyringPair[];
 };
-const [defaultOwner, ...defaultUsers] = getSigners();
+const [defaultOwner, ...defaultAccounts] = getSigners();
 export const DEFAULT_TEST_DEPLOYMENT_CONFIG: DeploymentConfig = {
   testTokensToDeploy: TOKENS_TO_DEPLOY_FOR_TESTING,
   priceOverridesE18: MOCK_CHAINLINK_AGGREGATORS_PRICES,
   owner: defaultOwner,
-  users: defaultUsers,
+  accounts: defaultAccounts,
 };
 
 export const deployAndConfigureSystem = async (
@@ -92,7 +92,7 @@ export const deployAndConfigureSystem = async (
   };
   const api = await apiProviderWrapper.getAndWaitForReady();
 
-  const { owner, users, testTokensToDeploy, priceOverridesE18: prices } = config;
+  const { owner, accounts, testTokensToDeploy, priceOverridesE18: prices } = config;
   const oracle = (await new DiaOracleDeployer(api, owner).new()).contract;
 
   const contracts = await deployCoreContracts(owner, oracle.address);
@@ -187,7 +187,7 @@ export const deployAndConfigureSystem = async (
   const testEnv = {
     priceFeedProvider: contracts.priceFeedProvider,
     oracle: oracle,
-    users: users,
+    accounts: accounts,
     owner,
     lendingPool: contracts.lendingPool,
     reserves: reservesWithLendingTokens,

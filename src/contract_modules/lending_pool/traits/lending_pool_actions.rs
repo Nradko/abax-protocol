@@ -29,7 +29,7 @@ pub trait LendingPoolActions {
     /// i.e. if the callers's deposit of the `asset` should back caller's debt and be vulnerable to liquidation.
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that should be allowed as collateral.
-    /// * `use_as_collateral` - true if the user wants to use the asset as collateral, false in the opposite case.
+    /// * `use_as_collateral` - true if the account wants to use the asset as collateral, false in the opposite case.
     ///
     /// # Errors
     /// * `RuleCollateralDisable` returned if the `market_rule` chosen by caller doesn't support `asset` returned  as collateral.
@@ -65,12 +65,12 @@ pub trait LendingPoolActions {
         amount: Balance,
         data: Vec<u8>,
     ) -> Result<(), LendingPoolError>;
-    /// is used by a user0, to withdraw on an account of on_behalf_of an asset to LendingPool.
-    /// Withdraw can fail if the user has current debt and withdrawing would make the user's position undercollateralized.
+    /// is used by a account0, to withdraw on an account of on_behalf_of an asset to LendingPool.
+    /// Withdraw can fail if the account has current debt and withdrawing would make the account's position undercollateralized.
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that must be allowed to be borrowed.
-    /// * `on_behalf_of` - AccountId (aka address) of a user1 (may be the same or not as user0) on behalf of who
-    ///     user0 is making withdraw. If user0 != user1 then the allowance of on appropriate AToken will be decreased.
+    /// * `on_behalf_of` - AccountId (aka address) of a account1 (may be the same or not as account0) on behalf of who
+    ///     account0 is making withdraw. If account0 != account1 then the allowance of on appropriate AToken will be decreased.
     /// * `amount` - the number of tokens to be withdrawed. if greater then deposit_amount then only deposit_amopunt will be withdrawn.
     /// * `data` - additional data currently unused.
     ///
@@ -153,7 +153,7 @@ pub trait LendingPoolActions {
         data: Vec<u8>,
     ) -> Result<(), LendingPoolError>;
 
-    /// is used by a liquidator to liquidate the uncollateralized position of another user
+    /// is used by a liquidator to liquidate the uncollateralized position of another account
     ///
     /// * `liquidated_account` - AccountId (aka address) whose position should be liquidated. liquidated_account must be undercollateralized.
     /// * `asset_to_repay` - AccountId (aka address) of PSP22 that liquidated_account has debt in.

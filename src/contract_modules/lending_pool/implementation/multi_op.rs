@@ -38,7 +38,10 @@ pub trait LendingPoolMultiOpImpl:
 
         for (
             i,
-            (user_accumulated_deposit_interest, user_accumulated_debt_interest),
+            (
+                account_accumulated_deposit_interest,
+                account_accumulated_debt_interest,
+            ),
         ) in res.iter().enumerate()
         {
             let asset = actions[i].args.asset;
@@ -64,7 +67,7 @@ pub trait LendingPoolMultiOpImpl:
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.a_token_address,
                         &on_behalf_of,
-                        (user_accumulated_deposit_interest
+                        (account_accumulated_deposit_interest
                             .checked_add(amount)
                             .ok_or(MathError::Overflow)?)
                             as i128,
@@ -73,7 +76,7 @@ pub trait LendingPoolMultiOpImpl:
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.v_token_address,
                         &on_behalf_of,
-                        *user_accumulated_debt_interest as i128,
+                        *account_accumulated_debt_interest as i128,
                     )?;
                     ink::env::emit_event::<DefaultEnvironment, Deposit>(
                         Deposit {
@@ -90,7 +93,7 @@ pub trait LendingPoolMultiOpImpl:
                     _emit_abacus_token_transfer_event_and_decrease_allowance(
                         &abacus_tokens.a_token_address,
                         &on_behalf_of,
-                        (*user_accumulated_deposit_interest as i128)
+                        (*account_accumulated_deposit_interest as i128)
                             .overflowing_sub(actions[0].args.amount as i128)
                             .0,
                         &(Self::env().caller()),
@@ -100,7 +103,7 @@ pub trait LendingPoolMultiOpImpl:
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.v_token_address,
                         &on_behalf_of,
-                        *user_accumulated_debt_interest as i128,
+                        *account_accumulated_debt_interest as i128,
                     )?;
 
                     ink::env::emit_event::<DefaultEnvironment, Withdraw>(
@@ -118,13 +121,13 @@ pub trait LendingPoolMultiOpImpl:
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.a_token_address,
                         &on_behalf_of,
-                        *user_accumulated_deposit_interest as i128,
+                        *account_accumulated_deposit_interest as i128,
                     )?;
                     // VTOKEN
                     _emit_abacus_token_transfer_event_and_decrease_allowance(
                         &abacus_tokens.v_token_address,
                         &on_behalf_of,
-                        (user_accumulated_debt_interest
+                        (account_accumulated_debt_interest
                             .checked_add(amount)
                             .ok_or(MathError::Overflow)?)
                             as i128,
@@ -145,13 +148,13 @@ pub trait LendingPoolMultiOpImpl:
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.a_token_address,
                         &on_behalf_of,
-                        *user_accumulated_deposit_interest as i128,
+                        *account_accumulated_deposit_interest as i128,
                     )?;
                     // VTOKEN
                     _emit_abacus_token_transfer_event(
                         &abacus_tokens.v_token_address,
                         &on_behalf_of,
-                        (*user_accumulated_debt_interest as i128)
+                        (*account_accumulated_debt_interest as i128)
                             .overflowing_sub(actions[0].args.amount as i128)
                             .0,
                     )?;

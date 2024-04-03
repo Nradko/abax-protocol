@@ -22,23 +22,23 @@ export interface Scenario {
 
 export const executeStory = async (story: Story, testEnv: TestEnv) => {
   for (const [index, action] of story.actions.entries()) {
-    const { users } = testEnv;
+    const { accounts } = testEnv;
     if (process.env.DEBUG) console.log(`[${index + 1}/${story.actions.length}] Executing ${action.name} ${JSON.stringify(action.args)}`);
-    await executeAction(action, users, testEnv);
+    await executeAction(action, accounts, testEnv);
   }
 };
 
 // eslint-disable-next-line complexity
-const executeAction = async (action: Action, users: KeyringPair[], testEnv: TestEnv) => {
-  const { reserve, user: userIndex, borrowRateMode, onBehalfOf: onBehalfOfIndex } = action.args;
+const executeAction = async (action: Action, accounts: KeyringPair[], testEnv: TestEnv) => {
+  const { reserve, account: accountIndex, borrowRateMode, onBehalfOf: onBehalfOfIndex } = action.args;
   const { name, expected, revertMessage } = action;
-  ensureNotEmpty(name, reserve, userIndex, expected);
+  ensureNotEmpty(name, reserve, accountIndex, expected);
 
-  const user = users[parseInt(userIndex)];
-  if (!user) throw `User of index ${userIndex} does not exist!`;
+  const account = accounts[parseInt(accountIndex)];
+  if (!account) throw `Account of index ${accountIndex} does not exist!`;
 
-  const onBehalfOf = onBehalfOfIndex ? users[parseInt(onBehalfOfIndex)] : user;
-  if (!onBehalfOf) throw `User of index ${onBehalfOfIndex} does not exist!`;
+  const onBehalfOf = onBehalfOfIndex ? accounts[parseInt(onBehalfOfIndex)] : account;
+  if (!onBehalfOf) throw `Account of index ${onBehalfOfIndex} does not exist!`;
   switch (name) {
     case 'mint': {
       const { amount } = action.args;
@@ -47,11 +47,11 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
         throw `Invalid amount of ${reserve} to mint`;
       }
 
-      await mint(testEnv.reserves[reserve].underlying, amount, user);
+      await mint(testEnv.reserves[reserve].underlying, amount, account);
       break;
     }
     case 'approve': {
-      await approve(reserve, user, testEnv);
+      await approve(reserve, account, testEnv);
       break;
     }
     case 'deposit': {
@@ -61,7 +61,7 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
         throw `Invalid amount to deposit into the ${reserve} reserve`;
       }
 
-      await deposit(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
+      await deposit(reserve, amount, account, onBehalfOf, expected, testEnv, revertMessage);
       break;
     }
     case 'withdraw':
@@ -72,7 +72,7 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
           throw `Invalid amount to withdraw from the ${reserve} reserve`;
         }
 
-        await withdraw(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
+        await withdraw(reserve, amount, account, onBehalfOf, expected, testEnv, revertMessage);
       }
       break;
     case 'borrow': {
@@ -82,7 +82,7 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
         throw `Invalid amount to borrow from the ${reserve} reserve`;
       }
 
-      await borrow(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
+      await borrow(reserve, amount, account, onBehalfOf, expected, testEnv, revertMessage);
       break;
     }
     case 'repay': {
@@ -92,7 +92,7 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
         throw `Invalid amount to repay into the ${reserve} reserve`;
       }
 
-      await repay(reserve, amount, user, onBehalfOf, expected, testEnv, revertMessage);
+      await repay(reserve, amount, account, onBehalfOf, expected, testEnv, revertMessage);
       break;
     }
 
@@ -102,28 +102,28 @@ const executeAction = async (action: Action, users: KeyringPair[], testEnv: Test
       if (!useAsCollateral || useAsCollateral === '') {
         throw `A valid value for useAsCollateral needs to be set when calling setUseReserveAsCollateral on reserve ${reserve}`;
       }
-      await setUseAsCollateral(reserve, user, useAsCollateral, expected, testEnv, revertMessage);
+      await setUseAsCollateral(reserve, account, useAsCollateral, expected, testEnv, revertMessage);
       break;
     }
     case 'increaseAllowance': {
-      const { targetUser: targetUserIndex, amount, lendingToken } = action.args;
-      const targetUser = users[targetUserIndex];
-      await increaseAllowance(reserve, user, targetUser, amount, testEnv, lendingToken);
+      const { targetAccount: targetAccountIndex, amount, lendingToken } = action.args;
+      const targetAccount = accounts[targetAccountIndex];
+      await increaseAllowance(reserve, account, targetAccount, amount, testEnv, lendingToken);
       break;
     }
     default:
       throw `Invalid action requested: ${name}`;
   }
 };
-const ensureNotEmpty = (name: string, reserve: any, userIndex: any, expected: string) => {
+const ensureNotEmpty = (name: string, reserve: any, accountIndex: any, expected: string) => {
   if (!name || name === '') {
     throw 'Action name is missing';
   }
   if (!reserve || reserve === '') {
     throw 'Invalid reserve selected for deposit';
   }
-  if (!userIndex || userIndex === '') {
-    throw `Invalid user selected to deposit into the ${reserve} reserve`;
+  if (!accountIndex || accountIndex === '') {
+    throw `Invalid account selected to deposit into the ${reserve} reserve`;
   }
 
   if (!expected || expected === '') {

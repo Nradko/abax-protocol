@@ -109,7 +109,7 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
   const api = await apiProviderWrapper.getAndWaitForReady();
   const contracts = JSON.parse(await fs.readFile(writePath, 'utf8')) as StoredContractInfo[];
 
-  const [owner, ...users] = getSigners();
+  const [owner, ...accounts] = getSigners();
 
   const lendingPoolContractInfo = contracts.find((c) => c.name === 'lending_pool');
   if (!lendingPoolContractInfo) throw 'lendingPool ContractInfo not found';
@@ -176,7 +176,7 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
   const balanceViewer = await getContractObject(BalanceViewer, balanceViewerContractInfo.address!, owner, api);
 
   return {
-    users: users,
+    accounts: accounts,
     owner,
     lendingPool: lendingPool,
     oracle: oracle,

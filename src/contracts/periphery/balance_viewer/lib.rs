@@ -8,8 +8,8 @@ pub mod balance_viewer {
         LendingPoolViewRef,
     };
     use abax_library::structs::{
-        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
-        ReserveRestrictions, UserReserveData,
+        AccountReserveData, ReserveAbacusTokens, ReserveData, ReserveFees,
+        ReserveIndexes, ReserveRestrictions,
     };
     use pendzl::{
         contracts::psp22::{PSP22Ref, PSP22},
@@ -47,10 +47,10 @@ pub mod balance_viewer {
         }
 
         #[ink(message)]
-        pub fn view_user_balances(
+        pub fn view_account_balances(
             &self,
             assets: Option<Vec<AccountId>>,
-            user: AccountId,
+            account: AccountId,
         ) -> Vec<(AccountId, Balance)> {
             let assets_to_view = assets
                 .unwrap_or_else(|| self.lending_pool.view_registered_assets());
@@ -58,7 +58,7 @@ pub mod balance_viewer {
             let mut ret: Vec<(AccountId, Balance)> = vec![];
             for asset in assets_to_view {
                 let psp22: PSP22Ref = asset.into();
-                ret.push((asset, psp22.balance_of(user)));
+                ret.push((asset, psp22.balance_of(account)));
             }
             ret
         }
@@ -93,38 +93,38 @@ pub mod balance_viewer {
         }
 
         #[ink(message)]
-        pub fn view_unupdated_user_reserve_datas(
+        pub fn view_unupdated_account_reserve_datas(
             &self,
             assets: Option<Vec<AccountId>>,
             account: AccountId,
-        ) -> Vec<(AccountId, UserReserveData)> {
+        ) -> Vec<(AccountId, AccountReserveData)> {
             let assets_to_view = assets
                 .unwrap_or_else(|| self.lending_pool.view_registered_assets());
 
-            let mut ret: Vec<(AccountId, UserReserveData)> = vec![];
+            let mut ret: Vec<(AccountId, AccountReserveData)> = vec![];
             for asset in assets_to_view {
                 ret.push((
                     asset,
                     self.lending_pool
-                        .view_unupdated_user_reserve_data(asset, account),
+                        .view_unupdated_account_reserve_data(asset, account),
                 ));
             }
             ret
         }
         #[ink(message)]
-        pub fn view_user_reserve_datas(
+        pub fn view_account_reserve_datas(
             &self,
             assets: Option<Vec<AccountId>>,
             account: AccountId,
-        ) -> Vec<(AccountId, UserReserveData)> {
+        ) -> Vec<(AccountId, AccountReserveData)> {
             let assets_to_view = assets
                 .unwrap_or_else(|| self.lending_pool.view_registered_assets());
 
-            let mut ret: Vec<(AccountId, UserReserveData)> = vec![];
+            let mut ret: Vec<(AccountId, AccountReserveData)> = vec![];
             for asset in assets_to_view {
                 ret.push((
                     asset,
-                    self.lending_pool.view_user_reserve_data(asset, account),
+                    self.lending_pool.view_account_reserve_data(asset, account),
                 ));
             }
             ret

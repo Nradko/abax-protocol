@@ -9,30 +9,30 @@ pub type LendingPoolVTokenInterfaceRef =
 /// Trait containing messages that are accessible to **VToken** - the PSP22 Wrapper of debts.
 #[ink::trait_definition]
 pub trait LendingPoolVTokenInterface {
-    /// Returns LendingPool's total debt of users in the context of an underlying asset.
+    /// Returns LendingPool's total debt of accounts in the context of an underlying asset.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to look up total  debt of.
     ///
     /// # Errors None
     #[ink(message)]
     fn total_debt_of(&self, underlying_asset: AccountId) -> Balance;
-    /// Returns the specified `user`'s  debt in the context of an `underlying_asset`.
+    /// Returns the specified `account`'s  debt in the context of an `underlying_asset`.
     ///
-    /// * `underlying_asset` - AccountId (aka address) of an asset to look up user's  debt of.
-    /// * `user` - AccountId (aka address) of an user to look up  debt for.
+    /// * `underlying_asset` - AccountId (aka address) of an asset to look up account's  debt of.
+    /// * `account` - AccountId (aka address) of an account to look up  debt for.
     ///
     /// # Errors None
     #[ink(message)]
-    fn user_debt_of(
+    fn account_debt_of(
         &self,
         underlying_asset: AccountId,
-        user: AccountId,
+        account: AccountId,
     ) -> Balance;
     /// Transfers an `amount` of  debt on the behalf of `from` to the account `to` in the context of an `underlying_asset`.
     ///
     /// * `underlying_asset` - AccountId (aka address) of an asset to transfer  debt from/to.
-    /// * `from` - AccountId (aka address) of an user to transfer from.
-    /// * `to` - AccountId (aka address) of an user to transfer to.
+    /// * `from` - AccountId (aka address) of an account to transfer from.
+    /// * `to` - AccountId (aka address) of an account to transfer to.
     ///
     /// On success a number of PSP22's `Transfer` events are emitted.
     /// The number of events and their type/values depend on the interests that may be accrued both for `from` and `to` accounts.

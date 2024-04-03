@@ -31,18 +31,18 @@ export const convertToCurrencyDecimals = async (token: any, amount: BN | number 
   return amountParsed.mul(new BN(Math.pow(10, decimals - amountParsedDecimals).toString()));
 };
 
-export const mint = async (tokenContract: PSP22Emitable, amount: BN | number | string, user: KeyringPair) => {
-  await tokenContract.withSigner(user).query.mint(user.address, await convertToCurrencyDecimals(tokenContract, amount));
-  await tokenContract.withSigner(user).tx.mint(user.address, await convertToCurrencyDecimals(tokenContract, amount));
+export const mint = async (tokenContract: PSP22Emitable, amount: BN | number | string, account: KeyringPair) => {
+  await tokenContract.withSigner(account).query.mint(account.address, await convertToCurrencyDecimals(tokenContract, amount));
+  await tokenContract.withSigner(account).tx.mint(account.address, await convertToCurrencyDecimals(tokenContract, amount));
 };
 
-export const approve = async (reserveSymbol: string, user: KeyringPair, testEnv: TestEnv, amount?: BN | number | string) => {
+export const approve = async (reserveSymbol: string, account: KeyringPair, testEnv: TestEnv, amount?: BN | number | string) => {
   const { lendingPool, reserves } = testEnv;
   const reserve = reserves[reserveSymbol].underlying;
   const amountBN = amount ? (BN.isBN(amount) ? amount : new BN(amount)) : new BN('100000000000000000000000000000');
-  await reserve.withSigner(user).tx.approve(lendingPool.address, amountBN);
-  await reserves[reserveSymbol].aToken.withSigner(user).tx.approve(lendingPool.address, amountBN);
-  await reserves[reserveSymbol].vToken.withSigner(user).tx.approve(lendingPool.address, amountBN);
+  await reserve.withSigner(account).tx.approve(lendingPool.address, amountBN);
+  await reserves[reserveSymbol].aToken.withSigner(account).tx.approve(lendingPool.address, amountBN);
+  await reserves[reserveSymbol].vToken.withSigner(account).tx.approve(lendingPool.address, amountBN);
 };
 
 export const getExpectedError = (errorName: string) => {
@@ -60,8 +60,8 @@ export const getExpectedError = (errorName: string) => {
 
 export const increaseAllowance = async (
   reserveSymbol: string,
-  user: KeyringPair,
-  targetUser: KeyringPair,
+  account: KeyringPair,
+  targetAccount: KeyringPair,
   amount: string,
   testEnv: TestEnv,
   lendingToken?: LendingToken,
@@ -69,20 +69,22 @@ export const increaseAllowance = async (
   const { reserves } = testEnv;
   if (isNil(lendingToken)) {
     const amountConverted = await convertToCurrencyDecimals(reserves[reserveSymbol].underlying, amount);
-    await reserves[reserveSymbol].underlying.withSigner(user).methods.increaseAllowance(targetUser.address, amountConverted, {});
+    await reserves[reserveSymbol].underlying.withSigner(account).methods.increaseAllowance(targetAccount.address, amountConverted, {});
     return;
   }
   switch (lendingToken) {
     case LendingToken.AToken: {
       const amountConverted = await convertToCurrencyDecimals(reserves[reserveSymbol].aToken, amount);
-      if (process.env.DEBUG) await reserves[reserveSymbol].aToken.withSigner(user).query.increaseAllowance(targetUser.address, amountConverted, {});
-      await reserves[reserveSymbol].aToken.withSigner(user).methods.increaseAllowance(targetUser.address, amountConverted, {});
+      if (process.env.DEBUG)
+        await reserves[reserveSymbol].aToken.withSigner(account).query.increaseAllowance(targetAccount.address, amountConverted, {});
+      await reserves[reserveSymbol].aToken.withSigner(account).methods.increaseAllowance(targetAccount.address, amountConverted, {});
       break;
     }
     case LendingToken.VToken: {
       const amountConverted = await convertToCurrencyDecimals(reserves[reserveSymbol].vToken, amount);
-      if (process.env.DEBUG) await reserves[reserveSymbol].vToken.withSigner(user).query.increaseAllowance(targetUser.address, amountConverted, {});
-      await reserves[reserveSymbol].vToken.withSigner(user).methods.increaseAllowance(targetUser.address, amountConverted, {});
+      if (process.env.DEBUG)
+        await reserves[reserveSymbol].vToken.withSigner(account).query.increaseAllowance(targetAccount.address, amountConverted, {});
+      await reserves[reserveSymbol].vToken.withSigner(account).methods.increaseAllowance(targetAccount.address, amountConverted, {});
       break;
     }
   }
@@ -270,12 +272,12 @@ export const setUseAsCollateral = async (
   if (assetId === undefined || assetId === null) {
     throw new Error(`ERROR READING ASSET ID (asset: ${underlying.address})`);
   }
-  const { reserveData: reserveDataBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool);
+  const { reserveData: reserveDataBefore } = await getAccountReserveDataWithTimestamp(underlying, caller, lendingPool);
 
   const useAsCollateralToSet = useAsCollateral.toLowerCase() === 'true';
   const args: Parameters<typeof lendingPool.tx.setAsCollateral> = [underlying.address, useAsCollateralToSet];
   if (expectedResult === 'success') {
-    const { userConfig: userConfigBefore } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool);
+    const { accountConfig: accountConfigBefore } = await getAccountReserveDataWithTimestamp(underlying, caller, lendingPool);
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.setAsCollateral(...args);
     }
@@ -283,22 +285,22 @@ export const setUseAsCollateral = async (
     const txQuery = await lendingPool.withSigner(caller).query.setAsCollateral(...args);
     const txResult = await lendingPool.withSigner(caller).tx.setAsCollateral(...args);
 
-    const { userConfig: userConfigAfter } = await getUserReserveDataWithTimestamp(underlying, caller, lendingPool);
+    const { accountConfig: accountConfigAfter } = await getAccountReserveDataWithTimestamp(underlying, caller, lendingPool);
 
-    if (userConfigBefore.collaterals !== userConfigAfter.collaterals) {
+    if (accountConfigBefore.collaterals !== accountConfigAfter.collaterals) {
       expect(txResult.events).to.deep.equal([
         {
           args: {
             asset: testEnv.reserves[reserveSymbol].underlying.address,
             caller: caller.address,
-            set: (userConfigAfter.collaterals.toNumber() >> assetId.toNumber()) % 2 === 1 ? true : false,
+            set: (accountConfigAfter.collaterals.toNumber() >> assetId.toNumber()) % 2 === 1 ? true : false,
           },
           name: 'CollateralSet',
         },
       ]);
     }
-    expect.toBeDefined(userConfigAfter);
-    expect((userConfigAfter.collaterals.toNumber() >> assetId.toNumber()) % 2, 'setUseAsCollateral didnt work').to.equal(
+    expect.toBeDefined(accountConfigAfter);
+    expect((accountConfigAfter.collaterals.toNumber() >> assetId.toNumber()) % 2, 'setUseAsCollateral didnt work').to.equal(
       useAsCollateralToSet ? 1 : 0,
     );
   } else if (expectedResult === 'revert') {
@@ -320,28 +322,32 @@ export const getTxTimestamp = async (tx: SignAndSendSuccessResponse) => {
   return { txTimestamp };
 };
 
-export const getReserveAndUserReserveData = async <R extends { address: string }>(reserve: R, user: KeyringPair, lendingPool: LendingPool) => {
+export const getReserveAndAccountReserveData = async <R extends { address: string }>(reserve: R, account: KeyringPair, lendingPool: LendingPool) => {
   const reserveData = (await lendingPool.query.viewReserveData(reserve.address)).value.unwrap();
   const reserveIndexes = (await lendingPool.query.viewUnupdatedReserveIndexes(reserve.address)).value.unwrap();
   if (!reserveData) throw new Error(`ERROR READING RESERVE DATA (reserve: ${reserve.address})`);
   if (!reserveIndexes) throw new Error(`ERROR READING RESERVE INDEXES (reserve: ${reserve.address})`);
 
-  const userReserveDataResult = (await lendingPool.query.viewUnupdatedUserReserveData(reserve.address, user.address)).value.unwrap();
-  const userConfig = (await lendingPool.query.viewUserConfig(user.address)).value.unwrap();
+  const accountReserveDataResult = (await lendingPool.query.viewUnupdatedAccountReserveData(reserve.address, account.address)).value.unwrap();
+  const accountConfig = (await lendingPool.query.viewAccountConfig(account.address)).value.unwrap();
   const result = {
     reserveData,
     reserveIndexes,
-    userConfig,
+    accountConfig,
     //return default obj to faciliate calculations
-    userReserveData: userReserveDataResult,
+    accountReserveData: accountReserveDataResult,
   };
   return result;
 };
 
-export const getUserReserveDataWithTimestamp = async <R extends { address: string }>(reserve: R, user: KeyringPair, lendingPool: LendingPool) => {
+export const getAccountReserveDataWithTimestamp = async <R extends { address: string }>(
+  reserve: R,
+  account: KeyringPair,
+  lendingPool: LendingPool,
+) => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
-    ...(await getReserveAndUserReserveData(reserve, user, lendingPool)),
+    ...(await getReserveAndAccountReserveData(reserve, account, lendingPool)),
     timestamp: new BN(timestamp.toString()),
   };
 };
@@ -355,7 +361,7 @@ export const getCheckDepositParameters = async (
 ): Promise<CheckDepositParameters> => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
-    ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
+    ...(await getReserveAndAccountReserveData(reserve, onBehalfOf, lendingPool)),
     poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
     callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
     aBalance: new BN((await aToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
@@ -372,7 +378,7 @@ export const getCheckWithdrawParameters = async (
 ): Promise<CheckWithdrawParameters> => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
-    ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
+    ...(await getReserveAndAccountReserveData(underlying, onBehalfOf, lendingPool)),
     poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.ok!.toString()),
     callerBalance: new BN((await underlying.query.balanceOf(caller.address)).value.ok!.toString()),
     aBalance: new BN((await aToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
@@ -393,7 +399,7 @@ export const getCheckBorrowParameters = async (
 ): Promise<CheckBorrowParameters> => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
-    ...(await getReserveAndUserReserveData(underlying, onBehalfOf, lendingPool)),
+    ...(await getReserveAndAccountReserveData(underlying, onBehalfOf, lendingPool)),
     poolBalance: new BN((await underlying.query.balanceOf(lendingPool.address)).value.ok!.toString()),
     callerBalance: new BN((await underlying.query.balanceOf(caller.address)).value.ok!.toString()),
     vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),
@@ -414,7 +420,7 @@ export const getCheckRepayParameters = async (
 ): Promise<CheckRepayParameters> => {
   const timestamp = parseInt((await lendingPool.nativeAPI.query.timestamp.now()).toString());
   return {
-    ...(await getReserveAndUserReserveData(reserve, onBehalfOf, lendingPool)),
+    ...(await getReserveAndAccountReserveData(reserve, onBehalfOf, lendingPool)),
     poolBalance: new BN((await reserve.query.balanceOf(lendingPool.address)).value.ok!.toString()),
     callerBalance: new BN((await reserve.query.balanceOf(caller.address)).value.ok!.toString()),
     vBalance: new BN((await vToken.query.balanceOf(onBehalfOf.address)).value.ok!.toString()),

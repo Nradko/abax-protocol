@@ -24,14 +24,14 @@ pub trait LendingPoolVTokenInterfaceImpl:
             .unwrap()
     }
 
-    fn user_debt_of(
+    fn account_debt_of(
         &self,
         underlying_asset: AccountId,
-        user: AccountId,
+        account: AccountId,
     ) -> Balance {
         let timestamp = Self::env().block_timestamp();
         self.data::<LendingPoolStorage>()
-            .user_debt_of(&underlying_asset, &user, &timestamp)
+            .account_debt_of(&underlying_asset, &account, &timestamp)
             .unwrap()
     }
 

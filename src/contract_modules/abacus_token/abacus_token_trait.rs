@@ -16,7 +16,7 @@ pub trait AbacusToken {
     #[ink(message)]
     fn get_lending_pool(&self) -> AccountId;
 
-    /// Called by lending protocol whenever the state of user deposit or debt (aToken, vToken) is changed.
+    /// Called by lending protocol whenever the state of account deposit or debt (aToken, vToken) is changed.
     ///
     /// On success, emits Transfer events.
     ///
@@ -28,7 +28,7 @@ pub trait AbacusToken {
         transfer_event_data: Vec<TransferEventData>,
     ) -> Result<(), PSP22Error>;
 
-    /// called whenever the state of user deposit or debt (aToken, vToken) is changed and caller != on_behalf_of.
+    /// called whenever the state of account deposit or debt (aToken, vToken) is changed and caller != on_behalf_of.
     /// case1: Alice has allowance on Bobs ATokens and Alice makes withdraw on behalf of Bob.
     /// case2: Alice has allowance on Bobs VTokens and Alice makes borrow on behalf of Bob.
     ///
