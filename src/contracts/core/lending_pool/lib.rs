@@ -270,12 +270,12 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
-        fn set_reserve_is_freezed(
+        fn set_reserve_is_frozen(
             &mut self,
             asset: AccountId,
             freeze: bool,
         ) -> Result<(), LendingPoolError> {
-            LendingPoolManageImpl::set_reserve_is_freezed(self, asset, freeze)
+            LendingPoolManageImpl::set_reserve_is_frozen(self, asset, freeze)
         }
 
         #[ink(message)]

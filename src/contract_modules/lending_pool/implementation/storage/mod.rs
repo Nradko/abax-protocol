@@ -350,7 +350,7 @@ impl LendingPoolStorage {
         amount: &Balance,
     ) -> Result<(u128, u128), LendingPoolError> {
         reserve_ctx.reserve_data.ensure_activated()?;
-        reserve_ctx.reserve_data.ensure_not_freezed()?;
+        reserve_ctx.reserve_data.ensure_not_frozen()?;
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
@@ -419,7 +419,7 @@ impl LendingPoolStorage {
         amount: &Balance,
     ) -> Result<(u128, u128), LendingPoolError> {
         reserve_ctx.reserve_data.ensure_activated()?;
-        reserve_ctx.reserve_data.ensure_not_freezed()?;
+        reserve_ctx.reserve_data.ensure_not_frozen()?;
 
         let (user_accumulated_deposit_interest, user_accumulated_debt_interest): (Balance, Balance) =
         reserve_ctx.reserve_data.add_interests(
@@ -1035,14 +1035,14 @@ impl LendingPoolStorage {
         Ok(())
     }
 
-    pub fn account_for_changing_is_freezed(
+    pub fn account_for_changing_is_frozen(
         &mut self,
         asset: &AccountId,
         freeze: bool,
     ) -> Result<(), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.get_reserve_data(asset_id);
-        reserve_data.set_is_freezed(freeze)?;
+        reserve_data.set_is_frozen(freeze)?;
         self.reserve_datas.insert(asset_id, &reserve_data);
         Ok(())
     }

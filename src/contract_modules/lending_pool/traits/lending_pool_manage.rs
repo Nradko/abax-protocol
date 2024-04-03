@@ -91,13 +91,13 @@ pub trait LendingPoolManage {
 
     ///  Freezes or unfreezes reserve
     ///
-    ///  * `freeze` - true if reserve should be freezed. False if reserve should be unfreezed.
+    ///  * `freeze` - true if reserve should be frozen. False if reserve should be unfrozen.
     ///
-    /// # Errors
+    /// # Errorsfrozenfrozen
     /// * `AccessControl::MisingRole` returned if the caller is not a EMERGENCY_ADMIN.
     /// * `AlreadySet` returned if trying to set already set state.
     #[ink(message)]
-    fn set_reserve_is_freezed(
+    fn set_reserve_is_frozen(
         &mut self,
         asset: AccountId,
         freeze: bool,

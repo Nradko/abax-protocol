@@ -147,12 +147,12 @@ pub struct ReserveActivated {
     pub active: bool,
 }
 
-/// Emited when a reserve is freezed.
+/// Emited when a reserve is frozen.
 #[ink::event]
-pub struct ReserveFreezed {
+pub struct ReserveFrozen {
     #[ink(topic)]
     pub asset: AccountId,
-    pub freezed: bool,
+    pub frozen: bool,
 }
 
 /// Emited when a interest rate model is changed.
