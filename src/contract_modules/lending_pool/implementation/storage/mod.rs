@@ -1,4 +1,5 @@
 use crate::{
+    fee_reduction::{FeeReduction, FeeReductionRef},
     lending_pool::{
         DecimalMultiplier, InterestRateModel, LendingPoolError, MarketRule,
         RuleId,
@@ -12,8 +13,8 @@ use abax_library::{
     },
     structs::{
         AccountConfig, AccountReserveData, Action, AssetId, AssetRules,
-        Operation, ReserveAbacusTokens, ReserveData, ReserveFees,
-        ReserveIndexesAndFees, ReserveRestrictions,
+        FeeReductions, Operation, ReserveAbacusTokens, ReserveData,
+        ReserveFees, ReserveIndexesAndFees, ReserveRestrictions,
     },
 };
 use ink::storage::Mapping;
@@ -38,6 +39,8 @@ pub enum ReserveAction<'a> {
 pub struct LendingPoolStorage {
     #[lazy]
     pub price_feed_provider: AccountId,
+    #[lazy]
+    pub fee_reduction_provider: AccountId,
 
     #[lazy]
     pub next_asset_id: AssetId,
@@ -119,6 +122,7 @@ impl LendingPoolStorage {
     ) -> Result<Vec<(u128, u128)>, LendingPoolError> {
         let mut account_datas = self.get_account_datas(account);
         let mut account_config = self.get_account_config(account);
+        let fee_reductions = self.get_fee_reductions_of_account(account);
 
         let timestamp = ink::env::block_timestamp::<DefaultEnvironment>();
 
@@ -137,6 +141,7 @@ impl LendingPoolStorage {
                         asset_id,
                         &mut [account_data],
                         &mut [&mut account_config],
+                        &[&fee_reductions],
                         &mut [&mut ReserveAction::Deposit(
                             0,
                             &action.args.amount,
@@ -153,6 +158,7 @@ impl LendingPoolStorage {
                         asset_id,
                         &mut [account_data],
                         &mut [&mut account_config],
+                        &[&fee_reductions],
                         &mut [&mut ReserveAction::Withdraw(
                             0,
                             &mut action.args.amount,
@@ -168,6 +174,7 @@ impl LendingPoolStorage {
                         asset_id,
                         &mut [account_data],
                         &mut [&mut account_config],
+                        &[&fee_reductions],
                         &mut [&mut ReserveAction::Borrow(
                             0,
                             &action.args.amount,
@@ -181,6 +188,7 @@ impl LendingPoolStorage {
                         asset_id,
                         &mut [account_data],
                         &mut [&mut account_config],
+                        &[&fee_reductions],
                         &mut [&mut ReserveAction::Repay(
                             0,
                             &mut action.args.amount,
@@ -197,6 +205,7 @@ impl LendingPoolStorage {
             self.ensure_collateralized_from_raw(
                 &account_datas,
                 &account_config,
+                &fee_reductions,
             )?;
         }
 
@@ -220,6 +229,7 @@ impl LendingPoolStorage {
         asset_id: AssetId,
         accounts_data: &mut [&mut AccountReserveData],
         accounts_config: &mut [&mut AccountConfig],
+        accounts_fee_reductions: &[&FeeReductions],
         actions: &mut [&mut ReserveAction<'_>],
         timestamp: &Timestamp,
     ) -> Result<Vec<(u128, u128)>, LendingPoolError> {
@@ -252,6 +262,9 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*account_id as usize).unwrap(),
                         accounts_config.get_mut(*account_id as usize).unwrap(),
+                        accounts_fee_reductions
+                            .get(*account_id as usize)
+                            .unwrap(),
                         amount,
                     )?;
                     interests_acc.update_at(*account_id, interest_res)?;
@@ -265,6 +278,9 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*account_id as usize).unwrap(),
                         accounts_config.get_mut(*account_id as usize).unwrap(),
+                        accounts_fee_reductions
+                            .get(*account_id as usize)
+                            .unwrap(),
                         amount,
                         *can_mutate_amount,
                     )?;
@@ -275,6 +291,9 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*account_id as usize).unwrap(),
                         accounts_config.get_mut(*account_id as usize).unwrap(),
+                        accounts_fee_reductions
+                            .get(*account_id as usize)
+                            .unwrap(),
                         amount,
                     )?;
                     interests_acc.update_at(*account_id, interest_res)?;
@@ -284,6 +303,9 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*account_id as usize).unwrap(),
                         accounts_config.get_mut(*account_id as usize).unwrap(),
+                        accounts_fee_reductions
+                            .get(*account_id as usize)
+                            .unwrap(),
                         amount,
                         true,
                     )?;
@@ -300,6 +322,7 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*from_id as usize).unwrap(),
                         accounts_config.get_mut(*from_id as usize).unwrap(),
+                        accounts_fee_reductions.get(*from_id as usize).unwrap(),
                         amount,
                         *mutable,
                     )?;
@@ -310,6 +333,7 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*to_id as usize).unwrap(),
                         accounts_config.get_mut(*to_id as usize).unwrap(),
+                        accounts_fee_reductions.get(*to_id as usize).unwrap(),
                         amount,
                     )?;
                     interests_acc.update_at(*to_id, to_interest_res)?;
@@ -324,6 +348,7 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*from_id as usize).unwrap(),
                         accounts_config.get_mut(*from_id as usize).unwrap(),
+                        accounts_fee_reductions.get(*from_id as usize).unwrap(),
                         amount,
                         *mutable,
                     )?;
@@ -333,6 +358,7 @@ impl LendingPoolStorage {
                         &mut reserve_ctx,
                         accounts_data.get_mut(*to_id as usize).unwrap(),
                         accounts_config.get_mut(*to_id as usize).unwrap(),
+                        accounts_fee_reductions.get(*to_id as usize).unwrap(),
                         amount,
                     )?;
                     interests_acc.update_at(*to_id, to_interest_res)?;
@@ -356,6 +382,7 @@ impl LendingPoolStorage {
         reserve_ctx: &mut ReserveDataContext,
         account_reserve_data: &mut AccountReserveData,
         account_config: &mut AccountConfig,
+        fee_reductions: &FeeReductions,
         amount: &Balance,
     ) -> Result<(u128, u128), LendingPoolError> {
         reserve_ctx.reserve_data.ensure_activated()?;
@@ -368,6 +395,7 @@ impl LendingPoolStorage {
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
                 &reserve_ctx.reserve_indexes_and_fees.fees,
+                fee_reductions,
             )?,
         )?;
         account_reserve_data.increase_account_deposit(
@@ -392,6 +420,7 @@ impl LendingPoolStorage {
         reserve_ctx: &mut ReserveDataContext,
         account_reserve_data: &mut AccountReserveData,
         account_config: &mut AccountConfig,
+        fee_reductions: &FeeReductions,
         amount: &mut Balance,
         can_mutate_amount: bool,
     ) -> Result<(u128, u128), LendingPoolError> {
@@ -408,6 +437,7 @@ impl LendingPoolStorage {
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
                 &reserve_ctx.reserve_indexes_and_fees.fees,
+                fee_reductions,
             )?,
         )?;
 
@@ -435,6 +465,7 @@ impl LendingPoolStorage {
         reserve_ctx: &mut ReserveDataContext,
         account_reserve_data: &mut AccountReserveData,
         account_config: &mut AccountConfig,
+        fee_reductions: &FeeReductions,
         amount: &Balance,
     ) -> Result<(u128, u128), LendingPoolError> {
         reserve_ctx.reserve_data.ensure_activated()?;
@@ -447,6 +478,7 @@ impl LendingPoolStorage {
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
                 &reserve_ctx.reserve_indexes_and_fees.fees,
+                fee_reductions,
             )?,
         )?;
         account_reserve_data.increase_account_debt(
@@ -474,6 +506,7 @@ impl LendingPoolStorage {
         reserve_ctx: &mut ReserveDataContext,
         account_reserve_data: &mut AccountReserveData,
         account_config: &mut AccountConfig,
+        fee_reductions: &FeeReductions,
         amount: &mut Balance,
         can_mutate_amount: bool,
     ) -> Result<(u128, u128), LendingPoolError> {
@@ -486,6 +519,7 @@ impl LendingPoolStorage {
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
                 &reserve_ctx.reserve_indexes_and_fees.fees,
+                fee_reductions,
             )?,
         )?;
 
@@ -533,6 +567,9 @@ impl LendingPoolStorage {
         let mut liquidated_account_config =
             self.get_account_config(liquidated_account);
         let mut caller_config = self.get_account_config(caller);
+        let liquidated_account_fee_reductions =
+            self.get_fee_reductions_of_account(liquidated_account);
+        let caller_fee_reductions = self.get_fee_reductions_of_account(caller);
 
         let liquidated_account_data_to_repay = liquidated_account_datas
             .get_mut(asset_to_repay_id as usize)
@@ -548,6 +585,7 @@ impl LendingPoolStorage {
             asset_to_repay_id,
             &mut [liquidated_account_data_to_repay],
             &mut [&mut liquidated_account_config],
+            &[&liquidated_account_fee_reductions],
             &mut [&mut ReserveAction::Repay(0, amount_to_repay)],
             timestamp,
         )?;
@@ -582,6 +620,7 @@ impl LendingPoolStorage {
             asset_to_take_id,
             &mut [liquidated_account_data_to_take, callers_data_to_take],
             &mut [&mut liquidated_account_config, &mut caller_config],
+            &[&liquidated_account_fee_reductions, &caller_fee_reductions],
             &mut [&mut ReserveAction::DepositTransfer(
                 0,
                 1,
@@ -632,6 +671,8 @@ impl LendingPoolStorage {
         let mut to_config = self.get_account_config(to);
         let (mut to_account_reserve_data, to_account_datas) =
             self.get_account_reserve_data(asset_id, to);
+        let from_fee_reductions = self.get_fee_reductions_of_account(from);
+        let to_fee_reductions = self.get_fee_reductions_of_account(to);
         let result;
         {
             let mut from_account_reserve_data = from_datas
@@ -648,6 +689,7 @@ impl LendingPoolStorage {
                     &mut to_account_reserve_data,
                 ],
                 &mut [&mut from_config, &mut to_config],
+                &[&from_fee_reductions, &to_fee_reductions],
                 &mut [&mut ReserveAction::DepositTransfer(
                     0,
                     1,
@@ -659,7 +701,11 @@ impl LendingPoolStorage {
         }
 
         if from_config.collaterals & (1 << asset_id) == 1 {
-            self.ensure_collateralized_from_raw(&from_datas, &from_config)?;
+            self.ensure_collateralized_from_raw(
+                &from_datas,
+                &from_config,
+                &self.get_fee_reductions_of_account(from),
+            )?;
         }
 
         self.insert_account_data(
@@ -696,6 +742,9 @@ impl LendingPoolStorage {
             .account_reserve_datas
             .get(to)
             .ok_or(LendingPoolError::InsufficientCollateral)?;
+        let from_fee_reductions = self.get_fee_reductions_of_account(from);
+        let to_fee_reductions = self.get_fee_reductions_of_account(to);
+
         let result;
         {
             let mut to_account_reserve_data =
@@ -706,6 +755,7 @@ impl LendingPoolStorage {
                 asset_id,
                 &mut [&mut from_account_data, &mut to_account_reserve_data],
                 &mut [&mut from_config, &mut to_config],
+                &[&from_fee_reductions, &to_fee_reductions],
                 &mut [&mut ReserveAction::DebtTransfer(
                     0,
                     1,
@@ -715,7 +765,11 @@ impl LendingPoolStorage {
                 timestamp,
             )?;
         }
-        self.ensure_collateralized_from_raw(&to_datas, &to_config)?;
+        self.ensure_collateralized_from_raw(
+            &to_datas,
+            &to_config,
+            &self.get_fee_reductions_of_account(to),
+        )?;
 
         self.insert_account_data(
             from_account_datas,
@@ -802,6 +856,7 @@ impl LendingPoolStorage {
         &self,
         account_reserve_datas: &[Option<AccountReserveData>],
         account_config: &AccountConfig,
+        fee_reductions: &FeeReductions,
         prices_e18: &[u128],
     ) -> Result<(bool, u128), LendingPoolError> {
         let mut total_collateral_power_e6: u128 = 0;
@@ -836,6 +891,7 @@ impl LendingPoolStorage {
             account_reserve_data.accumulate_account_interest(
                 &reserve_indexes_and_fees.indexes,
                 &reserve_indexes_and_fees.fees,
+                fee_reductions,
             )?;
 
             if ((collaterals >> asset_id) & 1) == 1 {
@@ -904,14 +960,11 @@ impl LendingPoolStorage {
         &self,
         account: &AccountId,
     ) -> Result<(bool, u128), LendingPoolError> {
-        let prices_e18 = self.get_assets_prices_e18()?;
-        let account_reserve_datas = self.get_account_datas(account);
-        let account_config = self.get_account_config(account);
-
         self.calculate_lending_power_e6(
-            &account_reserve_datas,
-            &account_config,
-            &prices_e18,
+            &self.get_account_datas(account),
+            &self.get_account_config(account),
+            &self.get_fee_reductions_of_account(account),
+            &self.get_assets_prices_e18()?,
         )
     }
 
@@ -919,11 +972,10 @@ impl LendingPoolStorage {
         &self,
         account: &AccountId,
     ) -> Result<(), LendingPoolError> {
-        let account_reserve_datas = self.get_account_datas(account);
-        let account_config = self.get_account_config(account);
         self.ensure_collateralized_from_raw(
-            &account_reserve_datas,
-            &account_config,
+            &self.get_account_datas(account),
+            &self.get_account_config(account),
+            &self.get_fee_reductions_of_account(account),
         )
     }
 
@@ -931,9 +983,14 @@ impl LendingPoolStorage {
         &self,
         account_datas: &[Option<AccountReserveData>],
         account_config: &AccountConfig,
+        fee_reductions: &FeeReductions,
     ) -> Result<(), LendingPoolError> {
-        let prices_e18 = self.get_assets_prices_e18()?;
-        self.ensure_collateralized(account_datas, account_config, &prices_e18)?;
+        self.ensure_collateralized(
+            account_datas,
+            account_config,
+            fee_reductions,
+            &self.get_assets_prices_e18()?,
+        )?;
         Ok(())
     }
 
@@ -941,11 +998,13 @@ impl LendingPoolStorage {
         &self,
         account_reserve_datas: &[Option<AccountReserveData>],
         account_config: &AccountConfig,
+        fee_reductions: &FeeReductions,
         prices_e18: &[u128],
     ) -> Result<(), LendingPoolError> {
         match self.calculate_lending_power_e6(
             account_reserve_datas,
             account_config,
+            fee_reductions,
             prices_e18,
         )? {
             (false, _) => Err(LendingPoolError::InsufficientCollateral),
@@ -1001,6 +1060,12 @@ impl LendingPoolStorage {
         price_feed_provider: &AccountId,
     ) {
         self.price_feed_provider.set(price_feed_provider);
+    }
+    pub fn account_for_fee_reduction_provider_change(
+        &mut self,
+        fee_reduction_provider: &AccountId,
+    ) {
+        self.fee_reduction_provider.set(fee_reduction_provider);
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1230,6 +1295,7 @@ impl LendingPoolStorage {
         account_reserve_data.accumulate_account_interest(
             &reserve_indexes_and_fees.indexes,
             &reserve_indexes_and_fees.fees,
+            &self.get_fee_reductions_of_account(account),
         )?;
 
         Ok(account_reserve_data.deposit)
@@ -1269,6 +1335,7 @@ impl LendingPoolStorage {
         account_reserve_data.accumulate_account_interest(
             &reserve_indexes_and_fees.indexes,
             &reserve_indexes_and_fees.fees,
+            &self.get_fee_reductions_of_account(account),
         )?;
 
         Ok(account_reserve_data.debt)
@@ -1388,6 +1455,17 @@ impl LendingPoolStorage {
         let price_feeder: PriceFeedRef =
             self.price_feed_provider.get().unwrap().into();
         Ok(price_feeder.get_latest_prices(all_assets)?)
+    }
+    fn get_fee_reductions_of_account(
+        &self,
+        account: &AccountId,
+    ) -> FeeReductions {
+        match self.fee_reduction_provider.get() {
+            None => FeeReductions::default(),
+            Some(provider) => {
+                FeeReductionRef::from(provider).get_fee_reductions(*account)
+            }
+        }
     }
 }
 

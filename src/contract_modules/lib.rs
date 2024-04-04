@@ -23,3 +23,7 @@ pub mod lending_pool;
 /// A contract module that allows to get the asset price in the appropariate format.
 /// It is used by the lending_pool implementatoin.
 pub mod price_feed;
+
+/// A contract module that allows to get the fee reductions for the given account.
+/// It is used by the lending_pool implementatoin.
+pub mod fee_reduction;
