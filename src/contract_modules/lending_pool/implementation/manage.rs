@@ -1,4 +1,5 @@
 use crate::dummy::DummyRef;
+use crate::lending_pool::events::FeeReductionChanged;
 use crate::lending_pool::{
     events::{
         AssetRegistered, AssetRulesChanged, FlashLoanFeeChanged, IncomeTaken,
@@ -43,6 +44,22 @@ pub trait LendingPoolManageImpl:
         ink::env::emit_event::<DefaultEnvironment, PriceFeedProviderChanged>(
             PriceFeedProviderChanged {
                 price_feed_provider,
+            },
+        );
+        Ok(())
+    }
+    fn set_fee_reduction_provider(
+        &mut self,
+        fee_reduction_provider: AccountId,
+    ) -> Result<(), LendingPoolError> {
+        let caller = Self::env().caller();
+        self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
+
+        self.data::<LendingPoolStorage>()
+            .account_for_fee_reduction_provider_change(&fee_reduction_provider);
+        ink::env::emit_event::<DefaultEnvironment, FeeReductionChanged>(
+            FeeReductionChanged {
+                fee_reduction_provider,
             },
         );
         Ok(())

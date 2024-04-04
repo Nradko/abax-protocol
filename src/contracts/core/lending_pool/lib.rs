@@ -30,7 +30,7 @@ pub mod lending_pool {
         },
     };
     use abax_library::structs::{
-        AccountConfig, AccountReserveData, Action, AssetRules,
+        AccountConfig, AccountReserveData, Action, AssetRules, FeeReductions,
         ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
         ReserveRestrictions,
     };
@@ -217,6 +217,17 @@ pub mod lending_pool {
             LendingPoolManageImpl::set_price_feed_provider(
                 self,
                 price_feed_provider,
+            )
+        }
+
+        #[ink(message)]
+        fn set_fee_reduction_provider(
+            &mut self,
+            fee_reduction_provider: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_fee_reduction_provider(
+                self,
+                fee_reduction_provider,
             )
         }
 
