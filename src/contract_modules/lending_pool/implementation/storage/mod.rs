@@ -1474,6 +1474,17 @@ impl LendingPoolStorage {
                 .invoke(),
         }
     }
+    fn get_fee_reductions_of_account(
+        &self,
+        account: &AccountId,
+    ) -> FeeReductions {
+        match self.fee_reduction_provider.get() {
+            None => FeeReductions::default(),
+            Some(provider) => {
+                FeeReductionRef::from(provider).get_fee_reductions(*account)
+            }
+        }
+    }
 }
 
 fn get_account_data_entry_mut(
