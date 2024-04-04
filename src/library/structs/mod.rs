@@ -1,6 +1,7 @@
 mod account_config;
 mod account_reserve_data;
 mod asset_rules;
+mod fee_reduction;
 mod multi_op;
 mod reserve_abacus_tokens;
 mod reserve_data;
@@ -10,6 +11,7 @@ mod reserve_restrictions;
 pub use account_config::*;
 pub use account_reserve_data::*;
 pub use asset_rules::*;
+pub use fee_reduction::*;
 pub use multi_op::*;
 pub use reserve_abacus_tokens::*;
 pub use reserve_data::*;

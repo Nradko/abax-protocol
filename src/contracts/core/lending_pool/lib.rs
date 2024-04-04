@@ -221,6 +221,17 @@ pub mod lending_pool {
         }
 
         #[ink(message)]
+        fn set_fee_reduction_provider(
+            &mut self,
+            fee_reduction_provider: AccountId,
+        ) -> Result<(), LendingPoolError> {
+            LendingPoolManageImpl::set_fee_reduction_provider(
+                self,
+                fee_reduction_provider,
+            )
+        }
+
+        #[ink(message)]
         fn set_flash_loan_fee_e6(
             &mut self,
             flash_loan_fee_e6: u128,

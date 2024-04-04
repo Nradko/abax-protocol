@@ -25,6 +25,18 @@ pub trait LendingPoolManage {
         price_feed_provider: AccountId,
     ) -> Result<(), LendingPoolError>;
 
+    /// Sets `fee_reduction_provider` - a contract that implements FeeReduction and will be used to get fee reductions for given account.
+    ///
+    /// * `fee_reduction_provider` AccountId (a.k.a. address) of a contract.
+    ///
+    /// # Errors
+    /// * `AccessControl::MisingRole` returned if the caller is not a PARAMETERS_ADMIN.
+    #[ink(message)]
+    fn set_fee_reduction_provider(
+        &mut self,
+        fee_reduction_provider: AccountId,
+    ) -> Result<(), LendingPoolError>;
+
     /// Sets a `flash_loan_fee_e6`
     ///
     /// * `flash_loan_fee_e6` fee to set 1_000_000 = 100% fee.

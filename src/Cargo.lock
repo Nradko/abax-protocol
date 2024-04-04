@@ -362,6 +362,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b90ca2580b73ab6a1f724b76ca11ab632df820fd6040c336200d2c1df7b3c82c"
 
 [[package]]
+name = "fee_reduction_provider_mock"
+version = "0.2.0"
+dependencies = [
+ "abax_contracts",
+ "abax_library",
+ "ink",
+ "parity-scale-codec",
+ "pendzl",
+ "scale-info",
+]
+
+[[package]]
 name = "fiat-crypto"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"

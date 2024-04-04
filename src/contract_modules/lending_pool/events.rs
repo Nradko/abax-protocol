@@ -133,6 +133,12 @@ pub struct PriceFeedProviderChanged {
     pub price_feed_provider: AccountId,
 }
 
+/// Emitted when a fee reduction provider is changed.
+#[ink::event]
+pub struct FeeReductionProviderChanged {
+    pub fee_reduction_provider: AccountId,
+}
+
 /// Emitted when a flash loan fee is changed.
 #[ink::event]
 pub struct FlashLoanFeeChanged {
