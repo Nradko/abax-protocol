@@ -450,7 +450,7 @@ export const checkRepay = async (
       actual.toString(),
       `Repay | ReserveData | total_debt | \n before: ${before} \n amount: ${amountToUse} \n expected: ${expected} \n actual: ${actual}\n`,
     )
-    .to.almostEqualOrEqualNumberE12(expected.toString());
+    .to.almostEqualOrEqualToInteger(expected.toString());
 
   // AccountReserveData Checks
   // variable_borroved <- decreases on Repay

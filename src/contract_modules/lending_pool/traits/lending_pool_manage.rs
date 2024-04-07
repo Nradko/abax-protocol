@@ -16,7 +16,7 @@ pub type LendingPoolManageRef =
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
-pub struct ReserveFeesExternal {
+pub struct SetReserveFeesArgs {
     /// fee is used to accumulate accounts debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
     pub debt_fee_e6: u32,
     /// fee is used to accumulate accounts deposit interest. The real rate is the current_deposit_rate * (1-fee). 10^6 =100%
@@ -94,7 +94,7 @@ pub trait LendingPoolManage {
         decimals: u8,
         asset_rules: AssetRules,
         reserve_restrictions: ReserveRestrictions,
-        fees: ReserveFeesExternal,
+        fees: SetReserveFeesArgs,
         interest_rate_model: Option<InterestRateModel>,
     ) -> Result<(), LendingPoolError>;
 
@@ -145,7 +145,7 @@ pub trait LendingPoolManage {
     fn set_reserve_fees(
         &mut self,
         asset: AccountId,
-        reserve_fees: ReserveFeesExternal,
+        reserve_fees: SetReserveFeesArgs,
     ) -> Result<(), LendingPoolError>;
 
     /// modifies ReserveRestricion in the `LendingPool`'s storage
