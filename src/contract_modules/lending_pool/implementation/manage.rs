@@ -168,22 +168,28 @@ pub trait LendingPoolManageImpl:
             });
         });
 
+        ink::env::emit_event::<DefaultEnvironment, ReserveRestrictionsChanged>(
+            ReserveRestrictionsChanged {
+                asset,
+                reserve_restrictions,
+            },
+        );
+
+        ink::env::emit_event::<DefaultEnvironment, AssetRulesChanged>(
+            AssetRulesChanged {
+                market_rule_id: 0,
+                asset,
+                collateral_coefficient_e6: asset_rules
+                    .collateral_coefficient_e6,
+                borrow_coefficient_e6: asset_rules.borrow_coefficient_e6,
+                penalty_e6: asset_rules.penalty_e6,
+            },
+        );
+
         ink::env::emit_event::<DefaultEnvironment, ReserveFeesChanged>(
             ReserveFeesChanged {
                 asset,
                 reserve_fees,
-            },
-        );
-        ink::env::emit_event::<DefaultEnvironment, ReserveRestrictionsChanged>(
-            ReserveRestrictionsChanged {
-                asset,
-                reserve_restrictions,
-            },
-        );
-        ink::env::emit_event::<DefaultEnvironment, ReserveRestrictionsChanged>(
-            ReserveRestrictionsChanged {
-                asset,
-                reserve_restrictions,
             },
         );
         Ok(())
@@ -210,17 +216,17 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_is_frozen(
         &mut self,
         asset: AccountId,
-        freeze: bool,
+        new_is_frozen: bool,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(EMERGENCY_ADMIN, Some(caller))?;
 
         self.data::<LendingPoolStorage>()
-            .account_for_changing_is_frozen(&asset, freeze)?;
+            .account_for_changing_is_frozen(&asset, new_is_frozen)?;
         ink::env::emit_event::<DefaultEnvironment, ReserveFrozen>(
             ReserveFrozen {
                 asset,
-                frozen: !freeze,
+                frozen: new_is_frozen,
             },
         );
         Ok(())
