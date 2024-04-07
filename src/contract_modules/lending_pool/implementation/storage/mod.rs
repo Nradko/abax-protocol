@@ -1153,11 +1153,11 @@ impl LendingPoolStorage {
     pub fn account_for_changing_is_frozen(
         &mut self,
         asset: &AccountId,
-        freeze: bool,
+        new_is_frozen: bool,
     ) -> Result<(), LendingPoolError> {
         let asset_id = self.asset_id(asset)?;
         let mut reserve_data = self.get_reserve_data(asset_id);
-        reserve_data.set_is_frozen(freeze)?;
+        reserve_data.set_is_frozen(new_is_frozen)?;
         self.reserve_datas.insert(asset_id, &reserve_data);
         Ok(())
     }

@@ -330,7 +330,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
             name: 'Liquidation',
             args: {
               liquidator: liquidator.address,
-              account: borrower.address,
+              liquidatedAccount: borrower.address,
               assetToRepay: daiContract.address,
               assetToTake: wethContract.address,
               amountRepaid: debtDaiAmount.toString(),
