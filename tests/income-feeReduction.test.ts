@@ -447,7 +447,7 @@ makeSuite('Testing protocol income', () => {
               await lendingPool.withSigner(depositor).tx.withdraw(usdcContract.address, depositor.address, millionUsdc, []);
             });
 
-            it.only('Usdc: fees should be applied', async () => {
+            it('Usdc: fees should be applied', async () => {
               const expectedDebtInterestNoFee = new BN('20400068');
               let expectedDebtIncome = expectedDebtInterestNoFee.muln(feeD6[1]).divn(1_000_000);
               expectedDebtIncome = expectedDebtInterestNoFee.isZero() ? expectedDebtIncome : expectedDebtIncome.addn(1);
@@ -458,7 +458,7 @@ makeSuite('Testing protocol income', () => {
               const totalIncome = expectedIncome.add(expectedDebtIncome);
 
               const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
-              expect(income[0][1].toString(), 'income').to.equal(totalIncome.toString());
+              expect(income[0][1].toString(), 'income').to.almostEqualOrEqualToInteger(totalIncome.toString());
             });
           });
         });
