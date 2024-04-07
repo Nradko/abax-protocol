@@ -18,11 +18,11 @@ dependencies:
     specifier: ^0.0.20
     version: 0.0.20
   '@c-forge/polkahat-chai-matchers':
-    specifier: ^0.0.74
-    version: 0.0.74(@polkadot/util-crypto@12.6.2)
+    specifier: ^0.0.75
+    version: 0.0.75(@polkadot/util-crypto@12.6.2)
   '@c-forge/polkahat-network-helpers':
-    specifier: ^0.0.74
-    version: 0.0.74
+    specifier: ^0.0.75
+    version: 0.0.75
   '@c-forge/typechain-compiler':
     specifier: ^0.0.56
     version: 0.0.56(@types/node@20.11.30)(typescript@5.4.2)
@@ -50,6 +50,9 @@ dependencies:
   '@polkadot/util-crypto':
     specifier: ^12.6.2
     version: 12.6.2(@polkadot/util@12.6.2)
+  '@types/deep-eql':
+    specifier: ^4.0.2
+    version: 4.0.2
   '@types/node':
     specifier: ^20.11.28
     version: 20.11.30
@@ -77,6 +80,9 @@ dependencies:
   commander:
     specifier: ^10.0.1
     version: 10.0.1
+  deep-eql:
+    specifier: ^5.0.1
+    version: 5.0.1
   eslint:
     specifier: ^8.57.0
     version: 8.57.0
@@ -281,8 +287,52 @@ packages:
       - utf-8-validate
     dev: false
 
+  /@c-forge/polkahat-chai-matchers@0.0.75(@polkadot/util-crypto@12.6.2):
+    resolution: {integrity: sha512-0D3pY81L5zC737j9LCGfXme6N35Kalu+G7KsHxUeUE8vEVdtR84CN5yfKVAdh4ZguoJKx7GuM0e1aLp38xRGyw==}
+    dependencies:
+      '@c-forge/typechain-types': 0.0.55(@polkadot/util-crypto@12.6.2)
+      '@polkadot/api': 10.12.4
+      '@polkadot/api-augment': 10.12.4
+      '@polkadot/api-contract': 10.12.4
+      '@polkadot/keyring': 12.6.2(@polkadot/util-crypto@12.6.2)(@polkadot/util@12.6.2)
+      '@polkadot/types': 10.12.4
+      '@polkadot/util': 12.6.2
+      '@types/chai-as-promised': 7.1.8
+      '@types/deep-eql': 4.0.2
+      bn.js: 5.2.1
+      chai: 4.4.1
+      chai-as-promised: 7.1.1(chai@4.4.1)
+      deep-eql: 4.1.3
+      ordinal: 1.0.3
+      rxjs: 7.8.1
+    transitivePeerDependencies:
+      - '@polkadot/util-crypto'
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
+
   /@c-forge/polkahat-network-helpers@0.0.74:
     resolution: {integrity: sha512-sgfWxNB1nEDHDLaIMWsmnd0h1qZ+e4mVj7sK/dvkogJCjf3PCgVWQeTHLUqj41rm5Rj0PdKE4VPm4gYoE4TA2A==}
+    dependencies:
+      '@c-forge/typechain-types': 0.0.55(@polkadot/util-crypto@12.6.2)
+      '@polkadot/api': 10.12.4
+      '@polkadot/api-augment': 10.12.4
+      '@polkadot/api-contract': 10.12.4
+      '@polkadot/keyring': 12.6.2(@polkadot/util-crypto@12.6.2)(@polkadot/util@12.6.2)
+      '@polkadot/types': 10.12.4
+      '@polkadot/util': 12.6.2
+      '@polkadot/util-crypto': 12.6.2(@polkadot/util@12.6.2)
+      '@types/bn.js': 5.1.5
+      bn.js: 5.2.1
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
+
+  /@c-forge/polkahat-network-helpers@0.0.75:
+    resolution: {integrity: sha512-MFFPcNnrEkCtJuiaGNi7B4o5wrRaIrRYYiPx3WUfPP2ZG4Add4j6+xITkwjLXO8jC8UvhbWfARnjQcPmxwyIeA==}
     dependencies:
       '@c-forge/typechain-types': 0.0.55(@polkadot/util-crypto@12.6.2)
       '@polkadot/api': 10.12.4
@@ -2175,6 +2225,11 @@ packages:
     engines: {node: '>=6'}
     dependencies:
       type-detect: 4.0.8
+    dev: false
+
+  /deep-eql@5.0.1:
+    resolution: {integrity: sha512-nwQCf6ne2gez3o1MxWifqkciwt0zhl0LO1/UwVu4uMBuPmflWM4oQ70XMqHqnBJA+nhzncaqL9HVL6KkHJ28lw==}
+    engines: {node: '>=6'}
     dev: false
 
   /deep-is@0.1.4:

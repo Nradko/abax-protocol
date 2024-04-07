@@ -1,6 +1,6 @@
 use crate::dummy::DummyRef;
 use crate::lending_pool::events::FeeReductionChanged;
-use crate::lending_pool::ReserveFeesExternal;
+use crate::lending_pool::SetReserveFeesArgs;
 use crate::lending_pool::{
     events::{
         AssetRegistered, AssetRulesChanged, FlashLoanFeeChanged, IncomeTaken,
@@ -93,7 +93,7 @@ pub trait LendingPoolManageImpl:
         decimals: u8,
         asset_rules: AssetRules,
         reserve_restrictions: ReserveRestrictions,
-        reserve_fees: ReserveFeesExternal,
+        reserve_fees: SetReserveFeesArgs,
         interest_rate_model: Option<InterestRateModel>,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
@@ -279,7 +279,7 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_fees(
         &mut self,
         asset: AccountId,
-        reserve_fees: ReserveFeesExternal,
+        reserve_fees: SetReserveFeesArgs,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
