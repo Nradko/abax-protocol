@@ -31,7 +31,7 @@ pub mod lending_pool {
         },
     };
     use abax_library::structs::{
-        AccountConfig, AccountReserveData, Action, AssetRules, FeeReductions,
+        AccountConfig, AccountReserveData, Action, AssetRules,
         ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
         ReserveRestrictions,
     };

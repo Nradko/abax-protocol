@@ -371,6 +371,11 @@ impl LendingPoolStorage {
             reserve_data.recalculate_current_rates(&params)?
         }
 
+        ink::env::debug_println!(
+            "reserve_indexes {:?}",
+            reserve_indexes_and_fees
+        );
+
         self.reserve_datas.insert(asset_id, &reserve_data);
         self.reserve_indexes_and_fees
             .insert(asset_id, &reserve_indexes_and_fees);
@@ -1474,7 +1479,7 @@ impl LendingPoolStorage {
                 .invoke(),
         }
     }
-    fn get_fee_reductions_of_account(
+    pub fn get_fee_reductions_of_account(
         &self,
         account: &AccountId,
     ) -> FeeReductions {
