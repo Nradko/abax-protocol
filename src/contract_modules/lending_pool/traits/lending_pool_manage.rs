@@ -1,14 +1,27 @@
-use abax_library::structs::{AssetRules, ReserveFees, ReserveRestrictions};
+use abax_library::structs::{AssetRules, ReserveRestrictions};
 use ink::{
     contract_ref, env::DefaultEnvironment, prelude::string::String,
     prelude::vec::Vec, primitives::AccountId,
 };
+use pendzl::traits::Balance;
 
 use crate::lending_pool::{
     InterestRateModel, LendingPoolError, MarketRule, RuleId,
 };
 pub type LendingPoolManageRef =
     contract_ref!(LendingPoolManage, DefaultEnvironment);
+
+#[derive(Debug, Default, scale::Encode, scale::Decode, Clone, Copy)]
+#[cfg_attr(
+    feature = "std",
+    derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+)]
+pub struct ReserveFeesExternal {
+    /// fee is used to accumulate accounts debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
+    pub debt_fee_e6: u32,
+    /// fee is used to accumulate accounts deposit interest. The real rate is the current_deposit_rate * (1-fee). 10^6 =100%
+    pub deposit_fee_e6: u32,
+}
 
 /// Trait containing `AccessControl` messages used to manage 'LendingPool' parameters. Used by **managers**.
 #[ink::trait_definition]
@@ -81,7 +94,7 @@ pub trait LendingPoolManage {
         decimals: u8,
         asset_rules: AssetRules,
         reserve_restrictions: ReserveRestrictions,
-        fees: ReserveFees,
+        fees: ReserveFeesExternal,
         interest_rate_model: Option<InterestRateModel>,
     ) -> Result<(), LendingPoolError>;
 
@@ -132,7 +145,7 @@ pub trait LendingPoolManage {
     fn set_reserve_fees(
         &mut self,
         asset: AccountId,
-        reserve_fees: ReserveFees,
+        reserve_fees: ReserveFeesExternal,
     ) -> Result<(), LendingPoolError>;
 
     /// modifies ReserveRestricion in the `LendingPool`'s storage
@@ -208,5 +221,5 @@ pub trait LendingPoolManage {
         &mut self,
         assets: Option<Vec<AccountId>>,
         to: AccountId,
-    ) -> Result<Vec<(AccountId, i128)>, LendingPoolError>;
+    ) -> Result<Vec<(AccountId, Balance)>, LendingPoolError>;
 }

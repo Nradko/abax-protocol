@@ -1,6 +1,5 @@
-use crate::{
-    fee_reduction::{FeeReduction, FeeReductionRef},
-    lending_pool::{DecimalMultiplier, InterestRateModel, MarketRule, RuleId},
+use crate::lending_pool::{
+    DecimalMultiplier, InterestRateModel, MarketRule, RuleId,
 };
 use abax_library::{
     math::E18_U128,
@@ -9,7 +8,7 @@ use abax_library::{
         ReserveFees, ReserveIndexes, ReserveRestrictions,
     },
 };
-use pendzl::traits::{AccountId, StorageFieldGetter};
+use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use ink::prelude::vec::Vec;
 
@@ -181,14 +180,9 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                     .reserve_indexes_and_fees
                     .get(asset_id)
                     .unwrap();
-                let fee_reduction_provider: FeeReductionRef = self
+                let fee_reductions = self
                     .data::<LendingPoolStorage>()
-                    .fee_reduction_provider
-                    .get()
-                    .unwrap()
-                    .into();
-                let fee_reductions =
-                    fee_reduction_provider.get_fee_reductions(account);
+                    .get_fee_reductions_of_account(&account);
 
                 reserve_indexes_and_fees
                     .indexes
@@ -197,7 +191,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                 account_reserve_data
                     .accumulate_account_interest(
                         &reserve_indexes_and_fees.indexes,
-                        &reserve_indexes_and_fees.fees,
+                        &mut reserve_indexes_and_fees.fees,
                         &fee_reductions,
                     )
                     .unwrap();
@@ -237,14 +231,16 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
     fn view_protocol_income(
         &self,
         assets: Option<Vec<AccountId>>,
-    ) -> Vec<(AccountId, i128)> {
+    ) -> Vec<(AccountId, Balance)> {
         match assets {
-            Some(assets_vec) => self._get_protocol_income(&assets_vec).unwrap(),
+            Some(assets_vec) => {
+                self._view_protocol_income(&assets_vec).unwrap()
+            }
             None => {
                 let registered_assets = self
                     .data::<LendingPoolStorage>()
                     .get_all_registered_assets();
-                self._get_protocol_income(&registered_assets).unwrap()
+                self._view_protocol_income(&registered_assets).unwrap()
             }
         }
     }

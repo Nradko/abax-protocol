@@ -1,4 +1,7 @@
-use pendzl::{math::errors::MathError, traits::Timestamp};
+use pendzl::{
+    math::errors::MathError,
+    traits::{Balance, Timestamp},
+};
 
 use crate::math::{
     e18_mul_e0_to_e18, e18_mul_e18_to_e18_rdown, e18_mul_e18_to_e18_rup,
@@ -36,18 +39,38 @@ impl ReserveIndexesAndFees {
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
 pub struct ReserveFees {
-    /// fee is used to accumulate accounts debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
-    pub debt_fee_e6: u32,
     /// fee is used to accumulate accounts deposit interest. The real rate is the current_deposit_rate * (1-fee). 10^6 =100%
     pub deposit_fee_e6: u32,
+    /// fee is used to accumulate accounts debt interest. The real rate is the current_borrow_rate * (1+fee). 10^6 =100%
+    pub debt_fee_e6: u32,
+    /// fee earned by the protocol from the reserve
+    pub earned_fee: Balance,
 }
 
 impl ReserveFees {
-    pub fn new(&mut self, debt_fee_e6: u32, deposit_fee_e6: u32) -> Self {
+    pub fn new(deposit_fee_e6: u32, debt_fee_e6: u32) -> Self {
         ReserveFees {
-            debt_fee_e6,
             deposit_fee_e6,
+            debt_fee_e6,
+            earned_fee: 0,
         }
+    }
+
+    pub fn increase_earned_fee(
+        &mut self,
+        amount: &Balance,
+    ) -> Result<(), MathError> {
+        self.earned_fee = self
+            .earned_fee
+            .checked_add(*amount)
+            .ok_or(MathError::Overflow)?;
+        Ok(())
+    }
+
+    pub fn take_earned_fee(&mut self) -> Balance {
+        let earned_fee = self.earned_fee;
+        self.earned_fee = 0;
+        earned_fee
     }
 }
 

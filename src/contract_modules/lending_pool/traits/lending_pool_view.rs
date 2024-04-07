@@ -6,6 +6,7 @@ use ink::{
     contract_ref, env::DefaultEnvironment, prelude::vec::Vec,
     primitives::AccountId,
 };
+use pendzl::traits::Balance;
 
 use crate::lending_pool::{
     DecimalMultiplier, InterestRateModel, MarketRule, RuleId,
@@ -81,5 +82,5 @@ pub trait LendingPoolView {
     fn view_protocol_income(
         &self,
         assets: Option<Vec<AccountId>>,
-    ) -> Vec<(AccountId, i128)>;
+    ) -> Vec<(AccountId, Balance)>;
 }

@@ -116,7 +116,7 @@ impl AccountReserveData {
     pub fn accumulate_account_interest(
         &mut self,
         reserve_indexes: &ReserveIndexes,
-        reserve_fees: &ReserveFees,
+        reserve_fees: &mut ReserveFees,
         (deposit_fee_reduction_e6, debt_fee_reduction_e6): &FeeReductions,
     ) -> Result<(Balance, Balance), MathError> {
         if self.applied_deposit_index_e18 >= reserve_indexes.deposit_index_e18
@@ -162,6 +162,8 @@ impl AccountReserveData {
                 .checked_sub(self.deposit)
                 .ok_or(MathError::Underflow)?;
             self.deposit = updated_deposit;
+
+            reserve_fees.increase_earned_fee(&fee)?;
         }
         self.applied_deposit_index_e18 = reserve_indexes.deposit_index_e18;
 
@@ -197,6 +199,7 @@ impl AccountReserveData {
                 .checked_sub(self.debt)
                 .ok_or(MathError::Underflow)?;
             self.debt = updated_borrow;
+            reserve_fees.increase_earned_fee(&fee)?;
         }
         self.applied_debt_index_e18 = reserve_indexes.debt_index_e18;
 

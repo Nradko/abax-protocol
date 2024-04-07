@@ -1,5 +1,6 @@
 use crate::dummy::DummyRef;
 use crate::lending_pool::events::FeeReductionChanged;
+use crate::lending_pool::ReserveFeesExternal;
 use crate::lending_pool::{
     events::{
         AssetRegistered, AssetRulesChanged, FlashLoanFeeChanged, IncomeTaken,
@@ -92,7 +93,7 @@ pub trait LendingPoolManageImpl:
         decimals: u8,
         asset_rules: AssetRules,
         reserve_restrictions: ReserveRestrictions,
-        reserve_fees: ReserveFees,
+        reserve_fees: ReserveFeesExternal,
         interest_rate_model: Option<InterestRateModel>,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
@@ -100,13 +101,20 @@ pub trait LendingPoolManageImpl:
 
         let timestamp = Self::env().block_timestamp();
 
+        if reserve_fees.deposit_fee_e6 > 1_000_000 {
+            return Err(LendingPoolError::DepositFeeTooHigh);
+        }
+
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
                 &asset,
                 &ReserveData::default(),
                 &reserve_restrictions,
                 &10_u128.pow(decimals.into()),
-                &reserve_fees,
+                &ReserveFees::new(
+                    reserve_fees.deposit_fee_e6,
+                    reserve_fees.debt_fee_e6,
+                ),
                 &interest_rate_model,
                 &timestamp,
             )?;
@@ -271,13 +279,23 @@ pub trait LendingPoolManageImpl:
     fn set_reserve_fees(
         &mut self,
         asset: AccountId,
-        reserve_fees: ReserveFees,
+        reserve_fees: ReserveFeesExternal,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
 
+        if reserve_fees.deposit_fee_e6 > 1_000_000 {
+            return Err(LendingPoolError::DepositFeeTooHigh);
+        }
+
         self.data::<LendingPoolStorage>()
-            .account_for_reserve_fees_change(&asset, &reserve_fees)?;
+            .account_for_reserve_fees_change(
+                &asset,
+                &ReserveFees::new(
+                    reserve_fees.deposit_fee_e6,
+                    reserve_fees.debt_fee_e6,
+                ),
+            )?;
         ink::env::emit_event::<DefaultEnvironment, ReserveFeesChanged>(
             ReserveFeesChanged {
                 asset,
@@ -382,22 +400,22 @@ pub trait LendingPoolManageImpl:
         &mut self,
         assets: Option<Vec<AccountId>>,
         to: AccountId,
-    ) -> Result<Vec<(AccountId, i128)>, LendingPoolError> {
+    ) -> Result<Vec<(AccountId, Balance)>, LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(TREASURY, Some(caller))?;
 
         let assets_and_amounts = match assets {
-            Some(assets_vec) => self._get_protocol_income(&assets_vec)?,
+            Some(assets_vec) => self._take_protocol_income(&assets_vec)?,
             None => {
                 let registered_assets = self
                     .data::<LendingPoolStorage>()
                     .get_all_registered_assets();
-                self._get_protocol_income(&registered_assets)?
+                self._take_protocol_income(&registered_assets)?
             }
         };
 
         for asset_and_amount in
-            assets_and_amounts.iter().take_while(|x| x.1.is_positive())
+            assets_and_amounts.iter().take_while(|x| x.1 > 0)
         {
             let mut psp22: PSP22Ref = asset_and_amount.0.into();
             psp22.transfer(to, asset_and_amount.1 as Balance, vec![])?;

@@ -186,35 +186,56 @@ impl<T: StorageFieldGetter<LendingPoolStorage>> Transfer for T {
 }
 
 pub trait InternalIncome {
-    fn _get_protocol_income(
+    fn _view_protocol_income(
         &self,
         assets: &[AccountId],
-    ) -> Result<Vec<(AccountId, i128)>, LendingPoolError>;
+    ) -> Result<Vec<(AccountId, Balance)>, LendingPoolError>;
+
+    fn _take_protocol_income(
+        &mut self,
+        assets: &[AccountId],
+    ) -> Result<Vec<(AccountId, Balance)>, LendingPoolError>;
 }
 
 impl<T: StorageFieldGetter<LendingPoolStorage>> InternalIncome for T {
-    fn _get_protocol_income(
+    fn _view_protocol_income(
         &self,
         assets: &[AccountId],
-    ) -> Result<Vec<(AccountId, i128)>, LendingPoolError> {
-        let mut result: Vec<(AccountId, i128)> = vec![];
-        let timestamp = Self::env().block_timestamp();
+    ) -> Result<Vec<(AccountId, Balance)>, LendingPoolError> {
+        let mut result: Vec<(AccountId, Balance)> = vec![];
         for asset in assets.iter() {
-            let total_deposit = self
-                .data::<LendingPoolStorage>()
-                .total_deposit_of(asset, &timestamp)?;
-            let total_debt = self
-                .data::<LendingPoolStorage>()
-                .total_debt_of(asset, &timestamp)?;
-            let psp22: PSP22Ref = (*asset).into();
-            let balance = psp22.balance_of(Self::env().account_id());
-            let income = {
-                (balance as i128)
-                    .checked_add(total_debt as i128)
-                    .unwrap()
-                    .checked_sub(total_deposit as i128)
-                    .unwrap()
-            };
+            let asset_id = self.data().asset_id(asset)?;
+            let mut reserve_indexes_and_fees = self
+                .data()
+                .reserve_indexes_and_fees
+                .get(asset_id)
+                .ok_or(LendingPoolError::AssetNotRegistered)?;
+
+            let income = reserve_indexes_and_fees.fees.take_earned_fee();
+
+            result.push((*asset, income));
+        }
+        Ok(result)
+    }
+    fn _take_protocol_income(
+        &mut self,
+        assets: &[AccountId],
+    ) -> Result<Vec<(AccountId, Balance)>, LendingPoolError> {
+        let mut result: Vec<(AccountId, Balance)> = vec![];
+        for asset in assets.iter() {
+            let asset_id = self.data().asset_id(asset)?;
+            let mut reserve_indexes_and_fees = self
+                .data()
+                .reserve_indexes_and_fees
+                .get(asset_id)
+                .ok_or(LendingPoolError::AssetNotRegistered)?;
+
+            let income = reserve_indexes_and_fees.fees.take_earned_fee();
+
+            self.data()
+                .reserve_indexes_and_fees
+                .insert(asset_id, &reserve_indexes_and_fees);
+
             result.push((*asset, income));
         }
         Ok(result)
