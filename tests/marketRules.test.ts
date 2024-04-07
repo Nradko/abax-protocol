@@ -99,7 +99,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
             {
               name: 'MarketRuleChosen',
               args: {
-                account: account.address,
+                caller: account.address,
                 marketRuleId: '1',
               },
             },
