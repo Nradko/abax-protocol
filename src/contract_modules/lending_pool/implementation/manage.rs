@@ -1,6 +1,6 @@
 use crate::dummy::DummyRef;
 use crate::lending_pool::events::FeeReductionChanged;
-use crate::lending_pool::ReserveFeesExternal;
+use crate::lending_pool::SetReserveFeesArgs;
 use crate::lending_pool::{
     events::{
         AssetRegistered, AssetRulesChanged, FlashLoanFeeChanged, IncomeTaken,
