@@ -11,6 +11,7 @@
 #[ink::contract]
 pub mod lending_pool {
     use abax_contracts::account_registrar::AccountRegistrarView;
+    use abax_contracts::lending_pool::ReserveFeesExternal;
     use abax_contracts::lending_pool::{
         events::FlashLoanFeeChanged, DecimalMultiplier, InterestRateModel,
         LendingPoolATokenInterface, LendingPoolActions, LendingPoolError,
@@ -30,7 +31,7 @@ pub mod lending_pool {
         },
     };
     use abax_library::structs::{
-        AccountConfig, AccountReserveData, Action, AssetRules, FeeReductions,
+        AccountConfig, AccountReserveData, Action, AssetRules,
         ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
         ReserveRestrictions,
     };
@@ -253,7 +254,7 @@ pub mod lending_pool {
             decimals: u8,
             asset_rules: AssetRules,
             reserve_restrictions: ReserveRestrictions,
-            reserve_fees: ReserveFees,
+            reserve_fees: ReserveFeesExternal,
             interest_rate_model: Option<InterestRateModel>,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::register_asset(
@@ -319,7 +320,7 @@ pub mod lending_pool {
         fn set_reserve_fees(
             &mut self,
             asset: AccountId,
-            reserve_fees: ReserveFees,
+            reserve_fees: ReserveFeesExternal,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_reserve_fees(self, asset, reserve_fees)
         }
@@ -352,7 +353,7 @@ pub mod lending_pool {
             &mut self,
             assets: Option<Vec<AccountId>>,
             to: AccountId,
-        ) -> Result<Vec<(AccountId, i128)>, LendingPoolError> {
+        ) -> Result<Vec<(AccountId, Balance)>, LendingPoolError> {
             LendingPoolManageImpl::take_protocol_income(self, assets, to)
         }
 
@@ -480,7 +481,7 @@ pub mod lending_pool {
         fn view_protocol_income(
             &self,
             assets: Option<Vec<AccountId>>,
-        ) -> Vec<(AccountId, i128)> {
+        ) -> Vec<(AccountId, Balance)> {
             LendingPoolViewImpl::view_protocol_income(self, assets)
         }
     }

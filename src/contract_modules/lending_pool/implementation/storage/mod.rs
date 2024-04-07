@@ -370,6 +370,11 @@ impl LendingPoolStorage {
             reserve_data.recalculate_current_rates(&params)?
         }
 
+        ink::env::debug_println!(
+            "reserve_indexes {:?}",
+            reserve_indexes_and_fees
+        );
+
         self.reserve_datas.insert(asset_id, &reserve_data);
         self.reserve_indexes_and_fees
             .insert(asset_id, &reserve_indexes_and_fees);
@@ -394,7 +399,7 @@ impl LendingPoolStorage {
         ): (Balance, Balance) = reserve_ctx.reserve_data.add_interests(
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
-                &reserve_ctx.reserve_indexes_and_fees.fees,
+                &mut reserve_ctx.reserve_indexes_and_fees.fees,
                 fee_reductions,
             )?,
         )?;
@@ -436,7 +441,7 @@ impl LendingPoolStorage {
         ): (Balance, Balance) = reserve_ctx.reserve_data.add_interests(
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
-                &reserve_ctx.reserve_indexes_and_fees.fees,
+                &mut reserve_ctx.reserve_indexes_and_fees.fees,
                 fee_reductions,
             )?,
         )?;
@@ -477,7 +482,7 @@ impl LendingPoolStorage {
         ): (Balance, Balance) = reserve_ctx.reserve_data.add_interests(
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
-                &reserve_ctx.reserve_indexes_and_fees.fees,
+                &mut reserve_ctx.reserve_indexes_and_fees.fees,
                 fee_reductions,
             )?,
         )?;
@@ -518,7 +523,7 @@ impl LendingPoolStorage {
         ): (Balance, Balance) = reserve_ctx.reserve_data.add_interests(
             account_reserve_data.accumulate_account_interest(
                 &reserve_ctx.reserve_indexes_and_fees.indexes,
-                &reserve_ctx.reserve_indexes_and_fees.fees,
+                &mut reserve_ctx.reserve_indexes_and_fees.fees,
                 fee_reductions,
             )?,
         )?;
@@ -885,12 +890,12 @@ impl LendingPoolStorage {
                 };
 
             // Reserve indexes are not updated
-            let reserve_indexes_and_fees =
+            let mut reserve_indexes_and_fees =
                 self.get_reserve_indexes_and_fees(asset_id);
 
             account_reserve_data.accumulate_account_interest(
                 &reserve_indexes_and_fees.indexes,
-                &reserve_indexes_and_fees.fees,
+                &mut reserve_indexes_and_fees.fees,
                 fee_reductions,
             )?;
 
@@ -1294,7 +1299,7 @@ impl LendingPoolStorage {
             .update(&reserve_data, timestamp)?;
         account_reserve_data.accumulate_account_interest(
             &reserve_indexes_and_fees.indexes,
-            &reserve_indexes_and_fees.fees,
+            &mut reserve_indexes_and_fees.fees,
             &self.get_fee_reductions_of_account(account),
         )?;
 
@@ -1334,7 +1339,7 @@ impl LendingPoolStorage {
             .update(&reserve_data, timestamp)?;
         account_reserve_data.accumulate_account_interest(
             &reserve_indexes_and_fees.indexes,
-            &reserve_indexes_and_fees.fees,
+            &mut reserve_indexes_and_fees.fees,
             &self.get_fee_reductions_of_account(account),
         )?;
 
@@ -1456,7 +1461,7 @@ impl LendingPoolStorage {
             self.price_feed_provider.get().unwrap().into();
         Ok(price_feeder.get_latest_prices(all_assets)?)
     }
-    fn get_fee_reductions_of_account(
+    pub fn get_fee_reductions_of_account(
         &self,
         account: &AccountId,
     ) -> FeeReductions {

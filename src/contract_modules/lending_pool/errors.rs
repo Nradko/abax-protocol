@@ -62,6 +62,8 @@ pub enum LendingPoolError {
     FlashLoanAmountsAssetsInconsistentLengths,
     /// returned if passed 'market_rule_id' that is not used.
     MarketRuleInvalidId,
+    /// returned if the fee is too high (greater then 1 = 10^6).
+    DepositFeeTooHigh,
 }
 
 impl From<AssetRulesError> for LendingPoolError {
