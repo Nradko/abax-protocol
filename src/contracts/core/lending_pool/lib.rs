@@ -11,7 +11,7 @@
 #[ink::contract]
 pub mod lending_pool {
     use abax_contracts::account_registrar::AccountRegistrarView;
-    use abax_contracts::lending_pool::ReserveFeesExternal;
+    use abax_contracts::lending_pool::SetReserveFeesArgs;
     use abax_contracts::lending_pool::{
         events::FlashLoanFeeChanged, DecimalMultiplier, InterestRateModel,
         LendingPoolATokenInterface, LendingPoolActions, LendingPoolError,
@@ -254,7 +254,7 @@ pub mod lending_pool {
             decimals: u8,
             asset_rules: AssetRules,
             reserve_restrictions: ReserveRestrictions,
-            reserve_fees: ReserveFeesExternal,
+            reserve_fees: SetReserveFeesArgs,
             interest_rate_model: Option<InterestRateModel>,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::register_asset(
@@ -320,7 +320,7 @@ pub mod lending_pool {
         fn set_reserve_fees(
             &mut self,
             asset: AccountId,
-            reserve_fees: ReserveFeesExternal,
+            reserve_fees: SetReserveFeesArgs,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_reserve_fees(self, asset, reserve_fees)
         }

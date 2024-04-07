@@ -16,7 +16,7 @@ import Psp22EmitableDeployer from 'typechain/deployers/psp22_emitable';
 import StableTokenDeployer from 'typechain/deployers/stable_token';
 import VTokenDeployer from 'typechain/deployers/v_token';
 import { ReserveFees } from 'typechain/types-arguments/balance_viewer';
-import { AssetRules, ReserveFeesExternal, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
+import { AssetRules, SetReserveFeesArgs, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
 import { getContractObjectWrapper } from '@abaxfinance/contract-helpers';
 import { localApi } from '@c-forge/polkahat-network-helpers';
 import { apiProviderWrapper, getSigners } from './helpers';
@@ -261,7 +261,7 @@ export async function registerNewAsset(
   decimals: number,
   assetRules: AssetRules,
   restrictions: ReserveRestrictions,
-  fees: ReserveFeesExternal,
+  fees: SetReserveFeesArgs,
   interestRateModel: InterestRateModel | null,
 ): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
   const registerAssetArgs: Parameters<typeof lendingPool.query.registerAsset> = [

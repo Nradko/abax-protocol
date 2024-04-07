@@ -200,7 +200,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         });
         expect.soft(stringifyNumericProps(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
         expect.soft(stringifyNumericProps(reserveModel)).to.deep.equal(PARAMS.interestRateModel);
-        expect.soft(stringifyNumericProps(reserveFees)).to.deep.equal(PARAMS.reserveFees);
+        expect.soft(stringifyNumericProps(reserveFees)).to.deep.equal({ ...PARAMS.reserveFees, earnedFee: '0' });
         expect.soft(stringifyNumericProps(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
           debtIndexE18: '1000000000000000000',
@@ -544,7 +544,7 @@ makeSuite('Menage tests', (getTestEnv) => {
         ]);
 
         const reserveFees = (await lendingPool.query.viewReserveFees(PARAMS.asset)).value.ok!;
-        expect.soft(stringifyNumericProps(reserveFees)).to.deep.equal(PARAMS.reserveFees);
+        expect.soft(stringifyNumericProps(reserveFees)).to.deep.equal({ ...PARAMS.reserveFees, earnedFee: '0' });
 
         expect.flushSoft();
       });

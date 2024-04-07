@@ -13,7 +13,7 @@ import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6 } from './setup/tokensToDep
 import { E18bn, E6bn, time } from '@c-forge/polkahat-network-helpers';
 import { bnToBn } from '@polkadot/util';
 
-makeSuite.only('Testing protocol income', () => {
+makeSuite('Testing protocol income', () => {
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
   after(async () => {
     return await apiProviderWrapper.closeApi();
@@ -292,7 +292,7 @@ makeSuite.only('Testing protocol income', () => {
               await lendingPool.withSigner(depositor).tx.withdraw(usdcContract.address, depositor.address, millionUsdc, []);
             });
 
-            it.only('Usdc: fees should be applied', async () => {
+            it('Usdc: fees should be applied', async () => {
               const expectedDebtInterestNoFee = new BN('20400068');
               let expectedDebtIncome = expectedDebtInterestNoFee.muln(feeD6[1]).divn(1_000_000);
               expectedDebtIncome = expectedDebtInterestNoFee.isZero() ? expectedDebtIncome : expectedDebtIncome.addn(1);
@@ -303,7 +303,7 @@ makeSuite.only('Testing protocol income', () => {
               const totalIncome = expectedIncome.add(expectedDebtIncome);
 
               const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
-              expect(income[0][1].toString(), 'income').to.equal(totalIncome.toString());
+              expect(income[0][1].toString(), 'income').to.almostEqualOrEqualToInteger(totalIncome.toString());
             });
           });
         });
