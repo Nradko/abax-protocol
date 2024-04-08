@@ -15,7 +15,7 @@ import { bnToBn } from '@polkadot/util';
 import FeeReductionProviderMockDeployer from 'typechain/deployers/fee_reduction_provider_mock';
 import { ROLES } from './consts';
 
-makeSuite('Testing protocol income', () => {
+makeSuite.only('Testing protocol income', () => {
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
   after(async () => {
     return await apiProviderWrapper.closeApi();
@@ -384,81 +384,182 @@ makeSuite('Testing protocol income', () => {
               await lendingPool.withSigner(borrower).tx.repay(usdaxContract.address, borrower.address, USDax68, []);
             });
 
-            it('Usdc:  borrower debt interest should accumulate', async () => {
-              // the current rate is 300_001
-              // 0.68 m * 10 ^ 8  * 300_001 * 1000 * 1000 / 10^18 = 20400068
-              const expectedInterestNoFee = new BN('20400068');
-              let expectedIncome = expectedInterestNoFee.muln(feeD6[1]).divn(1_000_000);
-              expectedIncome = expectedIncome.isZero() ? expectedIncome : expectedIncome.addn(1);
-              const expectedInterest = expectedInterestNoFee.add(expectedIncome);
-
-              const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
-              const reserveData = (await lendingPool.query.viewReserveData(usdcContract.address)).value.ok!;
-              const borrowerReserveData = (await lendingPool.query.viewAccountReserveData(usdcContract.address, borrower.address)).value.ok!;
-
-              expect(income[0][1].toString(), 'income').to.equal(expectedIncome.toString());
-              expect(reserveData.totalDebt.toString(), 'totalDebt').to.equal(expectedInterest.toString());
-              expect(borrowerReserveData.debt.toString(), 'accountDebt').to.equal(expectedInterest.toString());
+            it('ViewProtocolIncome should return 0 for USDC', async () => {
+              const res = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
+              expect.soft(res[0][0].toString()).to.equal(usdcContract.address);
+              expect.soft(res[0][1].toString()).to.equal('0');
+              expect.flushSoft();
             });
 
-            it('USDax: borrower debt interest should accumulate', async () => {
-              // the current rate is 1_00_000
-              // 0.68 m * 10 ^ 6  * 10^6 * 10^6 / 10^18 = 680000
-              const expectedInterestNoFee = new BN('680000');
-              const expectedIncome = expectedInterestNoFee.muln(feeD6[1]).divn(1_000_000);
-              const expectedInterest = expectedInterestNoFee.add(expectedIncome);
-
-              const income = (await lendingPool.query.viewProtocolIncome([usdaxContract.address])).value.ok!;
-              const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
-              const borrowerReserveData = (await lendingPool.query.viewAccountReserveData(usdaxContract.address, borrower.address)).value.ok!;
-
-              expect(income[0][1].toString(), 'income').to.equal(expectedIncome.toString());
-              expect(reserveData.totalDebt.toString(), 'totalDebt').to.equal(expectedInterest.toString());
-              expect(borrowerReserveData.debt.toString(), 'accountDebt').to.equal(expectedInterest.toString());
-            });
-          });
-
-          describe('Then depositor withdraws 1 token - so the interest is accumulated and fees should be applied', () => {
-            beforeEach('withdraw', async () => {
-              await lendingPool.withSigner(depositor).tx.withdraw(usdcContract.address, depositor.address, 1, []);
+            it('ViewProtocolIncome should return 0 for DAI', async () => {
+              const res = (await lendingPool.query.viewProtocolIncome([daiContract.address])).value.ok!;
+              expect.soft(res[0][0].toString()).to.equal(daiContract.address);
+              expect.soft(res[0][1].toString()).to.equal('0');
+              expect.flushSoft();
             });
 
-            it('Usdc:  depositor deposit interest should accumulate', async () => {
-              // the current rate is 204000
-              // 1m * 10 ^ 8  * 204_000 * 1000 * 1000 / 10^18 = 20400000;
-              const expectedInterestWithFee = new BN('20400000');
-              const expectedIncome = expectedInterestWithFee.muln(feeD6[0]).divn(1_000_000);
-              const expectedInterest = expectedInterestWithFee.sub(expectedIncome);
-
-              const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
-              const reserveData = (await lendingPool.query.viewReserveData(usdcContract.address)).value.ok!;
-              const borrowerReserveData = (await lendingPool.query.viewAccountReserveData(usdcContract.address, depositor.address)).value.ok!;
-
-              expect(income[0][1].toString(), 'income').to.equal(expectedIncome.toString());
-              expect(reserveData.totalDeposit.toString(), 'accountDeposit').to.equal(millionUsdc.subn(1).add(expectedInterest).toString());
-              expect(borrowerReserveData.deposit.toString(), 'accountDeposit').to.equal(millionUsdc.subn(1).add(expectedInterest).toString());
-            });
-          });
-
-          describe('Borrower repays USDC debt (with no interest) and depositor withdraws 1 million USDC', () => {
-            beforeEach('repay and withdraw', async () => {
-              await usdcContract.withSigner(borrower).tx.approve(lendingPool.address, USDC68);
-              await lendingPool.withSigner(borrower).tx.repay(usdcContract.address, borrower.address, USDC68, []);
-              await lendingPool.withSigner(depositor).tx.withdraw(usdcContract.address, depositor.address, millionUsdc, []);
+            it('ViewProtocolIncome should return 0 for USDax', async () => {
+              const res = (await lendingPool.query.viewProtocolIncome([usdaxContract.address])).value.ok!;
+              expect.soft(res[0][0].toString()).to.equal(usdaxContract.address);
+              expect.soft(res[0][1].toString()).to.equal('0');
+              expect.flushSoft();
             });
 
-            it('Usdc: fees should be applied', async () => {
-              const expectedDebtInterestNoFee = new BN('20400068');
-              let expectedDebtIncome = expectedDebtInterestNoFee.muln(feeD6[1]).divn(1_000_000);
-              expectedDebtIncome = expectedDebtInterestNoFee.isZero() ? expectedDebtIncome : expectedDebtIncome.addn(1);
+            it('ViewProtocolIncome should return [0,0] for [USDC,DAI]', async () => {
+              const res = (await lendingPool.query.viewProtocolIncome([usdcContract.address, daiContract.address])).value.ok!;
+              expect.soft(res[0][0].toString()).to.equal(usdcContract.address);
+              expect.soft(res[0][1].toString()).to.equal('0');
+              expect.soft(res[1][0].toString()).to.equal(daiContract.address);
+              expect.soft(res[1][1].toString()).to.equal('0');
+              expect.flushSoft();
+            });
 
-              const expectedInterestWithFee = new BN('20400000');
-              const expectedIncome = expectedInterestWithFee.muln(feeD6[0]).divn(1_000_000);
+            it('ViewProtocolIncome should return [0,0,0] for []', async () => {
+              const res = (await lendingPool.query.viewProtocolIncome(null)).value.ok!;
+              expect.soft(res[0][0].toString()).to.equal(daiContract.address);
+              expect.soft(res[0][1].toString()).to.equal('0');
+              expect.soft(res[1][0].toString()).to.equal(usdcContract.address);
+              expect.soft(res[1][1].toString()).to.equal('0');
+              expect.soft(res[2][0].toString()).to.equal(usdaxContract.address);
+              expect.soft(res[2][1].toString()).to.equal('0');
+              expect.flushSoft();
+            });
 
-              const totalIncome = expectedIncome.add(expectedDebtIncome);
+            describe('Then borrower repays his debts (with no interest) - so the interests are accumulated and fees should be applied', () => {
+              beforeEach('repay', async () => {
+                await usdcContract.withSigner(borrower).tx.approve(lendingPool.address, USDC68);
+                await usdaxContract.withSigner(borrower).tx.approve(lendingPool.address, USDax68);
+                await lendingPool.withSigner(borrower).tx.repay(usdcContract.address, borrower.address, USDC68, []);
+                await lendingPool.withSigner(borrower).tx.repay(usdaxContract.address, borrower.address, USDax68, []);
+              });
 
-              const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
-              expect(income[0][1].toString(), 'income').to.almostEqualOrEqualToInteger(totalIncome.toString());
+              it('Usdc:  borrower debt interest should accumulate', async () => {
+                // the current rate is 300_001
+                // 0.68 m * 10 ^ 8  * 300_001 * 1000 * 1000 / 10^18 = 20400068
+                const expectedInterestNoFee = new BN('20400068');
+                let expectedIncome = expectedInterestNoFee
+                  .muln(feeD6[1])
+                  .divn(1_000_000)
+                  .muln(1_000_000 - feeReductionsD6[1])
+                  .divn(1_000_000);
+                expectedIncome = expectedIncome.isZero() ? expectedIncome : expectedIncome.addn(1);
+                const expectedInterest = expectedInterestNoFee.add(expectedIncome);
+
+                const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
+                const reserveData = (await lendingPool.query.viewReserveData(usdcContract.address)).value.ok!;
+                const borrowerReserveData = (await lendingPool.query.viewAccountReserveData(usdcContract.address, borrower.address)).value.ok!;
+
+                expect(income[0][1].toString(), 'income').to.equal(expectedIncome.toString());
+                expect(reserveData.totalDebt.toString(), 'totalDebt').to.equal(expectedInterest.toString());
+                expect(borrowerReserveData.debt.toString(), 'accountDebt').to.equal(expectedInterest.toString());
+              });
+
+              it('USDax: borrower debt interest should accumulate', async () => {
+                // the current rate is 1_00_000
+                // 0.68 m * 10 ^ 6  * 10^6 * 10^6 / 10^18 = 680000
+                const expectedInterestNoFee = new BN('680000');
+                const expectedIncome = expectedInterestNoFee
+                  .muln(feeD6[1])
+                  .divn(1_000_000)
+                  .muln(1_000_000 - feeReductionsD6[1])
+                  .divn(1_000_000);
+                const expectedInterest = expectedInterestNoFee.add(expectedIncome);
+
+                const income = (await lendingPool.query.viewProtocolIncome([usdaxContract.address])).value.ok!;
+                const reserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
+                const borrowerReserveData = (await lendingPool.query.viewAccountReserveData(usdaxContract.address, borrower.address)).value.ok!;
+
+                expect(income[0][1].toString(), 'income').to.equal(expectedIncome.toString());
+                expect(reserveData.totalDebt.toString(), 'totalDebt').to.equal(expectedInterest.toString());
+                expect(borrowerReserveData.debt.toString(), 'accountDebt').to.equal(expectedInterest.toString());
+              });
+            });
+
+            describe('Then depositor withdraws 1 token - so the interest is accumulated and fees should be applied', () => {
+              beforeEach('withdraw', async () => {
+                await lendingPool.withSigner(depositor).tx.withdraw(usdcContract.address, depositor.address, 1, []);
+              });
+
+              it('Usdc:  depositor deposit interest should accumulate', async () => {
+                // the current rate is 204000
+                // 1m * 10 ^ 8  * 204_000 * 1000 * 1000 / 10^18 = 20400000;
+                const expectedInterestWithFee = new BN('20400000');
+                const expectedIncome = expectedInterestWithFee
+                  .muln(feeD6[0])
+                  .divn(1_000_000)
+                  .muln(1_000_000 - feeReductionsD6[0])
+                  .divn(1_000_000);
+                const expectedInterest = expectedInterestWithFee.sub(expectedIncome);
+
+                const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
+                const reserveData = (await lendingPool.query.viewReserveData(usdcContract.address)).value.ok!;
+                const borrowerReserveData = (await lendingPool.query.viewAccountReserveData(usdcContract.address, depositor.address)).value.ok!;
+
+                expect(income[0][1].toString(), 'income').to.equal(expectedIncome.toString());
+                expect(reserveData.totalDeposit.toString(), 'accountDeposit').to.equal(millionUsdc.subn(1).add(expectedInterest).toString());
+                expect(borrowerReserveData.deposit.toString(), 'accountDeposit').to.equal(millionUsdc.subn(1).add(expectedInterest).toString());
+              });
+            });
+
+            describe('Borrower repays USDC debt (with no interest) and depositor withdraws 1 million USDC', () => {
+              beforeEach('repay and withdraw', async () => {
+                await usdcContract.withSigner(borrower).tx.approve(lendingPool.address, USDC68);
+                await lendingPool.withSigner(borrower).tx.repay(usdcContract.address, borrower.address, USDC68, []);
+                await lendingPool.withSigner(depositor).tx.withdraw(usdcContract.address, depositor.address, millionUsdc, []);
+              });
+
+              it('Usdc: fees should be applied', async () => {
+                const expectedDebtInterestNoFee = new BN('20400068');
+                let expectedDebtIncome = expectedDebtInterestNoFee
+                  .muln(feeD6[1])
+                  .divn(1_000_000)
+                  .muln(1_000_000 - feeReductionsD6[1])
+                  .divn(1_000_000);
+                expectedDebtIncome = expectedDebtInterestNoFee.isZero() ? expectedDebtIncome : expectedDebtIncome.addn(1);
+
+                const expectedDepositInterestWithFee = new BN('20400000');
+                const expectedDepositIncome = expectedDepositInterestWithFee
+                  .muln(feeD6[0])
+                  .divn(1_000_000)
+                  .muln(1_000_000 - feeReductionsD6[0])
+                  .divn(1_000_000);
+
+                const totalIncome = expectedDepositIncome.add(expectedDebtIncome);
+
+                const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok!;
+                expect(income[0][1].toString(), 'income').to.almostEqualOrEqualToInteger(totalIncome.toString());
+              });
+            });
+            describe('Borrower repays USDC ans USDax debt (with no interest) and depositor withdraws 0.5 million USDC', () => {
+              beforeEach('repay and withdraw', async () => {
+                await usdcContract.withSigner(borrower).tx.approve(lendingPool.address, USDC68);
+                await lendingPool.withSigner(borrower).tx.repay(usdcContract.address, borrower.address, USDC68, []);
+                await usdaxContract.withSigner(borrower).tx.approve(lendingPool.address, USDax68);
+                await lendingPool.withSigner(borrower).tx.repay(usdaxContract.address, borrower.address, USDax68, []);
+                await lendingPool.withSigner(depositor).tx.withdraw(usdcContract.address, depositor.address, millionUsdc.divn(2), []);
+
+                await lendingPool.withSigner(testEnv.owner).tx.grantRole(ROLES.TREASURY, testEnv.owner.address);
+              });
+
+              it('Taking USDC income should work', async () => {
+                const income = (await lendingPool.query.viewProtocolIncome([usdcContract.address])).value.ok![0][1];
+
+                const tx = await lendingPool.withSigner(testEnv.owner).tx.takeProtocolIncome([usdcContract.address], other.address);
+                await expect(tx).to.changePSP22Balances(usdcContract, [other.address, lendingPool.address], [income, income.neg()]);
+                if (income.gt(new BN(0))) {
+                  await expect(tx).to.emitEvent(lendingPool, 'IncomeTaken', { asset: usdcContract.address });
+                }
+              });
+
+              it(' Taking USDax income should work', async () => {
+                const income = (await lendingPool.query.viewProtocolIncome([usdaxContract.address])).value.ok![0][1];
+
+                const tx = await lendingPool.withSigner(testEnv.owner).tx.takeProtocolIncome([usdaxContract.address], other.address);
+                await expect(tx).to.changePSP22Balances(usdaxContract, [other.address, lendingPool.address], [income, new BN(0)]);
+                if (income.gt(new BN(0))) {
+                  await expect(tx).to.emitEvent(lendingPool, 'IncomeTaken', { asset: usdaxContract.address });
+                }
+              });
             });
           });
         });
