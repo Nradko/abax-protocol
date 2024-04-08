@@ -29,6 +29,7 @@ use pendzl::traits::{Balance, StorageFieldGetter};
 
 use super::internal::InternalIncome;
 use super::storage::LendingPoolStorage;
+use super::Transfer;
 
 pub trait LendingPoolManageImpl:
     ManageInternal + access_control::AccessControlInternal
@@ -423,8 +424,7 @@ pub trait LendingPoolManageImpl:
         for asset_and_amount in
             assets_and_amounts.iter().take_while(|x| x.1 > 0)
         {
-            let mut psp22: PSP22Ref = asset_and_amount.0.into();
-            psp22.transfer(to, asset_and_amount.1 as Balance, vec![])?;
+            self._transfer_out(&asset_and_amount.0, &to, &asset_and_amount.1)?;
             ink::env::emit_event::<DefaultEnvironment, IncomeTaken>(
                 IncomeTaken {
                     asset: asset_and_amount.0,
