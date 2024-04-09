@@ -15,7 +15,7 @@ import { bnToBn } from '@polkadot/util';
 import FeeReductionProviderMockDeployer from 'typechain/deployers/fee_reduction_provider_mock';
 import { ROLES } from './consts';
 
-makeSuite.only('Testing protocol income', () => {
+makeSuite('Testing protocol income', () => {
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
   after(async () => {
     return await apiProviderWrapper.closeApi();
