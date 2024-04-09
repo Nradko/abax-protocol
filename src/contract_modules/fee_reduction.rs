@@ -8,7 +8,11 @@ pub type FeeReductionRef = contract_ref!(FeeReduction, DefaultEnvironment);
 
 #[ink::trait_definition]
 pub trait FeeReduction {
-    /// Returns the fee reductions for the given account.
+    /// Returns (deposit_fee_reduction_e6, debt_fee_reduction_e6).
     #[ink(message)]
     fn get_fee_reductions(&self, account: AccountId) -> FeeReductions;
+
+    /// Returns flash_loan_fee_reduction_e6.
+    #[ink(message)]
+    fn get_flash_loan_fee_reduction(&self, account: AccountId) -> u32;
 }

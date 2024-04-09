@@ -6,9 +6,6 @@ pub const MINTER: RoleType = ink::selector_id!("MINTER"); // 4_254_773_782_u32
 // can burn given asset
 pub const BURNER: RoleType = ink::selector_id!("BURNER"); // 1_711_057_910_u32;
 
-/// pays only 10% of standard flash loan fee
-pub const FLASH_BORROWER: RoleType = ink::selector_id!("FLASH_BORROWER"); // 1_112_475_474_u32
-
 /// can add new asset to the market
 pub const ASSET_LISTING_ADMIN: RoleType =
     ink::selector_id!("ASSET_LISTING_ADMIN"); // 1_094_072_439_u32

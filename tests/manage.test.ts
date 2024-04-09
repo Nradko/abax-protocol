@@ -13,7 +13,6 @@ import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 
 makeSuite('Menage tests', (getTestEnv) => {
   const adminOf: Record<string, KeyringPair> = {};
-  const ROLES_NAMES = ROLE_NAMES.filter((name) => name !== 'FLASH_BORROWER');
   let testEnv: TestEnv;
   let accounts: KeyringPair[];
   let owner: KeyringPair;
@@ -30,7 +29,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     adminOf['EMERGENCY_ADMIN'] = accounts[4];
     adminOf['TREASURY'] = accounts[5];
 
-    for (const role_name of ROLES_NAMES.filter((role) => role !== 'ROLE_ADMIN')) {
+    for (const role_name of ROLE_NAMES.filter((role) => role !== 'ROLE_ADMIN')) {
       const role = ROLES[role_name];
       const qq = await lendingPool.withSigner(owner).query.grantRole(role, adminOf[role_name].address);
       const tkqr = await lendingPool.withSigner(owner).query.viewRegisteredAssets();
@@ -42,7 +41,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     const ROLES_WITH_ACCESS: string[] = ['PARAMETERS_ADMIN'];
     const flashLoanFeeE6 = '123456';
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.setFlashLoanFeeE6(flashLoanFeeE6)).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -101,7 +100,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     });
 
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.registerAsset(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -253,7 +252,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     });
 
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.registerAsset(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -362,7 +361,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsActive(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -417,7 +416,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveIsFrozen(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -472,7 +471,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.setInterestRateModel(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -520,7 +519,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveFees(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -567,7 +566,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.setReserveRestrictions(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -610,7 +609,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       PARAMS.to = accounts[4].address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.takeProtocolIncome(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -645,7 +644,7 @@ makeSuite('Menage tests', (getTestEnv) => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
     });
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.modifyAssetRule(...(Object.values(PARAMS) as params))).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -694,7 +693,7 @@ makeSuite('Menage tests', (getTestEnv) => {
     ];
 
     it('roles with no permission should fail with Err MissingRole', async () => {
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.addMarketRule(marketRule)).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
@@ -744,7 +743,7 @@ makeSuite('Menage tests', (getTestEnv) => {
 
     it('roles with no permission should fail with Err MissingRole', async () => {
       const stableAddress = testEnv.stables['USDax'].underlying.address;
-      const ROLES_WITH_NO_ACCESS = ROLES_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
+      const ROLES_WITH_NO_ACCESS = ROLE_NAMES.filter((role_name) => !ROLES_WITH_ACCESS.includes(role_name));
       for (const role_name of ROLES_WITH_NO_ACCESS) {
         const res = (await lendingPool.withSigner(adminOf[role_name]).query.setStablecoinDebtRateE18(stableAddress, debtRateE18)).value.ok;
         expect.soft(res, role_name).to.have.deep.property('err', LendingPoolErrorBuilder.AccessControlError(AccessControlError.missingRole));
