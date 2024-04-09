@@ -1,8 +1,11 @@
+use crate::fee_reduction::FeeReduction;
 use crate::{
+    fee_reduction::FeeReductionRef,
     flash_loan_receiver::FlashLoanReceiverError,
-    lending_pool::{events::FlashLoan, LendingPoolError, FLASH_BORROWER},
+    lending_pool::{events::FlashLoan, LendingPoolError},
 };
-use abax_library::math::E6_U128;
+
+use abax_library::math::{E6_U128, E6_U32};
 use ink::{
     env::{
         call::{build_call, ExecutionInput},
@@ -11,9 +14,9 @@ use ink::{
     prelude::{vec, vec::Vec},
 };
 
+use pendzl::math::operations::{mul_div, Rounding};
 use pendzl::{
     contracts::access_control,
-    math::errors::MathError,
     traits::{AccountId, Balance, StorageFieldGetter},
 };
 
@@ -45,24 +48,31 @@ pub trait LendingPoolFlashImpl:
             .get()
             .unwrap();
 
+        let fee_reduction_e6 = {
+            if let Some(free_provider_account) = self
+                .data::<LendingPoolStorage>()
+                .fee_reduction_provider
+                .get()
+            {
+                let free_provider: FeeReductionRef =
+                    free_provider_account.into();
+                free_provider.get_flash_loan_fee_reduction(Self::env().caller())
+            } else {
+                0
+            }
+        };
+        let fee_part_e6 = E6_U32.saturating_sub(fee_reduction_e6);
+
         for i in 0..assets.len() {
             _check_amount_not_zero(amounts[i])?;
-            let fee = match self
-                ._has_role(FLASH_BORROWER, Some(Self::env().caller()))
-            {
-                false => amounts[i]
-                    .checked_mul(flash_fee_e6)
-                    .ok_or(MathError::Overflow)?
-                    .checked_div(E6_U128)
-                    .ok_or(MathError::DivByZero)?,
-                true => amounts[i]
-                    .checked_mul(flash_fee_e6)
-                    .ok_or(MathError::Overflow)?
-                    .checked_div(E6_U128)
-                    .ok_or(MathError::DivByZero)?
-                    .checked_div(10)
-                    .unwrap(),
-            };
+
+            let pre_fee =
+                mul_div(amounts[i], flash_fee_e6, E6_U128, Rounding::Up)?;
+            let fee =
+                mul_div(pre_fee, fee_part_e6 as u128, E6_U128, Rounding::Up)?;
+
+            ink::env::debug_println!("flash_fee: {:?}, fee_reduction_e6: {:?}, fee_part_e6: {:?}, pre_fee: {:?}, fee: {:?}", flash_fee_e6, fee_reduction_e6, fee_part_e6, pre_fee, fee);
+
             fees.push(fee);
             self._transfer_out(&assets[i], &receiver, &amounts[i])?;
         }

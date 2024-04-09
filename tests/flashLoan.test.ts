@@ -12,8 +12,8 @@ import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { ROLES } from './consts';
 import { TestEnv, TokenReserve, makeSuite } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
-
-const FLASH_BORROWER = ROLES['FLASH_BORROWER'];
+import FeeReductionProviderMockDeployer from 'typechain/deployers/fee_reduction_provider_mock';
+import FeeReductionProviderMockContract from 'typechain/contracts/fee_reduction_provider_mock';
 
 makeSuite('Flash Loan', (getTestEnv) => {
   const amountWETHToDeposit = E18bn.muln(10);
@@ -39,19 +39,33 @@ makeSuite('Flash Loan', (getTestEnv) => {
     await expect(tx).to.eventually.be.fulfilled.and.not.to.have.deep.property('error');
   });
 
-  it('for flashBorrower taking WETH flashloan is cheaper than for other account', async () => {
-    const amountToBorrow = amountWETHToDeposit.divn(2);
-    const wethPoolBalance0 = await testEnv.reserves['WETH'].underlying.query.balanceOf(lendingPool.address);
-    await lendingPool.tx.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []);
-    const wethPoolBalance1 = await testEnv.reserves['WETH'].underlying.query.balanceOf(lendingPool.address);
-    await lendingPool.withSigner(testEnv.owner).tx.grantRole(FLASH_BORROWER, testEnv.owner.address);
-    await lendingPool.tx.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []);
-    const wethPoolBalance2 = await testEnv.reserves['WETH'].underlying.query.balanceOf(lendingPool.address);
+  describe(`Fee Reduction Provider is set`, () => {
+    let feeReductionProviderMock: FeeReductionProviderMockContract;
+    beforeEach(async () => {
+      feeReductionProviderMock = (await new FeeReductionProviderMockDeployer(testEnv.api, testEnv.owner).new()).contract;
 
-    const diff1 = wethPoolBalance1.value.unwrap().sub(wethPoolBalance0.value.unwrap());
-    const diff2 = wethPoolBalance2.value.unwrap().sub(wethPoolBalance1.value.unwrap());
-    expect(diff1.toString()).to.equal(amountToBorrow.divn(1000).toString());
-    expect(diff2.toString()).to.equal(amountToBorrow.divn(10000).toString());
+      await lendingPool.withSigner(testEnv.owner).tx.setFeeReductionProvider(feeReductionProviderMock.address);
+    });
+
+    it("just setting fee provider doesn't change the fee", async () => {
+      const amountToBorrow = amountWETHToDeposit.divn(2);
+      const fee = amountToBorrow.divn(1000);
+      const tx = await lendingPool.tx.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []);
+      await expect(tx).to.changePSP22Balances(reserveWETH.underlying, [lendingPool.address], [fee]);
+    });
+
+    for (const fee_reduction_e6 of [0, 500_000, 1_000_000]) {
+      it(`setting flash_loan_fee_reducion_e6 to ${fee_reduction_e6} should reduce fee correctly `, async () => {
+        await feeReductionProviderMock.tx.setFlashLoanFeeReduction(null, fee_reduction_e6);
+        const amountToBorrow = amountWETHToDeposit.divn(2);
+        const fee = amountToBorrow
+          .divn(1000)
+          .muln(1_000_000 - fee_reduction_e6)
+          .divn(1_000_000);
+        const tx = await lendingPool.tx.flashLoan(flashLoanReceiver.address, [reserveWETH.underlying.address], [amountToBorrow], []);
+        await expect(tx).to.changePSP22Balances(reserveWETH.underlying, [lendingPool.address], [fee]);
+      });
+    }
   });
 
   it('Takes WETH flashloan but fails the operation', async () => {

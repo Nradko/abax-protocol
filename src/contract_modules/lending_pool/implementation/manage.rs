@@ -19,12 +19,11 @@ use ink::env::DefaultEnvironment;
 use ink::prelude::string::{String, ToString};
 use ink::{
     env::call::ExecutionInput,
-    prelude::{vec, vec::Vec},
+    prelude::vec::Vec,
     primitives::{AccountId, Hash},
     ToAccountId,
 };
 use pendzl::contracts::access_control;
-use pendzl::contracts::psp22::{PSP22Ref, PSP22};
 use pendzl::traits::{Balance, StorageFieldGetter};
 
 use super::internal::InternalIncome;

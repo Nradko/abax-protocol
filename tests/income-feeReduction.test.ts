@@ -13,9 +13,9 @@ import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6 } from './setup/tokensToDep
 import { E18bn, E6bn, time } from '@c-forge/polkahat-network-helpers';
 import { bnToBn } from '@polkadot/util';
 import FeeReductionProviderMockDeployer from 'typechain/deployers/fee_reduction_provider_mock';
-import { ROLE_NAMES, ROLES } from './consts';
+import { ROLES } from './consts';
 
-makeSuite.only('Testing protocol income', () => {
+makeSuite('Testing protocol income', () => {
   let getContractsNodeProcess: () => ChildProcess | undefined = () => undefined;
   after(async () => {
     return await apiProviderWrapper.closeApi();
