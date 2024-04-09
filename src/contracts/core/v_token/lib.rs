@@ -190,7 +190,7 @@ pub mod v_token {
             self.env().emit_event(psp22::Transfer {
                 from: None,
                 to: to.copied(),
-                value: mint_from_amount,
+                value: mint_to_amount,
             });
         }
         // emitting transfer event
