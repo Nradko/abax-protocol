@@ -28,7 +28,7 @@ pub fn e18_mul_e18_to_e18_rup(a: u128, b: u128) -> Result<u128, MathError> {
 }
 
 pub fn e18_mul_e0_to_e18(a: u64, b: u64) -> u128 {
-    mul_div(a.into(), b.into(), 1, Rounding::Down).unwrap()
+    (a as u128).checked_mul(b as u128).unwrap()
 }
 
 pub fn e18_mul_e18_div_e18_to_e18_rdown(

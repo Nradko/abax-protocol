@@ -265,7 +265,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               await lendingPool.withSigner(bob).tx.borrow(wethContract.address, bob.address, bobDebt, []);
               await time.increase(ONE_YEAR.toNumber());
             });
-            it('Alice should be able to transfer vWETH to Bob and Transfer multiple events(inluding Alice debt mint) should be emitted', async () => {
+            it('Alice should be able to transfer vWETH to Bob - multiple events(inluding Alice debt mint) should be emitted', async () => {
               const capturedRepayEvents: Repay[] = [];
               lendingPool.events.subscribeOnRepayEvent((event) => {
                 capturedRepayEvents.push(event);
@@ -282,7 +282,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               const tx = vTokenWETHContract.withSigner(alice).tx.transfer(bob.address, aliceDebt, []);
               await expect(tx).to.eventually.be.fulfilled;
               const txRes = await tx;
-              expect(stringifyNumericProps(txRes.events)).to.almostDeepEqual([
+              expect(stringifyNumericProps(txRes.events)).to.deep.equal([
                 {
                   name: 'Approval',
                   args: {
@@ -296,7 +296,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: alice.address,
-                    value: `1405207058842083`, // ~ [(3 * 10^11) * 101 / 680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
+                    value: `1405212624000000`, // ~ [(3 * 10^5) * 101 / 680 + 1] * Year / 10^6 [[current_debt_rate_e18]* year /10^6]
                   },
                 },
                 {
@@ -304,7 +304,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: bob.address,
-                    value: `14052070588421`, // 1/100 of the above
+                    value: `14052126240000`, // 1/100 of the above
                   },
                 },
                 {
@@ -393,7 +393,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 {
                   from: null,
                   to: alice.address,
-                  value: `1405207058842083`, // ~ (3 * 10^11)* 101/680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
+                  value: `1405212624000000`, // ~ (3 * 10^5)* 101/680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
                 },
               ]);
             });
@@ -419,7 +419,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 const tx = vTokenWETHContract.withSigner(alice).tx.transfer(charlie.address, aliceDebt, []);
                 await expect(tx).to.eventually.be.fulfilled;
                 const txRes = await tx;
-                expect(stringifyNumericProps(txRes.events), 'VWeth events').to.almostDeepEqual([
+                expect(stringifyNumericProps(txRes.events), 'VWeth events').to.deep.equal([
                   {
                     name: 'Approval',
                     args: {
@@ -433,7 +433,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                     args: {
                       from: null,
                       to: alice.address,
-                      value: `1405207058842083`, // ~ [(3 * 10^11) * 101/ 680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
+                      value: `1405212624000000`, // ~ [(3 * 10^5) * 101/ 680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
                     },
                   },
                   {

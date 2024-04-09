@@ -71,8 +71,6 @@ pub trait LendingPoolFlashImpl:
             let fee =
                 mul_div(pre_fee, fee_part_e6 as u128, E6_U128, Rounding::Up)?;
 
-            ink::env::debug_println!("flash_fee: {:?}, fee_reduction_e6: {:?}, fee_part_e6: {:?}, pre_fee: {:?}, fee: {:?}", flash_fee_e6, fee_reduction_e6, fee_part_e6, pre_fee, fee);
-
             fees.push(fee);
             self._transfer_out(&assets[i], &receiver, &amounts[i])?;
         }
