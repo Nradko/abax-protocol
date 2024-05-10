@@ -70,7 +70,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       await lendingPool.withSigner(bob).tx.deposit(usdcContract.address, bob.address, initialUsdcBalance, []);
     });
 
-    it('they should have apropariate amount of aTokens', async () => {
+    it('they should have appropriate amount of aTokens', async () => {
       const aliceATokenDaiBalance = (await aTokenDaiContract.query.balanceOf(alice.address)).value.ok!;
       expect(aliceATokenDaiBalance.toString()).to.equal(initialDaiBalance.toString());
       const aliceATokenUsdcBalance = (await aTokenUsdcContract.query.balanceOf(alice.address)).value.ok!;
@@ -177,7 +177,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
         vTokenWETHContract = reserves['WETH'].vToken;
       });
 
-      it('Alice should have apropariate vWETH balance', async () => {
+      it('Alice should have appropriate vWETH balance', async () => {
         const aliceVTokenWethBalance = (await vTokenWETHContract.query.balanceOf(alice.address)).value.ok!;
         expect(aliceVTokenWethBalance.toString()).to.equal(aliceDebt.toString());
       });
@@ -191,7 +191,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
           await vTokenWETHContract.withSigner(bob).tx.increaseAllowance(alice.address, aliceDebt);
           await vTokenWETHContract.withSigner(dave).tx.increaseAllowance(alice.address, aliceDebt);
         });
-        it('Alice should have apropariate allowance', async () => {
+        it('Alice should have appropriate allowance', async () => {
           const aliceToBobAllowace = (await vTokenWETHContract.withSigner(alice).query.allowance(bob.address, alice.address)).value.ok!;
           expect(aliceToBobAllowace.toString()).to.equal(aliceDebt.toString());
         });
@@ -296,7 +296,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: alice.address,
-                    value: `1405212624000000`, // ~ [(3 * 10^5) * 101 / 680 + 1] * Year / 10^6 [[current_debt_rate_e18]* year /10^6]
+                    value: `22444455024000000`, // target id 90% utilization and right now it is 10.1%. the target rate at 90% is 2% thus at 11.(2)% it is 0.202%, thus the interest is 0.022(4) ETH = 2.2(4) *10^18 .
                   },
                 },
                 {
@@ -304,7 +304,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: bob.address,
-                    value: `14052126240000`, // 1/100 of the above
+                    value: `224444550240000`, // 1/100 of the above
                   },
                 },
                 {
@@ -359,7 +359,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   args: {
                     from: null,
                     to: charlie.address,
-                    value: '1419120000000000', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                    value: '22668707520000000', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
                   },
                 },
                 {
@@ -393,7 +393,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 {
                   from: null,
                   to: alice.address,
-                  value: `1405212624000000`, // ~ (3 * 10^5)* 101/680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
+                  value: `22444455024000000`, //as in previous test
                 },
               ]);
             });
@@ -433,7 +433,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                     args: {
                       from: null,
                       to: alice.address,
-                      value: `1405212624000000`, // ~ [(3 * 10^5) * 101/ 680 + 1] * Year / 10^6 [[current_debt_rate_e24]* year /10^6]
+                      value: `22444455024000000`, // as in previous test
                     },
                   },
                   {
@@ -467,7 +467,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   {
                     from: null,
                     to: charlie.address,
-                    value: '1419120000000000', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
+                    value: '22668707520000000', // ~ alice interest * 1.01, because Bob also has debt and charlie is the only supplier.
                   },
                 ]);
               });

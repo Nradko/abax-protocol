@@ -12,92 +12,77 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import { decodeEvents } from '../shared/utils';
+import {decodeEvents} from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/test_reserves_minter.json';
 
+
 export default class TestReservesMinterMethods {
-  readonly __nativeContract: ContractPromise;
-  readonly __keyringPair: KeyringPair;
-  readonly __apiPromise: ApiPromise;
+	readonly __nativeContract : ContractPromise;
+	readonly __keyringPair : KeyringPair;
+	readonly __apiPromise: ApiPromise;
 
-  constructor(apiPromise: ApiPromise, nativeContract: ContractPromise, keyringPair: KeyringPair) {
-    this.__apiPromise = apiPromise;
-    this.__nativeContract = nativeContract;
-    this.__keyringPair = keyringPair;
-  }
+	constructor(
+		apiPromise: ApiPromise,
+		nativeContract : ContractPromise,
+		keyringPair : KeyringPair,
+	) {
+		this.__apiPromise = apiPromise;
+		this.__nativeContract = nativeContract;
+		this.__keyringPair = keyringPair;
+	}
 
-  /**
-   * mint
-   *
-   * @param { Array<[ArgumentTypes.AccountId, (string | number | BN)]> } addresesWithAmounts,
-   * @param { ArgumentTypes.AccountId } to,
-   */
-  mint(addresesWithAmounts: Array<[ArgumentTypes.AccountId, string | number | BN]>, to: ArgumentTypes.AccountId, __options?: ContractOptions) {
-    return txSignAndSend(
-      this.__apiPromise,
-      this.__nativeContract,
-      this.__keyringPair,
-      'mint',
-      (events: EventRecord[]) => {
-        return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-      },
-      [addresesWithAmounts, to],
-      __options,
-    );
-  }
+	/**
+	* mint
+	*
+	* @param { Array<[ArgumentTypes.AccountId, (string | number | BN)]> } addresesWithAmounts,
+	* @param { ArgumentTypes.AccountId } to,
+	*/
+	"mint" (
+		addresesWithAmounts: Array<[ArgumentTypes.AccountId, (string | number | BN)]>,
+		to: ArgumentTypes.AccountId,
+		__options ? : ContractOptions,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "mint", (events: EventRecord[]) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [addresesWithAmounts, to], __options);
+	}
 
-  /**
-   * owner
-   *
-   */
-  owner(__options?: ContractOptions) {
-    return txSignAndSend(
-      this.__apiPromise,
-      this.__nativeContract,
-      this.__keyringPair,
-      'ownable::owner',
-      (events: EventRecord[]) => {
-        return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-      },
-      [],
-      __options,
-    );
-  }
+	/**
+	* owner
+	*
+	*/
+	"owner" (
+		__options ? : ContractOptions,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::owner", (events: EventRecord[]) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [], __options);
+	}
 
-  /**
-   * renounceOwnership
-   *
-   */
-  renounceOwnership(__options?: ContractOptions) {
-    return txSignAndSend(
-      this.__apiPromise,
-      this.__nativeContract,
-      this.__keyringPair,
-      'ownable::renounceOwnership',
-      (events: EventRecord[]) => {
-        return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-      },
-      [],
-      __options,
-    );
-  }
+	/**
+	* renounceOwnership
+	*
+	*/
+	"renounceOwnership" (
+		__options ? : ContractOptions,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::renounceOwnership", (events: EventRecord[]) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [], __options);
+	}
 
-  /**
-   * transferOwnership
-   *
-   * @param { ArgumentTypes.AccountId } newOwner,
-   */
-  transferOwnership(newOwner: ArgumentTypes.AccountId, __options?: ContractOptions) {
-    return txSignAndSend(
-      this.__apiPromise,
-      this.__nativeContract,
-      this.__keyringPair,
-      'ownable::transferOwnership',
-      (events: EventRecord[]) => {
-        return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-      },
-      [newOwner],
-      __options,
-    );
-  }
+	/**
+	* transferOwnership
+	*
+	* @param { ArgumentTypes.AccountId } newOwner,
+	*/
+	"transferOwnership" (
+		newOwner: ArgumentTypes.AccountId,
+		__options ? : ContractOptions,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::transferOwnership", (events: EventRecord[]) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [newOwner], __options);
+	}
+
 }

@@ -8,6 +8,3 @@ pub type RuleId = u32;
 
 /// type used to represent decimal multiplier
 pub type DecimalMultiplier = u128;
-
-/// type used to represent interest rate model
-pub type InterestRateModel = [u64; 7];

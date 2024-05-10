@@ -1,6 +1,7 @@
 use abax_library::structs::{
-    AccountConfig, AccountReserveData, ReserveAbacusTokens, ReserveData,
-    ReserveFees, ReserveIndexes, ReserveRestrictions,
+    AccountConfig, AccountReserveData, InterestRateModel, ReserveAbacusTokens,
+    ReserveData, ReserveFees, ReserveIndexes, ReserveRestrictions, TwEntry,
+    TwIndex,
 };
 use ink::{
     contract_ref, env::DefaultEnvironment, prelude::vec::Vec,
@@ -9,7 +10,7 @@ use ink::{
 use pendzl::traits::Balance;
 
 use crate::lending_pool::{
-    DecimalMultiplier, InterestRateModel, MarketRule, RuleId,
+    DecimalMultiplier, LendingPoolError, MarketRule, RuleId,
 };
 
 pub type LendingPoolViewRef =
@@ -83,4 +84,23 @@ pub trait LendingPoolView {
         &self,
         assets: Option<Vec<AccountId>>,
     ) -> Vec<(AccountId, Balance)>;
+
+    #[ink(message)]
+    fn view_asset_tw_index(&self, asset: AccountId) -> Option<TwIndex>;
+
+    #[ink(message)]
+    fn view_asset_tw_entries(
+        &self,
+        asset: AccountId,
+        from: u32,
+        to: u32,
+    ) -> Vec<Option<TwEntry>>;
+
+    #[ink(message)]
+    fn view_tw_ur_from_period_longer_than(
+        &self,
+        period: u64,
+        asset: AccountId,
+        guessed_index: u32,
+    ) -> Result<u32, LendingPoolError>;
 }

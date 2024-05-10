@@ -1,44 +1,45 @@
-import BN from 'bn.js';
+import BN from "bn.js";
 import type * as ReturnTypes from '../types-returns/psp22_ownable';
 
 export interface OwnershipTransferred {
-  new: ReturnTypes.AccountId | null;
+	new: ReturnTypes.AccountId | null;
 }
 
 export interface Paused {
-  account: ReturnTypes.AccountId;
+	account: ReturnTypes.AccountId;
 }
 
 export interface Unpaused {
-  account: ReturnTypes.AccountId;
+	account: ReturnTypes.AccountId;
 }
 
 export interface Transfer {
-  from: ReturnTypes.AccountId | null;
-  to: ReturnTypes.AccountId | null;
-  value: BN;
+	from: ReturnTypes.AccountId | null;
+	to: ReturnTypes.AccountId | null;
+	value: BN;
 }
 
 export interface Approval {
-  owner: ReturnTypes.AccountId;
-  spender: ReturnTypes.AccountId;
-  value: BN;
+	owner: ReturnTypes.AccountId;
+	spender: ReturnTypes.AccountId;
+	value: BN;
 }
 
 export interface RoleAdminChanged {
-  role: BN;
-  previous: BN;
-  new: BN;
+	role: BN;
+	previous: BN;
+	new: BN;
 }
 
 export interface RoleGranted {
-  role: BN;
-  grantee: ReturnTypes.AccountId | null;
-  grantor: ReturnTypes.AccountId | null;
+	role: BN;
+	grantee: ReturnTypes.AccountId | null;
+	grantor: ReturnTypes.AccountId | null;
 }
 
 export interface RoleRevoked {
-  role: BN;
-  account: ReturnTypes.AccountId | null;
-  sender: ReturnTypes.AccountId;
+	role: BN;
+	account: ReturnTypes.AccountId | null;
+	sender: ReturnTypes.AccountId;
 }
+
