@@ -1,6 +1,6 @@
 use crate::lending_pool::{events::InterestsAccumulated, LendingPoolError};
 use ink::{env::DefaultEnvironment, primitives::AccountId};
-use pendzl::traits::StorageFieldGetter;
+use pendzl::{math::errors::MathError, traits::StorageFieldGetter};
 
 use super::storage::LendingPoolStorage;
 
@@ -20,5 +20,51 @@ pub trait LendingPoolMaintainImpl:
         );
 
         Ok(())
+    }
+
+    fn adjust_rate_at_target(
+        &mut self,
+        asset: AccountId,
+        apropariate_index: u32,
+    ) -> Result<u64, LendingPoolError> {
+        let timestamp = Self::env().block_timestamp();
+
+        let asset_id = self.data::<LendingPoolStorage>().asset_id(&asset)?;
+
+        if let Some(mut interest_rate_model) = self
+            .data::<LendingPoolStorage>()
+            .interest_rate_model
+            .get(asset_id)
+        {
+            if timestamp
+                < interest_rate_model
+                    .last_adjustment_timestamp
+                    .checked_add(
+                        interest_rate_model.minimal_time_between_adjustments,
+                    )
+                    .ok_or(MathError::Overflow)?
+            {
+                return Err(LendingPoolError::ToEarlyToAdjustRate);
+            }
+
+            let twa_ur_e6 = self
+                .data::<LendingPoolStorage>()
+                .get_tw_ur_from_period_longar_than(
+                    interest_rate_model.minimal_time_between_adjustments,
+                    asset_id,
+                    apropariate_index,
+                )?;
+
+            let res = interest_rate_model
+                .adjust_rate_at_target(twa_ur_e6, timestamp)?;
+
+            self.data::<LendingPoolStorage>()
+                .interest_rate_model
+                .insert(asset_id, &interest_rate_model);
+
+            Ok(res)
+        } else {
+            Err(LendingPoolError::AssetNotRegistered)
+        }
     }
 }

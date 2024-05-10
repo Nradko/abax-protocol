@@ -1,5 +1,5 @@
 import BN from 'bn.js';
-import { AssetRules, SetReserveFeesArgs, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
+import { AssetRules, SetReserveFeesArgs, ReserveRestrictions, InterestRateModelParams } from 'typechain/types-arguments/lending_pool';
 
 export type TokenMetadata = {
   name: string;
@@ -25,7 +25,7 @@ export interface TestToken {
 }
 
 export interface TestExternalToken extends TestToken {
-  interestRateModelE18: InterestRateModel;
+  interestRateModelParams: InterestRateModelParams;
 }
 
 export interface TestInternalStableToken extends TestToken {

@@ -4,12 +4,11 @@
 pub mod balance_viewer {
 
     use abax_contracts::lending_pool::{
-        DecimalMultiplier, InterestRateModel, LendingPoolView,
-        LendingPoolViewRef,
+        DecimalMultiplier, LendingPoolView, LendingPoolViewRef,
     };
     use abax_library::structs::{
-        AccountReserveData, ReserveAbacusTokens, ReserveData, ReserveFees,
-        ReserveIndexes, ReserveRestrictions,
+        AccountReserveData, InterestRateModel, ReserveAbacusTokens,
+        ReserveData, ReserveFees, ReserveIndexes, ReserveRestrictions,
     };
     use pendzl::{
         contracts::psp22::{PSP22Ref, PSP22},

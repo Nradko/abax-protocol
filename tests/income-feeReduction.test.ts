@@ -9,7 +9,7 @@ import StableToken from 'typechain/contracts/stable_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6 } from './setup/tokensToDeployForTesting';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6, ONE_PERCENT_APR } from './setup/tokensToDeployForTesting';
 import { E18bn, E6bn, time } from '@c-forge/polkahat-network-helpers';
 import { bnToBn } from '@polkadot/util';
 import FeeReductionProviderMockDeployer from 'typechain/deployers/fee_reduction_provider_mock';
@@ -69,7 +69,7 @@ makeSuite('Testing protocol income', () => {
                     depositFeeE6: feeD6[0],
                     debtFeeE6: feeD6[1],
                   },
-                  interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+                  interestRateModelParams: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
 
                   defaultRule: {
                     collateralCoefficientE6: 0.97 * E6,
@@ -93,7 +93,7 @@ makeSuite('Testing protocol income', () => {
                     depositFeeE6: feeD6[0],
                     debtFeeE6: feeD6[1],
                   },
-                  interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+                  interestRateModelParams: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
                   defaultRule: {
                     collateralCoefficientE6: 0.98 * E6,
                     borrowCoefficientE6: 1.02 * E6,
@@ -172,9 +172,9 @@ makeSuite('Testing protocol income', () => {
           await feeReductionProviderMock.withSigner(testEnv.owner).tx.setFeeReduction(borrower.address, [feeReductionsD6[0], feeReductionsD6[1]]);
         });
 
-        describe('Then borrower borrows 0.68 m USDC and 0.68m USDax', () => {
-          const USDC68 = new BN('68000000000000');
-          const USDax68 = new BN('680000000000');
+        describe('Then borrower borrows 0.45 m USDC and 0.45m USDax', () => {
+          const USDC68 = new BN('45000000000000');
+          const USDax68 = new BN('450000000000');
           beforeEach('borrow', async () => {
             await lendingPool.withSigner(borrower).tx.borrow(usdcContract.address, borrower.address, USDC68, []);
             await lendingPool.withSigner(borrower).tx.borrow(usdaxContract.address, borrower.address, USDax68, []);
@@ -184,8 +184,8 @@ makeSuite('Testing protocol income', () => {
             const usdcReserveData = (await lendingPool.query.viewReserveData(usdcContract.address)).value.ok!;
             const usdaxReserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
 
-            expect(usdcReserveData.currentDebtRateE18.toString()).to.equal('300001');
-            expect(usdcReserveData.currentDepositRateE18.toString()).to.equal('204000');
+            expect(usdcReserveData.currentDebtRateE18.toString()).to.equal(ONE_PERCENT_APR.toString());
+            expect(usdcReserveData.currentDepositRateE18.toString()).to.equal('1426940');
             expect(usdaxReserveData.currentDebtRateE18.toString()).to.equal(USDaXRate.toString());
           });
 
@@ -247,9 +247,9 @@ makeSuite('Testing protocol income', () => {
               });
 
               it('Usdc:  borrower debt interest should accumulate', async () => {
-                // the current rate is 300_001
-                // 0.68 m * 10 ^ 8  * 300_001 * 1000 * 1000 / 10^18 = 20400068
-                const expectedInterestNoFee = new BN('20400068');
+                // the current rate is ONE_PERCENT_APR.toString()
+                // 0.45 m * 10 ^ 8  * ONE_PERCENT_APR.toString() * 1000 * 1000 / 10^18 = 20400068
+                const expectedInterestNoFee = new BN('142694055');
                 let expectedIncome = expectedInterestNoFee
                   .muln(feeD6[1])
                   .divn(1_000_000)
@@ -269,8 +269,8 @@ makeSuite('Testing protocol income', () => {
 
               it('USDax: borrower debt interest should accumulate', async () => {
                 // the current rate is 1_00_000
-                // 0.68 m * 10 ^ 6  * 10^6 * 10^6 / 10^18 = 680000
-                const expectedInterestNoFee = new BN('680000');
+                // 0.45 m * 10 ^ 6  * 10^6 * 10^6 / 10^18 = 680000
+                const expectedInterestNoFee = new BN('450000');
                 const expectedIncome = expectedInterestNoFee
                   .muln(feeD6[1])
                   .divn(1_000_000)
@@ -294,9 +294,9 @@ makeSuite('Testing protocol income', () => {
               });
 
               it('Usdc:  depositor deposit interest should accumulate', async () => {
-                // the current rate is 204000
-                // 1m * 10 ^ 8  * 204_000 * 1000 * 1000 / 10^18 = 20400000;
-                const expectedInterestWithFee = new BN('20400000');
+                // the current rate is 1426940
+                // 1m * 10 ^ 8  * 1426940 * 1000 * 1000 / 10^18 = 142694000;
+                const expectedInterestWithFee = new BN('142694000');
                 const expectedIncome = expectedInterestWithFee
                   .muln(feeD6[0])
                   .divn(1_000_000)
@@ -322,7 +322,7 @@ makeSuite('Testing protocol income', () => {
               });
 
               it('Usdc: fees should be applied', async () => {
-                const expectedDebtInterestNoFee = new BN('20400068');
+                const expectedDebtInterestNoFee = new BN('142694055');
                 let expectedDebtIncome = expectedDebtInterestNoFee
                   .muln(feeD6[1])
                   .divn(1_000_000)
@@ -330,7 +330,7 @@ makeSuite('Testing protocol income', () => {
                   .divn(1_000_000);
                 expectedDebtIncome = expectedDebtInterestNoFee.isZero() ? expectedDebtIncome : expectedDebtIncome.addn(1);
 
-                const expectedDepositInterestWithFee = new BN('20400000');
+                const expectedDepositInterestWithFee = new BN('142694000');
                 const expectedDepositIncome = expectedDepositInterestWithFee
                   .muln(feeD6[0])
                   .divn(1_000_000)

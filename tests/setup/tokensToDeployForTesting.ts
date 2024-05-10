@@ -1,9 +1,19 @@
+import { InterestRateModelParams } from 'typechain/types-arguments/lending_pool';
 import { TokensToDeployForTesting } from './tokensToDeployForTesting.types';
 
+export const ONE_PERCENT_APR = 3_170_979;
+
+const ONE_HOUR = 3_600_000;
+
 /* eslint-disable */
-export const DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING: [number, number, number, number, number, number, number] = [
-  300_000, 500_000, 2_000_000, 4_000_000, 10_000_000, 100_000_000, 300_000_000,
-];
+export const DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING: InterestRateModelParams = {
+  targetUrE6: 900_000,
+  minRateAtTargetE18: 2 * ONE_PERCENT_APR,
+  maxRateAtTargetE18: 10 * ONE_PERCENT_APR,
+
+  rateAtMaxUrE18: 100 * ONE_PERCENT_APR,
+  minimalTimeBetweenAdjustments: ONE_HOUR,
+};
 
 export const E6: number = 1_000_000;
 
@@ -20,7 +30,7 @@ export const TOKENS_TO_DEPLOY_FOR_TESTING: TokensToDeployForTesting = {
         depositFeeE6: 0,
         debtFeeE6: 0,
       },
-      interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+      interestRateModelParams: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
 
       defaultRule: {
         collateralCoefficientE6: 0.97 * E6,
@@ -44,7 +54,7 @@ export const TOKENS_TO_DEPLOY_FOR_TESTING: TokensToDeployForTesting = {
         depositFeeE6: 0,
         debtFeeE6: 0,
       },
-      interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+      interestRateModelParams: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
       defaultRule: {
         collateralCoefficientE6: 0.98 * E6,
         borrowCoefficientE6: 1.02 * E6,
@@ -67,7 +77,7 @@ export const TOKENS_TO_DEPLOY_FOR_TESTING: TokensToDeployForTesting = {
         depositFeeE6: 0,
         debtFeeE6: 0,
       },
-      interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+      interestRateModelParams: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
       defaultRule: {
         collateralCoefficientE6: 0.8 * E6,
         borrowCoefficientE6: 1.2 * E6,
@@ -90,7 +100,7 @@ export const TOKENS_TO_DEPLOY_FOR_TESTING: TokensToDeployForTesting = {
         depositFeeE6: 0,
         debtFeeE6: 0,
       },
-      interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
+      interestRateModelParams: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
       defaultRule: {
         collateralCoefficientE6: 0.7 * E6,
         borrowCoefficientE6: 1.3 * E6,

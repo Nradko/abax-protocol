@@ -13,7 +13,7 @@ pub mod lending_pool {
     use abax_contracts::account_registrar::AccountRegistrarView;
     use abax_contracts::lending_pool::SetReserveFeesArgs;
     use abax_contracts::lending_pool::{
-        events::FlashLoanFeeChanged, DecimalMultiplier, InterestRateModel,
+        events::FlashLoanFeeChanged, DecimalMultiplier,
         LendingPoolATokenInterface, LendingPoolActions, LendingPoolError,
         LendingPoolFlash, LendingPoolMaintain, LendingPoolManage,
         LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
@@ -32,8 +32,9 @@ pub mod lending_pool {
     };
     use abax_library::structs::{
         AccountConfig, AccountReserveData, Action, AssetRules,
-        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
-        ReserveRestrictions,
+        InterestRateModel, InterestRateModelParams, ReserveAbacusTokens,
+        ReserveData, ReserveFees, ReserveIndexes, ReserveRestrictions, TwEntry,
+        TwIndex,
     };
     use ink::{env::DefaultEnvironment, prelude::vec::Vec};
 
@@ -206,6 +207,19 @@ pub mod lending_pool {
         ) -> Result<(), LendingPoolError> {
             LendingPoolMaintainImpl::accumulate_interest(self, asset)
         }
+
+        #[ink(message)]
+        fn adjust_rate_at_target(
+            &mut self,
+            asset: AccountId,
+            apropariate_index: u32,
+        ) -> Result<u64, LendingPoolError> {
+            LendingPoolMaintainImpl::adjust_rate_at_target(
+                self,
+                asset,
+                apropariate_index,
+            )
+        }
     }
     impl ManageInternal for LendingPool {}
     impl LendingPoolManageImpl for LendingPool {}
@@ -255,7 +269,7 @@ pub mod lending_pool {
             asset_rules: AssetRules,
             reserve_restrictions: ReserveRestrictions,
             reserve_fees: SetReserveFeesArgs,
-            interest_rate_model: Option<InterestRateModel>,
+            interest_rate_model: Option<InterestRateModelParams>,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::register_asset(
                 self,
@@ -294,7 +308,7 @@ pub mod lending_pool {
         fn set_interest_rate_model(
             &mut self,
             asset: AccountId,
-            interest_rate_model: InterestRateModel,
+            interest_rate_model: InterestRateModelParams,
         ) -> Result<(), LendingPoolError> {
             LendingPoolManageImpl::set_interest_rate_model(
                 self,
@@ -483,6 +497,35 @@ pub mod lending_pool {
             assets: Option<Vec<AccountId>>,
         ) -> Vec<(AccountId, Balance)> {
             LendingPoolViewImpl::view_protocol_income(self, assets)
+        }
+
+        #[ink(message)]
+        fn view_asset_tw_index(&self, asset: AccountId) -> Option<TwIndex> {
+            LendingPoolViewImpl::view_asset_tw_index(self, asset)
+        }
+        #[ink(message)]
+        fn view_asset_tw_entires(
+            &self,
+            asset: AccountId,
+            from: u32,
+            to: u32,
+        ) -> Vec<Option<TwEntry>> {
+            LendingPoolViewImpl::view_asset_tw_entires(self, asset, from, to)
+        }
+
+        #[ink(message)]
+        fn view_tw_ur_from_period_longar_than(
+            &self,
+            period: u64,
+            asset: AccountId,
+            apropariate_index: u32,
+        ) -> Result<u32, LendingPoolError> {
+            LendingPoolViewImpl::view_tw_ur_from_period_longar_than(
+                self,
+                period,
+                asset,
+                apropariate_index,
+            )
         }
     }
 

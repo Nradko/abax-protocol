@@ -1,11 +1,12 @@
 use crate::lending_pool::{
-    DecimalMultiplier, InterestRateModel, MarketRule, RuleId,
+    DecimalMultiplier, LendingPoolError, MarketRule, RuleId,
 };
 use abax_library::{
     math::E18_U128,
     structs::{
-        AccountConfig, AccountReserveData, ReserveAbacusTokens, ReserveData,
-        ReserveFees, ReserveIndexes, ReserveRestrictions,
+        AccountConfig, AccountReserveData, InterestRateModel,
+        ReserveAbacusTokens, ReserveData, ReserveFees, ReserveIndexes,
+        ReserveRestrictions, TwEntry, TwIndex,
     },
 };
 use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
@@ -243,5 +244,60 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
                 self._view_protocol_income(&registered_assets).unwrap()
             }
         }
+    }
+
+    fn view_asset_tw_index(&self, asset: AccountId) -> Option<TwIndex> {
+        if let Some(asset_id) =
+            self.data::<LendingPoolStorage>().asset_to_id.get(asset)
+        {
+            self.data::<LendingPoolStorage>()
+                .tw_ur_indexes
+                .get(asset_id)
+        } else {
+            None
+        }
+    }
+
+    fn view_asset_tw_entires(
+        &self,
+        asset: AccountId,
+        from: u32,
+        to: u32,
+    ) -> Vec<Option<TwEntry>> {
+        let mut res: Vec<Option<TwEntry>> = Vec::new();
+        if let Some(asset_id) =
+            self.data::<LendingPoolStorage>().asset_to_id.get(asset)
+        {
+            for i in from..to {
+                res.push(
+                    self.data::<LendingPoolStorage>()
+                        .tw_ur_entries
+                        .get((asset_id, i)),
+                );
+            }
+            res
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn view_tw_ur_from_period_longar_than(
+        &self,
+        period: u64,
+        asset: AccountId,
+        apropariate_index: u32,
+    ) -> Result<u32, LendingPoolError> {
+        let asset_id = self
+            .data::<LendingPoolStorage>()
+            .asset_to_id
+            .get(asset)
+            .ok_or(LendingPoolError::AssetNotRegistered)?;
+
+        self.data::<LendingPoolStorage>()
+            .get_tw_ur_from_period_longar_than(
+                period,
+                asset_id,
+                apropariate_index,
+            )
     }
 }
