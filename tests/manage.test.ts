@@ -10,6 +10,7 @@ import { getAbaxTokenMetadata } from './helpers/abacusTokenData';
 import { apiProviderWrapper } from 'tests/setup/helpers';
 import BN from 'bn.js';
 import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
+import { time } from '@c-forge/polkahat-network-helpers';
 
 makeSuite('Menage tests', (getTestEnv) => {
   const adminOf: Record<string, KeyringPair> = {};
@@ -91,7 +92,13 @@ makeSuite('Menage tests', (getTestEnv) => {
         minimalDebt: '500000',
       },
       reserveFees: { depositFeeE6: '100000', debtFeeE6: '100000' },
-      interestRateModel: ['1', '2', '3', '4', '5', '6', '7'],
+      interestRateModel: {
+        targetUrE6: 1,
+        minRateAtTargetE18: 2,
+        maxRateAtTargetE18: 3,
+        rateAtMaxUrE18: 4,
+        minimalTimeBetweenAdjustments: 5,
+      },
     };
 
     beforeEach(() => {
@@ -144,15 +151,13 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'ReserveInterestRateModelChanged',
             args: {
               asset: PARAMS.asset,
-              interestRateModel: [
-                PARAMS.interestRateModel[0],
-                PARAMS.interestRateModel[1],
-                PARAMS.interestRateModel[2],
-                PARAMS.interestRateModel[3],
-                PARAMS.interestRateModel[4],
-                PARAMS.interestRateModel[5],
-                PARAMS.interestRateModel[6],
-              ],
+              interestRateModelParams: {
+                targetUrE6: '1',
+                minRateAtTargetE18: '2',
+                maxRateAtTargetE18: '3',
+                rateAtMaxUrE18: '4',
+                minimalTimeBetweenAdjustments: '5',
+              },
             },
           },
           {
@@ -198,7 +203,15 @@ makeSuite('Menage tests', (getTestEnv) => {
           currentDebtRateE18: '0',
         });
         expect.soft(stringifyNumericProps(reserveRestrictions)).to.deep.equal(PARAMS.reserveRestrictions);
-        expect.soft(stringifyNumericProps(reserveModel)).to.deep.equal(PARAMS.interestRateModel);
+        expect.soft(stringifyNumericProps(reserveModel)).to.deep.equal({
+          targetUrE6: '1',
+          minRateAtTargetE18: '2',
+          maxRateAtTargetE18: '3',
+          rateAtTargetUrE18: '2',
+          rateAtMaxUrE18: '4',
+          minimalTimeBetweenAdjustments: '5',
+          lastAdjustmentTimestamp: (await time.latest()).toString(),
+        });
         expect.soft(stringifyNumericProps(reserveFees)).to.deep.equal({ ...PARAMS.reserveFees, earnedFee: '0' });
         expect.soft(stringifyNumericProps(reserveIndexes)).to.deep.equal({
           depositIndexE18: '1000000000000000000',
@@ -465,7 +478,13 @@ makeSuite('Menage tests', (getTestEnv) => {
     type params = Parameters<typeof lendingPool.query.setInterestRateModel>;
     const PARAMS = {
       asset: '',
-      interestRateModel: ['1', '2', '3', '4', '5', '6', '7'],
+      interestRateModel: {
+        targetUrE6: 1,
+        minRateAtTargetE18: 2,
+        maxRateAtTargetE18: 3,
+        rateAtMaxUrE18: 4,
+        minimalTimeBetweenAdjustments: 5,
+      },
     };
     beforeEach(() => {
       PARAMS.asset = testEnv.reserves['DAI'].underlying.address;
@@ -489,13 +508,27 @@ makeSuite('Menage tests', (getTestEnv) => {
             name: 'ReserveInterestRateModelChanged',
             args: {
               asset: PARAMS.asset,
-              interestRateModel: PARAMS.interestRateModel,
+              interestRateModelParams: {
+                targetUrE6: '1',
+                minRateAtTargetE18: '2',
+                maxRateAtTargetE18: '3',
+                rateAtMaxUrE18: '4',
+                minimalTimeBetweenAdjustments: '5',
+              },
             },
           },
         ]);
 
         const interestRateModel = (await lendingPool.query.viewInterestRateModel(PARAMS.asset)).value.ok!;
-        expect.soft(stringifyNumericProps(interestRateModel)).to.deep.equal(PARAMS.interestRateModel);
+        expect.soft(stringifyNumericProps(interestRateModel)).to.deep.equal({
+          targetUrE6: '1',
+          minRateAtTargetE18: '2',
+          maxRateAtTargetE18: '3',
+          rateAtTargetUrE18: '2',
+          rateAtMaxUrE18: '4',
+          minimalTimeBetweenAdjustments: '5',
+          lastAdjustmentTimestamp: (await time.latest()).toString(),
+        });
 
         expect.flushSoft();
       });

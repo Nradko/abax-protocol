@@ -1,8 +1,8 @@
-use abax_library::structs::ReserveRestrictions;
+use abax_library::structs::{InterestRateModelParams, ReserveRestrictions};
 use ink::{prelude::string::String, primitives::AccountId};
 use pendzl::traits::Balance;
 
-use super::{InterestRateModel, RuleId, SetReserveFeesArgs};
+use super::{RuleId, SetReserveFeesArgs};
 
 /// Emitted when a deposit of 'amount' in 'asset' is made by 'caller' on behalf of 'on_behalf_of'.
 /// The data coresponding to asset and (asset, on_behalf_of) is updated (interests are accumulated).
@@ -166,7 +166,7 @@ pub struct ReserveFrozen {
 pub struct ReserveInterestRateModelChanged {
     #[ink(topic)]
     pub asset: AccountId,
-    pub interest_rate_model: InterestRateModel,
+    pub interest_rate_model_params: InterestRateModelParams,
 }
 
 /// Emitted when a reserve restrictions are changed.

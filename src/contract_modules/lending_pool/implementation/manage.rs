@@ -8,12 +8,12 @@ use crate::lending_pool::{
         ReserveFrozen, ReserveInterestRateModelChanged,
         ReserveRestrictionsChanged, StablecoinDebtRateChanged,
     },
-    InterestRateModel, LendingPoolError, MarketRule, ASSET_LISTING_ADMIN,
-    EMERGENCY_ADMIN, PARAMETERS_ADMIN, STABLECOIN_RATE_ADMIN, TREASURY,
+    LendingPoolError, MarketRule, ASSET_LISTING_ADMIN, EMERGENCY_ADMIN,
+    PARAMETERS_ADMIN, STABLECOIN_RATE_ADMIN, TREASURY,
 };
 use abax_library::structs::{
-    AssetRules, ReserveAbacusTokens, ReserveData, ReserveFees,
-    ReserveRestrictions,
+    AssetRules, InterestRateModel, InterestRateModelParams,
+    ReserveAbacusTokens, ReserveData, ReserveFees, ReserveRestrictions,
 };
 use ink::env::DefaultEnvironment;
 use ink::prelude::string::{String, ToString};
@@ -94,7 +94,7 @@ pub trait LendingPoolManageImpl:
         asset_rules: AssetRules,
         reserve_restrictions: ReserveRestrictions,
         reserve_fees: SetReserveFeesArgs,
-        interest_rate_model: Option<InterestRateModel>,
+        interest_rate_model_params: Option<InterestRateModelParams>,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(ASSET_LISTING_ADMIN, Some(caller))?;
@@ -104,6 +104,15 @@ pub trait LendingPoolManageImpl:
         if reserve_fees.deposit_fee_e6 > 1_000_000 {
             return Err(LendingPoolError::DepositFeeTooHigh);
         }
+
+        let interest_rate_model = {
+            if let Some(params) = interest_rate_model_params {
+                let model = InterestRateModel::new(params, timestamp);
+                Some(model)
+            } else {
+                None
+            }
+        };
 
         self.data::<LendingPoolStorage>()
             .account_for_register_asset(
@@ -158,15 +167,17 @@ pub trait LendingPoolManageImpl:
             },
         );
 
-        interest_rate_model.iter().for_each(|model| {
+        ink::env::debug_println!("register asset:");
+        if let Some(params) = interest_rate_model_params {
+            ink::env::debug_println!("InterestRateModelParams: {:?}", params);
             ink::env::emit_event::<
                 DefaultEnvironment,
                 ReserveInterestRateModelChanged,
             >(ReserveInterestRateModelChanged {
                 asset,
-                interest_rate_model: *model,
+                interest_rate_model_params: params,
             });
-        });
+        };
 
         ink::env::emit_event::<DefaultEnvironment, ReserveRestrictionsChanged>(
             ReserveRestrictionsChanged {
@@ -259,12 +270,16 @@ pub trait LendingPoolManageImpl:
     fn set_interest_rate_model(
         &mut self,
         asset: AccountId,
-        interest_rate_model: InterestRateModel,
+        interest_rate_model_params: InterestRateModelParams,
     ) -> Result<(), LendingPoolError> {
         let caller = Self::env().caller();
         self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
 
         let timestamp = Self::env().block_timestamp();
+
+        let interest_rate_model =
+            InterestRateModel::new(interest_rate_model_params, timestamp);
+
         self.data::<LendingPoolStorage>()
             .account_for_interest_rate_model_change(
                 &asset,
@@ -277,7 +292,7 @@ pub trait LendingPoolManageImpl:
             ReserveInterestRateModelChanged,
         >(ReserveInterestRateModelChanged {
             asset,
-            interest_rate_model,
+            interest_rate_model_params,
         });
         Ok(())
     }

@@ -139,6 +139,16 @@ impl ReserveIndexes {
                     delta_timestamp,
                 ))
                 .ok_or(MathError::Overflow)?;
+            ink::env::debug_println!("delta_timestamp: {}", delta_timestamp);
+            ink::env::debug_println!(
+                "reserve_data.current_debt_rate_e18: {}",
+                reserve_data.current_debt_rate_e18
+            );
+            ink::env::debug_println!(
+                "debt_index_multiplier_e18: {}",
+                debt_index_multiplier_e18
+            );
+
             self.debt_index_e18 = e18_mul_e18_to_e18_rup(
                 self.debt_index_e18,
                 debt_index_multiplier_e18,

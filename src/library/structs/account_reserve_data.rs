@@ -176,6 +176,10 @@ impl AccountReserveData {
                 reserve_indexes.debt_index_e18,
                 self.applied_debt_index_e18,
             )?;
+            ink::env::debug_println!(
+                "updated_borrow_with_no_fee: {}",
+                updated_borrow_with_no_fee
+            );
 
             let interest_with_no_fee = updated_borrow_with_no_fee
                 .checked_sub(self.debt)

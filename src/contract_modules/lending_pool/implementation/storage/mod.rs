@@ -1,9 +1,6 @@
 use crate::{
     fee_reduction::{FeeReduction, FeeReductionRef},
-    lending_pool::{
-        DecimalMultiplier, InterestRateModel, LendingPoolError, MarketRule,
-        RuleId,
-    },
+    lending_pool::{DecimalMultiplier, LendingPoolError, MarketRule, RuleId},
     price_feed::{PriceFeed, PriceFeedRef},
 };
 use abax_library::{
@@ -13,8 +10,9 @@ use abax_library::{
     },
     structs::{
         AccountConfig, AccountReserveData, Action, AssetId, AssetRules,
-        FeeReductions, Operation, ReserveAbacusTokens, ReserveData,
-        ReserveFees, ReserveIndexesAndFees, ReserveRestrictions,
+        FeeReductions, InterestRateModel, Operation, ReserveAbacusTokens,
+        ReserveData, ReserveFees, ReserveIndexesAndFees, ReserveRestrictions,
+        TwEntry, TwIndex,
     },
 };
 use ink::storage::Mapping;
@@ -57,9 +55,13 @@ pub struct LendingPoolStorage {
     pub reserve_indexes_and_fees: Mapping<AssetId, ReserveIndexesAndFees>,
     pub reserve_decimal_multiplier: Mapping<AssetId, DecimalMultiplier>,
     pub reserve_datas: Mapping<AssetId, ReserveData>,
+
+    pub tw_ur_indexes: Mapping<AssetId, TwIndex>,
+    pub tw_ur_entries: Mapping<(AssetId, u32), TwEntry>,
     pub interest_rate_model: Mapping<AssetId, InterestRateModel>,
 
     /// The AccountReserveData is stored in a vector, where the index is coresponding to the asset_id.
+    #[allow(clippy::type_complexity)]
     pub account_reserve_datas:
         Mapping<AccountId, Vec<Option<AccountReserveData>>>,
     pub account_configs: Mapping<AccountId, AccountConfig>,
@@ -241,6 +243,12 @@ impl LendingPoolStorage {
         let mut reserve_indexes_and_fees =
             self.get_reserve_indexes_and_fees(asset_id);
         let reserve_restrictions = self.get_reserve_restrictions(asset_id);
+
+        self.store_utilization_rate_snapshot(
+            asset_id,
+            &reserve_data,
+            timestamp,
+        )?;
 
         reserve_indexes_and_fees
             .indexes
@@ -650,6 +658,7 @@ impl LendingPoolStorage {
         ))
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn account_for_deposit_transfer_from_to(
         &mut self,
         asset: &AccountId,
@@ -720,6 +729,7 @@ impl LendingPoolStorage {
         Ok((*result.first().unwrap(), *result.get(1).unwrap()))
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn account_for_debt_transfer_from_to(
         &mut self,
         asset: &AccountId,
@@ -834,6 +844,12 @@ impl LendingPoolStorage {
         let mut reserve_indexes_and_fees =
             self.get_reserve_indexes_and_fees(asset_id);
         let interest_rate_model = self.interest_rate_model.get(asset_id);
+
+        self.store_utilization_rate_snapshot(
+            asset_id,
+            &reserve_data,
+            timestamp,
+        )?;
 
         reserve_indexes_and_fees
             .indexes
@@ -1052,6 +1068,126 @@ impl LendingPoolStorage {
     }
 
     /*
+    TIME-WEIGHTED UTILIZATION RATE CALCULATIONS
+    */
+    /// Snap the utilization rate for the given asset at the given timestamp.
+    /// To snap utilization a new time weighted entry is created.
+    fn store_utilization_rate_snapshot(
+        &mut self,
+        asset_id: AssetId,
+        reserve_data: &ReserveData,
+        timestamp: &Timestamp,
+    ) -> Result<(), LendingPoolError> {
+        let tw_index = self.tw_ur_indexes.get(asset_id).unwrap();
+
+        let last_tw_entry = self
+            .tw_ur_entries
+            .get((asset_id, tw_index.value))
+            .unwrap_or_default();
+
+        if last_tw_entry.timestamp >= *timestamp {
+            return Ok(());
+        }
+
+        let delta_timestamp = timestamp.saturating_sub(last_tw_entry.timestamp);
+
+        ink::env::debug_println!("Delta timestamp: {}", delta_timestamp);
+
+        let utilization_rate_e6 = reserve_data.current_utilization_rate_e6()?;
+
+        ink::env::debug_println!("Utilization rate: {}", utilization_rate_e6);
+
+        let delta_accumulator = (utilization_rate_e6 as u64)
+            .checked_mul(delta_timestamp)
+            .ok_or(MathError::Overflow)?;
+
+        ink::env::debug_println!("Delta accumulator: {}", delta_accumulator);
+
+        let new_accumulator = last_tw_entry
+            .accumulator
+            .overflowing_add(delta_accumulator)
+            .0;
+
+        let new_tw_index = tw_index.next();
+
+        self.tw_ur_entries.insert(
+            (asset_id, new_tw_index.value),
+            &TwEntry {
+                timestamp: *timestamp,
+                accumulator: new_accumulator,
+            },
+        );
+
+        self.tw_ur_indexes.insert(asset_id, &new_tw_index);
+
+        Ok(())
+    }
+
+    /// Returns the time-weighted utilization rate for the given asset.
+    /// The rate is calculated for the latest shortest period longer than the given period.
+    /// arg guessed_index is adjusted to the nearest index that would return a tw_entry
+    /// with smallest time diff between latest_tw_entry & tw_entry and is distant enough from the latest_tw_entry at the same time.
+    /// If timestamp entry at guessed_index is not distant enough (at least period) from the last entry, the function returns WrongIndex error.
+    pub fn get_tw_ur_from_shortest_period_longer_than(
+        &self,
+        period: u64,
+        asset_id: AssetId,
+        guessed_index: u32,
+    ) -> Result<u32, LendingPoolError> {
+        let tw_index = self.tw_ur_indexes.get(asset_id).unwrap();
+        let last_tw_entry =
+            self.get_tw_ur_entry(asset_id, tw_index.value).unwrap();
+
+        let mut curr_apr_tw_index = TwIndex {
+            value: guessed_index,
+        };
+
+        let mut after_appropriate_tw_entry = self
+            .get_tw_ur_entry(asset_id, curr_apr_tw_index.next().value)
+            .ok_or(LendingPoolError::WrongIndex)?;
+
+        while last_tw_entry
+            .timestamp
+            .saturating_sub(after_appropriate_tw_entry.timestamp)
+            >= period
+        {
+            curr_apr_tw_index = curr_apr_tw_index.next();
+            after_appropriate_tw_entry = self
+                .get_tw_ur_entry(asset_id, curr_apr_tw_index.next().value)
+                .ok_or(LendingPoolError::WrongIndex)?;
+        }
+
+        let appropriate_tw_entry = self
+            .get_tw_ur_entry(asset_id, curr_apr_tw_index.value)
+            .ok_or(LendingPoolError::WrongIndex)?;
+
+        // if the entry is too recent
+        // may occur when while body has not executed even once
+        let delta_timestamp = last_tw_entry
+            .timestamp
+            .saturating_sub(appropriate_tw_entry.timestamp);
+        if delta_timestamp < period {
+            return Err(LendingPoolError::WrongIndex);
+        }
+
+        let delta_accumulator = last_tw_entry
+            .accumulator
+            .overflowing_sub(appropriate_tw_entry.accumulator)
+            .0;
+
+        let tw_ur_e6 = match u32::try_from(
+            delta_accumulator
+                .checked_div(delta_timestamp)
+                .ok_or(MathError::DivByZero)?,
+        ) {
+            Ok(value) => value,
+            Err(_) => return Err(LendingPoolError::from(MathError::Overflow)),
+        };
+
+        Ok(tw_ur_e6)
+    }
+
+    /*
     MANAGEMENT SECTION - methods responsible for changing parameters of the lending pool.
     Registering new assets, chaning the parameters, freezing, activating.
      */
@@ -1092,10 +1228,12 @@ impl LendingPoolStorage {
             .insert(id, decimal_multiplier);
         self.reserve_indexes_and_fees
             .insert(id, &ReserveIndexesAndFees::new(timestamp, reserve_fees));
-        interest_rate_model.and_then(|value| {
-            self.interest_rate_model.insert(id, &value);
-            Some(value)
-        });
+
+        self.tw_ur_indexes.insert(id, &TwIndex::new());
+
+        if let Some(model) = interest_rate_model {
+            self.interest_rate_model.insert(id, model);
+        };
 
         self.next_asset_id
             .set(&(id.checked_add(1).ok_or(MathError::Overflow)?));
@@ -1467,8 +1605,15 @@ impl LendingPoolStorage {
             }
         }
     }
-}
 
+    pub fn get_tw_ur_entry(
+        &self,
+        asset_id: AssetId,
+        index: u32,
+    ) -> Option<TwEntry> {
+        self.tw_ur_entries.get((asset_id, index))
+    }
+}
 fn get_account_data_entry_mut(
     account_datas: &mut [Option<AccountReserveData>],
     asset_id: u32,

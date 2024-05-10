@@ -5,8 +5,10 @@ use pendzl::{
 
 use crate::math::{
     e18_mul_e18_div_e18_to_e18_rdown,
-    interest_rate_math::utilization_rate_to_interest_rate_e18, E6_U128, E6_U64,
+    interest_rate_math::utilization_rate_to_interest_rate_e18, E6_U128, E6_U32,
 };
+
+use super::InterestRateModel;
 
 /// Contains most often used data of a reserve
 #[derive(Debug, scale::Encode, scale::Decode)]
@@ -147,12 +149,12 @@ impl ReserveData {
         Ok(interests)
     }
 
-    pub fn current_utilization_rate_e6(&self) -> Result<u64, MathError> {
+    pub fn current_utilization_rate_e6(&self) -> Result<u32, MathError> {
         if self.total_deposit == 0 {
-            return Ok(E6_U64);
+            return Ok(E6_U32);
         }
         let total_debt = self.total_debt;
-        match u64::try_from(mul_div(
+        match u32::try_from(mul_div(
             total_debt,
             E6_U128,
             self.total_deposit,
@@ -165,18 +167,27 @@ impl ReserveData {
 
     pub fn recalculate_current_rates(
         &mut self,
-        interest_rate_model: &[u64; 7],
+        interest_rate_model: &InterestRateModel,
     ) -> Result<(), MathError> {
+        ink::env::debug_println!("recalculate_current_rates");
         if self.total_debt == 0 {
             self.current_debt_rate_e18 = 0;
             self.current_deposit_rate_e18 = 0;
             return Ok(());
         }
         let utilization_rate_e6 = self.current_utilization_rate_e6()?;
+        ink::env::debug_println!(
+            "utilization_rate_e6: {}",
+            utilization_rate_e6
+        );
         self.current_debt_rate_e18 = utilization_rate_to_interest_rate_e18(
             utilization_rate_e6,
             interest_rate_model,
         )?;
+        ink::env::debug_println!(
+            "current_debt_rate_e18: {}",
+            self.current_debt_rate_e18
+        );
 
         if self.total_deposit != 0 {
             self.current_deposit_rate_e18 = e18_mul_e18_div_e18_to_e18_rdown(

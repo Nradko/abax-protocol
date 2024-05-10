@@ -64,6 +64,10 @@ pub enum LendingPoolError {
     MarketRuleInvalidId,
     /// returned if the fee is too high (greater then 1 = 10^6).
     DepositFeeTooHigh,
+    ///
+    WrongIndex,
+    ///
+    TooEarlyToAdjustRate,
 }
 
 impl From<AssetRulesError> for LendingPoolError {
