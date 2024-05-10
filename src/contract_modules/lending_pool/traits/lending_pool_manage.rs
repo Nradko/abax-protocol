@@ -1,13 +1,13 @@
-use abax_library::structs::{AssetRules, ReserveRestrictions};
+use abax_library::structs::{
+    AssetRules, InterestRateModelParams, ReserveRestrictions,
+};
 use ink::{
     contract_ref, env::DefaultEnvironment, prelude::string::String,
     prelude::vec::Vec, primitives::AccountId,
 };
 use pendzl::traits::Balance;
 
-use crate::lending_pool::{
-    InterestRateModel, LendingPoolError, MarketRule, RuleId,
-};
+use crate::lending_pool::{LendingPoolError, MarketRule, RuleId};
 pub type LendingPoolManageRef =
     contract_ref!(LendingPoolManage, DefaultEnvironment);
 
@@ -75,7 +75,7 @@ pub trait LendingPoolManage {
     /// * `maximal_total_debt` - maximal allowed total debt. None for uncapped.
     /// * `minimal_collateral` - the required minimal deposit of the asset by account to turn asset to be collateral.
     /// * `minimal_debt` - the minimal possible debt that can be taken by account.
-    /// * `interest_rate_model` - targetted debt rates at utilization of 68%, 84%, 92%, 96%, 98%, 99% 100%
+    /// * `interest_rate_model` - check InterestRateModelParams
     /// * `income_for_suppliers_part_e6` - indicates which part of an income should suppliers be paid - in E6 notation (multiplied by 10^6)
     ///
     /// # Errors
@@ -95,7 +95,7 @@ pub trait LendingPoolManage {
         asset_rules: AssetRules,
         reserve_restrictions: ReserveRestrictions,
         fees: SetReserveFeesArgs,
-        interest_rate_model: Option<InterestRateModel>,
+        interest_rate_model_params: Option<InterestRateModelParams>,
     ) -> Result<(), LendingPoolError>;
 
     ///  activates or disactivates reserve
@@ -138,7 +138,7 @@ pub trait LendingPoolManage {
     fn set_interest_rate_model(
         &mut self,
         asset: AccountId,
-        interest_rate_model: InterestRateModel,
+        interest_rate_model: InterestRateModelParams,
     ) -> Result<(), LendingPoolError>;
 
     #[ink(message)]

@@ -64,6 +64,10 @@ pub enum LendingPoolError {
     MarketRuleInvalidId,
     /// returned if the fee is too high (greater then 1 = 10^6).
     DepositFeeTooHigh,
+    /// returned if the calculated to be used tw entry's index is invalid - points to a non existing entry or the entry's value is too recent.
+    TwEntryInvalidIndex(u8),
+    /// returned if the attempt to adjust the rate is made earlier then the minimal time between adjustments.
+    TooEarlyToAdjustRate,
 }
 
 impl From<AssetRulesError> for LendingPoolError {

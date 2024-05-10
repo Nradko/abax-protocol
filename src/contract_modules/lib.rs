@@ -20,7 +20,7 @@ pub mod flash_loan_receiver;
 /// A contract module that allows for lending and borrowing of assets.
 /// It is the core module of the abax protocol.
 pub mod lending_pool;
-/// A contract module that allows to get the asset price in the appropariate format.
+/// A contract module that allows to get the asset price in the appropriate format.
 /// It is used by the lending_pool implementatoin.
 pub mod price_feed;
 

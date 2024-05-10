@@ -18,4 +18,21 @@ pub trait LendingPoolMaintain {
         &mut self,
         asset: AccountId,
     ) -> Result<(), LendingPoolError>;
+
+    /// is used by anyone to adjust interest's rate at the target utilization rate
+    ///
+    /// * `asset` - AccountId (aka address) of asset of which rate should be adjusted
+    /// * `guessed_index` - u32 of an index in the accumulated time-weighted utilization rate storage
+    /// that is guessed to be the one that should be used to adjust the rate (or is the closest one to the one supposed to be used)
+    ///  It must be index of entry that timestamp is at least smaller by interest_rate_model.minimal_time_between_adjustments from the last entry.
+    ///
+    /// # Errors
+    /// * `LendingPoolError::TwEntryInvalidIndex` returned if the index is invalid - points to a non existing entry or the entry's value is too recent.
+    /// * `LendingPoolError::TooEarlyToAdjustRate` returned if the attempt to adjust the rate is made earlier then the minimal time between adjustments.
+    #[ink(message)]
+    fn adjust_rate_at_target(
+        &mut self,
+        asset: AccountId,
+        guessed_index: u32,
+    ) -> Result<u64, LendingPoolError>;
 }

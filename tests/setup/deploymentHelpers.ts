@@ -15,16 +15,14 @@ import PriceFeedProviderDeployer from 'typechain/deployers/price_feed_provider';
 import Psp22EmitableDeployer from 'typechain/deployers/psp22_emitable';
 import StableTokenDeployer from 'typechain/deployers/stable_token';
 import VTokenDeployer from 'typechain/deployers/v_token';
-import { ReserveFees } from 'typechain/types-arguments/balance_viewer';
-import { AssetRules, SetReserveFeesArgs, ReserveRestrictions } from 'typechain/types-arguments/lending_pool';
+import { AssetRules, SetReserveFeesArgs, ReserveRestrictions, InterestRateModelParams } from 'typechain/types-arguments/lending_pool';
 import { getContractObjectWrapper } from '@abaxfinance/contract-helpers';
 import { localApi } from '@c-forge/polkahat-network-helpers';
 import { apiProviderWrapper, getSigners } from './helpers';
 import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
 import { TOKENS_TO_DEPLOY_FOR_TESTING } from './tokensToDeployForTesting';
-import { InterestRateModel, TokensToDeployForTesting } from './tokensToDeployForTesting.types';
-import { ApiPromise } from '@polkadot/api';
+import { TokensToDeployForTesting } from './tokensToDeployForTesting.types';
 
 export async function deployCoreContracts(
   owner: KeyringPair,
@@ -132,7 +130,7 @@ export const deployAndConfigureSystem = async (
       reserveData.defaultRule,
       reserveData.restrictions,
       reserveData.fees,
-      reserveData.interestRateModelE18,
+      reserveData.interestRateModelParams,
     );
     await contracts.priceFeedProvider.tx.setAccountSymbol(reserve.address, reserveData.metadata.name + '/USD');
     await oracle.tx.setPrice(reserveData.metadata.name + '/USD', prices[reserveData.metadata.name]);
@@ -267,7 +265,7 @@ export async function registerNewAsset(
   assetRules: AssetRules,
   restrictions: ReserveRestrictions,
   fees: SetReserveFeesArgs,
-  interestRateModel: InterestRateModel | null,
+  interestRateModel: InterestRateModelParams | null,
 ): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
   const registerAssetArgs: Parameters<typeof lendingPool.query.registerAsset> = [
     assetAddress,

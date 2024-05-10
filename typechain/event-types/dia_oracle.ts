@@ -1,185 +1,186 @@
-import BN from 'bn.js';
+import BN from "bn.js";
 import type * as ReturnTypes from '../types-returns/dia_oracle';
 
 export interface Deposit {
-  asset: ReturnTypes.AccountId;
-  caller: ReturnTypes.AccountId;
-  onBehalfOf: ReturnTypes.AccountId;
-  amount: BN;
+	asset: ReturnTypes.AccountId;
+	caller: ReturnTypes.AccountId;
+	onBehalfOf: ReturnTypes.AccountId;
+	amount: BN;
 }
 
 export interface Withdraw {
-  asset: ReturnTypes.AccountId;
-  caller: ReturnTypes.AccountId;
-  onBehalfOf: ReturnTypes.AccountId;
-  amount: BN;
+	asset: ReturnTypes.AccountId;
+	caller: ReturnTypes.AccountId;
+	onBehalfOf: ReturnTypes.AccountId;
+	amount: BN;
 }
 
 export interface MarketRuleChosen {
-  caller: ReturnTypes.AccountId;
-  marketRuleId: BN;
+	caller: ReturnTypes.AccountId;
+	marketRuleId: BN;
 }
 
 export interface CollateralSet {
-  caller: ReturnTypes.AccountId;
-  asset: ReturnTypes.AccountId;
-  set: boolean;
+	caller: ReturnTypes.AccountId;
+	asset: ReturnTypes.AccountId;
+	set: boolean;
 }
 
 export interface Borrow {
-  asset: ReturnTypes.AccountId;
-  caller: ReturnTypes.AccountId;
-  onBehalfOf: ReturnTypes.AccountId;
-  amount: BN;
+	asset: ReturnTypes.AccountId;
+	caller: ReturnTypes.AccountId;
+	onBehalfOf: ReturnTypes.AccountId;
+	amount: BN;
 }
 
 export interface Repay {
-  asset: ReturnTypes.AccountId;
-  caller: ReturnTypes.AccountId;
-  onBehalfOf: ReturnTypes.AccountId;
-  amount: BN;
+	asset: ReturnTypes.AccountId;
+	caller: ReturnTypes.AccountId;
+	onBehalfOf: ReturnTypes.AccountId;
+	amount: BN;
 }
 
 export interface FlashLoan {
-  receiver: ReturnTypes.AccountId;
-  caller: ReturnTypes.AccountId;
-  asset: ReturnTypes.AccountId;
-  amount: BN;
-  fee: BN;
+	receiver: ReturnTypes.AccountId;
+	caller: ReturnTypes.AccountId;
+	asset: ReturnTypes.AccountId;
+	amount: BN;
+	fee: BN;
 }
 
 export interface Liquidation {
-  liquidator: ReturnTypes.AccountId;
-  liquidatedAccount: ReturnTypes.AccountId;
-  assetToRepay: ReturnTypes.AccountId;
-  assetToTake: ReturnTypes.AccountId;
-  amountRepaid: BN;
-  amountTaken: BN;
+	liquidator: ReturnTypes.AccountId;
+	liquidatedAccount: ReturnTypes.AccountId;
+	assetToRepay: ReturnTypes.AccountId;
+	assetToTake: ReturnTypes.AccountId;
+	amountRepaid: BN;
+	amountTaken: BN;
 }
 
 export interface InterestsAccumulated {
-  asset: ReturnTypes.AccountId;
+	asset: ReturnTypes.AccountId;
 }
 
 export interface AssetRegistered {
-  asset: ReturnTypes.AccountId;
-  decimals: BN;
-  name: string;
-  symbol: string;
-  aTokenCodeHash: Array<BN>;
-  vTokenCodeHash: Array<BN>;
-  aTokenAddress: ReturnTypes.AccountId;
-  vTokenAddress: ReturnTypes.AccountId;
+	asset: ReturnTypes.AccountId;
+	decimals: BN;
+	name: string;
+	symbol: string;
+	aTokenCodeHash: Array<BN>;
+	vTokenCodeHash: Array<BN>;
+	aTokenAddress: ReturnTypes.AccountId;
+	vTokenAddress: ReturnTypes.AccountId;
 }
 
 export interface PriceFeedProviderChanged {
-  priceFeedProvider: ReturnTypes.AccountId;
+	priceFeedProvider: ReturnTypes.AccountId;
 }
 
 export interface FeeReductionChanged {
-  feeReductionProvider: ReturnTypes.AccountId;
+	feeReductionProvider: ReturnTypes.AccountId;
 }
 
 export interface FlashLoanFeeChanged {
-  flashLoanFeeE6: BN;
+	flashLoanFeeE6: BN;
 }
 
 export interface ReserveActivated {
-  asset: ReturnTypes.AccountId;
-  active: boolean;
+	asset: ReturnTypes.AccountId;
+	active: boolean;
 }
 
 export interface ReserveFrozen {
-  asset: ReturnTypes.AccountId;
-  frozen: boolean;
+	asset: ReturnTypes.AccountId;
+	frozen: boolean;
 }
 
 export interface ReserveInterestRateModelChanged {
-  asset: ReturnTypes.AccountId;
-  interestRateModel: Array<BN>;
+	asset: ReturnTypes.AccountId;
+	interestRateModelParams: ReturnTypes.InterestRateModelParams;
 }
 
 export interface ReserveRestrictionsChanged {
-  asset: ReturnTypes.AccountId;
-  reserveRestrictions: ReturnTypes.ReserveRestrictions;
+	asset: ReturnTypes.AccountId;
+	reserveRestrictions: ReturnTypes.ReserveRestrictions;
 }
 
 export interface ReserveFeesChanged {
-  asset: ReturnTypes.AccountId;
-  reserveFees: ReturnTypes.SetReserveFeesArgs;
+	asset: ReturnTypes.AccountId;
+	reserveFees: ReturnTypes.SetReserveFeesArgs;
 }
 
 export interface AssetRulesChanged {
-  marketRuleId: BN;
-  asset: ReturnTypes.AccountId;
-  collateralCoefficientE6: BN | null;
-  borrowCoefficientE6: BN | null;
-  penaltyE6: BN | null;
+	marketRuleId: BN;
+	asset: ReturnTypes.AccountId;
+	collateralCoefficientE6: BN | null;
+	borrowCoefficientE6: BN | null;
+	penaltyE6: BN | null;
 }
 
 export interface IncomeTaken {
-  asset: ReturnTypes.AccountId;
+	asset: ReturnTypes.AccountId;
 }
 
 export interface StablecoinDebtRateChanged {
-  asset: ReturnTypes.AccountId;
-  debtRateE18: BN;
+	asset: ReturnTypes.AccountId;
+	debtRateE18: BN;
 }
 
 export interface OwnershipTransferred {
-  previousOwner: ReturnTypes.AccountId | null;
-  newOwner: ReturnTypes.AccountId;
+	previousOwner: ReturnTypes.AccountId | null;
+	newOwner: ReturnTypes.AccountId;
 }
 
 export interface UpdaterChanged {
-  old: ReturnTypes.AccountId | null;
-  new: ReturnTypes.AccountId;
+	old: ReturnTypes.AccountId | null;
+	new: ReturnTypes.AccountId;
 }
 
 export interface TokenPriceChanged {
-  pair: string;
-  price: BN;
-  timestamp: BN;
+	pair: string;
+	price: BN;
+	timestamp: BN;
 }
 
 export interface Paused {
-  account: ReturnTypes.AccountId;
+	account: ReturnTypes.AccountId;
 }
 
 export interface Unpaused {
-  account: ReturnTypes.AccountId;
+	account: ReturnTypes.AccountId;
 }
 
 export interface OwnershipTransferred {
-  new: ReturnTypes.AccountId | null;
+	new: ReturnTypes.AccountId | null;
 }
 
 export interface RoleAdminChanged {
-  role: BN;
-  previous: BN;
-  new: BN;
+	role: BN;
+	previous: BN;
+	new: BN;
 }
 
 export interface RoleGranted {
-  role: BN;
-  grantee: ReturnTypes.AccountId | null;
-  grantor: ReturnTypes.AccountId | null;
+	role: BN;
+	grantee: ReturnTypes.AccountId | null;
+	grantor: ReturnTypes.AccountId | null;
 }
 
 export interface RoleRevoked {
-  role: BN;
-  account: ReturnTypes.AccountId | null;
-  sender: ReturnTypes.AccountId;
+	role: BN;
+	account: ReturnTypes.AccountId | null;
+	sender: ReturnTypes.AccountId;
 }
 
 export interface Transfer {
-  from: ReturnTypes.AccountId | null;
-  to: ReturnTypes.AccountId | null;
-  value: BN;
+	from: ReturnTypes.AccountId | null;
+	to: ReturnTypes.AccountId | null;
+	value: BN;
 }
 
 export interface Approval {
-  owner: ReturnTypes.AccountId;
-  spender: ReturnTypes.AccountId;
-  value: BN;
+	owner: ReturnTypes.AccountId;
+	spender: ReturnTypes.AccountId;
+	value: BN;
 }
+
