@@ -19,6 +19,7 @@ use pendzl::{
 };
 
 use super::storage::LendingPoolStorage;
+use ink::codegen::TraitCallBuilder;
 
 pub fn _check_amount_not_zero(amount: u128) -> Result<(), LendingPoolError> {
     if amount == 0 {
@@ -33,20 +34,24 @@ pub fn _emit_abacus_token_transfer_event(
 ) -> Result<(), PSP22Error> {
     let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
     match amount_transferred.cmp(&0) {
-        Ordering::Greater => abacus_token_contract.emit_transfer_events(vec![
-            TransferEventData {
+        Ordering::Greater => abacus_token_contract
+            .call_mut()
+            .emit_transfer_events(vec![TransferEventData {
                 from: None,
                 to: Some(*account),
                 amount: u128::try_from(amount_transferred).unwrap(), // Ordering::Greater => amount is greater than zero
-            },
-        ]),
-        Ordering::Less => abacus_token_contract.emit_transfer_events(vec![
-            TransferEventData {
+            }])
+            .call_v1()
+            .invoke(),
+        Ordering::Less => abacus_token_contract
+            .call_mut()
+            .emit_transfer_events(vec![TransferEventData {
                 from: Some(*account),
                 to: None,
                 amount: u128::try_from(amount_transferred.neg()).unwrap(), // Ordering::Less => amount is less than zero => neg() is positive
-            },
-        ]),
+            }])
+            .call_v1()
+            .invoke(),
         Ordering::Equal => Ok(()),
     }
 }
@@ -78,7 +83,11 @@ pub fn _emit_abacus_token_transfer_events(
     }
     let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
 
-    abacus_token_contract.emit_transfer_events(events)
+    abacus_token_contract
+        .call_mut()
+        .emit_transfer_events(events)
+        .call_v1()
+        .invoke()
 }
 
 pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
@@ -110,12 +119,16 @@ pub fn _emit_abacus_token_transfer_event_and_decrease_allowance(
         };
         let mut abacus_token_contract: AbacusTokenRef = (*abacus_token).into();
 
-        abacus_token_contract.emit_transfer_event_and_decrease_allowance(
-            event,
-            *account,
-            *spender,
-            decrease_alowance_by,
-        )
+        abacus_token_contract
+            .call_mut()
+            .emit_transfer_event_and_decrease_allowance(
+                event,
+                *account,
+                *spender,
+                decrease_alowance_by,
+            )
+            .call_v1()
+            .invoke()
     }
 }
 
@@ -150,15 +163,19 @@ impl<T: StorageFieldGetter<LendingPoolStorage>> Transfer for T {
             .contains(self.data().asset_id(asset)?)
         {
             let mut psp22: PSP22Ref = (*asset).into();
-            psp22.transfer_from(
-                *from,
-                Self::env().account_id(),
-                *amount,
-                Vec::<u8>::new(),
-            )?;
+            psp22
+                .call_mut()
+                .transfer_from(
+                    *from,
+                    Self::env().account_id(),
+                    *amount,
+                    Vec::<u8>::new(),
+                )
+                .call_v1()
+                .invoke()?;
         } else {
             let mut psp22: PSP22BurnableRef = (*asset).into();
-            psp22.burn(*from, *amount)?
+            psp22.call_mut().burn(*from, *amount).call_v1().invoke()?
         }
         Ok(())
     }
@@ -176,10 +193,14 @@ impl<T: StorageFieldGetter<LendingPoolStorage>> Transfer for T {
             .contains(self.data().asset_id(asset)?)
         {
             let mut psp22: PSP22Ref = (*asset).into();
-            psp22.transfer(*to, *amount, vec![])?;
+            psp22
+                .call_mut()
+                .transfer(*to, *amount, vec![])
+                .call_v1()
+                .invoke()?;
         } else {
             let mut psp22: PSP22MintableRef = (*asset).into();
-            psp22.mint(*to, *amount)?
+            psp22.call_mut().mint(*to, *amount).call_v1().invoke()?
         }
         Ok(())
     }

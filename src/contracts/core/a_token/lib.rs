@@ -13,6 +13,7 @@ pub mod a_token {
     use ink::codegen::Env;
     use ink::prelude::string::String;
 
+    use ink::codegen::TraitCallBuilder;
     use pendzl::contracts::psp22;
     use pendzl::contracts::psp22::PSP22Error;
 
@@ -32,7 +33,10 @@ pub mod a_token {
         let lending_pool: LendingPoolATokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         lending_pool
+            .call()
             .account_deposit_of(self.abacus_token.underlying_asset, *owner)
+            .call_v1()
+            .invoke()
     }
 
     #[overrider(PSP22Internal)]
@@ -44,10 +48,13 @@ pub mod a_token {
     }
     #[overrider(PSP22Internal)]
     fn _total_supply(&self) -> Balance {
-        LendingPoolATokenInterfaceRef::total_deposit_of(
-            &self.abacus_token.lending_pool.into(),
-            self.abacus_token.underlying_asset,
-        )
+        let lending_pool: LendingPoolATokenInterfaceRef =
+            self.abacus_token.lending_pool.into();
+        lending_pool
+            .call()
+            .total_deposit_of(self.abacus_token.underlying_asset)
+            .call_v1()
+            .invoke()
     }
 
     #[overrider(PSP22)]
@@ -94,12 +101,16 @@ pub mod a_token {
         let mut lending_pool: LendingPoolATokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
-            lending_pool.transfer_deposit_from_to(
-                self.abacus_token.underlying_asset,
-                *from.unwrap(),
-                *to.unwrap(),
-                *amount,
-            )?;
+            lending_pool
+                .call_mut()
+                .transfer_deposit_from_to(
+                    self.abacus_token.underlying_asset,
+                    *from.unwrap(),
+                    *to.unwrap(),
+                    *amount,
+                )
+                .call_v1()
+                .invoke()?;
         // emitting accumulated interest events
         if mint_from_amount > 0 {
             self.env().emit_event(psp22::Transfer {

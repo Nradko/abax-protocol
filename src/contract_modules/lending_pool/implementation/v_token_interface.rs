@@ -13,6 +13,7 @@ use pendzl::{
 use ink::{env::DefaultEnvironment, prelude::*};
 
 use super::storage::LendingPoolStorage;
+use ink::codegen::TraitCallBuilder;
 
 pub trait LendingPoolVTokenInterfaceImpl:
     StorageFieldGetter<LendingPoolStorage>
@@ -80,18 +81,22 @@ pub trait LendingPoolVTokenInterfaceImpl:
             let mut abacus_token_contract: AbacusTokenRef =
                 reserve_abacus_tokens_tokens.a_token_address.into();
 
-            abacus_token_contract.emit_transfer_events(vec![
-                TransferEventData {
-                    from: None,
-                    to: Some(from),
-                    amount: from_accumulated_deposit_interest,
-                },
-                TransferEventData {
-                    from: None,
-                    to: Some(to),
-                    amount: to_accumulated_deposit_interest,
-                },
-            ])?;
+            abacus_token_contract
+                .call_mut()
+                .emit_transfer_events(vec![
+                    TransferEventData {
+                        from: None,
+                        to: Some(from),
+                        amount: from_accumulated_deposit_interest,
+                    },
+                    TransferEventData {
+                        from: None,
+                        to: Some(to),
+                        amount: to_accumulated_deposit_interest,
+                    },
+                ])
+                .call_v1()
+                .invoke()?;
         }
         // VToken intersts are returned
 

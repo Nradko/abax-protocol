@@ -24,6 +24,7 @@ import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
 import { TOKENS_TO_DEPLOY_FOR_TESTING } from './tokensToDeployForTesting';
 import { InterestRateModel, TokensToDeployForTesting } from './tokensToDeployForTesting.types';
+import { ApiPromise } from '@polkadot/api';
 
 export async function deployCoreContracts(
   owner: KeyringPair,
@@ -41,7 +42,6 @@ export async function deployCoreContracts(
     console.log(`Deployer: ${owner.address}`);
   }
   const api = await apiProviderWrapper.getAndWaitForReady();
-  const priceFeedProvider = (await new PriceFeedProviderDeployer(api, owner).new(oracle)).contract;
 
   const aTokenContract = await new ATokenDeployer(api, owner).new('Abacus Deposit Token', 'AToken', 0, owner.address, owner.address);
   const vTokenContract = await new VTokenDeployer(api, owner).new('Abacus Debt Token', 'VToken', 0, owner.address, owner.address);
@@ -56,6 +56,8 @@ export async function deployCoreContracts(
   const vTokenCodeHash = vTokenCodeHashHex; //hexToBytes(vTokenCodeHashHex);
 
   const lendingPool = (await new LendingPoolDeployer(api, owner).new()).contract;
+
+  const priceFeedProvider = (await new PriceFeedProviderDeployer(api, owner).new(oracle)).contract;
   return { priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
 }
 
@@ -264,6 +266,39 @@ export async function registerNewAsset(
   fees: SetReserveFeesArgs,
   interestRateModel: InterestRateModel | null,
 ): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
+  const api = await localApi.get(false);
+  return registerNewAssetWithApi(
+    api,
+    owner,
+    lendingPool,
+    assetAddress,
+    aTokenCodeHash,
+    vTokenCodeHash,
+    name,
+    symbol,
+    decimals,
+    assetRules,
+    restrictions,
+    fees,
+    interestRateModel,
+  );
+}
+
+export async function registerNewAssetWithApi(
+  api: ApiPromise,
+  owner: KeyringPair,
+  lendingPool: LendingPool,
+  assetAddress: string,
+  aTokenCodeHash: string,
+  vTokenCodeHash: string,
+  name: string,
+  symbol: string,
+  decimals: number,
+  assetRules: AssetRules,
+  restrictions: ReserveRestrictions,
+  fees: SetReserveFeesArgs,
+  interestRateModel: InterestRateModel | null,
+): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
   const registerAssetArgs: Parameters<typeof lendingPool.query.registerAsset> = [
     assetAddress,
     aTokenCodeHash as any,
@@ -285,7 +320,7 @@ export async function registerNewAsset(
   await lendingPool.withSigner(owner).tx.registerAsset(...registerAssetArgs);
 
   const tokenAdresses = (await lendingPool.query.viewReserveTokens(assetAddress)).value.ok!;
-  const api = await localApi.get(false);
+
   const aToken = getContractObjectWrapper(api, ATokenContract, tokenAdresses.aTokenAddress.toString(), owner);
   const vToken = getContractObjectWrapper(api, VTokenContract, tokenAdresses.vTokenAddress.toString(), owner);
   return { aToken, vToken };

@@ -16,6 +16,7 @@ pub mod balance_viewer {
         traits::StorageFieldGetter,
     };
 
+    use ink::codegen::TraitCallBuilder;
     use ink::prelude::{vec::Vec, *};
 
     #[derive(Debug, scale::Encode, scale::Decode)]
@@ -36,8 +37,6 @@ pub mod balance_viewer {
         lending_pool: LendingPoolViewRef,
     }
 
-    // impl Managing for PSP22EmitableContract {}
-
     impl BalanceViewer {
         #[ink(constructor)]
         pub fn new(lending_pool: AccountId) -> Self {
@@ -52,13 +51,21 @@ pub mod balance_viewer {
             assets: Option<Vec<AccountId>>,
             account: AccountId,
         ) -> Vec<(AccountId, Balance)> {
-            let assets_to_view = assets
-                .unwrap_or_else(|| self.lending_pool.view_registered_assets());
+            let assets_to_view = assets.unwrap_or_else(|| {
+                self.lending_pool
+                    .call()
+                    .view_registered_assets()
+                    .call_v1()
+                    .invoke()
+            });
 
             let mut ret: Vec<(AccountId, Balance)> = vec![];
             for asset in assets_to_view {
                 let psp22: PSP22Ref = asset.into();
-                ret.push((asset, psp22.balance_of(account)));
+                ret.push((
+                    asset,
+                    psp22.call().balance_of(account).call_v1().invoke(),
+                ));
             }
             ret
         }
@@ -68,12 +75,24 @@ pub mod balance_viewer {
             &self,
             assets: Option<Vec<AccountId>>,
         ) -> Vec<(AccountId, Option<ReserveData>)> {
-            let assets_to_view = assets
-                .unwrap_or_else(|| self.lending_pool.view_registered_assets());
+            let assets_to_view = assets.unwrap_or_else(|| {
+                self.lending_pool
+                    .call()
+                    .view_registered_assets()
+                    .call_v1()
+                    .invoke()
+            });
 
             let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
             for asset in assets_to_view {
-                ret.push((asset, self.lending_pool.view_reserve_data(asset)));
+                ret.push((
+                    asset,
+                    self.lending_pool
+                        .call()
+                        .view_reserve_data(asset)
+                        .call_v1()
+                        .invoke(),
+                ));
             }
             ret
         }
@@ -82,12 +101,24 @@ pub mod balance_viewer {
             &self,
             assets: Option<Vec<AccountId>>,
         ) -> Vec<(AccountId, Option<ReserveData>)> {
-            let assets_to_view = assets
-                .unwrap_or_else(|| self.lending_pool.view_registered_assets());
+            let assets_to_view = assets.unwrap_or_else(|| {
+                self.lending_pool
+                    .call()
+                    .view_registered_assets()
+                    .call_v1()
+                    .invoke()
+            });
 
             let mut ret: Vec<(AccountId, Option<ReserveData>)> = vec![];
             for asset in assets_to_view {
-                ret.push((asset, self.lending_pool.view_reserve_data(asset)));
+                ret.push((
+                    asset,
+                    self.lending_pool
+                        .call()
+                        .view_reserve_data(asset)
+                        .call_v1()
+                        .invoke(),
+                ));
             }
             ret
         }
@@ -98,15 +129,23 @@ pub mod balance_viewer {
             assets: Option<Vec<AccountId>>,
             account: AccountId,
         ) -> Vec<(AccountId, AccountReserveData)> {
-            let assets_to_view = assets
-                .unwrap_or_else(|| self.lending_pool.view_registered_assets());
+            let assets_to_view = assets.unwrap_or_else(|| {
+                self.lending_pool
+                    .call()
+                    .view_registered_assets()
+                    .call_v1()
+                    .invoke()
+            });
 
             let mut ret: Vec<(AccountId, AccountReserveData)> = vec![];
             for asset in assets_to_view {
                 ret.push((
                     asset,
                     self.lending_pool
-                        .view_unupdated_account_reserve_data(asset, account),
+                        .call()
+                        .view_unupdated_account_reserve_data(asset, account)
+                        .call_v1()
+                        .invoke(),
                 ));
             }
             ret
@@ -117,14 +156,23 @@ pub mod balance_viewer {
             assets: Option<Vec<AccountId>>,
             account: AccountId,
         ) -> Vec<(AccountId, AccountReserveData)> {
-            let assets_to_view = assets
-                .unwrap_or_else(|| self.lending_pool.view_registered_assets());
+            let assets_to_view = assets.unwrap_or_else(|| {
+                self.lending_pool
+                    .call()
+                    .view_registered_assets()
+                    .call_v1()
+                    .invoke()
+            });
 
             let mut ret: Vec<(AccountId, AccountReserveData)> = vec![];
             for asset in assets_to_view {
                 ret.push((
                     asset,
-                    self.lending_pool.view_account_reserve_data(asset, account),
+                    self.lending_pool
+                        .call()
+                        .view_account_reserve_data(asset, account)
+                        .call_v1()
+                        .invoke(),
                 ));
             }
             ret
@@ -136,17 +184,48 @@ pub mod balance_viewer {
             asset: AccountId,
         ) -> CompleteReserveData {
             CompleteReserveData {
-                data: self.lending_pool.view_reserve_data(asset),
-                indexes: self.lending_pool.view_reserve_indexes(asset),
+                data: self
+                    .lending_pool
+                    .call()
+                    .view_reserve_data(asset)
+                    .call_v1()
+                    .invoke(),
+                indexes: self
+                    .lending_pool
+                    .call()
+                    .view_reserve_indexes(asset)
+                    .call_v1()
+                    .invoke(),
                 interest_rate_model: self
                     .lending_pool
-                    .view_interest_rate_model(asset),
-                fees: self.lending_pool.view_reserve_fees(asset),
-                restriction: self.lending_pool.view_reserve_restrictions(asset),
+                    .call()
+                    .view_interest_rate_model(asset)
+                    .call_v1()
+                    .invoke(),
+                fees: self
+                    .lending_pool
+                    .call()
+                    .view_reserve_fees(asset)
+                    .call_v1()
+                    .invoke(),
+                restriction: self
+                    .lending_pool
+                    .call()
+                    .view_reserve_restrictions(asset)
+                    .call_v1()
+                    .invoke(),
                 decimal_multiplier: self
                     .lending_pool
-                    .view_reserve_decimal_multiplier(asset),
-                tokens: self.lending_pool.view_reserve_tokens(asset),
+                    .call()
+                    .view_reserve_decimal_multiplier(asset)
+                    .call_v1()
+                    .invoke(),
+                tokens: self
+                    .lending_pool
+                    .call()
+                    .view_reserve_tokens(asset)
+                    .call_v1()
+                    .invoke(),
             }
         }
 
@@ -155,8 +234,13 @@ pub mod balance_viewer {
             &self,
             assets: Option<Vec<AccountId>>,
         ) -> Vec<(AccountId, CompleteReserveData)> {
-            let assets_to_view = assets
-                .unwrap_or_else(|| self.lending_pool.view_registered_assets());
+            let assets_to_view = assets.unwrap_or_else(|| {
+                self.lending_pool
+                    .call()
+                    .view_registered_assets()
+                    .call_v1()
+                    .invoke()
+            });
 
             let mut ret: Vec<(AccountId, CompleteReserveData)> = vec![];
             for asset in assets_to_view {

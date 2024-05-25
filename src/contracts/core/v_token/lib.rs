@@ -13,6 +13,7 @@ pub mod v_token {
         },
     };
     use ink::codegen::Env;
+    use ink::codegen::TraitCallBuilder;
     use ink::prelude::string::String;
 
     use pendzl::contracts::psp22::{self, PSP22Error};
@@ -32,7 +33,11 @@ pub mod v_token {
     fn _balance_of(&self, owner: &AccountId) -> Balance {
         let lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
-        lending_pool.account_debt_of(self.abacus_token.underlying_asset, *owner)
+        lending_pool
+            .call()
+            .account_debt_of(self.abacus_token.underlying_asset, *owner)
+            .call_v1()
+            .invoke()
     }
 
     #[overrider(PSP22Internal)]
@@ -160,7 +165,11 @@ pub mod v_token {
     fn _total_supply(&self) -> Balance {
         let lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
-        lending_pool.total_debt_of(self.abacus_token.underlying_asset)
+        lending_pool
+            .call()
+            .total_debt_of(self.abacus_token.underlying_asset)
+            .call_v1()
+            .invoke()
     }
 
     #[overrider(PSP22Internal)]
@@ -173,12 +182,16 @@ pub mod v_token {
         let mut lending_pool: LendingPoolVTokenInterfaceRef =
             self.abacus_token.lending_pool.into();
         let (mint_from_amount, mint_to_amount): (Balance, Balance) =
-            lending_pool.transfer_debt_from_to(
-                self.abacus_token.underlying_asset,
-                *from.unwrap(),
-                *to.unwrap(),
-                *amount,
-            )?;
+            lending_pool
+                .call_mut()
+                .transfer_debt_from_to(
+                    self.abacus_token.underlying_asset,
+                    *from.unwrap(),
+                    *to.unwrap(),
+                    *amount,
+                )
+                .call_v1()
+                .invoke()?;
         if mint_from_amount > 0 {
             self.env().emit_event(psp22::Transfer {
                 from: None,

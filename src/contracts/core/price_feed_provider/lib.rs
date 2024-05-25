@@ -5,6 +5,7 @@
 pub mod price_feed_provider {
     use abax_contracts::dia_oracle::{OracleGetters, OracleGettersRef};
     use abax_contracts::price_feed::{PriceFeed, PriceFeedError};
+    use ink::codegen::TraitCallBuilder;
     use ink::prelude::string::String;
     use ink::prelude::{vec::Vec, *};
 
@@ -70,8 +71,13 @@ pub mod price_feed_provider {
                     .ok_or(PriceFeedError::NoSuchAsset)?;
                 symbols.push(symbol)
             }
-            let oracle: OracleGettersRef = self.oracle.get().unwrap();
-            for res in oracle.get_latest_prices(symbols) {
+            let mut oracle: OracleGettersRef = self.oracle.get().unwrap();
+            for res in oracle
+                .call_mut()
+                .get_latest_prices(symbols)
+                .call_v1()
+                .invoke()
+            {
                 match res {
                     Some(r) => result.push(r.1),
                     None => return Err(PriceFeedError::NoPriceFeed),

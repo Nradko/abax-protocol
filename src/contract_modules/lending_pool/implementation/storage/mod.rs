@@ -17,6 +17,7 @@ use abax_library::{
         ReserveFees, ReserveIndexesAndFees, ReserveRestrictions,
     },
 };
+use ink::codegen::TraitCallBuilder;
 use ink::storage::Mapping;
 use ink::{env::DefaultEnvironment, prelude::vec, prelude::vec::Vec};
 use pendzl::{
@@ -1454,7 +1455,11 @@ impl LendingPoolStorage {
         let all_assets = self.get_all_registered_assets();
         let price_feeder: PriceFeedRef =
             self.price_feed_provider.get().unwrap().into();
-        Ok(price_feeder.get_latest_prices(all_assets)?)
+        Ok(price_feeder
+            .call()
+            .get_latest_prices(all_assets)
+            .call_v1()
+            .invoke()?)
     }
     pub fn get_fee_reductions_of_account(
         &self,
@@ -1462,9 +1467,11 @@ impl LendingPoolStorage {
     ) -> FeeReductions {
         match self.fee_reduction_provider.get() {
             None => FeeReductions::default(),
-            Some(provider) => {
-                FeeReductionRef::from(provider).get_fee_reductions(*account)
-            }
+            Some(provider) => FeeReductionRef::from(provider)
+                .call()
+                .get_fee_reductions(*account)
+                .call_v1()
+                .invoke(),
         }
     }
 }
