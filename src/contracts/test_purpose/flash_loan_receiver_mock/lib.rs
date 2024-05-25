@@ -7,6 +7,7 @@ pub mod flash_loan_receiver_mock {
     };
     use ink::prelude::{string::ToString, vec::Vec};
 
+    use ink::codegen::TraitCallBuilder;
     use pendzl::{
         contracts::psp22::{
             mintable::{PSP22Mintable, PSP22MintableRef},
@@ -64,7 +65,11 @@ pub mod flash_loan_receiver_mock {
             }
             for i in 0..assets.len() {
                 let psp22: PSP22Ref = assets[i].into();
-                let balance = psp22.balance_of(self.env().account_id());
+                let balance = psp22
+                    .call()
+                    .balance_of(self.env().account_id())
+                    .call_v1()
+                    .invoke();
                 if amounts[i] > balance {
                     return Err(FlashLoanReceiverError::Custom(
                         "InsufficientBalance".to_string(),
@@ -74,7 +79,13 @@ pub mod flash_loan_receiver_mock {
                 if self.simulate_balance_to_cover_fee {
                     let mut psp22: PSP22MintableRef = assets[i].into();
 
-                    if psp22.mint(self.env().account_id(), fees[i]).is_err() {
+                    if psp22
+                        .call_mut()
+                        .mint(self.env().account_id(), fees[i])
+                        .call_v1()
+                        .invoke()
+                        .is_err()
+                    {
                         return Err(FlashLoanReceiverError::Custom(
                             "AssetNotMintable".to_string(),
                         ));
@@ -89,7 +100,11 @@ pub mod flash_loan_receiver_mock {
                 }?;
                 if {
                     let mut psp22: PSP22Ref = assets[i].into();
-                    psp22.approve(self.env().caller(), amount_to_return)
+                    psp22
+                        .call_mut()
+                        .approve(self.env().caller(), amount_to_return)
+                        .call_v1()
+                        .invoke()
                 }
                 .is_err()
                 {

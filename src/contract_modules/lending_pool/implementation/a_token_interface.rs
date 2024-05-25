@@ -1,3 +1,4 @@
+use super::storage::LendingPoolStorage;
 use crate::{
     abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
     lending_pool::{
@@ -5,13 +6,12 @@ use crate::{
         LendingPoolError,
     },
 };
+use ink::codegen::TraitCallBuilder;
 use ink::{env::DefaultEnvironment, prelude::*};
 use pendzl::{
     contracts::access_control::AccessControlError,
     traits::{AccountId, Balance, StorageFieldGetter},
 };
-
-use super::storage::LendingPoolStorage;
 
 pub trait LendingPoolATokenInterfaceImpl:
     StorageFieldGetter<LendingPoolStorage>
@@ -78,18 +78,22 @@ pub trait LendingPoolATokenInterfaceImpl:
             let mut abacus_token_contract: AbacusTokenRef =
                 reserve_abacus_tokens_tokens.v_token_address.into();
 
-            abacus_token_contract.emit_transfer_events(vec![
-                TransferEventData {
-                    from: None,
-                    to: Some(from),
-                    amount: from_accumulated_debt_interest,
-                },
-                TransferEventData {
-                    from: None,
-                    to: Some(to),
-                    amount: to_accumulated_debt_interest,
-                },
-            ])?;
+            abacus_token_contract
+                .call_mut()
+                .emit_transfer_events(vec![
+                    TransferEventData {
+                        from: None,
+                        to: Some(from),
+                        amount: from_accumulated_debt_interest,
+                    },
+                    TransferEventData {
+                        from: None,
+                        to: Some(to),
+                        amount: to_accumulated_debt_interest,
+                    },
+                ])
+                .call_v1()
+                .invoke()?;
         }
 
         //// EVENT

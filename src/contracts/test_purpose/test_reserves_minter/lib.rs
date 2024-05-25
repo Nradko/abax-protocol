@@ -9,6 +9,7 @@ pub mod psp22_emitable {
         psp22::{mintable::PSP22MintableRef, PSP22Error},
     };
 
+    use ink::codegen::TraitCallBuilder;
     use ink::{prelude::vec::Vec, storage::Mapping};
     use pendzl::contracts::psp22::mintable::PSP22Mintable;
 
@@ -42,7 +43,11 @@ pub mod psp22_emitable {
             if !self.already_minted.contains(to) {
                 for &(addr, amount) in addreses_with_amounts.iter() {
                     let mut psp22_mintable: PSP22MintableRef = addr.into();
-                    psp22_mintable.mint(to, amount)?;
+                    psp22_mintable
+                        .call_mut()
+                        .mint(to, amount)
+                        .call_v1()
+                        .invoke()?;
                 }
                 self.already_minted.insert(to, &true);
             } else {

@@ -15,19 +15,15 @@ use ink::{
 };
 
 use pendzl::math::operations::{mul_div, Rounding};
-use pendzl::{
-    contracts::access_control,
-    traits::{AccountId, Balance, StorageFieldGetter},
-};
+use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use super::{
     internal::{Transfer, _check_amount_not_zero},
     storage::LendingPoolStorage,
 };
+use ink::codegen::TraitCallBuilder;
 
-pub trait LendingPoolFlashImpl:
-    StorageFieldGetter<LendingPoolStorage> + access_control::AccessControlInternal
-{
+pub trait LendingPoolFlashImpl: StorageFieldGetter<LendingPoolStorage> {
     fn flash_loan(
         &mut self,
         receiver: AccountId,
@@ -56,7 +52,11 @@ pub trait LendingPoolFlashImpl:
             {
                 let free_provider: FeeReductionRef =
                     free_provider_account.into();
-                free_provider.get_flash_loan_fee_reduction(Self::env().caller())
+                free_provider
+                    .call()
+                    .get_flash_loan_fee_reduction(Self::env().caller())
+                    .call_v1()
+                    .invoke()
             } else {
                 0
             }
@@ -76,7 +76,7 @@ pub trait LendingPoolFlashImpl:
         }
 
         build_call::<DefaultEnvironment>()
-            .call(receiver)
+            .call_v1(receiver)
             .call_flags(CallFlags::ALLOW_REENTRY)
             .exec_input(
                 ExecutionInput::new(ink::env::call::Selector::new(

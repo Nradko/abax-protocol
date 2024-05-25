@@ -120,10 +120,12 @@ type TokenReserve = {
   const deployPath = path.join(outputJsonFolder, 'deployedContracts.azero.testnet.json');
   const { lendingPool, priceFeedProvider, aTokenCodeHash, vTokenCodeHash } = await deployCoreContracts(signer, ORACLE_ADDRESS);
 
-  await lendingPool.withSigner(signer).tx.grantRole(ROLES['ASSET_LISTING_ADMIN'], signer.address);
-  await lendingPool.withSigner(signer).tx.grantRole(ROLES['PARAMETERS_ADMIN'], signer.address);
-  await lendingPool.withSigner(signer).tx.grantRole(ROLES['STABLECOIN_RATE_ADMIN'], signer.address);
-  await lendingPool.withSigner(signer).tx.grantRole(ROLES['EMERGENCY_ADMIN'], signer.address);
+  const customAdmin = '5HC2j3oJrieqBd4zFdX1VcLe6GbgGhfMRbjQUSB8RdZeRZkf';
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['ROLE_ADMIN'], customAdmin);
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['ASSET_LISTING_ADMIN'], customAdmin);
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['PARAMETERS_ADMIN'], customAdmin);
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['STABLECOIN_RATE_ADMIN'], customAdmin);
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['EMERGENCY_ADMIN'], customAdmin);
 
   const setPriceFeedProviderRes = await lendingPool.withSigner(signer).query.setPriceFeedProvider(priceFeedProvider.address);
   setPriceFeedProviderRes.value.unwrapRecursively();

@@ -498,8 +498,9 @@ pub trait ManageInternal: StorageFieldGetter<LendingPoolStorage> {
         decimals: u8,
     ) -> AccountId {
         let create_params = ink::env::call::build_create::<DummyRef>()
+            .instantiate_v1()
             .code_hash(Hash::from(*abacus_token_code_hash))
-            .ref_time_limit(10_000_000_000)
+            .gas_limit(10_000_000_000)
             .endowment(0)
             .exec_input(
                 ExecutionInput::new(ink::env::call::Selector::new(
@@ -515,7 +516,7 @@ pub trait ManageInternal: StorageFieldGetter<LendingPoolStorage> {
             .returns::<DummyRef>()
             .params();
         let contract = Self::env()
-            .instantiate_contract(&create_params)
+            .instantiate_contract_v1(&create_params)
             .unwrap_or_else(|error| {
                 panic!("Contract pallet error: {:?}", error)
             })
