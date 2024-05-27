@@ -1100,6 +1100,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "psp22_for_audit"
+version = "0.2.0"
+dependencies = [
+ "abax_library",
+ "ink",
+ "parity-scale-codec",
+ "pendzl",
+ "scale-info",
+]
+
+[[package]]
 name = "psp22_ownable"
 version = "0.2.0"
 dependencies = [

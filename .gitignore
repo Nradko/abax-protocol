@@ -39,8 +39,6 @@ yarn.lock
 .cargo/config.toml
 
 
-#typechain
-/typechain
 
 *deployedContracts.json
 *deployedContracts.*.*.json

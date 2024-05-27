@@ -1,0 +1,213 @@
+{
+  "0": { "name": "AccountId", "isResult": false, "isPrimitive": true, "body": "string | number[]" },
+  "1": { "name": "Array", "isResult": false, "isPrimitive": false, "body": { "0": { "name": "BN", "isResult": false, "isPrimitive": true } } },
+  "2": { "name": "BN", "isResult": false, "isPrimitive": true },
+  "3": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+  "4": {
+    "name": "Option",
+    "isResult": false,
+    "isPrimitive": false,
+    "body": {
+      "0": { "name": "AccountId", "isResult": false, "isPrimitive": true, "body": "string | number[]" },
+      "1": { "name": "null", "isResult": false, "isPrimitive": true }
+    }
+  },
+  "7": { "name": "null", "isResult": false, "isPrimitive": true },
+  "9": { "name": "BN", "isResult": false, "isPrimitive": true },
+  "10": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+  "14": { "name": "Mapping", "isResult": false, "isPrimitive": false, "body": {} },
+  "18": { "name": "Mapping", "isResult": false, "isPrimitive": false, "body": {} },
+  "23": { "name": "string", "isResult": false, "isPrimitive": true },
+  "24": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+  "25": {
+    "name": "Option",
+    "isResult": false,
+    "isPrimitive": false,
+    "body": { "0": { "name": "string", "isResult": false, "isPrimitive": true }, "1": { "name": "null", "isResult": false, "isPrimitive": true } }
+  },
+  "29": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+  "33": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+  "38": {
+    "name": "OwnableData",
+    "isResult": false,
+    "isPrimitive": false,
+    "body": { "owner": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} } }
+  },
+  "39": {
+    "name": "PSP22Data",
+    "isResult": false,
+    "isPrimitive": false,
+    "body": {
+      "totalSupply": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+      "balances": { "name": "Mapping", "isResult": false, "isPrimitive": false, "body": {} },
+      "allowances": { "name": "Mapping", "isResult": false, "isPrimitive": false, "body": {} }
+    }
+  },
+  "40": {
+    "name": "PSP22MetadataData",
+    "isResult": false,
+    "isPrimitive": false,
+    "body": {
+      "name": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+      "symbol": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} },
+      "decimals": { "name": "Lazy", "isResult": false, "isPrimitive": false, "body": {} }
+    }
+  },
+  "41": {
+    "name": "Result<null, LangError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": { "name": "null", "isResult": false, "isPrimitive": true },
+      "err": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } }
+    }
+  },
+  "42": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } },
+  "43": {
+    "name": "Result<BN, LangError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": { "name": "BN", "isResult": false, "isPrimitive": true },
+      "err": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } }
+    }
+  },
+  "44": { "name": "Array", "isResult": false, "isPrimitive": false, "body": { "0": { "name": "BN", "isResult": false, "isPrimitive": true } } },
+  "45": {
+    "name": "Result<Result<null, PSP22Error, LangError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": {
+        "name": "Result<null, PSP22Error",
+        "isResult": true,
+        "isPrimitive": false,
+        "body": {
+          "ok": { "name": "null", "isResult": false, "isPrimitive": true },
+          "err": {
+            "name": "PSP22Error",
+            "isResult": false,
+            "isPrimitive": false,
+            "body": {
+              "custom": { "name": "string", "isResult": false, "isPrimitive": true },
+              "insufficientBalance": null,
+              "insufficientAllowance": null,
+              "zeroRecipientAddress": null,
+              "zeroSenderAddress": null,
+              "safeTransferCheckFailed": { "name": "string", "isResult": false, "isPrimitive": true },
+              "permitInvalidSignature": null,
+              "permitExpired": null
+            }
+          }
+        }
+      },
+      "err": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } }
+    }
+  },
+  "46": {
+    "name": "Result<null, PSP22Error",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": { "name": "null", "isResult": false, "isPrimitive": true },
+      "err": {
+        "name": "PSP22Error",
+        "isResult": false,
+        "isPrimitive": false,
+        "body": {
+          "custom": { "name": "string", "isResult": false, "isPrimitive": true },
+          "insufficientBalance": null,
+          "insufficientAllowance": null,
+          "zeroRecipientAddress": null,
+          "zeroSenderAddress": null,
+          "safeTransferCheckFailed": { "name": "string", "isResult": false, "isPrimitive": true },
+          "permitInvalidSignature": null,
+          "permitExpired": null
+        }
+      }
+    }
+  },
+  "47": {
+    "name": "PSP22Error",
+    "isResult": false,
+    "isPrimitive": false,
+    "body": {
+      "custom": { "name": "string", "isResult": false, "isPrimitive": true },
+      "insufficientBalance": null,
+      "insufficientAllowance": null,
+      "zeroRecipientAddress": null,
+      "zeroSenderAddress": null,
+      "safeTransferCheckFailed": { "name": "string", "isResult": false, "isPrimitive": true },
+      "permitInvalidSignature": null,
+      "permitExpired": null
+    }
+  },
+  "48": {
+    "name": "Result<Option, LangError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": {
+        "name": "Option",
+        "isResult": false,
+        "isPrimitive": false,
+        "body": { "0": { "name": "string", "isResult": false, "isPrimitive": true }, "1": { "name": "null", "isResult": false, "isPrimitive": true } }
+      },
+      "err": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } }
+    }
+  },
+  "49": {
+    "name": "Result<BN, LangError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": { "name": "BN", "isResult": false, "isPrimitive": true },
+      "err": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } }
+    }
+  },
+  "50": {
+    "name": "Result<Option, LangError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": {
+        "name": "Option",
+        "isResult": false,
+        "isPrimitive": false,
+        "body": {
+          "0": { "name": "AccountId", "isResult": false, "isPrimitive": true, "body": "string | number[]" },
+          "1": { "name": "null", "isResult": false, "isPrimitive": true }
+        }
+      },
+      "err": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } }
+    }
+  },
+  "51": {
+    "name": "Result<Result<null, OwnableError, LangError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": {
+        "name": "Result<null, OwnableError",
+        "isResult": true,
+        "isPrimitive": false,
+        "body": {
+          "ok": { "name": "null", "isResult": false, "isPrimitive": true },
+          "err": { "name": "OwnableError", "isResult": false, "isPrimitive": false, "body": { "CallerIsNotOwner": null, "ActionRedundant": null } }
+        }
+      },
+      "err": { "name": "LangError", "isResult": false, "isPrimitive": false, "body": { "CouldNotReadInput": null } }
+    }
+  },
+  "52": {
+    "name": "Result<null, OwnableError",
+    "isResult": true,
+    "isPrimitive": false,
+    "body": {
+      "ok": { "name": "null", "isResult": false, "isPrimitive": true },
+      "err": { "name": "OwnableError", "isResult": false, "isPrimitive": false, "body": { "CallerIsNotOwner": null, "ActionRedundant": null } }
+    }
+  },
+  "53": { "name": "OwnableError", "isResult": false, "isPrimitive": false, "body": { "CallerIsNotOwner": null, "ActionRedundant": null } },
+  "54": { "name": "BN", "isResult": false, "isPrimitive": true }
+}
