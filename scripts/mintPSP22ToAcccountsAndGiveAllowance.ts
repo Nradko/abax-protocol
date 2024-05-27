@@ -2,20 +2,20 @@ import { getApiProviderWrapper } from '@c-forge/polkahat-network-helpers';
 import Keyring from '@polkadot/keyring';
 import BN from 'bn.js';
 import chalk from 'chalk';
+import { MAX_U128 } from 'tests/consts';
 import LendingPoolContract from 'typechain/contracts/lending_pool';
 import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
 
-const PSP22Address = 'FILL HERE';
-const PSP22Decimals = 18;
-const LENDING_POOL_ADDRESS = 'FILL HERE';
+const RESERVE_UNDERLYING_ADDRESS = '5HPKPXW3vjbY2zrLYZY56mu1aryxfpEvQ1fWnwJwhbJZbkF5';
+const LENDING_POOL_ADDRESS = '5EKSauepfGB3SxFSMCfhcurSb7ZvN7g6khtbySuJ6X7tHnep';
 
-function toTokenDecimals(amount: number | string | BN) {
-  return new BN(amount).mul(new BN(10).pow(new BN(PSP22Decimals)));
+function toTokenDecimals(amount: number | string | BN, decimals: number) {
+  return new BN(amount).mul(new BN(10).pow(new BN(decimals)));
 }
 
-const ADDRESSES_TO_MINT_TO_WITH_AMOUNTS: [string, BN][] = [
-  ['FILL HERE', toTokenDecimals(10)],
-  ['FILL HERE', toTokenDecimals(100)],
+const ADDRESSES_TO_MINT_TO_WITH_AMOUNTS: [string | null, number][] = [
+  [null, 10], //null => to signer
+  [null, 10000],
   //...
 ];
 
@@ -28,11 +28,12 @@ const ADDRESSES_TO_MINT_TO_WITH_AMOUNTS: [string, BN][] = [
   const keyring = new Keyring();
   const signer = keyring.createFromUri(seed, {}, 'sr25519');
 
-  const psp22Mintable = new Psp22ForAuditContract(PSP22Address, signer, api);
+  const psp22Mintable = new Psp22ForAuditContract(RESERVE_UNDERLYING_ADDRESS, signer, api);
 
+  const decimals = (await new Psp22ForAuditContract(RESERVE_UNDERLYING_ADDRESS, signer, api).query.tokenDecimals()).value.unwrap();
   for (const [address, amount] of ADDRESSES_TO_MINT_TO_WITH_AMOUNTS) {
     console.log(`Minting ${amount} to ${address}`);
-    await psp22Mintable.tx.mint(address, amount);
+    await psp22Mintable.tx.mint(address ?? signer.address, toTokenDecimals(amount, decimals.toNumber()));
   }
 
   //give allowances to lending pool
@@ -40,7 +41,7 @@ const ADDRESSES_TO_MINT_TO_WITH_AMOUNTS: [string, BN][] = [
 
   for (const [address, amount] of ADDRESSES_TO_MINT_TO_WITH_AMOUNTS) {
     console.log(`Approving ${amount} to lending pool`);
-    await psp22Mintable.tx.tApprove(address, lendingPool.address, amount);
+    await psp22Mintable.tx.tApprove(address ?? signer.address, lendingPool.address, MAX_U128);
   }
 
   await api.disconnect();

@@ -286,6 +286,7 @@ export async function registerNewAsset(
     const res = await lendingPool.query.registerAsset(...registerAssetArgs);
   } catch (err) {
     console.log(err);
+    throw new Error('Failed to register asset' + JSON.stringify(err));
   }
   await lendingPool.withSigner(owner).tx.registerAsset(...registerAssetArgs);
 

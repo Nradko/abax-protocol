@@ -6,16 +6,13 @@ import { deposit } from 'tests/scenarios/utils/actions';
 import LendingPoolContract from 'typechain/contracts/lending_pool';
 import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
 
-const PSP22Decimals = 18;
-
-const RESERVE_UNDERLYING_ADDRESS = 'FILL HERE';
-const LENDING_POOL_ADDRESS = 'FILL HERE';
+const RESERVE_UNDERLYING_ADDRESS = '5HPKPXW3vjbY2zrLYZY56mu1aryxfpEvQ1fWnwJwhbJZbkF5';
+const LENDING_POOL_ADDRESS = '5EKSauepfGB3SxFSMCfhcurSb7ZvN7g6khtbySuJ6X7tHnep';
 const ON_BEHALF_OF: string | null = null; //defaults to signer
-const AMOUNT = 1000;
+const AMOUNT = 6000;
 
-// const DEPOSIT_AMOUNT =
-function toTokenDecimals(amount: number | string | BN) {
-  return new BN(amount).mul(new BN(10).pow(new BN(PSP22Decimals)));
+function toTokenDecimals(amount: number | string | BN, decimals: number) {
+  return new BN(amount).mul(new BN(10).pow(new BN(decimals)));
 }
 
 (async () => {
@@ -27,11 +24,16 @@ function toTokenDecimals(amount: number | string | BN) {
   const keyring = new Keyring();
   const signer = keyring.createFromUri(seed, {}, 'sr25519');
 
+  const decimals = (await new Psp22ForAuditContract(RESERVE_UNDERLYING_ADDRESS, signer, api).query.tokenDecimals()).value.unwrap();
+
   const lendingPool = new LendingPoolContract(LENDING_POOL_ADDRESS, signer, api);
 
   const onBehalfOfArg = ON_BEHALF_OF ? ON_BEHALF_OF : signer.address;
 
-  await lendingPool.withSigner(signer).tx.deposit(RESERVE_UNDERLYING_ADDRESS, onBehalfOfArg, toTokenDecimals(AMOUNT), []);
+  (
+    await lendingPool.withSigner(signer).query.deposit(RESERVE_UNDERLYING_ADDRESS, onBehalfOfArg, toTokenDecimals(AMOUNT, decimals.toNumber()), [])
+  ).value.unwrapRecursively();
+  await lendingPool.withSigner(signer).tx.deposit(RESERVE_UNDERLYING_ADDRESS, onBehalfOfArg, toTokenDecimals(AMOUNT, decimals.toNumber()), []);
 
   await api.disconnect();
   process.exit(0);
