@@ -1,3 +1,5 @@
+import { getArgvObj } from '@abaxfinance/utils';
+import { toE } from '@c-forge/polkahat-network-helpers';
 import Keyring from '@polkadot/keyring';
 import chalk from 'chalk';
 import path from 'path';
@@ -8,15 +10,10 @@ import { saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
 import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/tokensToDeployForTesting';
 import { TokensToDeployForTesting } from 'tests/setup/tokensToDeployForTesting.types';
 import ATokenContract from 'typechain/contracts/a_token';
-import PSP22Ownable from 'typechain/contracts/psp22_ownable';
+import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
 import VTokenContract from 'typechain/contracts/v_token';
 import BalanceViewerDeployer from 'typechain/deployers/balance_viewer';
-import TestReservesMinterDeployer from 'typechain/deployers/test_reserves_minter';
-import { toE } from '@c-forge/polkahat-network-helpers';
-import { getArgvObj } from '@abaxfinance/utils';
 import Psp22ForAuditDeployer from 'typechain/deployers/psp22_for_audit';
-import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
-import StableTokenDeployer from 'typechain/deployers/stable_token';
 
 const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
   reserveTokens: [

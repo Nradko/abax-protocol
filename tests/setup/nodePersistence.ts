@@ -15,6 +15,7 @@ import StableToken from '../../typechain/contracts/stable_token';
 import { apiProviderWrapper, getSigners } from './helpers';
 import { getContractObject } from '@abaxfinance/contract-helpers';
 import { time } from '@c-forge/polkahat-network-helpers';
+import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
 
@@ -135,8 +136,8 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
         break;
       }
       case 'psp22_for_audit': {
-        const reserve = await getContractObject(PSP22Emitable, contractInfo.address!, owner, api);
-        reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve };
+        const reserve = await getContractObject(Psp22ForAuditContract, contractInfo.address!, owner, api);
+        reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve as any };
         break;
       }
       case 'a_token': {

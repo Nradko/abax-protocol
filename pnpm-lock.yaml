@@ -18,11 +18,11 @@ dependencies:
     specifier: ^0.0.20
     version: 0.0.20
   '@c-forge/polkahat-chai-matchers':
-    specifier: ^0.0.75
-    version: 0.0.75(@polkadot/util-crypto@12.6.2)
+    specifier: ^0.0.77
+    version: 0.0.77(@polkadot/util-crypto@12.6.2)
   '@c-forge/polkahat-network-helpers':
-    specifier: ^0.0.75
-    version: 0.0.75
+    specifier: ^0.0.77
+    version: 0.0.77
   '@c-forge/typechain-compiler':
     specifier: ^0.0.56
     version: 0.0.56(@types/node@20.11.30)(typescript@5.4.2)
@@ -287,8 +287,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@c-forge/polkahat-chai-matchers@0.0.75(@polkadot/util-crypto@12.6.2):
-    resolution: {integrity: sha512-0D3pY81L5zC737j9LCGfXme6N35Kalu+G7KsHxUeUE8vEVdtR84CN5yfKVAdh4ZguoJKx7GuM0e1aLp38xRGyw==}
+  /@c-forge/polkahat-chai-matchers@0.0.77(@polkadot/util-crypto@12.6.2):
+    resolution: {integrity: sha512-pr9JALjmRQl1/xj/yAm08NOXRYGWYMxrr+DurRV6LTZtUUPaEm3fYWYxqsDcVyoLra4BkNQHwlq9GDATZO3Erg==}
     dependencies:
       '@c-forge/typechain-types': 0.0.55(@polkadot/util-crypto@12.6.2)
       '@polkadot/api': 10.12.4
@@ -331,8 +331,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@c-forge/polkahat-network-helpers@0.0.75:
-    resolution: {integrity: sha512-MFFPcNnrEkCtJuiaGNi7B4o5wrRaIrRYYiPx3WUfPP2ZG4Add4j6+xITkwjLXO8jC8UvhbWfARnjQcPmxwyIeA==}
+  /@c-forge/polkahat-network-helpers@0.0.77:
+    resolution: {integrity: sha512-KzCtCj2rQwbBxaQ9tsdiR9GpDwxREsxhrNYZXhmnyfqBej7rvKGtvmnEqASY9CKNObKAHP2u4BTxGYZSo8EszA==}
     dependencies:
       '@c-forge/typechain-types': 0.0.55(@polkadot/util-crypto@12.6.2)
       '@polkadot/api': 10.12.4
