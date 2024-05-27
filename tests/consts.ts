@@ -16,6 +16,8 @@ export const ROLES = {
   STABLECOIN_RATE_ADMIN: 2742621032,
   EMERGENCY_ADMIN: 297099943,
   TREASURY: 2434241257,
+  MINTER: MINTER,
+  BURNER: BURNER,
 } as const;
 export const ROLE_NAMES = Object.keys(ROLES) as (keyof typeof ROLES)[];
 

@@ -16,6 +16,7 @@ import { toE } from '@c-forge/polkahat-network-helpers';
 import { getArgvObj } from '@abaxfinance/utils';
 import Psp22ForAuditDeployer from 'typechain/deployers/psp22_for_audit';
 import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
+import StableTokenDeployer from 'typechain/deployers/stable_token';
 
 const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
   reserveTokens: [
@@ -106,7 +107,7 @@ type TokenReserve = {
 
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;
-  const outputJsonFolder = (args['path'] as string) ?? process.argv[2] ?? process.env.PWD;
+  const outputJsonFolder = (args['path'] as string) ?? process.argv[2] ?? __dirname;
   if (!outputJsonFolder) throw 'could not determine path';
   const wsEndpoint = process.env.WS_ENDPOINT;
   if (!wsEndpoint) throw 'could not determine wsEndpoint';
@@ -119,7 +120,7 @@ type TokenReserve = {
 
   const keyring = new Keyring();
   const signer = keyring.createFromUri(seed, {}, 'sr25519'); // getSigners()[0];
-  const deployPath = path.join(outputJsonFolder, 'deployedContracts.azero.testnet.json');
+  const outputPath = path.join(outputJsonFolder, 'deployedContracts.azero.testnet.json');
   const { lendingPool, priceFeedProvider, aTokenCodeHash, vTokenCodeHash } = await deployCoreContracts(signer, ORACLE_ADDRESS);
 
   await lendingPool.withSigner(signer).tx.grantRole(ROLES['ROLE_ADMIN'], CUSTOM_ADMIN);
@@ -127,6 +128,11 @@ type TokenReserve = {
   await lendingPool.withSigner(signer).tx.grantRole(ROLES['PARAMETERS_ADMIN'], CUSTOM_ADMIN);
   await lendingPool.withSigner(signer).tx.grantRole(ROLES['STABLECOIN_RATE_ADMIN'], CUSTOM_ADMIN);
   await lendingPool.withSigner(signer).tx.grantRole(ROLES['EMERGENCY_ADMIN'], CUSTOM_ADMIN);
+
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['ASSET_LISTING_ADMIN'], signer.address);
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['PARAMETERS_ADMIN'], signer.address);
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['STABLECOIN_RATE_ADMIN'], signer.address);
+  await lendingPool.withSigner(signer).tx.grantRole(ROLES['EMERGENCY_ADMIN'], signer.address);
 
   const setPriceFeedProviderRes = await lendingPool.withSigner(signer).query.setPriceFeedProvider(priceFeedProvider.address);
   setPriceFeedProviderRes.value.unwrapRecursively();
@@ -153,6 +159,7 @@ type TokenReserve = {
     ).contract;
     if (process.env.DEBUG) console.log(`${reserveData.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
     const { aToken, vToken } = await registerNewAsset(
+      api,
       signer,
       lendingPool,
       reserve.address,
@@ -205,6 +212,10 @@ type TokenReserve = {
         })),
       ),
       {
+        name: 'dia_oracle',
+        address: ORACLE_ADDRESS,
+      },
+      {
         name: balanceViewer.name,
         address: balanceViewer.address,
       },
@@ -216,11 +227,22 @@ type TokenReserve = {
         name: priceFeedProvider.name,
         address: priceFeedProvider.address,
       },
+      {
+        name: 'aTokenCodeHash',
+        codeHash: aTokenCodeHash,
+      },
+      {
+        name: 'vTokenCodeHash',
+        codeHash: aTokenCodeHash,
+      },
     ],
-    deployPath.replace('.json', `${new Date().toISOString()}.json`),
+    outputPath,
   );
 
   await api.disconnect();
+
+  console.log(`Saved to: ${outputPath}`);
+
   process.exit(0);
 })(getArgvObj()).catch((e) => {
   console.log(e);

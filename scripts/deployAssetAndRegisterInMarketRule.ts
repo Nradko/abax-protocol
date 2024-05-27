@@ -15,14 +15,14 @@ import Psp22EmitableDeployer from 'typechain/deployers/psp22_emitable';
 import { AssetRules } from 'typechain/types-arguments/lending_pool';
 
 const RESERVE_TOKEN_TO_ADD: TestExternalToken & { stableRule?: AssetRules; cryptoRule?: AssetRules } = {
-  metadata: { name: 'A_NEW_ONE', symbol: 'NEW', decimals: 68 },
+  metadata: { name: 'SOLANA', symbol: 'SOL', decimals: 9 },
 
   fees: {
     depositFeeE6: 0,
     debtFeeE6: 0,
   },
   interestRateModelE18: DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING,
-  defaultRule: { collateralCoefficientE6: toE(6, 0.98), borrowCoefficientE6: toE(6, 1.02), penaltyE6: toE(6, 0.02) },
+  defaultRule: { collateralCoefficientE6: toE(6, 0.75), borrowCoefficientE6: toE(6, 1.25), penaltyE6: toE(6, 0.1) },
 
   //uncomment if you want to add asset to stable rule and adjust coefficients accordingly
   // stableRule: { collateralCoefficientE6: toE(6, 0.98), borrowCoefficientE6: toE(6, 1.02), penaltyE6: toE(6, 0.02) },
@@ -57,7 +57,7 @@ type TokenReserve = {
 
   const contracts = await readContractsFromFile(DEPLOYED_TOKENS_PATH);
 
-  const reservesWithLendingTokens = {} as Record<string, TokenReserve>;
+  const reservesWithLendingTokens: Record<string, TokenReserve> = contracts.reserves;
   //TODO
   const reserve = (
     await new Psp22EmitableDeployer(api, signer).new(
@@ -69,6 +69,7 @@ type TokenReserve = {
   if (process.env.DEBUG)
     console.log(`${RESERVE_TOKEN_TO_ADD.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
   const { aToken, vToken } = await registerNewAsset(
+    api,
     signer,
     contracts.lendingPool,
     reserve.address,
@@ -83,7 +84,10 @@ type TokenReserve = {
     RESERVE_TOKEN_TO_ADD.interestRateModelE18,
   );
   console.log('inserting token price');
-  await contracts.priceFeedProvider.tx.setAccountSymbol(reserve.address, RESERVE_TOKEN_TO_ADD.metadata.symbol + '/USD');
+  const qr = await contracts.priceFeedProvider
+    .withSigner(signer)
+    .query.setAccountSymbol(reserve.address, RESERVE_TOKEN_TO_ADD.metadata.symbol + '/USD');
+  await contracts.priceFeedProvider.withSigner(signer).tx.setAccountSymbol(reserve.address, RESERVE_TOKEN_TO_ADD.metadata.symbol + '/USD');
   reservesWithLendingTokens[RESERVE_TOKEN_TO_ADD.metadata.name] = {
     underlying: reserve,
     aToken,
@@ -93,15 +97,13 @@ type TokenReserve = {
 
   if (RESERVE_TOKEN_TO_ADD.stableRule) {
     // stable id - 1
-    await contracts.lendingPool.tx.modifyAssetRule(1, reserve.address, RESERVE_TOKEN_TO_ADD.stableRule);
+    await contracts.lendingPool.withSigner(signer).tx.modifyAssetRule(1, reserve.address, RESERVE_TOKEN_TO_ADD.stableRule);
   }
 
   if (RESERVE_TOKEN_TO_ADD.cryptoRule) {
     // crypto id - 2
-    await contracts.lendingPool.tx.modifyAssetRule(2, reserve.address, RESERVE_TOKEN_TO_ADD.cryptoRule);
+    await contracts.lendingPool.withSigner(signer).tx.modifyAssetRule(2, reserve.address, RESERVE_TOKEN_TO_ADD.cryptoRule);
   }
-
-  const balanceViewer = (await new BalanceViewerDeployer(api, signer).new(contracts.lendingPool.address)).contract;
 
   await saveContractInfoToFileAsJson(
     [
@@ -113,8 +115,8 @@ type TokenReserve = {
         })),
       ),
       {
-        name: balanceViewer.name,
-        address: balanceViewer.address,
+        name: contracts.balanceViewer.name,
+        address: contracts.balanceViewer.address,
       },
       {
         name: contracts.lendingPool.name,
