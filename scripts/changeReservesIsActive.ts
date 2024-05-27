@@ -8,14 +8,7 @@ import LendingPool from 'typechain/contracts/lending_pool';
 import { getArgvObj } from '@abaxfinance/utils';
 import { getContractObject } from '@abaxfinance/contract-helpers';
 
-const RESERVE_TOKEN_ADDRESSES: string[] = [
-  '5CRTAHVoub9SZDQXvaaHH8xT1ScYyUvKGPoEo8vTnzv6KWAs',
-  '5FPNwLhzWhtvYas7gsrFpJmngUwJfFdLrsaMRVeRADkF4iGW',
-  '5HTShVvCNNn3o5fiArPdkng9sjQRY7zb2JDaSU9Fq45GBQk5',
-  '5DjYsoPAXYG9mAa3qDT99NFgZYndVyHYukencgkwgspDDsvs',
-  '5CiAgrWH51LEUWELLhk5aLFRRTrafjJyRapBphK1iudqGLg8',
-  '5FjNGvc9kABveFNrXgG2mNYyZAmJxxDpMNt5x2mJim2RsL7v',
-];
+const RESERVE_TOKEN_ADDRESSES: string[] = ['FILL HERE'];
 
 const SET_RESERVES_IS_ACTIVE = false;
 
