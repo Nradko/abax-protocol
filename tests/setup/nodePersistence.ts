@@ -116,11 +116,11 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
   const lendingPool = await getContractObject(LendingPool, lendingPoolContractInfo.address!, owner, api);
 
   const priceFeedProviderContractInfo = contracts.find((c) => c.name === 'price_feed_provider');
-  if (!priceFeedProviderContractInfo) throw 'BlockTimestampProvider ContractInfo not found';
+  if (!priceFeedProviderContractInfo) throw 'price_feed_provider ContractInfo not found';
   const priceFeedProvider = await getContractObject(PriceFeedProvider, priceFeedProviderContractInfo.address!, owner, api);
 
   const oracleInfo = contracts.find((c) => c.name === 'dia_oracle');
-  if (!oracleInfo) throw 'BlockTimestampProvider ContractInfo not found';
+  if (!oracleInfo) throw 'dia_oracle ContractInfo not found';
   const oracle = await getContractObject(DiaOracle, oracleInfo.address!, owner, api);
 
   const reservesContracts = contracts.filter((c) => c.reserveName);
@@ -130,6 +130,11 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
     if (!contractInfo.reserveName) continue;
     switch (contractInfo.name) {
       case 'psp22_emitable': {
+        const reserve = await getContractObject(PSP22Emitable, contractInfo.address!, owner, api);
+        reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve };
+        break;
+      }
+      case 'psp22_for_audit': {
         const reserve = await getContractObject(PSP22Emitable, contractInfo.address!, owner, api);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve };
         break;

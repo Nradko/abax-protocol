@@ -120,6 +120,7 @@ export const deployAndConfigureSystem = async (
     ).contract;
     if (process.env.DEBUG) console.log(`${reserveData.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
     const { aToken, vToken } = await registerNewAsset(
+      api,
       owner,
       contracts.lendingPool,
       reserve.address,
@@ -157,6 +158,7 @@ export const deployAndConfigureSystem = async (
 
     if (process.env.DEBUG) console.log(`${stableData.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);
     const { aToken, vToken } = await registerNewAsset(
+      api,
       owner,
       contracts.lendingPool,
       reserve.address,
@@ -253,38 +255,6 @@ async function saveConfigToFile(testEnv: TestEnv, writePath: string) {
 }
 
 export async function registerNewAsset(
-  owner: KeyringPair,
-  lendingPool: LendingPool,
-  assetAddress: string,
-  aTokenCodeHash: string,
-  vTokenCodeHash: string,
-  name: string,
-  symbol: string,
-  decimals: number,
-  assetRules: AssetRules,
-  restrictions: ReserveRestrictions,
-  fees: SetReserveFeesArgs,
-  interestRateModel: InterestRateModel | null,
-): Promise<{ aToken: ATokenContract; vToken: VTokenContract }> {
-  const api = await localApi.get(false);
-  return registerNewAssetWithApi(
-    api,
-    owner,
-    lendingPool,
-    assetAddress,
-    aTokenCodeHash,
-    vTokenCodeHash,
-    name,
-    symbol,
-    decimals,
-    assetRules,
-    restrictions,
-    fees,
-    interestRateModel,
-  );
-}
-
-export async function registerNewAssetWithApi(
   api: ApiPromise,
   owner: KeyringPair,
   lendingPool: LendingPool,

@@ -14,7 +14,7 @@ const SET_RESERVES_IS_ACTIVE = false;
 
 (async (args: Record<string, unknown>) => {
   if (require.main !== module) return;
-  const outputJsonFolder = (args['path'] as string) ?? process.argv[2] ?? process.env.PWD;
+  const outputJsonFolder = (args['path'] as string) ?? process.argv[2] ?? __dirname;
   if (!outputJsonFolder) throw 'could not determine path';
   const wsEndpoint = process.env.WS_ENDPOINT;
   if (!wsEndpoint) throw 'could not determine wsEndpoint';
