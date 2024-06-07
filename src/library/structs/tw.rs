@@ -1,10 +1,11 @@
-use pendzl::{math::errors::MathError, traits::Timestamp};
+use pendzl::traits::Timestamp;
 
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
+/// An index in cyclic group of size `tail`
 pub struct TwIndex {
     pub index: u32,
     pub tail: u32,
@@ -18,17 +19,17 @@ impl TwIndex {
         }
     }
 
-    pub fn next(&self) -> Result<Self, MathError> {
+    pub fn next(&self) -> Self {
         let index = self
             .index
             .overflowing_add(1)
             .0
             .checked_rem(self.tail)
-            .ok_or(MathError::DivByZero)?;
-        Ok(TwIndex {
+            .unwrap();
+        TwIndex {
             index,
             tail: self.tail,
-        })
+        }
     }
 
     pub fn prev(&self) -> Self {
@@ -44,11 +45,14 @@ impl TwIndex {
     }
 }
 
-#[derive(Debug, Default, PartialEq, Eq, scale::Encode, scale::Decode)]
+#[derive(
+    Debug, Default, PartialEq, Eq, scale::Encode, scale::Decode, Clone, Copy,
+)]
 #[cfg_attr(
     feature = "std",
     derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
 )]
+/// A timestamped entry in the TW accumulator
 pub struct TwEntry {
     pub timestamp: Timestamp,
     pub accumulator: u64,

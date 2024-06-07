@@ -841,6 +841,8 @@ impl LendingPoolStorage {
             self.get_reserve_indexes_and_fees(asset_id);
         let interest_rate_model = self.interest_rate_model.get(asset_id);
 
+        self.snap_utilization_rate(asset_id, &reserve_data, timestamp)?;
+
         reserve_indexes_and_fees
             .indexes
             .update(&reserve_data, timestamp)?;
@@ -1060,6 +1062,8 @@ impl LendingPoolStorage {
     /*
     TIME-WEIGHTED UTILIZATION RATE CALCULATIONS
     */
+    /// Snap the utilization rate for the given asset at the given timestamp.
+    /// To snap utilization a new time weighted entry is created.
     fn snap_utilization_rate(
         &mut self,
         asset_id: AssetId,
@@ -1078,18 +1082,25 @@ impl LendingPoolStorage {
         }
 
         let delta_timestamp = timestamp.saturating_sub(last_tw_entry.timestamp);
+
+        ink::env::debug_println!("Delta timestamp: {}", delta_timestamp);
+
         let utilization_rate_e6 = reserve_data.current_utilization_rate_e6()?;
+
+        ink::env::debug_println!("Utilization rate: {}", utilization_rate_e6);
 
         let delta_accumulator = (utilization_rate_e6 as u64)
             .checked_mul(delta_timestamp)
             .ok_or(MathError::Overflow)?;
+
+        ink::env::debug_println!("Delta accumulator: {}", delta_accumulator);
 
         let new_accumulator = last_tw_entry
             .accumulator
             .overflowing_add(delta_accumulator)
             .0;
 
-        let new_tw_index = tw_index.next()?;
+        let new_tw_index = tw_index.next();
 
         self.tw_ur_entries.insert(
             (asset_id, new_tw_index.index),
@@ -1104,7 +1115,10 @@ impl LendingPoolStorage {
         Ok(())
     }
 
-    pub fn get_tw_ur_from_period_longar_than(
+    /// Returns the time-weighted utilization rate for the given asset.
+    /// The rate is calculated for the latest shortest period longer than the given period.
+    /// If timestamp entry at appropariate_index is not distant enough (at least period) from the last entry, the function returns WrongIndex error.
+    pub fn get_tw_ur_from_shortest_period_longer_than(
         &self,
         period: u64,
         asset_id: AssetId,
@@ -1113,10 +1127,32 @@ impl LendingPoolStorage {
         let tw_index = self.tw_ur_indexes.get(asset_id).unwrap();
         let last_tw_entry =
             self.get_tw_ur_entry(asset_id, tw_index.index).unwrap();
+
+        let mut apr_tw_index = TwIndex {
+            index: apropariate_index,
+            tail: tw_index.tail,
+        };
+
+        let mut after_appropariate_tw_entry = self
+            .get_tw_ur_entry(asset_id, apr_tw_index.next().index)
+            .unwrap();
+
+        while last_tw_entry
+            .timestamp
+            .saturating_sub(after_appropariate_tw_entry.timestamp)
+            >= period
+        {
+            apr_tw_index = apr_tw_index.next();
+            after_appropariate_tw_entry = self
+                .get_tw_ur_entry(asset_id, apr_tw_index.next().index)
+                .unwrap();
+        }
+
         let appropatiate_tw_entry = self
-            .get_tw_ur_entry(asset_id, apropariate_index)
+            .get_tw_ur_entry(asset_id, apr_tw_index.index)
             .ok_or(LendingPoolError::WrongIndex)?;
 
+        // if the entry is to late
         let delta_timestamp = last_tw_entry
             .timestamp
             .saturating_sub(appropatiate_tw_entry.timestamp);
@@ -1124,29 +1160,10 @@ impl LendingPoolStorage {
             return Err(LendingPoolError::WrongIndex);
         }
 
-        let after_appropariate_tw_entry = self
-            .get_tw_ur_entry(
-                asset_id,
-                TwIndex {
-                    index: apropariate_index,
-                    tail: tw_index.tail,
-                }
-                .next()?
-                .index,
-            )
-            .unwrap();
-
-        if last_tw_entry
-            .timestamp
-            .saturating_sub(after_appropariate_tw_entry.timestamp)
-            > period
-        {
-            return Err(LendingPoolError::WrongIndex);
-        }
-
         let delta_accumulator = last_tw_entry
             .accumulator
-            .saturating_sub(appropatiate_tw_entry.accumulator);
+            .overflowing_sub(appropatiate_tw_entry.accumulator)
+            .0;
 
         let tw_ur_e6 = match u32::try_from(
             delta_accumulator

@@ -22,7 +22,7 @@ pub trait LendingPoolMaintain {
     /// is used by anyone to adjust rate model
     ///
     /// * `asset` - AccountId (aka address) of asset of which rate should be adjusted
-    /// * `apropariate_index` - u32 of apropariate index in the accumulated time-weighted utilization rate storage
+    /// * `apropariate_index` - u32 of apropariate index in the accumulated time-weighted utilization rate storage. It must be index of entry that timestamp is at least smaller by interest_rate_model.minimal_time_between_adjustments from the last entry.
     ///
     /// # Errors
     /// * `LendingPoolError::InvalidIndex` returned if the index is invalid  

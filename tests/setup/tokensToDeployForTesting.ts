@@ -1,9 +1,14 @@
 import { InterestRateModelParams } from 'typechain/types-arguments/lending_pool';
 import { TokensToDeployForTesting } from './tokensToDeployForTesting.types';
+import { BN } from 'bn.js';
 
 export const ONE_PERCENT_APR = 3_170_979;
 
-const ONE_HOUR = 3_600_000;
+export const ONE_SEC = new BN(1000);
+export const ONE_MIN = ONE_SEC.muln(60);
+export const ONE_HOUR = ONE_MIN.muln(60);
+export const ONE_DAY = ONE_HOUR.muln(24);
+export const ONE_YEAR = ONE_DAY.muln(365);
 
 /* eslint-disable */
 export const DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING: InterestRateModelParams = {

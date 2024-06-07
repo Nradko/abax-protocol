@@ -258,7 +258,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
         }
     }
 
-    fn view_asset_tw_entires(
+    fn view_asset_tw_entries(
         &self,
         asset: AccountId,
         from: u32,
@@ -294,7 +294,7 @@ pub trait LendingPoolViewImpl: StorageFieldGetter<LendingPoolStorage> {
             .ok_or(LendingPoolError::AssetNotRegistered)?;
 
         self.data::<LendingPoolStorage>()
-            .get_tw_ur_from_period_longar_than(
+            .get_tw_ur_from_shortest_period_longer_than(
                 period,
                 asset_id,
                 apropariate_index,

@@ -504,13 +504,13 @@ pub mod lending_pool {
             LendingPoolViewImpl::view_asset_tw_index(self, asset)
         }
         #[ink(message)]
-        fn view_asset_tw_entires(
+        fn view_asset_tw_entries(
             &self,
             asset: AccountId,
             from: u32,
             to: u32,
         ) -> Vec<Option<TwEntry>> {
-            LendingPoolViewImpl::view_asset_tw_entires(self, asset, from, to)
+            LendingPoolViewImpl::view_asset_tw_entries(self, asset, from, to)
         }
 
         #[ink(message)]

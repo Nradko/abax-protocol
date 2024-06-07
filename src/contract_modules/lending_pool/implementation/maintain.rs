@@ -49,7 +49,7 @@ pub trait LendingPoolMaintainImpl:
 
             let twa_ur_e6 = self
                 .data::<LendingPoolStorage>()
-                .get_tw_ur_from_period_longar_than(
+                .get_tw_ur_from_shortest_period_longer_than(
                     interest_rate_model.minimal_time_between_adjustments,
                     asset_id,
                     apropariate_index,

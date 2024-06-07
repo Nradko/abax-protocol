@@ -89,7 +89,7 @@ pub trait LendingPoolView {
     fn view_asset_tw_index(&self, asset: AccountId) -> Option<TwIndex>;
 
     #[ink(message)]
-    fn view_asset_tw_entires(
+    fn view_asset_tw_entries(
         &self,
         asset: AccountId,
         from: u32,
