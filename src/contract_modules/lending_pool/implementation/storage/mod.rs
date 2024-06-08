@@ -244,7 +244,11 @@ impl LendingPoolStorage {
             self.get_reserve_indexes_and_fees(asset_id);
         let reserve_restrictions = self.get_reserve_restrictions(asset_id);
 
-        self.snap_utilization_rate(asset_id, &reserve_data, timestamp)?;
+        self.store_utilization_rate_snapshot(
+            asset_id,
+            &reserve_data,
+            timestamp,
+        )?;
 
         reserve_indexes_and_fees
             .indexes
@@ -841,7 +845,11 @@ impl LendingPoolStorage {
             self.get_reserve_indexes_and_fees(asset_id);
         let interest_rate_model = self.interest_rate_model.get(asset_id);
 
-        self.snap_utilization_rate(asset_id, &reserve_data, timestamp)?;
+        self.store_utilization_rate_snapshot(
+            asset_id,
+            &reserve_data,
+            timestamp,
+        )?;
 
         reserve_indexes_and_fees
             .indexes
@@ -1064,7 +1072,7 @@ impl LendingPoolStorage {
     */
     /// Snap the utilization rate for the given asset at the given timestamp.
     /// To snap utilization a new time weighted entry is created.
-    fn snap_utilization_rate(
+    fn store_utilization_rate_snapshot(
         &mut self,
         asset_id: AssetId,
         reserve_data: &ReserveData,
@@ -1074,7 +1082,7 @@ impl LendingPoolStorage {
 
         let last_tw_entry = self
             .tw_ur_entries
-            .get((asset_id, tw_index.index))
+            .get((asset_id, tw_index.value))
             .unwrap_or_default();
 
         if last_tw_entry.timestamp >= *timestamp {
@@ -1103,7 +1111,7 @@ impl LendingPoolStorage {
         let new_tw_index = tw_index.next();
 
         self.tw_ur_entries.insert(
-            (asset_id, new_tw_index.index),
+            (asset_id, new_tw_index.value),
             &TwEntry {
                 timestamp: *timestamp,
                 accumulator: new_accumulator,
@@ -1117,52 +1125,54 @@ impl LendingPoolStorage {
 
     /// Returns the time-weighted utilization rate for the given asset.
     /// The rate is calculated for the latest shortest period longer than the given period.
-    /// If timestamp entry at appropariate_index is not distant enough (at least period) from the last entry, the function returns WrongIndex error.
+    /// arg guessed_index is adjusted to the nearest index that would return a tw_entry
+    /// with smallest time diff between latest_tw_entry & tw_entry and is distant enough from the latest_tw_entry at the same time.
+    /// If timestamp entry at guessed_index is not distant enough (at least period) from the last entry, the function returns WrongIndex error.
     pub fn get_tw_ur_from_shortest_period_longer_than(
         &self,
         period: u64,
         asset_id: AssetId,
-        apropariate_index: u32,
+        guessed_index: u32,
     ) -> Result<u32, LendingPoolError> {
         let tw_index = self.tw_ur_indexes.get(asset_id).unwrap();
         let last_tw_entry =
-            self.get_tw_ur_entry(asset_id, tw_index.index).unwrap();
+            self.get_tw_ur_entry(asset_id, tw_index.value).unwrap();
 
-        let mut apr_tw_index = TwIndex {
-            index: apropariate_index,
-            tail: tw_index.tail,
+        let mut curr_apr_tw_index = TwIndex {
+            value: guessed_index,
         };
 
-        let mut after_appropariate_tw_entry = self
-            .get_tw_ur_entry(asset_id, apr_tw_index.next().index)
-            .unwrap();
+        let mut after_appropriate_tw_entry = self
+            .get_tw_ur_entry(asset_id, curr_apr_tw_index.next().value)
+            .ok_or(LendingPoolError::WrongIndex)?;
 
         while last_tw_entry
             .timestamp
-            .saturating_sub(after_appropariate_tw_entry.timestamp)
+            .saturating_sub(after_appropriate_tw_entry.timestamp)
             >= period
         {
-            apr_tw_index = apr_tw_index.next();
-            after_appropariate_tw_entry = self
-                .get_tw_ur_entry(asset_id, apr_tw_index.next().index)
-                .unwrap();
+            curr_apr_tw_index = curr_apr_tw_index.next();
+            after_appropriate_tw_entry = self
+                .get_tw_ur_entry(asset_id, curr_apr_tw_index.next().value)
+                .ok_or(LendingPoolError::WrongIndex)?;
         }
 
-        let appropatiate_tw_entry = self
-            .get_tw_ur_entry(asset_id, apr_tw_index.index)
+        let appropriate_tw_entry = self
+            .get_tw_ur_entry(asset_id, curr_apr_tw_index.value)
             .ok_or(LendingPoolError::WrongIndex)?;
 
-        // if the entry is to late
+        // if the entry is too recent
+        // may occur when while body has not executed even once
         let delta_timestamp = last_tw_entry
             .timestamp
-            .saturating_sub(appropatiate_tw_entry.timestamp);
+            .saturating_sub(appropriate_tw_entry.timestamp);
         if delta_timestamp < period {
             return Err(LendingPoolError::WrongIndex);
         }
 
         let delta_accumulator = last_tw_entry
             .accumulator
-            .overflowing_sub(appropatiate_tw_entry.accumulator)
+            .overflowing_sub(appropriate_tw_entry.accumulator)
             .0;
 
         let tw_ur_e6 = match u32::try_from(

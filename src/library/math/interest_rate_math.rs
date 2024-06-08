@@ -53,14 +53,15 @@ mod tests {
 
     use super::*;
 
-    const ONE_PERCENT_APR: u64 = 3_170_979;
-    const TEN_PERCENT_APR: u64 = 10 * ONE_PERCENT_APR;
+    // 0.01 % / 365 * 24 * 60 * 60 * E18
+    const ONE_PERCENT_APR_E18: u64 = 3_170_979;
+    const TEN_PERCENT_APR: u64 = 10 * ONE_PERCENT_APR_E18;
     const INTEREST_RATE_MDOEL: InterestRateModel = InterestRateModel {
-        target_ur_e6: 900_000,                     // 90%
-        min_rate_at_target_e18: ONE_PERCENT_APR, // 1%, not imporant for this test
+        target_ur_e6: 900_000,                         // 90%
+        min_rate_at_target_e18: ONE_PERCENT_APR_E18, // 1%, not imporant for this test
         max_rate_at_target_e18: TEN_PERCENT_APR, // 10%, not imporant for this test
         rate_at_target_ur_e18: TEN_PERCENT_APR,  // 10%
-        rate_at_max_ur_e18: 100 * ONE_PERCENT_APR, // 100%
+        rate_at_max_ur_e18: 100 * ONE_PERCENT_APR_E18, // 100%
         minimal_time_between_adjustments: 0,
         last_adjustment_timestamp: 0,
     };
@@ -108,7 +109,7 @@ mod tests {
                 950_000,
                 &INTEREST_RATE_MDOEL
             ),
-            Ok(55 * ONE_PERCENT_APR)
+            Ok(55 * ONE_PERCENT_APR_E18)
         );
 
         //100%
@@ -117,7 +118,7 @@ mod tests {
                 1_000_000,
                 &INTEREST_RATE_MDOEL
             ),
-            Ok(100 * ONE_PERCENT_APR)
+            Ok(100 * ONE_PERCENT_APR_E18)
         );
 
         //110%
@@ -126,7 +127,7 @@ mod tests {
                 1_100_000,
                 &INTEREST_RATE_MDOEL
             ),
-            Ok(190 * ONE_PERCENT_APR)
+            Ok(190 * ONE_PERCENT_APR_E18)
         );
     }
 }

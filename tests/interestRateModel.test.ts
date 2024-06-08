@@ -7,12 +7,10 @@ import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { E18bn, E6bn, toE } from '@c-forge/polkahat-network-helpers';
-import { ONE_HOUR, ONE_MIN, ONE_PERCENT_APR, ONE_SEC } from './setup/tokensToDeployForTesting';
+import { ONE_HOUR, ONE_MIN, ONE_PERCENT_APR_E18, ONE_SEC } from './setup/tokensToDeployForTesting';
 import { time } from '@c-forge/polkahat-network-helpers';
 
-const E18 = parseInt(toE(18, 1).toString()); //TODO
-
-makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
+makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
@@ -53,10 +51,10 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
     expect(stringifyNumericProps(interestRateModel)).to.deep.equal(
       stringifyNumericProps({
         targetUrE6: 900_000,
-        minRateAtTargetE18: 2 * ONE_PERCENT_APR,
-        maxRateAtTargetE18: 10 * ONE_PERCENT_APR,
-        rateAtTargetUrE18: 2 * ONE_PERCENT_APR,
-        rateAtMaxUrE18: 100 * ONE_PERCENT_APR,
+        minRateAtTargetE18: 2 * ONE_PERCENT_APR_E18,
+        maxRateAtTargetE18: 10 * ONE_PERCENT_APR_E18,
+        rateAtTargetUrE18: 2 * ONE_PERCENT_APR_E18,
+        rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
         minimalTimeBetweenAdjustments: ONE_HOUR,
         lastAdjustmentTimestamp: timestamp,
       }),
@@ -92,12 +90,12 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
       );
     });
 
-    // very long test ~ 10 minutes
-    it.skip('the twUrEntries should increase correctly', async () => {
+    // very long test
+    it('the twUrEntries should increase correctly', async () => {
       let lastAccValue = toE(6, depositTimestamp);
       let lastTwIndex = 2;
 
-      for (let i = 1; i < 4010; i++) {
+      for (let i = 1; i < 65; i++) {
         console.log(i);
         await time.increase(ONE_MIN.toNumber());
         await lendingPool.withSigner(borrower).tx.accumulateInterest(wethContract.address);
@@ -109,8 +107,8 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
         lastAccValue = lastAccValue.add(ONE_MIN.mul(utilRateE6));
         const timestamp = await time.latest();
 
-        const firstIndex = lastTwIndex % 4000;
-        const secondIndex = (lastTwIndex + 1) % 4000 === 0 ? lastTwIndex + 1 : (lastTwIndex + 1) % 4000;
+        const firstIndex = lastTwIndex % 60;
+        const secondIndex = (lastTwIndex + 1) % 60 === 0 ? lastTwIndex + 1 : (lastTwIndex + 1) % 60;
 
         const twUrEntries = (await lendingPool.query.viewAssetTwEntries(wethContract.address, firstIndex, secondIndex)).value.ok!;
 
@@ -119,7 +117,7 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
     });
 
     describe(' adjusting the interest rate model', () => {
-      it('adjusting should work for appropariate index  = 1, but nothing should be changed because util was <90% ', async () => {
+      it('adjusting should work for appropriate index  = 1, but nothing should be changed because util was <90% ', async () => {
         const tx = lendingPool.withSigner(supplier).tx.adjustRateAtTarget(wethContract.address, 1);
         await expect(tx).to.be.eventually.fulfilled;
 
@@ -128,10 +126,10 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
         expect(stringifyNumericProps(interestRateModel)).to.deep.equal(
           stringifyNumericProps({
             targetUrE6: 900_000,
-            minRateAtTargetE18: 2 * ONE_PERCENT_APR,
-            maxRateAtTargetE18: 10 * ONE_PERCENT_APR,
-            rateAtTargetUrE18: 2 * ONE_PERCENT_APR,
-            rateAtMaxUrE18: 100 * ONE_PERCENT_APR,
+            minRateAtTargetE18: 2 * ONE_PERCENT_APR_E18,
+            maxRateAtTargetE18: 10 * ONE_PERCENT_APR_E18,
+            rateAtTargetUrE18: 2 * ONE_PERCENT_APR_E18,
+            rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
             minimalTimeBetweenAdjustments: ONE_HOUR,
             lastAdjustmentTimestamp: await time.latest(),
           }),
@@ -211,10 +209,10 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
       expect(stringifyNumericProps(interestRateModel)).to.deep.equal(
         stringifyNumericProps({
           targetUrE6: 900_000,
-          minRateAtTargetE18: 2 * ONE_PERCENT_APR,
-          maxRateAtTargetE18: 10 * ONE_PERCENT_APR,
-          rateAtTargetUrE18: 10 * ONE_PERCENT_APR,
-          rateAtMaxUrE18: 100 * ONE_PERCENT_APR,
+          minRateAtTargetE18: 2 * ONE_PERCENT_APR_E18,
+          maxRateAtTargetE18: 10 * ONE_PERCENT_APR_E18,
+          rateAtTargetUrE18: 10 * ONE_PERCENT_APR_E18,
+          rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
           minimalTimeBetweenAdjustments: ONE_HOUR,
           lastAdjustmentTimestamp: await time.latest(),
         }),
@@ -250,10 +248,10 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
       expect(stringifyNumericProps(interestRateModel)).to.deep.equal(
         stringifyNumericProps({
           targetUrE6: 900_000,
-          minRateAtTargetE18: 2 * ONE_PERCENT_APR,
-          maxRateAtTargetE18: 10 * ONE_PERCENT_APR,
+          minRateAtTargetE18: 2 * ONE_PERCENT_APR_E18,
+          maxRateAtTargetE18: 10 * ONE_PERCENT_APR_E18,
           rateAtTargetUrE18: 21879756,
-          rateAtMaxUrE18: 100 * ONE_PERCENT_APR,
+          rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
           minimalTimeBetweenAdjustments: ONE_HOUR,
           lastAdjustmentTimestamp: await time.latest(),
         }),
@@ -273,8 +271,8 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
       depositTimestamp = await time.latest();
       await time.increase(ONE_DAY.toNumber());
 
-      await lendingPool.withSigner(borrower).tx.borrow(wethContract.address, borrower.address, wethDebt, []);
       await wethContract.withSigner(borrower).tx.approve(lendingPool.address, wethDebt);
+      await lendingPool.withSigner(borrower).tx.borrow(wethContract.address, borrower.address, wethDebt, []);
     });
 
     it('after One hour the interest rate should adjust and then 45% is repaid and after on hour interest are readjusted  ', async () => {
@@ -298,10 +296,10 @@ makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
       expect(stringifyNumericProps(interestRateModel)).to.deep.equal(
         stringifyNumericProps({
           targetUrE6: 900_000,
-          minRateAtTargetE18: 2 * ONE_PERCENT_APR,
-          maxRateAtTargetE18: 10 * ONE_PERCENT_APR,
+          minRateAtTargetE18: 2 * ONE_PERCENT_APR_E18,
+          maxRateAtTargetE18: 10 * ONE_PERCENT_APR_E18,
           rateAtTargetUrE18: 17636034,
-          rateAtMaxUrE18: 100 * ONE_PERCENT_APR,
+          rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
           minimalTimeBetweenAdjustments: ONE_HOUR,
           lastAdjustmentTimestamp: await time.latest(),
         }),

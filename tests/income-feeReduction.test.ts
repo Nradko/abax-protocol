@@ -9,7 +9,7 @@ import StableToken from 'typechain/contracts/stable_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6, ONE_PERCENT_APR } from './setup/tokensToDeployForTesting';
+import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING, E6, ONE_PERCENT_APR_E18 } from './setup/tokensToDeployForTesting';
 import { E18bn, E6bn, time } from '@c-forge/polkahat-network-helpers';
 import { bnToBn } from '@polkadot/util';
 import FeeReductionProviderMockDeployer from 'typechain/deployers/fee_reduction_provider_mock';
@@ -184,7 +184,7 @@ makeSuite('Testing protocol income', () => {
             const usdcReserveData = (await lendingPool.query.viewReserveData(usdcContract.address)).value.ok!;
             const usdaxReserveData = (await lendingPool.query.viewReserveData(usdaxContract.address)).value.ok!;
 
-            expect(usdcReserveData.currentDebtRateE18.toString()).to.equal(ONE_PERCENT_APR.toString());
+            expect(usdcReserveData.currentDebtRateE18.toString()).to.equal(ONE_PERCENT_APR_E18.toString());
             expect(usdcReserveData.currentDepositRateE18.toString()).to.equal('1426940');
             expect(usdaxReserveData.currentDebtRateE18.toString()).to.equal(USDaXRate.toString());
           });
@@ -247,8 +247,8 @@ makeSuite('Testing protocol income', () => {
               });
 
               it('Usdc:  borrower debt interest should accumulate', async () => {
-                // the current rate is ONE_PERCENT_APR.toString()
-                // 0.45 m * 10 ^ 8  * ONE_PERCENT_APR.toString() * 1000 * 1000 / 10^18 = 20400068
+                // the current rate is ONE_PERCENT_APR_E18.toString()
+                // 0.45 m * 10 ^ 8  * ONE_PERCENT_APR_E18.toString() * 1000 * 1000 / 10^18 = 20400068
                 const expectedInterestNoFee = new BN('142694055');
                 let expectedIncome = expectedInterestNoFee
                   .muln(feeD6[1])

@@ -25,7 +25,7 @@ pub trait LendingPoolMaintainImpl:
     fn adjust_rate_at_target(
         &mut self,
         asset: AccountId,
-        apropariate_index: u32,
+        guessed_index: u32,
     ) -> Result<u64, LendingPoolError> {
         let timestamp = Self::env().block_timestamp();
 
@@ -44,7 +44,7 @@ pub trait LendingPoolMaintainImpl:
                     )
                     .ok_or(MathError::Overflow)?
             {
-                return Err(LendingPoolError::ToEarlyToAdjustRate);
+                return Err(LendingPoolError::TooEarlyToAdjustRate); //tests/interestRateModel.test.ts:147
             }
 
             let twa_ur_e6 = self
@@ -52,7 +52,7 @@ pub trait LendingPoolMaintainImpl:
                 .get_tw_ur_from_shortest_period_longer_than(
                     interest_rate_model.minimal_time_between_adjustments,
                     asset_id,
-                    apropariate_index,
+                    guessed_index,
                 )?;
 
             let res = interest_rate_model

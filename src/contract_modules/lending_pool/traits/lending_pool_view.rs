@@ -97,10 +97,10 @@ pub trait LendingPoolView {
     ) -> Vec<Option<TwEntry>>;
 
     #[ink(message)]
-    fn view_tw_ur_from_period_longar_than(
+    fn view_tw_ur_from_period_longer_than(
         &self,
         period: u64,
         asset: AccountId,
-        apropariate_index: u32,
+        guessed_index: u32,
     ) -> Result<u32, LendingPoolError>;
 }

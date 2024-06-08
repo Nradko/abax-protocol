@@ -79,14 +79,14 @@ mod tests {
 
     use super::*;
 
-    const ONE_PERCENT_APR: u64 = 3_170_979;
-    const TEN_PERCENT_APR: u64 = 10 * ONE_PERCENT_APR;
+    const ONE_PERCENT_APR_E18: u64 = 3_170_979;
+    const TEN_PERCENT_APR: u64 = 10 * ONE_PERCENT_APR_E18;
     const INTEREST_RATE_MDOEL: InterestRateModel = InterestRateModel {
-        target_ur_e6: 900_000,                       // 90%
-        min_rate_at_target_e18: ONE_PERCENT_APR,     // 1%,
-        max_rate_at_target_e18: 2 * TEN_PERCENT_APR, // 10%,
-        rate_at_target_ur_e18: TEN_PERCENT_APR,      // 10%
-        rate_at_max_ur_e18: 100 * ONE_PERCENT_APR,   // 100%
+        target_ur_e6: 900_000,                         // 90%
+        min_rate_at_target_e18: ONE_PERCENT_APR_E18,   // 1%,
+        max_rate_at_target_e18: 2 * TEN_PERCENT_APR,   // 10%,
+        rate_at_target_ur_e18: TEN_PERCENT_APR,        // 10%
+        rate_at_max_ur_e18: 100 * ONE_PERCENT_APR_E18, // 100%
         minimal_time_between_adjustments: 0,
         last_adjustment_timestamp: 0,
     };
@@ -119,7 +119,7 @@ mod tests {
             INTEREST_RATE_MDOEL
                 .clone()
                 .adjust_rate_at_target(910_000, 1),
-            Ok(19 * ONE_PERCENT_APR)
+            Ok(19 * ONE_PERCENT_APR_E18)
         );
     }
 }

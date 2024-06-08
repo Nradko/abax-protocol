@@ -70,7 +70,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       await lendingPool.withSigner(bob).tx.deposit(usdcContract.address, bob.address, initialUsdcBalance, []);
     });
 
-    it('they should have apropariate amount of aTokens', async () => {
+    it('they should have appropriate amount of aTokens', async () => {
       const aliceATokenDaiBalance = (await aTokenDaiContract.query.balanceOf(alice.address)).value.ok!;
       expect(aliceATokenDaiBalance.toString()).to.equal(initialDaiBalance.toString());
       const aliceATokenUsdcBalance = (await aTokenUsdcContract.query.balanceOf(alice.address)).value.ok!;
@@ -177,7 +177,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
         vTokenWETHContract = reserves['WETH'].vToken;
       });
 
-      it('Alice should have apropariate vWETH balance', async () => {
+      it('Alice should have appropriate vWETH balance', async () => {
         const aliceVTokenWethBalance = (await vTokenWETHContract.query.balanceOf(alice.address)).value.ok!;
         expect(aliceVTokenWethBalance.toString()).to.equal(aliceDebt.toString());
       });
@@ -191,7 +191,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
           await vTokenWETHContract.withSigner(bob).tx.increaseAllowance(alice.address, aliceDebt);
           await vTokenWETHContract.withSigner(dave).tx.increaseAllowance(alice.address, aliceDebt);
         });
-        it('Alice should have apropariate allowance', async () => {
+        it('Alice should have appropriate allowance', async () => {
           const aliceToBobAllowace = (await vTokenWETHContract.withSigner(alice).query.allowance(bob.address, alice.address)).value.ok!;
           expect(aliceToBobAllowace.toString()).to.equal(aliceDebt.toString());
         });

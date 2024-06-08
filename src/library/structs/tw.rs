@@ -1,5 +1,10 @@
 use pendzl::traits::Timestamp;
 
+const TW_INDEX_SIZE: u32 = 60;
+
+#[cfg(build = "release")]
+const TW_INDEX_SIZE: u32 = 3600 * 8;
+
 #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
 #[cfg_attr(
     feature = "std",
@@ -7,41 +12,22 @@ use pendzl::traits::Timestamp;
 )]
 /// An index in cyclic group of size `tail`
 pub struct TwIndex {
-    pub index: u32,
-    pub tail: u32,
+    pub value: u32,
 }
 
 impl TwIndex {
     pub fn new() -> Self {
-        TwIndex {
-            index: 0,
-            tail: 4000,
-        }
+        TwIndex { value: 0 }
     }
 
     pub fn next(&self) -> Self {
         let index = self
-            .index
+            .value
             .overflowing_add(1)
             .0
-            .checked_rem(self.tail)
+            .checked_rem(TW_INDEX_SIZE)
             .unwrap();
-        TwIndex {
-            index,
-            tail: self.tail,
-        }
-    }
-
-    pub fn prev(&self) -> Self {
-        let index = if self.index == 0 {
-            self.tail.saturating_sub(1)
-        } else {
-            self.index.saturating_sub(1)
-        };
-        TwIndex {
-            index,
-            tail: self.tail,
-        }
+        TwIndex { value: index }
     }
 }
 

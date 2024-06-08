@@ -2,7 +2,8 @@ import { InterestRateModelParams } from 'typechain/types-arguments/lending_pool'
 import { TokensToDeployForTesting } from './tokensToDeployForTesting.types';
 import { BN } from 'bn.js';
 
-export const ONE_PERCENT_APR = 3_170_979;
+// 0.01 % / 365 * 24 * 60 * 60 * E18
+export const ONE_PERCENT_APR_E18 = 3_170_979;
 
 export const ONE_SEC = new BN(1000);
 export const ONE_MIN = ONE_SEC.muln(60);
@@ -12,11 +13,11 @@ export const ONE_YEAR = ONE_DAY.muln(365);
 
 /* eslint-disable */
 export const DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING: InterestRateModelParams = {
-  targetUrE6: 900_000,
-  minRateAtTargetE18: 2 * ONE_PERCENT_APR,
-  maxRateAtTargetE18: 10 * ONE_PERCENT_APR,
+  targetUrE6: 900_000, //90%
+  minRateAtTargetE18: 2 * ONE_PERCENT_APR_E18,
+  maxRateAtTargetE18: 10 * ONE_PERCENT_APR_E18,
 
-  rateAtMaxUrE18: 100 * ONE_PERCENT_APR,
+  rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
   minimalTimeBetweenAdjustments: ONE_HOUR,
 };
 

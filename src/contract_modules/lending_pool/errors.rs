@@ -67,7 +67,7 @@ pub enum LendingPoolError {
     ///
     WrongIndex,
     ///
-    ToEarlyToAdjustRate,
+    TooEarlyToAdjustRate,
 }
 
 impl From<AssetRulesError> for LendingPoolError {

@@ -14,7 +14,7 @@ pub trait FlashLoanReceiver {
     /// # Note
     /// - The function should not pay the tokens back to the lending protocol. The tokens are automatically paid back after the function is executed.
     /// - After the function is executed, the contract should have enough tokens to cover the flash loan amount and fees.
-    /// - After the function is executed, the lending pool should have allowance to transfer apropariate amount of each asset.
+    /// - After the function is executed, the lending pool should have allowance to transfer appropriate amount of each asset.
     ///
     /// # Errors
     /// May return FlashLoanReceiverError.

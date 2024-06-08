@@ -93,7 +93,7 @@ pub trait LendingPoolActions {
     /// Tokens are transferred to the `caller`.
     ///
     /// * `asset` - AccountId (aka address) of PSP22 that is borrowed.
-    /// * `on_behalf_of` - AccountId (aka address) on behalf of who caller is taking debt. If `caller` != `on_behalf_of` then tje allowance of appropariate VToken will be decerased.
+    /// * `on_behalf_of` - AccountId (aka address) on behalf of who caller is taking debt. If `caller` != `on_behalf_of` then tje allowance of appropriate VToken will be decerased.
     /// * `amount` - the number of tokens to be borrowed in absolute value (1 USDT = 1_000_000, 1 AZERO = 1_000_000_000_000).
     /// * `data` - additional data that is unused.
     ///
