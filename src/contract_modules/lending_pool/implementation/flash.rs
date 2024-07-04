@@ -15,10 +15,7 @@ use ink::{
 };
 
 use pendzl::math::operations::{mul_div, Rounding};
-use pendzl::{
-    contracts::access_control,
-    traits::{AccountId, Balance, StorageFieldGetter},
-};
+use pendzl::traits::{AccountId, Balance, StorageFieldGetter};
 
 use super::{
     internal::{Transfer, _check_amount_not_zero},

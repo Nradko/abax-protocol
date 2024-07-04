@@ -12,7 +12,7 @@ use pendzl::{
 
 use ink::{env::DefaultEnvironment, prelude::*};
 
-use super::storage::LendingPoolStorage;
+use super::{_check_amount_not_zero, storage::LendingPoolStorage};
 use ink::codegen::TraitCallBuilder;
 
 pub trait LendingPoolVTokenInterfaceImpl:
@@ -43,7 +43,8 @@ pub trait LendingPoolVTokenInterfaceImpl:
         to: AccountId,
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolError> {
-        // pull reserve_data
+        _check_amount_not_zero(amount)?;
+
         let reserve_abacus_tokens_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens

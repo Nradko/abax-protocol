@@ -23,6 +23,7 @@ import { saveContractInfoToFileAsJson } from './nodePersistence';
 import { MOCK_CHAINLINK_AGGREGATORS_PRICES, ReserveTokenDeploymentData } from './testEnvConsts';
 import { TOKENS_TO_DEPLOY_FOR_TESTING } from './tokensToDeployForTesting';
 import { TokensToDeployForTesting } from './tokensToDeployForTesting.types';
+import { ApiPromise } from '@polkadot/api';
 
 export async function deployCoreContracts(
   owner: KeyringPair,
