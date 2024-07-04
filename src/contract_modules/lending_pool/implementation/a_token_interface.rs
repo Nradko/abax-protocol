@@ -1,4 +1,4 @@
-use super::storage::LendingPoolStorage;
+use super::{_check_amount_not_zero, storage::LendingPoolStorage};
 use crate::{
     abacus_token::{AbacusToken, AbacusTokenRef, TransferEventData},
     lending_pool::{
@@ -41,6 +41,8 @@ pub trait LendingPoolATokenInterfaceImpl:
         to: AccountId,
         amount: Balance,
     ) -> Result<(Balance, Balance), LendingPoolError> {
+        _check_amount_not_zero(amount)?;
+
         let reserve_abacus_tokens_tokens = self
             .data::<LendingPoolStorage>()
             .reserve_abacus_tokens

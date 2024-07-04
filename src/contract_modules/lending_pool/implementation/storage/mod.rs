@@ -436,7 +436,7 @@ impl LendingPoolStorage {
         reserve_ctx.reserve_data.ensure_activated()?;
 
         if account_reserve_data.deposit == 0 {
-            return Err(LendingPoolError::AmountNotGreaterThanZero);
+            return Err(LendingPoolError::InsufficientDeposit);
         }
 
         let (
@@ -531,6 +531,10 @@ impl LendingPoolStorage {
                 fee_reductions,
             )?,
         )?;
+
+        if account_reserve_data.debt == 0 {
+            return Err(LendingPoolError::NothingToRepay);
+        }
 
         if *amount > account_reserve_data.debt && can_mutate_amount {
             *amount = account_reserve_data.debt;

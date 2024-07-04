@@ -48,11 +48,11 @@ pub enum LendingPoolError {
     InsufficientDebt,
     /// returned if one is trying to liquidate collaterized account.
     Collaterized,
-    /// returned if one is trying to transfer a deposit one doesn't have.
+    /// returned if one is trying to transfer or withdraw a deposit one doesn't have.
     InsufficientDeposit,
     /// returned if the liquidation would result in not enough recompensation per repaid token.
     MinimumRecieved,
-    /// returned if there is nothing to be repaid (in an asset) during liquidation.
+    /// returned if there is nothing to be repaid (in an asset) during repay liquidation.
     NothingToRepay,
     /// returned if there is nothing (in an asset) to to recompensate the liquidation.
     NothingToCompensateWith,
