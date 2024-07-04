@@ -58,8 +58,8 @@ pub enum LendingPoolError {
     NothingToCompensateWith,
     /// returned if a liquidator tries to take an asset that is not a collateral as a compensation.
     TakingNotACollateral,
-    /// returned if len of vector of assets that should be borrowed is different then lenght of vector of amounts.
-    FlashLoanAmountsAssetsInconsistentLengths,
+    /// returned if a pair of vectors used during the operation has inconsistent lengths.
+    VectorsInconsistentLengths,
     /// returned if passed 'market_rule_id' that is not used.
     MarketRuleInvalidId,
     /// returned if the fee is too high (greater then 1 = 10^6).
