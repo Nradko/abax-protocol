@@ -142,7 +142,7 @@ export interface LendingPoolError {
 	nothingToRepay ? : null,
 	nothingToCompensateWith ? : null,
 	takingNotACollateral ? : null,
-	flashLoanAmountsAssetsInconsistentLengths ? : null,
+	vectorsInconsistentLengths ? : null,
 	marketRuleInvalidId ? : null,
 	depositFeeTooHigh ? : null,
 	twEntryInvalidIndex ? : BN,
@@ -265,9 +265,9 @@ export class LendingPoolErrorBuilder {
 			takingNotACollateral: null,
 		};
 	}
-	static FlashLoanAmountsAssetsInconsistentLengths(): LendingPoolError {
+	static VectorsInconsistentLengths(): LendingPoolError {
 		return {
-			flashLoanAmountsAssetsInconsistentLengths: null,
+			vectorsInconsistentLengths: null,
 		};
 	}
 	static MarketRuleInvalidId(): LendingPoolError {
