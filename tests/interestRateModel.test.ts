@@ -43,7 +43,7 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
     await wethContract.withSigner(supplier).tx.approve(lendingPool.address, wethDeposit);
   });
 
-  it.only('the initial interest rate model is correct', async () => {
+  it('the initial interest rate model is correct', async () => {
     const reserve = usdcContract;
     const interestRateModel: InterestRateModel = (await lendingPool.query.viewInterestRateModel(reserve.address)).value.ok!;
     const timestamp = await time.latest();
