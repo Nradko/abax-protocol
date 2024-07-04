@@ -32,9 +32,7 @@ pub trait LendingPoolFlashImpl: StorageFieldGetter<LendingPoolStorage> {
         receiver_params: Vec<u8>,
     ) -> Result<(), LendingPoolError> {
         if assets.len() != amounts.len() {
-            return Err(
-                LendingPoolError::FlashLoanAmountsAssetsInconsistentLengths,
-            );
+            return Err(LendingPoolError::VectorsInconsistentLengths);
         }
 
         let mut fees: Vec<u128> = vec![];

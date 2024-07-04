@@ -237,7 +237,7 @@ impl LendingPoolStorage {
         timestamp: &Timestamp,
     ) -> Result<Vec<(u128, u128)>, LendingPoolError> {
         if accounts_data.len() != accounts_config.len() {
-            panic!();
+            return Err(LendingPoolError::VectorsInconsistentLengths);
         }
 
         let mut reserve_data = self.get_reserve_data(asset_id);
