@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/test_reserves_minter.json';
 
 
@@ -40,11 +41,12 @@ export default class TestReservesMinterMethods {
 	"mint" (
 		addresesWithAmounts: Array<[ArgumentTypes.AccountId, (string | number | BN)]>,
 		to: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "mint", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [addresesWithAmounts, to], __options);
+		}, [addresesWithAmounts, to], contractOptions, signerOptions);
 	}
 
 	/**
@@ -52,11 +54,12 @@ export default class TestReservesMinterMethods {
 	*
 	*/
 	"owner" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::owner", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -64,11 +67,12 @@ export default class TestReservesMinterMethods {
 	*
 	*/
 	"renounceOwnership" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::renounceOwnership", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -78,11 +82,12 @@ export default class TestReservesMinterMethods {
 	*/
 	"transferOwnership" (
 		newOwner: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::transferOwnership", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [newOwner], __options);
+		}, [newOwner], contractOptions, signerOptions);
 	}
 
 }

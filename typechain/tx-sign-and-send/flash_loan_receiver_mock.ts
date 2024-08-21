@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/flash_loan_receiver_mock.json';
 
 
@@ -38,11 +39,12 @@ export default class FlashLoanReceiverMockMethods {
 	*/
 	"setFailExecuteOperation" (
 		shouldFailExecuteOperation: boolean,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setFailExecuteOperation", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [shouldFailExecuteOperation], __options);
+		}, [shouldFailExecuteOperation], contractOptions, signerOptions);
 	}
 
 	/**
@@ -52,11 +54,12 @@ export default class FlashLoanReceiverMockMethods {
 	*/
 	"setCustomAmountToApprove" (
 		customAmountToApprove: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setCustomAmountToApprove", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [customAmountToApprove], __options);
+		}, [customAmountToApprove], contractOptions, signerOptions);
 	}
 
 	/**
@@ -66,11 +69,12 @@ export default class FlashLoanReceiverMockMethods {
 	*/
 	"setSimulateBalanceToCoverFee" (
 		simulateBalanceToCoverFee: boolean,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setSimulateBalanceToCoverFee", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [simulateBalanceToCoverFee], __options);
+		}, [simulateBalanceToCoverFee], contractOptions, signerOptions);
 	}
 
 	/**
@@ -86,11 +90,12 @@ export default class FlashLoanReceiverMockMethods {
 		amounts: Array<(string | number | BN)>,
 		fees: Array<(string | number | BN)>,
 		receiverParams: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "flashLoanReceiver::executeOperation", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets, amounts, fees, receiverParams], __options);
+		}, [assets, amounts, fees, receiverParams], contractOptions, signerOptions);
 	}
 
 }

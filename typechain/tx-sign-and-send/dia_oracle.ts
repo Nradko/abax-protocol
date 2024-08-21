@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/dia_oracle.json';
 
 
@@ -36,11 +37,12 @@ export default class DiaOracleMethods {
 	*
 	*/
 	"codeHash" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "codeHash", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -50,11 +52,12 @@ export default class DiaOracleMethods {
 	*/
 	"setCode" (
 		codeHash: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setCode", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [codeHash], __options);
+		}, [codeHash], contractOptions, signerOptions);
 	}
 
 	/**
@@ -64,11 +67,12 @@ export default class DiaOracleMethods {
 	*/
 	"transferOwnership" (
 		newOwner: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "oracleSetters::transferOwnership", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [newOwner], __options);
+		}, [newOwner], contractOptions, signerOptions);
 	}
 
 	/**
@@ -78,11 +82,12 @@ export default class DiaOracleMethods {
 	*/
 	"setUpdater" (
 		updater: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "oracleSetters::setUpdater", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [updater], __options);
+		}, [updater], contractOptions, signerOptions);
 	}
 
 	/**
@@ -94,11 +99,12 @@ export default class DiaOracleMethods {
 	"setPrice" (
 		pair: string,
 		price: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "oracleSetters::setPrice", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [pair, price], __options);
+		}, [pair, price], contractOptions, signerOptions);
 	}
 
 	/**
@@ -108,11 +114,12 @@ export default class DiaOracleMethods {
 	*/
 	"setPrices" (
 		pairs: Array<[string, (string | number | BN)]>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "oracleSetters::setPrices", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [pairs], __options);
+		}, [pairs], contractOptions, signerOptions);
 	}
 
 	/**
@@ -120,11 +127,12 @@ export default class DiaOracleMethods {
 	*
 	*/
 	"getUpdater" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "oracleGetters::getUpdater", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -134,11 +142,12 @@ export default class DiaOracleMethods {
 	*/
 	"getLatestPrice" (
 		pair: string,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "oracleGetters::getLatestPrice", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [pair], __options);
+		}, [pair], contractOptions, signerOptions);
 	}
 
 	/**
@@ -148,11 +157,12 @@ export default class DiaOracleMethods {
 	*/
 	"getLatestPrices" (
 		pairs: Array<string>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "oracleGetters::getLatestPrices", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [pairs], __options);
+		}, [pairs], contractOptions, signerOptions);
 	}
 
 }

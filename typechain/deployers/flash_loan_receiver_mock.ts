@@ -10,6 +10,7 @@ import { getContractObjectWrapper } from "../shared/utils";
 import type BN from 'bn.js';
 import FsAPI from 'fs';
 import PathAPI from 'path';
+import { u8aToHex } from '@polkadot/util';
 
 
 const fileName = 'flash_loan_receiver_mock';
@@ -30,10 +31,44 @@ export default class FlashLoanReceiverMockDeployer {
 		try {
    			return FsAPI.readFileSync(PathAPI.resolve(__dirname,`../artifacts/${fileName}.wasm`));
 		} catch(_) {
-			console.warn(`No wasm file found for ${fileName}`);
+			console.warn(`No wasm file found for ${fileName}. Trying to use contract file...`);
 		}
    		const contractFileParsed = JSON.parse(FsAPI.readFileSync(PathAPI.resolve(__dirname,`../artifacts/${fileName}.contract`)).toString());
 		return contractFileParsed.source.wasm;
+	}
+
+	private createCodePromise(): CodePromise {
+		const abi = JSON.parse(FsAPI.readFileSync(PathAPI.resolve(__dirname,`../artifacts/${fileName}.json`)).toString());
+		const wasm = this.getWasm();
+		return new CodePromise(this.nativeAPI, abi, wasm);
+	}
+	
+	/**
+	* Deploy contract's code
+	*
+	* @param { BN | null | undefined } [storageDepositLimit],
+	* @param { 'Enforced' | 'Relaxed' | number } [determinism],
+	*/
+	async deployCode(
+		storageDepositLimit: BN | null = null,
+		determinism: 'Enforced' | 'Relaxed' | number = 0,
+	) {
+   		const codePromise = this.createCodePromise();
+
+		const tx = this.nativeAPI.tx.contracts!.uploadCode!(u8aToHex(codePromise.code), storageDepositLimit, determinism);
+		let response;
+
+		try {
+			response = await _signAndSend(this.nativeAPI.registry, tx, this.signer, undefined, (event: any) => event);
+		}
+		catch (error) {
+			console.log(error);
+		}
+
+		return { 
+			response: response as SignAndSendSuccessResponse, 
+			codeHash: u8aToHex(codePromise.abi.info.source.wasmHash)
+		};
 	}
 
 	/**
@@ -43,10 +78,8 @@ export default class FlashLoanReceiverMockDeployer {
    	async "new" (
 		__options ? : ContractOptions,
    	) {
-   		const abi = JSON.parse(FsAPI.readFileSync(PathAPI.resolve(__dirname,`../artifacts/${fileName}.json`)).toString());
+   		const codePromise = this.createCodePromise();
 
-   		const wasm = this.getWasm();
-		const codePromise = new CodePromise(this.nativeAPI, abi, wasm);
 		const gasLimit = (await genValidContractOptionsWithValue(this.nativeAPI, __options)).gasLimit as WeightV2 as any;
 
 		const storageDepositLimit = __options?.storageDepositLimit;
@@ -54,7 +87,7 @@ export default class FlashLoanReceiverMockDeployer {
 		let response;
 
 		try {
-			response = await _signAndSend(this.nativeAPI.registry, tx, this.signer, (event: any) => event);
+			response = await _signAndSend(this.nativeAPI.registry, tx, this.signer, undefined, (event: any) => event);
 		}
 		catch (error) {
 			console.log(error);

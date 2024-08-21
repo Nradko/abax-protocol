@@ -1,0 +1,9 @@
+{
+    "projectFiles": [
+        "./src/contracts/**/Cargo.toml"
+    ],
+    "isRelease": false,
+    "skipLinting": false,
+    "artifactsPath": "./artifacts",
+    "typechainGeneratedPath": "./typechain"
+}

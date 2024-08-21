@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/psp22_for_audit.json';
 
 
@@ -42,11 +43,12 @@ export default class Psp22ForAuditMethods {
 		from: ArgumentTypes.AccountId,
 		to: ArgumentTypes.AccountId,
 		value: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "tApprove", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [from, to, value], __options);
+		}, [from, to, value], contractOptions, signerOptions);
 	}
 
 	/**
@@ -54,11 +56,12 @@ export default class Psp22ForAuditMethods {
 	*
 	*/
 	"totalSupply" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::totalSupply", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -68,11 +71,12 @@ export default class Psp22ForAuditMethods {
 	*/
 	"balanceOf" (
 		owner: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::balanceOf", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [owner], __options);
+		}, [owner], contractOptions, signerOptions);
 	}
 
 	/**
@@ -84,11 +88,12 @@ export default class Psp22ForAuditMethods {
 	"allowance" (
 		owner: ArgumentTypes.AccountId,
 		spender: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::allowance", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [owner, spender], __options);
+		}, [owner, spender], contractOptions, signerOptions);
 	}
 
 	/**
@@ -102,11 +107,12 @@ export default class Psp22ForAuditMethods {
 		to: ArgumentTypes.AccountId,
 		value: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::transfer", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [to, value, data], __options);
+		}, [to, value, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -122,11 +128,12 @@ export default class Psp22ForAuditMethods {
 		to: ArgumentTypes.AccountId,
 		value: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::transferFrom", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [from, to, value, data], __options);
+		}, [from, to, value, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -138,11 +145,12 @@ export default class Psp22ForAuditMethods {
 	"approve" (
 		spender: ArgumentTypes.AccountId,
 		value: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::approve", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [spender, value], __options);
+		}, [spender, value], contractOptions, signerOptions);
 	}
 
 	/**
@@ -154,11 +162,12 @@ export default class Psp22ForAuditMethods {
 	"increaseAllowance" (
 		spender: ArgumentTypes.AccountId,
 		deltaValue: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::increaseAllowance", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [spender, deltaValue], __options);
+		}, [spender, deltaValue], contractOptions, signerOptions);
 	}
 
 	/**
@@ -170,11 +179,12 @@ export default class Psp22ForAuditMethods {
 	"decreaseAllowance" (
 		spender: ArgumentTypes.AccountId,
 		deltaValue: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::decreaseAllowance", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [spender, deltaValue], __options);
+		}, [spender, deltaValue], contractOptions, signerOptions);
 	}
 
 	/**
@@ -182,11 +192,12 @@ export default class Psp22ForAuditMethods {
 	*
 	*/
 	"tokenName" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Metadata::tokenName", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -194,11 +205,12 @@ export default class Psp22ForAuditMethods {
 	*
 	*/
 	"tokenSymbol" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Metadata::tokenSymbol", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -206,11 +218,12 @@ export default class Psp22ForAuditMethods {
 	*
 	*/
 	"tokenDecimals" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Metadata::tokenDecimals", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -222,11 +235,12 @@ export default class Psp22ForAuditMethods {
 	"mint" (
 		to: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Mintable::mint", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [to, amount], __options);
+		}, [to, amount], contractOptions, signerOptions);
 	}
 
 }

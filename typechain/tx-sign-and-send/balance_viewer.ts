@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/balance_viewer.json';
 
 
@@ -40,11 +41,12 @@ export default class BalanceViewerMethods {
 	"viewAccountBalances" (
 		assets: Array<ArgumentTypes.AccountId> | null,
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "viewAccountBalances", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets, account], __options);
+		}, [assets, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -54,11 +56,12 @@ export default class BalanceViewerMethods {
 	*/
 	"viewUnupdatedReserveDatas" (
 		assets: Array<ArgumentTypes.AccountId> | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "viewUnupdatedReserveDatas", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets], __options);
+		}, [assets], contractOptions, signerOptions);
 	}
 
 	/**
@@ -68,11 +71,12 @@ export default class BalanceViewerMethods {
 	*/
 	"viewReserveDatas" (
 		assets: Array<ArgumentTypes.AccountId> | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "viewReserveDatas", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets], __options);
+		}, [assets], contractOptions, signerOptions);
 	}
 
 	/**
@@ -84,11 +88,12 @@ export default class BalanceViewerMethods {
 	"viewUnupdatedAccountReserveDatas" (
 		assets: Array<ArgumentTypes.AccountId> | null,
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "viewUnupdatedAccountReserveDatas", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets, account], __options);
+		}, [assets, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -100,11 +105,12 @@ export default class BalanceViewerMethods {
 	"viewAccountReserveDatas" (
 		assets: Array<ArgumentTypes.AccountId> | null,
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "viewAccountReserveDatas", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets, account], __options);
+		}, [assets, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -114,11 +120,12 @@ export default class BalanceViewerMethods {
 	*/
 	"viewCompleteReserveData" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "viewCompleteReserveData", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -128,11 +135,12 @@ export default class BalanceViewerMethods {
 	*/
 	"viewCompleteReserveDatas" (
 		assets: Array<ArgumentTypes.AccountId> | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "viewCompleteReserveDatas", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets], __options);
+		}, [assets], contractOptions, signerOptions);
 	}
 
 }

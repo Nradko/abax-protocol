@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/stable_token.json';
 
 
@@ -36,11 +37,12 @@ export default class StableTokenMethods {
 	*
 	*/
 	"totalSupply" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::totalSupply", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -50,11 +52,12 @@ export default class StableTokenMethods {
 	*/
 	"balanceOf" (
 		owner: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::balanceOf", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [owner], __options);
+		}, [owner], contractOptions, signerOptions);
 	}
 
 	/**
@@ -66,11 +69,12 @@ export default class StableTokenMethods {
 	"allowance" (
 		owner: ArgumentTypes.AccountId,
 		spender: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::allowance", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [owner, spender], __options);
+		}, [owner, spender], contractOptions, signerOptions);
 	}
 
 	/**
@@ -84,11 +88,12 @@ export default class StableTokenMethods {
 		to: ArgumentTypes.AccountId,
 		value: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::transfer", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [to, value, data], __options);
+		}, [to, value, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -104,11 +109,12 @@ export default class StableTokenMethods {
 		to: ArgumentTypes.AccountId,
 		value: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::transferFrom", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [from, to, value, data], __options);
+		}, [from, to, value, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -120,11 +126,12 @@ export default class StableTokenMethods {
 	"approve" (
 		spender: ArgumentTypes.AccountId,
 		value: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::approve", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [spender, value], __options);
+		}, [spender, value], contractOptions, signerOptions);
 	}
 
 	/**
@@ -136,11 +143,12 @@ export default class StableTokenMethods {
 	"increaseAllowance" (
 		spender: ArgumentTypes.AccountId,
 		deltaValue: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::increaseAllowance", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [spender, deltaValue], __options);
+		}, [spender, deltaValue], contractOptions, signerOptions);
 	}
 
 	/**
@@ -152,11 +160,12 @@ export default class StableTokenMethods {
 	"decreaseAllowance" (
 		spender: ArgumentTypes.AccountId,
 		deltaValue: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22::decreaseAllowance", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [spender, deltaValue], __options);
+		}, [spender, deltaValue], contractOptions, signerOptions);
 	}
 
 	/**
@@ -164,11 +173,12 @@ export default class StableTokenMethods {
 	*
 	*/
 	"tokenName" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Metadata::tokenName", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -176,11 +186,12 @@ export default class StableTokenMethods {
 	*
 	*/
 	"tokenSymbol" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Metadata::tokenSymbol", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -188,11 +199,12 @@ export default class StableTokenMethods {
 	*
 	*/
 	"tokenDecimals" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Metadata::tokenDecimals", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -204,11 +216,12 @@ export default class StableTokenMethods {
 	"hasRole" (
 		role: (number | string | BN),
 		address: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::hasRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, address], __options);
+		}, [role, address], contractOptions, signerOptions);
 	}
 
 	/**
@@ -218,11 +231,12 @@ export default class StableTokenMethods {
 	*/
 	"getRoleAdmin" (
 		role: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::getRoleAdmin", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role], __options);
+		}, [role], contractOptions, signerOptions);
 	}
 
 	/**
@@ -234,11 +248,12 @@ export default class StableTokenMethods {
 	"grantRole" (
 		role: (number | string | BN),
 		account: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::grantRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, account], __options);
+		}, [role, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -250,11 +265,12 @@ export default class StableTokenMethods {
 	"revokeRole" (
 		role: (number | string | BN),
 		account: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::revokeRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, account], __options);
+		}, [role, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -266,11 +282,12 @@ export default class StableTokenMethods {
 	"renounceRole" (
 		role: (number | string | BN),
 		account: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::renounceRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, account], __options);
+		}, [role, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -282,11 +299,12 @@ export default class StableTokenMethods {
 	"setRoleAdmin" (
 		role: (number | string | BN),
 		newAdmin: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::setRoleAdmin", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, newAdmin], __options);
+		}, [role, newAdmin], contractOptions, signerOptions);
 	}
 
 	/**
@@ -298,11 +316,12 @@ export default class StableTokenMethods {
 	"mint" (
 		to: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Mintable::mint", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [to, amount], __options);
+		}, [to, amount], contractOptions, signerOptions);
 	}
 
 	/**
@@ -314,11 +333,12 @@ export default class StableTokenMethods {
 	"burn" (
 		from: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "psp22Burnable::burn", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [from, amount], __options);
+		}, [from, amount], contractOptions, signerOptions);
 	}
 
 }
