@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/price_feed_provider.json';
 
 
@@ -40,11 +41,12 @@ export default class PriceFeedProviderMethods {
 	"setAccountSymbol" (
 		asset: ArgumentTypes.AccountId,
 		symbol: string,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setAccountSymbol", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, symbol], __options);
+		}, [asset, symbol], contractOptions, signerOptions);
 	}
 
 	/**
@@ -54,11 +56,12 @@ export default class PriceFeedProviderMethods {
 	*/
 	"getAccountSymbol" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "getAccountSymbol", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -68,11 +71,12 @@ export default class PriceFeedProviderMethods {
 	*/
 	"getLatestPrices" (
 		assets: Array<ArgumentTypes.AccountId>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "priceFeed::getLatestPrices", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets], __options);
+		}, [assets], contractOptions, signerOptions);
 	}
 
 	/**
@@ -80,11 +84,12 @@ export default class PriceFeedProviderMethods {
 	*
 	*/
 	"owner" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::owner", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -92,11 +97,12 @@ export default class PriceFeedProviderMethods {
 	*
 	*/
 	"renounceOwnership" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::renounceOwnership", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -106,11 +112,12 @@ export default class PriceFeedProviderMethods {
 	*/
 	"transferOwnership" (
 		newOwner: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "ownable::transferOwnership", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [newOwner], __options);
+		}, [newOwner], contractOptions, signerOptions);
 	}
 
 }

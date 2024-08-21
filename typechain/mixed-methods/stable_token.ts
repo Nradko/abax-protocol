@@ -16,7 +16,7 @@ import {getTypeDescription} from './../shared/utils';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import DATA_TYPE_DESCRIPTIONS from '../data/stable_token.json';
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/stable_token.json';
 import { bnToBn } from '@polkadot/util';

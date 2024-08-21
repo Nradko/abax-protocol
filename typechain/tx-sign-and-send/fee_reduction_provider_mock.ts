@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/fee_reduction_provider_mock.json';
 
 
@@ -40,11 +41,12 @@ export default class FeeReductionProviderMockMethods {
 	"setFeeReduction" (
 		accountId: ArgumentTypes.AccountId | null,
 		feeReductions: [(number | string | BN), (number | string | BN)],
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setFeeReduction", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [accountId, feeReductions], __options);
+		}, [accountId, feeReductions], contractOptions, signerOptions);
 	}
 
 	/**
@@ -56,11 +58,12 @@ export default class FeeReductionProviderMockMethods {
 	"setFlashLoanFeeReduction" (
 		accountId: ArgumentTypes.AccountId | null,
 		feeReduction: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setFlashLoanFeeReduction", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [accountId, feeReduction], __options);
+		}, [accountId, feeReduction], contractOptions, signerOptions);
 	}
 
 	/**
@@ -70,11 +73,12 @@ export default class FeeReductionProviderMockMethods {
 	*/
 	"getFeeReductions" (
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "feeReduction::getFeeReductions", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [account], __options);
+		}, [account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -84,11 +88,12 @@ export default class FeeReductionProviderMockMethods {
 	*/
 	"getFlashLoanFeeReduction" (
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "feeReduction::getFlashLoanFeeReduction", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [account], __options);
+		}, [account], contractOptions, signerOptions);
 	}
 
 }

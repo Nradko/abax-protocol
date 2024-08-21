@@ -1,7 +1,7 @@
 
 
 export enum ATokenEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -34,7 +34,7 @@ export enum ATokenEvent {
 }
 
 export enum BalanceViewerEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -67,7 +67,7 @@ export enum BalanceViewerEvent {
 }
 
 export enum DiaOracleEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -102,7 +102,7 @@ export enum DiaOracleEvent {
 }
 
 export enum FeeReductionProviderMockEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -135,7 +135,7 @@ export enum FeeReductionProviderMockEvent {
 }
 
 export enum FlashLoanReceiverMockEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -170,7 +170,7 @@ export enum FlashLoanReceiverMockEvent {
 }
 
 export enum LendingPoolEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -203,7 +203,7 @@ export enum LendingPoolEvent {
 }
 
 export enum PriceFeedProviderEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -236,7 +236,7 @@ export enum PriceFeedProviderEvent {
 }
 
 export enum Psp22EmitableEvent {
-    RoleAdminChanged = 'RoleAdminChanged',
+  RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
   Transfer = 'Transfer',
@@ -248,7 +248,7 @@ export enum Psp22EmitableEvent {
 }
 
 export enum Psp22ForAuditEvent {
-    RoleAdminChanged = 'RoleAdminChanged',
+  RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
   Transfer = 'Transfer',
@@ -260,7 +260,7 @@ export enum Psp22ForAuditEvent {
 }
 
 export enum Psp22OwnableEvent {
-    OwnershipTransferred = 'OwnershipTransferred',
+  OwnershipTransferred = 'OwnershipTransferred',
   Paused = 'Paused',
   Unpaused = 'Unpaused',
   Transfer = 'Transfer',
@@ -272,7 +272,7 @@ export enum Psp22OwnableEvent {
 }
 
 export enum StableTokenEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -305,7 +305,7 @@ export enum StableTokenEvent {
 }
 
 export enum TestReservesMinterEvent {
-    RoleAdminChanged = 'RoleAdminChanged',
+  RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
   OwnershipTransferred = 'OwnershipTransferred',
@@ -317,7 +317,7 @@ export enum TestReservesMinterEvent {
 }
 
 export enum VTokenEvent {
-    Deposit = 'Deposit',
+  Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
   CollateralSet = 'CollateralSet',
@@ -348,7 +348,7 @@ export enum VTokenEvent {
   Unpaused = 'Unpaused'
 
 }
-export type AnyAbaxContractEvent = ATokenEvent | BalanceViewerEvent | DiaOracleEvent | FeeReductionProviderMockEvent | FlashLoanReceiverMockEvent | LendingPoolEvent | PriceFeedProviderEvent | Psp22EmitableEvent | Psp22ForAuditEvent | Psp22OwnableEvent | StableTokenEvent | TestReservesMinterEvent | VTokenEvent;
+export type AnyContractEvent = ATokenEvent | BalanceViewerEvent | DiaOracleEvent | FeeReductionProviderMockEvent | FlashLoanReceiverMockEvent | LendingPoolEvent | PriceFeedProviderEvent | Psp22EmitableEvent | Psp22ForAuditEvent | Psp22OwnableEvent | StableTokenEvent | TestReservesMinterEvent | VTokenEvent;
 export const ContractsEvents = {
   ATokenEvent,
   BalanceViewerEvent,
@@ -363,6 +363,4 @@ export const ContractsEvents = {
   StableTokenEvent,
   TestReservesMinterEvent,
   VTokenEvent
-  
 }
-  

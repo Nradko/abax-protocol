@@ -12,7 +12,8 @@ import type BN from 'bn.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import type { EventRecord } from '@polkadot/types/interfaces';
-import {decodeEvents} from "../shared/utils";
+import type { SignerOptions } from '@polkadot/api/submittable/types';
+import { decodeEvents, decodeEventsLegacy } from "../shared/utils";
 import EVENT_DATA_TYPE_DESCRIPTIONS from '../event-data/lending_pool.json';
 
 
@@ -38,11 +39,12 @@ export default class LendingPoolMethods {
 	*/
 	"setCode" (
 		codeHash: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setCode", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [codeHash], __options);
+		}, [codeHash], contractOptions, signerOptions);
 	}
 
 	/**
@@ -52,11 +54,12 @@ export default class LendingPoolMethods {
 	*/
 	"chooseMarketRule" (
 		marketRuleId: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::chooseMarketRule", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [marketRuleId], __options);
+		}, [marketRuleId], contractOptions, signerOptions);
 	}
 
 	/**
@@ -68,11 +71,12 @@ export default class LendingPoolMethods {
 	"setAsCollateral" (
 		asset: ArgumentTypes.AccountId,
 		useAsCollateral: boolean,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::setAsCollateral", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, useAsCollateral], __options);
+		}, [asset, useAsCollateral], contractOptions, signerOptions);
 	}
 
 	/**
@@ -88,11 +92,12 @@ export default class LendingPoolMethods {
 		onBehalfOf: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::deposit", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, onBehalfOf, amount, data], __options);
+		}, [asset, onBehalfOf, amount, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -108,11 +113,12 @@ export default class LendingPoolMethods {
 		onBehalfOf: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::withdraw", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, onBehalfOf, amount, data], __options);
+		}, [asset, onBehalfOf, amount, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -128,11 +134,12 @@ export default class LendingPoolMethods {
 		onBehalfOf: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::borrow", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, onBehalfOf, amount, data], __options);
+		}, [asset, onBehalfOf, amount, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -148,11 +155,12 @@ export default class LendingPoolMethods {
 		onBehalfOf: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::repay", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, onBehalfOf, amount, data], __options);
+		}, [asset, onBehalfOf, amount, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -166,11 +174,12 @@ export default class LendingPoolMethods {
 		actions: Array<ArgumentTypes.Action>,
 		onBehalfOf: ArgumentTypes.AccountId,
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::multiOp", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [actions, onBehalfOf, data], __options);
+		}, [actions, onBehalfOf, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -190,11 +199,12 @@ export default class LendingPoolMethods {
 		amountToRepay: (string | number | BN),
 		minimumRecievedForOneRepaidTokenE18: (string | number | BN),
 		data: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolActions::liquidate", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [liquidatedAccount, assetToRepay, assetToTake, amountToRepay, minimumRecievedForOneRepaidTokenE18, data], __options);
+		}, [liquidatedAccount, assetToRepay, assetToTake, amountToRepay, minimumRecievedForOneRepaidTokenE18, data], contractOptions, signerOptions);
 	}
 
 	/**
@@ -210,11 +220,12 @@ export default class LendingPoolMethods {
 		assets: Array<ArgumentTypes.AccountId>,
 		amounts: Array<(string | number | BN)>,
 		receiverParams: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolFlash::flashLoan", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [receiver, assets, amounts, receiverParams], __options);
+		}, [receiver, assets, amounts, receiverParams], contractOptions, signerOptions);
 	}
 
 	/**
@@ -224,11 +235,12 @@ export default class LendingPoolMethods {
 	*/
 	"accumulateInterest" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolMaintain::accumulateInterest", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -240,11 +252,12 @@ export default class LendingPoolMethods {
 	"adjustRateAtTarget" (
 		asset: ArgumentTypes.AccountId,
 		guessedIndex: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolMaintain::adjustRateAtTarget", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, guessedIndex], __options);
+		}, [asset, guessedIndex], contractOptions, signerOptions);
 	}
 
 	/**
@@ -254,11 +267,12 @@ export default class LendingPoolMethods {
 	*/
 	"setPriceFeedProvider" (
 		priceFeedProvider: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setPriceFeedProvider", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [priceFeedProvider], __options);
+		}, [priceFeedProvider], contractOptions, signerOptions);
 	}
 
 	/**
@@ -268,11 +282,12 @@ export default class LendingPoolMethods {
 	*/
 	"setFeeReductionProvider" (
 		feeReductionProvider: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setFeeReductionProvider", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [feeReductionProvider], __options);
+		}, [feeReductionProvider], contractOptions, signerOptions);
 	}
 
 	/**
@@ -282,11 +297,12 @@ export default class LendingPoolMethods {
 	*/
 	"setFlashLoanFeeE6" (
 		flashLoanFeeE6: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setFlashLoanFeeE6", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [flashLoanFeeE6], __options);
+		}, [flashLoanFeeE6], contractOptions, signerOptions);
 	}
 
 	/**
@@ -314,11 +330,12 @@ export default class LendingPoolMethods {
 		reserveRestrictions: ArgumentTypes.ReserveRestrictions,
 		reserveFees: ArgumentTypes.SetReserveFeesArgs,
 		interestRateModel: ArgumentTypes.InterestRateModelParams | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::registerAsset", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, aTokenCodeHash, vTokenCodeHash, name, symbol, decimals, assetRules, reserveRestrictions, reserveFees, interestRateModel], __options);
+		}, [asset, aTokenCodeHash, vTokenCodeHash, name, symbol, decimals, assetRules, reserveRestrictions, reserveFees, interestRateModel], contractOptions, signerOptions);
 	}
 
 	/**
@@ -330,11 +347,12 @@ export default class LendingPoolMethods {
 	"setReserveIsActive" (
 		asset: ArgumentTypes.AccountId,
 		active: boolean,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setReserveIsActive", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, active], __options);
+		}, [asset, active], contractOptions, signerOptions);
 	}
 
 	/**
@@ -346,11 +364,12 @@ export default class LendingPoolMethods {
 	"setReserveIsFrozen" (
 		asset: ArgumentTypes.AccountId,
 		freeze: boolean,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setReserveIsFrozen", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, freeze], __options);
+		}, [asset, freeze], contractOptions, signerOptions);
 	}
 
 	/**
@@ -362,11 +381,12 @@ export default class LendingPoolMethods {
 	"setInterestRateModel" (
 		asset: ArgumentTypes.AccountId,
 		interestRateModel: ArgumentTypes.InterestRateModelParams,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setInterestRateModel", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, interestRateModel], __options);
+		}, [asset, interestRateModel], contractOptions, signerOptions);
 	}
 
 	/**
@@ -378,11 +398,12 @@ export default class LendingPoolMethods {
 	"setReserveRestrictions" (
 		asset: ArgumentTypes.AccountId,
 		reserveRestrictions: ArgumentTypes.ReserveRestrictions,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setReserveRestrictions", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, reserveRestrictions], __options);
+		}, [asset, reserveRestrictions], contractOptions, signerOptions);
 	}
 
 	/**
@@ -394,11 +415,12 @@ export default class LendingPoolMethods {
 	"setReserveFees" (
 		asset: ArgumentTypes.AccountId,
 		reserveFees: ArgumentTypes.SetReserveFeesArgs,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setReserveFees", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, reserveFees], __options);
+		}, [asset, reserveFees], contractOptions, signerOptions);
 	}
 
 	/**
@@ -408,11 +430,12 @@ export default class LendingPoolMethods {
 	*/
 	"addMarketRule" (
 		marketRule: Array<ArgumentTypes.AssetRules | null>,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::addMarketRule", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [marketRule], __options);
+		}, [marketRule], contractOptions, signerOptions);
 	}
 
 	/**
@@ -426,11 +449,12 @@ export default class LendingPoolMethods {
 		marketRuleId: (number | string | BN),
 		asset: ArgumentTypes.AccountId,
 		assetRules: ArgumentTypes.AssetRules,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::modifyAssetRule", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [marketRuleId, asset, assetRules], __options);
+		}, [marketRuleId, asset, assetRules], contractOptions, signerOptions);
 	}
 
 	/**
@@ -442,11 +466,12 @@ export default class LendingPoolMethods {
 	"takeProtocolIncome" (
 		assets: Array<ArgumentTypes.AccountId> | null,
 		to: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::takeProtocolIncome", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets, to], __options);
+		}, [assets, to], contractOptions, signerOptions);
 	}
 
 	/**
@@ -458,11 +483,12 @@ export default class LendingPoolMethods {
 	"setStablecoinDebtRateE18" (
 		asset: ArgumentTypes.AccountId,
 		debtRateE18: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolManage::setStablecoinDebtRateE18", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, debtRateE18], __options);
+		}, [asset, debtRateE18], contractOptions, signerOptions);
 	}
 
 	/**
@@ -470,11 +496,12 @@ export default class LendingPoolMethods {
 	*
 	*/
 	"viewFlashLoanFeeE6" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewFlashLoanFeeE6", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -484,11 +511,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewAssetId" (
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewAssetId", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [account], __options);
+		}, [account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -496,11 +524,12 @@ export default class LendingPoolMethods {
 	*
 	*/
 	"viewRegisteredAssets" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewRegisteredAssets", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -510,11 +539,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewReserveData" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewReserveData", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -524,11 +554,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewUnupdatedReserveIndexes" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewUnupdatedReserveIndexes", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -538,11 +569,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewInterestRateModel" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewInterestRateModel", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -552,11 +584,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewReserveRestrictions" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewReserveRestrictions", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -566,11 +599,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewReserveTokens" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewReserveTokens", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -580,11 +614,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewReserveDecimalMultiplier" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewReserveDecimalMultiplier", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -594,11 +629,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewReserveIndexes" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewReserveIndexes", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -608,11 +644,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewReserveFees" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewReserveFees", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -624,11 +661,12 @@ export default class LendingPoolMethods {
 	"viewUnupdatedAccountReserveData" (
 		asset: ArgumentTypes.AccountId,
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewUnupdatedAccountReserveData", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, account], __options);
+		}, [asset, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -640,11 +678,12 @@ export default class LendingPoolMethods {
 	"viewAccountReserveData" (
 		asset: ArgumentTypes.AccountId,
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewAccountReserveData", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, account], __options);
+		}, [asset, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -654,11 +693,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewAccountConfig" (
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewAccountConfig", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [account], __options);
+		}, [account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -668,11 +708,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewMarketRule" (
 		marketRuleId: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewMarketRule", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [marketRuleId], __options);
+		}, [marketRuleId], contractOptions, signerOptions);
 	}
 
 	/**
@@ -682,11 +723,12 @@ export default class LendingPoolMethods {
 	*/
 	"getAccountFreeCollateralCoefficient" (
 		accountAddress: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::getAccountFreeCollateralCoefficient", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [accountAddress], __options);
+		}, [accountAddress], contractOptions, signerOptions);
 	}
 
 	/**
@@ -696,11 +738,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewProtocolIncome" (
 		assets: Array<ArgumentTypes.AccountId> | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewProtocolIncome", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [assets], __options);
+		}, [assets], contractOptions, signerOptions);
 	}
 
 	/**
@@ -710,11 +753,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewAssetTwIndex" (
 		asset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewAssetTwIndex", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset], __options);
+		}, [asset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -728,11 +772,12 @@ export default class LendingPoolMethods {
 		asset: ArgumentTypes.AccountId,
 		from: (number | string | BN),
 		to: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewAssetTwEntries", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [asset, from, to], __options);
+		}, [asset, from, to], contractOptions, signerOptions);
 	}
 
 	/**
@@ -746,11 +791,12 @@ export default class LendingPoolMethods {
 		period: (number | string | BN),
 		asset: ArgumentTypes.AccountId,
 		guessedIndex: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolView::viewTwUrFromPeriodLongerThan", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [period, asset, guessedIndex], __options);
+		}, [period, asset, guessedIndex], contractOptions, signerOptions);
 	}
 
 	/**
@@ -760,11 +806,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewCounterToAccount" (
 		counter: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accountRegistrarView::viewCounterToAccount", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [counter], __options);
+		}, [counter], contractOptions, signerOptions);
 	}
 
 	/**
@@ -774,11 +821,12 @@ export default class LendingPoolMethods {
 	*/
 	"viewAccountToCounter" (
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accountRegistrarView::viewAccountToCounter", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [account], __options);
+		}, [account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -786,11 +834,12 @@ export default class LendingPoolMethods {
 	*
 	*/
 	"viewNextCounter" (
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accountRegistrarView::viewNextCounter", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [], __options);
+		}, [], contractOptions, signerOptions);
 	}
 
 	/**
@@ -800,11 +849,12 @@ export default class LendingPoolMethods {
 	*/
 	"totalDepositOf" (
 		underlyingAsset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolATokenInterface::totalDepositOf", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [underlyingAsset], __options);
+		}, [underlyingAsset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -816,11 +866,12 @@ export default class LendingPoolMethods {
 	"accountDepositOf" (
 		underlyingAsset: ArgumentTypes.AccountId,
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolATokenInterface::accountDepositOf", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [underlyingAsset, account], __options);
+		}, [underlyingAsset, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -836,11 +887,12 @@ export default class LendingPoolMethods {
 		from: ArgumentTypes.AccountId,
 		to: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolATokenInterface::transferDepositFromTo", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [underlyingAsset, from, to, amount], __options);
+		}, [underlyingAsset, from, to, amount], contractOptions, signerOptions);
 	}
 
 	/**
@@ -850,11 +902,12 @@ export default class LendingPoolMethods {
 	*/
 	"totalDebtOf" (
 		underlyingAsset: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolVTokenInterface::totalDebtOf", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [underlyingAsset], __options);
+		}, [underlyingAsset], contractOptions, signerOptions);
 	}
 
 	/**
@@ -866,11 +919,12 @@ export default class LendingPoolMethods {
 	"accountDebtOf" (
 		underlyingAsset: ArgumentTypes.AccountId,
 		account: ArgumentTypes.AccountId,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolVTokenInterface::accountDebtOf", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [underlyingAsset, account], __options);
+		}, [underlyingAsset, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -886,11 +940,12 @@ export default class LendingPoolMethods {
 		from: ArgumentTypes.AccountId,
 		to: ArgumentTypes.AccountId,
 		amount: (string | number | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "lendingPoolVTokenInterface::transferDebtFromTo", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [underlyingAsset, from, to, amount], __options);
+		}, [underlyingAsset, from, to, amount], contractOptions, signerOptions);
 	}
 
 	/**
@@ -902,11 +957,12 @@ export default class LendingPoolMethods {
 	"hasRole" (
 		role: (number | string | BN),
 		address: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::hasRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, address], __options);
+		}, [role, address], contractOptions, signerOptions);
 	}
 
 	/**
@@ -916,11 +972,12 @@ export default class LendingPoolMethods {
 	*/
 	"getRoleAdmin" (
 		role: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::getRoleAdmin", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role], __options);
+		}, [role], contractOptions, signerOptions);
 	}
 
 	/**
@@ -932,11 +989,12 @@ export default class LendingPoolMethods {
 	"grantRole" (
 		role: (number | string | BN),
 		account: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::grantRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, account], __options);
+		}, [role, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -948,11 +1006,12 @@ export default class LendingPoolMethods {
 	"revokeRole" (
 		role: (number | string | BN),
 		account: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::revokeRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, account], __options);
+		}, [role, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -964,11 +1023,12 @@ export default class LendingPoolMethods {
 	"renounceRole" (
 		role: (number | string | BN),
 		account: ArgumentTypes.AccountId | null,
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::renounceRole", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, account], __options);
+		}, [role, account], contractOptions, signerOptions);
 	}
 
 	/**
@@ -980,11 +1040,12 @@ export default class LendingPoolMethods {
 	"setRoleAdmin" (
 		role: (number | string | BN),
 		newAdmin: (number | string | BN),
-		__options ? : ContractOptions,
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
 	){
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::setRoleAdmin", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [role, newAdmin], __options);
+		}, [role, newAdmin], contractOptions, signerOptions);
 	}
 
 }
