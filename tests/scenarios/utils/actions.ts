@@ -295,7 +295,7 @@ export const setUseAsCollateral = async (
             caller: caller.address,
             set: (accountConfigAfter.collaterals.toNumber() >> assetId.toNumber()) % 2 === 1 ? true : false,
           },
-          name: 'CollateralSet',
+          name: 'abax_contracts::lending_pool::events::CollateralSet',
         },
       ]);
     }
