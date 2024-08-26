@@ -74,8 +74,10 @@ export default class LendingPoolDeployer {
 	/**
 	* new
 	*
+	* @param { ArgumentTypes.AccountId } admin,
 	*/
    	async "new" (
+		admin: ArgumentTypes.AccountId,
 		__options ? : ContractOptions,
    	) {
    		const codePromise = this.createCodePromise();
@@ -83,7 +85,7 @@ export default class LendingPoolDeployer {
 		const gasLimit = (await genValidContractOptionsWithValue(this.nativeAPI, __options)).gasLimit as WeightV2 as any;
 
 		const storageDepositLimit = __options?.storageDepositLimit;
-		const tx = codePromise.tx["new"]!({ gasLimit, storageDepositLimit, value: __options?.value }, );
+		const tx = codePromise.tx["new"]!({ gasLimit, storageDepositLimit, value: __options?.value }, admin);
 		let response;
 
 		try {

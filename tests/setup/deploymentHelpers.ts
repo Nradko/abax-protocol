@@ -54,7 +54,7 @@ export async function deployCoreContracts(
   const aTokenCodeHash = aTokenCodeHashHex; //hexToBytes(aTokenCodeHashHex);
   const vTokenCodeHash = vTokenCodeHashHex; //hexToBytes(vTokenCodeHashHex);
 
-  const lendingPool = (await new LendingPoolDeployer(api, owner).new()).contract;
+  const lendingPool = (await new LendingPoolDeployer(api, owner).new(owner.address)).contract;
 
   const priceFeedProvider = (await new PriceFeedProviderDeployer(api, owner).new(oracle)).contract;
   return { priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
