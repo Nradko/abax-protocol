@@ -21,7 +21,7 @@ pendzl = { version = "0.2.4", default-features = false, features = [
 ] }
 
 
-abax_library = { path = "../../../library", default-features = false }
+abax_library = { version = "0.3.0", default-features = false }
 
 
 [lib]

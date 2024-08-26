@@ -7,7 +7,7 @@ import { TestEnv } from 'tests/scenarios/utils/make-suite';
 import AToken from '../../typechain/contracts/a_token';
 import BalanceViewer from '../../typechain/contracts/balance_viewer';
 import LendingPool from '../../typechain/contracts/lending_pool';
-import PSP22Emitable from '../../typechain/contracts/psp22_emitable';
+import PSP22Emitable from '../../typechain/contracts/test_psp22';
 import DiaOracle from '../../typechain/contracts/dia_oracle';
 import PriceFeedProvider from '../../typechain/contracts/price_feed_provider';
 import VToken from '../../typechain/contracts/v_token';
@@ -15,7 +15,6 @@ import StableToken from '../../typechain/contracts/stable_token';
 import { apiProviderWrapper, getSigners } from './helpers';
 import { getContractObject } from '@abaxfinance/contract-helpers';
 import { time } from '@c-forge/polkahat-network-helpers';
-import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
 
 export const DEFAULT_DEPLOYED_CONTRACTS_INFO_PATH = `${path.join(__dirname, 'deployedContracts.json')}`;
 
@@ -130,14 +129,9 @@ export const readContractsFromFile = async (writePath = DEFAULT_DEPLOYED_CONTRAC
   for (const contractInfo of reservesContracts) {
     if (!contractInfo.reserveName) continue;
     switch (contractInfo.name) {
-      case 'psp22_emitable': {
+      case 'test_psp22': {
         const reserve = await getContractObject(PSP22Emitable, contractInfo.address!, owner, api);
         reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve };
-        break;
-      }
-      case 'psp22_for_audit': {
-        const reserve = await getContractObject(Psp22ForAuditContract, contractInfo.address!, owner, api);
-        reservesWithLendingTokens[contractInfo.reserveName] = { ...reservesWithLendingTokens[contractInfo.reserveName], underlying: reserve as any };
         break;
       }
       case 'a_token': {

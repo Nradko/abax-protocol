@@ -4,7 +4,7 @@ import { makeSuite, TestEnv } from './scenarios/utils/make-suite';
 import { expect } from './setup/chai';
 import { apiProviderWrapper, getSigners, getSignersWithoutOwner } from './setup/helpers';
 import { restartAndRestoreNodeState } from './setup/nodePersistence';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Emitable from 'typechain/contracts/test_psp22';
 import StableToken from 'typechain/contracts/stable_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { KeyringPair } from '@polkadot/keyring/types';

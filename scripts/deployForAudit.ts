@@ -10,10 +10,10 @@ import { saveContractInfoToFileAsJson } from 'tests/setup/nodePersistence';
 import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/tokensToDeployForTesting';
 import { TokensToDeployForTesting } from 'tests/setup/tokensToDeployForTesting.types';
 import ATokenContract from 'typechain/contracts/a_token';
-import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
+import Psp22ForAuditContract from 'typechain/contracts/test_psp22';
 import VTokenContract from 'typechain/contracts/v_token';
 import BalanceViewerDeployer from 'typechain/deployers/balance_viewer';
-import Psp22ForAuditDeployer from 'typechain/deployers/psp22_for_audit';
+import Psp22ForAuditDeployer from 'typechain/deployers/test_psp22';
 
 const RESERVE_TOKENS_TO_DEPLOY: TokensToDeployForTesting = {
   reserveTokens: [
@@ -152,6 +152,7 @@ type TokenReserve = {
         reserveData.metadata.name,
         `Reserve ${reserveData.metadata.name} token`,
         reserveData.metadata.decimals,
+        signer.address,
       )
     ).contract;
     if (process.env.DEBUG) console.log(`${reserveData.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);

@@ -8,10 +8,10 @@ import { readContractsFromFile, saveContractInfoToFileAsJson } from 'tests/setup
 import { DEFAULT_INTEREST_RATE_MODEL_FOR_TESTING } from 'tests/setup/tokensToDeployForTesting';
 import { TestExternalToken, TokensToDeployForTesting } from 'tests/setup/tokensToDeployForTesting.types';
 import ATokenContract from 'typechain/contracts/a_token';
-import Psp22EmitableContract from 'typechain/contracts/psp22_emitable';
+import Psp22EmitableContract from 'typechain/contracts/test_psp22';
 import VTokenContract from 'typechain/contracts/v_token';
 import BalanceViewerDeployer from 'typechain/deployers/balance_viewer';
-import Psp22EmitableDeployer from 'typechain/deployers/psp22_emitable';
+import Psp22EmitableDeployer from 'typechain/deployers/test_psp22';
 import { AssetRules } from 'typechain/types-arguments/lending_pool';
 
 const RESERVE_TOKEN_TO_ADD: TestExternalToken & { stableRule?: AssetRules; cryptoRule?: AssetRules } = {

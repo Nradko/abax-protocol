@@ -3,7 +3,7 @@
 
 #[pendzl::implementation(Ownable)]
 #[ink::contract]
-pub mod psp22_emitable {
+pub mod test_psp22 {
 
     use pendzl::contracts::{
         ownable,

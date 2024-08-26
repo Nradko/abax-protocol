@@ -126,16 +126,16 @@ export interface StablecoinDebtRateChanged {
 	debtRateE18: BN;
 }
 
+export interface OwnershipTransferred {
+	new: ReturnTypes.AccountId | null;
+}
+
 export interface Paused {
 	account: ReturnTypes.AccountId;
 }
 
 export interface Unpaused {
 	account: ReturnTypes.AccountId;
-}
-
-export interface OwnershipTransferred {
-	new: ReturnTypes.AccountId | null;
 }
 
 export interface RoleAdminChanged {

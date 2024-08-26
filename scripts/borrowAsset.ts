@@ -4,7 +4,7 @@ import BN from 'bn.js';
 import chalk from 'chalk';
 import { deposit } from 'tests/scenarios/utils/actions';
 import LendingPoolContract from 'typechain/contracts/lending_pool';
-import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
+import Psp22ForAuditContract from 'typechain/contracts/test_psp22';
 
 const RESERVE_UNDERLYING_ADDRESS = '5EbQ2QZ552Yh936tZDX38nArMFxDutmEuFXkD4vJd7ZjJoaB';
 const LENDING_POOL_ADDRESS = '5EKSauepfGB3SxFSMCfhcurSb7ZvN7g6khtbySuJ6X7tHnep';

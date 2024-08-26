@@ -11,7 +11,7 @@ import { SignAndSendSuccessResponse } from '@c-forge/typechain-types';
 import { parseAmountToBN } from '@abaxfinance/utils';
 import AToken from '../../../typechain/contracts/a_token';
 import LendingPool from '../../../typechain/contracts/lending_pool';
-import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
+import PSP22Emitable from '../../../typechain/contracts/test_psp22';
 import VToken from '../../../typechain/contracts/v_token';
 import {
   CheckBorrowParameters,
@@ -115,7 +115,7 @@ export const deposit = async (
   const reserve: TokenReserve = reserves[reserveSymbol];
 
   const amountToDeposit = await convertToCurrencyDecimals(reserve.underlying, amount);
-  const args: Parameters<typeof lendingPool.tx.deposit> = [reserve.underlying.address, onBehalfOf.address, amountToDeposit, []];
+  const args: Parameters<typeof lendingPool.query.deposit> = [reserve.underlying.address, onBehalfOf.address, amountToDeposit, []];
 
   if (expectedResult === 'success') {
     const parametersBefore = await getCheckDepositParameters(lendingPool, reserve.underlying, reserve.aToken, caller, onBehalfOf);
@@ -157,7 +157,7 @@ export const withdraw = async (
   } else {
     amountToWithdraw = new BN(MAX_U128);
   }
-  const args: Parameters<typeof lendingPool.tx.withdraw> = [reserve.underlying.address, onBehalfOf.address, amountToWithdraw, []];
+  const args: Parameters<typeof lendingPool.query.withdraw> = [reserve.underlying.address, onBehalfOf.address, amountToWithdraw, []];
 
   if (expectedResult === 'success') {
     if (process.env.DEBUG) {
@@ -194,7 +194,7 @@ export const borrow = async (
   const parametersBefore = await getCheckBorrowParameters(lendingPool, reserve.underlying, reserve.vToken, caller, onBehalfOf);
 
   const amountToBorrow = await convertToCurrencyDecimals(reserve.underlying, amount);
-  const args: Parameters<typeof lendingPool.tx.borrow> = [reserve.underlying.address, onBehalfOf.address, amountToBorrow, [0]];
+  const args: Parameters<typeof lendingPool.query.borrow> = [reserve.underlying.address, onBehalfOf.address, amountToBorrow, [0]];
 
   if (expectedResult === 'success') {
     if (process.env.DEBUG) {
@@ -235,7 +235,7 @@ export const repay = async (
   } else {
     amountToRepay = new BN(MAX_U128);
   }
-  const args: Parameters<typeof lendingPool.tx.repay> = [reserve.underlying.address, onBehalfOf.address, amountToRepay, [0]];
+  const args: Parameters<typeof lendingPool.query.repay> = [reserve.underlying.address, onBehalfOf.address, amountToRepay, [0]];
   if (expectedResult === 'success') {
     if (process.env.DEBUG) {
       const { gasConsumed } = await lendingPool.withSigner(caller).query.repay(...args);
@@ -275,7 +275,7 @@ export const setUseAsCollateral = async (
   const { reserveData: reserveDataBefore } = await getAccountReserveDataWithTimestamp(underlying, caller, lendingPool);
 
   const useAsCollateralToSet = useAsCollateral.toLowerCase() === 'true';
-  const args: Parameters<typeof lendingPool.tx.setAsCollateral> = [underlying.address, useAsCollateralToSet];
+  const args: Parameters<typeof lendingPool.query.setAsCollateral> = [underlying.address, useAsCollateralToSet];
   if (expectedResult === 'success') {
     const { accountConfig: accountConfigBefore } = await getAccountReserveDataWithTimestamp(underlying, caller, lendingPool);
     if (process.env.DEBUG) {
