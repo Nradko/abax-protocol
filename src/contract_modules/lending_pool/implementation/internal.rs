@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use core::{cmp::Ordering, ops::Neg};
 
 use crate::{

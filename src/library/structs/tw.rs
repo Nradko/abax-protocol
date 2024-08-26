@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use pendzl::traits::Timestamp;
 
 const TW_INDEX_SIZE: u32 = 60;

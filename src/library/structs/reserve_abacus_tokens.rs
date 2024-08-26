@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use ink::primitives::AccountId;
 
 /// Stores AccountIds of PSP22 contracts that are wrappers of deposit(debt).

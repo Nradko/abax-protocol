@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use ink::storage::Mapping;
 use pendzl::traits::{AccountId, Balance};
 

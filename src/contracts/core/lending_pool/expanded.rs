@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 #![feature(prelude_import)]
 //! #LendingPoolContract
 //!
@@ -161,7 +162,9 @@ pub mod lending_pool {
                                     >()
                                     .name("access")
                                     .type_name(
-                                        "<access_control::AccessControlData as::ink::storage::traits::\nAutoStorableHint<::ink::storage::traits::ManualKey<3915596021u32,\n()>,>>::Type",
+                                        "<access_control::AccessControlData as::ink::storage::traits::
+AutoStorableHint<::ink::storage::traits::ManualKey<3915596021u32,
+()>,>>::Type",
                                     )
                             })
                             .field(|f| {
@@ -173,7 +176,8 @@ pub mod lending_pool {
                                     >()
                                     .name("lending_pool")
                                     .type_name(
-                                        "<LendingPoolStorage as::ink::storage::traits::AutoStorableHint<::\nink::storage::traits::ManualKey<652888729u32, ()>,>>::Type",
+                                        "<LendingPoolStorage as::ink::storage::traits::AutoStorableHint<::
+ink::storage::traits::ManualKey<652888729u32, ()>,>>::Type",
                                     )
                             })
                             .field(|f| {
@@ -185,7 +189,8 @@ pub mod lending_pool {
                                     >()
                                     .name("account_registrar")
                                     .type_name(
-                                        "<AccountRegistrar as::ink::storage::traits::AutoStorableHint<::ink\n::storage::traits::ManualKey<4128225549u32, ()>,>>::Type",
+                                        "<AccountRegistrar as::ink::storage::traits::AutoStorableHint<::ink
+::storage::traits::ManualKey<4128225549u32, ()>,>>::Type",
                                     )
                             }),
                     )

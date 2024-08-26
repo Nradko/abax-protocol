@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use ink::{
     contract_ref, env::DefaultEnvironment, prelude::vec::Vec,
     primitives::AccountId,
