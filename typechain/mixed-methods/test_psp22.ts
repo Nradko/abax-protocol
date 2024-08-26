@@ -40,6 +40,25 @@ export default class Methods {
 	}
 
 	/**
+	* tApprove
+	*
+	* @param { ArgumentTypes.AccountId } from,
+	* @param { ArgumentTypes.AccountId } to,
+	* @param { (string | number | BN) } value,
+	* @returns { void }
+	*/
+	"tApprove" (
+		from: ArgumentTypes.AccountId,
+		to: ArgumentTypes.AccountId,
+		value: (string | number | BN),
+		__options: ContractOptions,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "tApprove", (events: EventRecord[]) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [from, to, value], __options);
+	}
+
+	/**
 	* totalSupply
 	*
 	* @returns { Result<BN, ReturnTypes.LangError> }
@@ -47,7 +66,7 @@ export default class Methods {
 	"totalSupply" (
 		__options: ContractOptions,
 	): Promise< QueryReturnType< Result<BN, ReturnTypes.LangError> > >{
-		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "psp22::totalSupply", [], __options, (result) => { return handleReturnType(result, getTypeDescription(43, DATA_TYPE_DESCRIPTIONS)); });
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "psp22::totalSupply", [], __options, (result) => { return handleReturnType(result, getTypeDescription(46, DATA_TYPE_DESCRIPTIONS)); });
 	}
 
 	/**
@@ -60,7 +79,7 @@ export default class Methods {
 		owner: ArgumentTypes.AccountId,
 		__options: ContractOptions,
 	): Promise< QueryReturnType< Result<BN, ReturnTypes.LangError> > >{
-		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "psp22::balanceOf", [owner], __options, (result) => { return handleReturnType(result, getTypeDescription(43, DATA_TYPE_DESCRIPTIONS)); });
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "psp22::balanceOf", [owner], __options, (result) => { return handleReturnType(result, getTypeDescription(46, DATA_TYPE_DESCRIPTIONS)); });
 	}
 
 	/**
@@ -75,7 +94,7 @@ export default class Methods {
 		spender: ArgumentTypes.AccountId,
 		__options: ContractOptions,
 	): Promise< QueryReturnType< Result<BN, ReturnTypes.LangError> > >{
-		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "psp22::allowance", [owner, spender], __options, (result) => { return handleReturnType(result, getTypeDescription(43, DATA_TYPE_DESCRIPTIONS)); });
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "psp22::allowance", [owner, spender], __options, (result) => { return handleReturnType(result, getTypeDescription(46, DATA_TYPE_DESCRIPTIONS)); });
 	}
 
 	/**

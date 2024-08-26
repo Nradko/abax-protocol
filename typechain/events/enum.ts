@@ -191,14 +191,14 @@ export enum LendingPoolEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
   OwnershipTransferred = 'OwnershipTransferred',
   Paused = 'Paused',
   Unpaused = 'Unpaused',
-  Transfer = 'Transfer',
-  Approval = 'Approval'
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked'
 
 }
 

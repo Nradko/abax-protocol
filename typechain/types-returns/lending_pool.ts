@@ -428,3 +428,29 @@ export type InterestRateModelParams = {
 	minimalTimeBetweenAdjustments: BN
 }
 
+export type Hash = string | number[]
+
+export interface SetCodeHashError {
+	custom ? : string,
+	setCodeHashFailed ? : null,
+	permissionError ? : string
+}
+
+export class SetCodeHashErrorBuilder {
+	static Custom(value: string): SetCodeHashError {
+		return {
+			custom: value,
+		};
+	}
+	static SetCodeHashFailed(): SetCodeHashError {
+		return {
+			setCodeHashFailed: null,
+		};
+	}
+	static PermissionError(value: string): SetCodeHashError {
+		return {
+			permissionError: value,
+		};
+	}
+}
+

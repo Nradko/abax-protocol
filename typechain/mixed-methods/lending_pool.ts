@@ -40,21 +40,6 @@ export default class Methods {
 	}
 
 	/**
-	* setCode
-	*
-	* @param { Array<(number | string | BN)> } codeHash,
-	* @returns { void }
-	*/
-	"setCode" (
-		codeHash: Array<(number | string | BN)>,
-		__options: ContractOptions,
-	){
-		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setCode", (events: EventRecord[]) => {
-			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
-		}, [codeHash], __options);
-	}
-
-	/**
 	* chooseMarketRule
 	*
 	* @param { (number | string | BN) } marketRuleId,
@@ -995,6 +980,21 @@ export default class Methods {
 		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "accessControl::setRoleAdmin", (events: EventRecord[]) => {
 			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
 		}, [role, newAdmin], __options);
+	}
+
+	/**
+	* setCodeHash
+	*
+	* @param { ArgumentTypes.Hash } setCodeHash,
+	* @returns { void }
+	*/
+	"setCodeHash" (
+		setCodeHash: ArgumentTypes.Hash,
+		__options: ContractOptions,
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "setCodeHash::setCodeHash", (events: EventRecord[]) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [setCodeHash], __options);
 	}
 
 }

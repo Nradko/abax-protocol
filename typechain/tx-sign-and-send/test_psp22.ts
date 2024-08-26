@@ -33,6 +33,25 @@ export default class TestPsp22Methods {
 	}
 
 	/**
+	* tApprove
+	*
+	* @param { ArgumentTypes.AccountId } from,
+	* @param { ArgumentTypes.AccountId } to,
+	* @param { (string | number | BN) } value,
+	*/
+	"tApprove" (
+		from: ArgumentTypes.AccountId,
+		to: ArgumentTypes.AccountId,
+		value: (string | number | BN),
+		contractOptions ? : ContractOptions,
+		signerOptions ? : Partial<SignerOptions>
+	){
+		return txSignAndSend( this.__apiPromise, this.__nativeContract, this.__keyringPair, "tApprove", (events: EventRecord[]) => {
+			return decodeEvents(events, this.__nativeContract, EVENT_DATA_TYPE_DESCRIPTIONS);
+		}, [from, to, value], contractOptions, signerOptions);
+	}
+
+	/**
 	* totalSupply
 	*
 	*/

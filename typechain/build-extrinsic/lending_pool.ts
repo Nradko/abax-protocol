@@ -23,18 +23,6 @@ export default class Methods {
 		this.__apiPromise = apiPromise;
 	}
 	/**
-	 * setCode
-	 *
-	 * @param { Array<(number | string | BN)> } codeHash,
-	*/
-	"setCode" (
-		codeHash: Array<(number | string | BN)>,
-		__options: ContractOptions,
-	){
-		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "setCode", [codeHash], __options);
-	}
-
-	/**
 	 * chooseMarketRule
 	 *
 	 * @param { (number | string | BN) } marketRuleId,
@@ -856,6 +844,18 @@ export default class Methods {
 		__options: ContractOptions,
 	){
 		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "accessControl::setRoleAdmin", [role, newAdmin], __options);
+	}
+
+	/**
+	 * setCodeHash
+	 *
+	 * @param { ArgumentTypes.Hash } setCodeHash,
+	*/
+	"setCodeHash" (
+		setCodeHash: ArgumentTypes.Hash,
+		__options: ContractOptions,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "setCodeHash::setCodeHash", [setCodeHash], __options);
 	}
 
 }
