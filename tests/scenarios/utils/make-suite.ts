@@ -7,7 +7,7 @@ import BalanceViewer from '../../../typechain/contracts/balance_viewer';
 import DiaOracleContract from '../../../typechain/contracts/dia_oracle';
 import LendingPoolContract from '../../../typechain/contracts/lending_pool';
 import PriceFeedProvider from '../../../typechain/contracts/price_feed_provider';
-import PSP22Emitable from '../../../typechain/contracts/psp22_emitable';
+import PSP22Emitable from '../../../typechain/contracts/test_psp22';
 import StableToken from '../../../typechain/contracts/stable_token';
 import VTokenContract from '../../../typechain/contracts/v_token';
 import { ApiPromise } from '@polkadot/api';

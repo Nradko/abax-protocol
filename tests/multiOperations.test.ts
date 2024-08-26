@@ -2,7 +2,7 @@ import { KeyringPair } from '@polkadot/keyring/types';
 
 import BN from 'bn.js';
 import ATokenContract from 'typechain/contracts/a_token';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Emitable from 'typechain/contracts/test_psp22';
 import VTokenContract from 'typechain/contracts/v_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';

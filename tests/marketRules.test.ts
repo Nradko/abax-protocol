@@ -1,7 +1,7 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 
 import BN from 'bn.js';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Emitable from 'typechain/contracts/test_psp22';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { MAX_U128, ROLES } from './consts';

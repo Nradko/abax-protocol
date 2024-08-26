@@ -1,11 +1,8 @@
 import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 import { getApiProviderWrapper } from '@c-forge/polkahat-network-helpers';
 import Keyring from '@polkadot/keyring';
-import BN from 'bn.js';
 import chalk from 'chalk';
-import { deposit } from 'tests/scenarios/utils/actions';
 import LendingPoolContract from 'typechain/contracts/lending_pool';
-import Psp22ForAuditContract from 'typechain/contracts/psp22_for_audit';
 
 const LENDING_POOL_ADDRESS = '5HCeJm2B9Vj5kzFrtGBEjEbv7xPDxW1QzSZXTixJqTBfycPh';
 

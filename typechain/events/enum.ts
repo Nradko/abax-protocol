@@ -22,14 +22,14 @@ export enum ATokenEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused'
+  OwnershipTransferred = 'OwnershipTransferred'
 
 }
 
@@ -55,9 +55,9 @@ export enum BalanceViewerEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  OwnershipTransferred = 'OwnershipTransferred',
   Paused = 'Paused',
   Unpaused = 'Unpaused',
-  OwnershipTransferred = 'OwnershipTransferred',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
@@ -123,12 +123,12 @@ export enum FeeReductionProviderMockEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
   OwnershipTransferred = 'OwnershipTransferred',
   Transfer = 'Transfer',
   Approval = 'Approval',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked',
   Paused = 'Paused',
   Unpaused = 'Unpaused'
 
@@ -158,9 +158,9 @@ export enum FlashLoanReceiverMockEvent {
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
   ExecutedWithSuccess = 'ExecutedWithSuccess',
   ExecutedWithFail = 'ExecutedWithFail',
+  OwnershipTransferred = 'OwnershipTransferred',
   Paused = 'Paused',
   Unpaused = 'Unpaused',
-  OwnershipTransferred = 'OwnershipTransferred',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
@@ -191,12 +191,12 @@ export enum LendingPoolEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
+  OwnershipTransferred = 'OwnershipTransferred',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
   Transfer = 'Transfer',
   Approval = 'Approval'
 
@@ -224,12 +224,12 @@ export enum PriceFeedProviderEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
   OwnershipTransferred = 'OwnershipTransferred',
   Transfer = 'Transfer',
   Approval = 'Approval',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked',
   Paused = 'Paused',
   Unpaused = 'Unpaused'
 
@@ -293,24 +293,36 @@ export enum StableTokenEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
+  OwnershipTransferred = 'OwnershipTransferred',
   Transfer = 'Transfer',
   Approval = 'Approval',
-  OwnershipTransferred = 'OwnershipTransferred',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked'
+
+}
+
+export enum TestPsp22Event {
+  Transfer = 'Transfer',
+  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
+  OwnershipTransferred = 'OwnershipTransferred',
   Paused = 'Paused',
   Unpaused = 'Unpaused'
 
 }
 
 export enum TestReservesMinterEvent {
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
   OwnershipTransferred = 'OwnershipTransferred',
   Transfer = 'Transfer',
   Approval = 'Approval',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked',
   Paused = 'Paused',
   Unpaused = 'Unpaused'
 
@@ -338,17 +350,17 @@ export enum VTokenEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused'
+  OwnershipTransferred = 'OwnershipTransferred'
 
 }
-export type AnyContractEvent = ATokenEvent | BalanceViewerEvent | DiaOracleEvent | FeeReductionProviderMockEvent | FlashLoanReceiverMockEvent | LendingPoolEvent | PriceFeedProviderEvent | Psp22EmitableEvent | Psp22ForAuditEvent | Psp22OwnableEvent | StableTokenEvent | TestReservesMinterEvent | VTokenEvent;
+export type AnyContractEvent = ATokenEvent | BalanceViewerEvent | DiaOracleEvent | FeeReductionProviderMockEvent | FlashLoanReceiverMockEvent | LendingPoolEvent | PriceFeedProviderEvent | Psp22EmitableEvent | Psp22ForAuditEvent | Psp22OwnableEvent | StableTokenEvent | TestPsp22Event | TestReservesMinterEvent | VTokenEvent;
 export const ContractsEvents = {
   ATokenEvent,
   BalanceViewerEvent,
@@ -361,6 +373,7 @@ export const ContractsEvents = {
   Psp22ForAuditEvent,
   Psp22OwnableEvent,
   StableTokenEvent,
+  TestPsp22Event,
   TestReservesMinterEvent,
   VTokenEvent
 }

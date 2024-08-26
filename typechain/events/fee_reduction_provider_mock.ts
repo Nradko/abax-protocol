@@ -293,45 +293,6 @@ export default class EventsClass {
 		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x4fde6d40bee7fd565c8e00072d605f588ed45a773a363365b8a433f641e54785');
 	}
 
-	public subscribeOnRoleAdminChangedEvent(callback : (event : EventTypes.RoleAdminChanged) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0xde670cace683976bfdc92b54b661961802f8322e8cead41fd76e5d7ca65dc403', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.RoleAdminChanged);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0xde670cace683976bfdc92b54b661961802f8322e8cead41fd76e5d7ca65dc403');
-	}
-
-	public subscribeOnRoleGrantedEvent(callback : (event : EventTypes.RoleGranted) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0x4178b665aa7310f609a3da6698348eabe212f3b0bd0386791eeae4924095b76b', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.RoleGranted);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x4178b665aa7310f609a3da6698348eabe212f3b0bd0386791eeae4924095b76b');
-	}
-
-	public subscribeOnRoleRevokedEvent(callback : (event : EventTypes.RoleRevoked) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0x00d57dbcb9a54f822039e86efe3513a9af40deb0e6a9ee6cecf39824f8d27e9b', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.RoleRevoked);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x00d57dbcb9a54f822039e86efe3513a9af40deb0e6a9ee6cecf39824f8d27e9b');
-	}
-
 	public subscribeOnOwnershipTransferredEvent(callback : (event : EventTypes.OwnershipTransferred) => void) {
 		const callbackWrapper = (args: any[], event: any) => {
 			const _event: Record < string, any > = {};
@@ -369,6 +330,45 @@ export default class EventsClass {
 			callback(handleEventReturn(_event, getEventTypeDescription('0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Approval);
 		};
 		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d');
+	}
+
+	public subscribeOnRoleAdminChangedEvent(callback : (event : EventTypes.RoleAdminChanged) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0xde670cace683976bfdc92b54b661961802f8322e8cead41fd76e5d7ca65dc403', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.RoleAdminChanged);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0xde670cace683976bfdc92b54b661961802f8322e8cead41fd76e5d7ca65dc403');
+	}
+
+	public subscribeOnRoleGrantedEvent(callback : (event : EventTypes.RoleGranted) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0x4178b665aa7310f609a3da6698348eabe212f3b0bd0386791eeae4924095b76b', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.RoleGranted);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x4178b665aa7310f609a3da6698348eabe212f3b0bd0386791eeae4924095b76b');
+	}
+
+	public subscribeOnRoleRevokedEvent(callback : (event : EventTypes.RoleRevoked) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0x00d57dbcb9a54f822039e86efe3513a9af40deb0e6a9ee6cecf39824f8d27e9b', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.RoleRevoked);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x00d57dbcb9a54f822039e86efe3513a9af40deb0e6a9ee6cecf39824f8d27e9b');
 	}
 
 	public subscribeOnPausedEvent(callback : (event : EventTypes.Paused) => void) {

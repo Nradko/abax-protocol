@@ -319,6 +319,19 @@ export default class EventsClass {
 		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x960598314f895ba03934229bcc8a7eeb085c52a05b11eddcd5b11563513f8a25');
 	}
 
+	public subscribeOnOwnershipTransferredEvent(callback : (event : EventTypes.OwnershipTransferred) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.OwnershipTransferred);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9');
+	}
+
 	public subscribeOnPausedEvent(callback : (event : EventTypes.Paused) => void) {
 		const callbackWrapper = (args: any[], event: any) => {
 			const _event: Record < string, any > = {};
@@ -343,19 +356,6 @@ export default class EventsClass {
 			callback(handleEventReturn(_event, getEventTypeDescription('0x29f037cd7cf467977af6c1d02a3c4ab9c868bb6ce539c0d87ea507d594709d41', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Unpaused);
 		};
 		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x29f037cd7cf467977af6c1d02a3c4ab9c868bb6ce539c0d87ea507d594709d41');
-	}
-
-	public subscribeOnOwnershipTransferredEvent(callback : (event : EventTypes.OwnershipTransferred) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.OwnershipTransferred);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9');
 	}
 
 	public subscribeOnRoleAdminChangedEvent(callback : (event : EventTypes.RoleAdminChanged) => void) {
