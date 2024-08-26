@@ -8,7 +8,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[pendzl::implementation(AccessControl)]
+#[pendzl::implementation(AccessControl, SetCodeHash)]
 #[ink::contract]
 pub mod lending_pool {
     use abax_contracts::account_registrar::AccountRegistrarView;
@@ -18,7 +18,6 @@ pub mod lending_pool {
         LendingPoolATokenInterface, LendingPoolActions, LendingPoolError,
         LendingPoolFlash, LendingPoolMaintain, LendingPoolManage,
         LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
-        ROLE_ADMIN,
     };
     use abax_contracts::{
         account_registrar::implementation::AccountRegistrar,
@@ -640,27 +639,6 @@ pub mod lending_pool {
                 ._grant_role(Self::_default_admin(), Some(caller))
                 .expect("caller should become admin");
             instance
-        }
-
-        #[ink(message)]
-        pub fn set_code(
-            &mut self,
-            code_hash: [u8; 32],
-        ) -> Result<(), LendingPoolError> {
-            access_control::AccessControlInternal::_ensure_has_role(
-                self,
-                ROLE_ADMIN,
-                Some(Self::env().caller()),
-            )?;
-            ink::env::set_code_hash::<DefaultEnvironment>(&code_hash.into())
-                .unwrap_or_else(|err| {
-                    panic!(
-                        "Failed to `set_code_hash` to {:?} due to {:?}",
-                        code_hash, err
-                    )
-                });
-
-            Ok(())
         }
     }
 }

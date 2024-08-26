@@ -17,6 +17,7 @@ pendzl = { version = "0.2.4", default-features = false, features = [
     "psp22",
     "access_control",
     "access_control_impl",
+    "set_code_hash_impl",
 ] }
 
 

@@ -31,19 +31,6 @@ export default class LendingPoolMethods {
 	}
 
 	/**
-	* setCode
-	*
-	* @param { Array<(number | string | BN)> } codeHash,
-	* @returns { Result<Result<null, ReturnTypes.LendingPoolError>, ReturnTypes.LangError> }
-	*/
-	"setCode" (
-		codeHash: Array<(number | string | BN)>,
-		__options ? : ContractOptions,
-	): Promise< QueryReturnType< Result<Result<null, ReturnTypes.LendingPoolError>, ReturnTypes.LangError> > >{
-		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "setCode", [codeHash], __options , (result) => { return handleReturnType(result, getTypeDescription(122, DATA_TYPE_DESCRIPTIONS)); });
-	}
-
-	/**
 	* chooseMarketRule
 	*
 	* @param { (number | string | BN) } marketRuleId,
@@ -924,6 +911,19 @@ export default class LendingPoolMethods {
 		__options ? : ContractOptions,
 	): Promise< QueryReturnType< Result<Result<null, ReturnTypes.AccessControlError>, ReturnTypes.LangError> > >{
 		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "accessControl::setRoleAdmin", [role, newAdmin], __options , (result) => { return handleReturnType(result, getTypeDescription(190, DATA_TYPE_DESCRIPTIONS)); });
+	}
+
+	/**
+	* setCodeHash
+	*
+	* @param { ArgumentTypes.Hash } setCodeHash,
+	* @returns { Result<Result<null, ReturnTypes.SetCodeHashError>, ReturnTypes.LangError> }
+	*/
+	"setCodeHash" (
+		setCodeHash: ArgumentTypes.Hash,
+		__options ? : ContractOptions,
+	): Promise< QueryReturnType< Result<Result<null, ReturnTypes.SetCodeHashError>, ReturnTypes.LangError> > >{
+		return queryOkJSON( this.__apiPromise, this.__nativeContract, this.__callerAddress, "setCodeHash::setCodeHash", [setCodeHash], __options , (result) => { return handleReturnType(result, getTypeDescription(193, DATA_TYPE_DESCRIPTIONS)); });
 	}
 
 }

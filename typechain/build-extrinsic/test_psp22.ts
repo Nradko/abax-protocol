@@ -23,6 +23,22 @@ export default class Methods {
 		this.__apiPromise = apiPromise;
 	}
 	/**
+	 * tApprove
+	 *
+	 * @param { ArgumentTypes.AccountId } from,
+	 * @param { ArgumentTypes.AccountId } to,
+	 * @param { (string | number | BN) } value,
+	*/
+	"tApprove" (
+		from: ArgumentTypes.AccountId,
+		to: ArgumentTypes.AccountId,
+		value: (string | number | BN),
+		__options: ContractOptions,
+	){
+		return buildSubmittableExtrinsic( this.__apiPromise, this.__nativeContract, "tApprove", [from, to, value], __options);
+	}
+
+	/**
 	 * totalSupply
 	 *
 	*/
