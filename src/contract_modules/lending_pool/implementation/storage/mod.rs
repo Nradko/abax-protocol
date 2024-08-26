@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use crate::{
     fee_reduction::{FeeReduction, FeeReductionRef},
     lending_pool::{DecimalMultiplier, LendingPoolError, MarketRule, RuleId},

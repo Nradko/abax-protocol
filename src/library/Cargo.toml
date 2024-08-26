@@ -3,6 +3,8 @@ name = "abax_library"
 version = "0.3.0"
 authors = ["Łukasz Łakomy", "Konrad Wierzbik"]
 edition = "2021"
+description = "Library for the Abax Protocol containing shared logic and data structures"
+license = "BUSL-1.1"
 
 [dependencies]
 ink = { version = "5.0.0", default-features = false }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 pub const E6_U32: u32 = 10_u32.pow(6);
 pub const E6_U64: u64 = 10_u64.pow(6);
 

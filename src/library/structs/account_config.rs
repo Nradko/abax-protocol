@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 pub type Bitmap128 = u128;
 
 /// stores information about which asset is deposited, used as collatearl and borrowed by an account and which `market_rule_id` the account has chosen.

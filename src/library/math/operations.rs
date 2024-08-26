@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use pendzl::math::{
     errors::MathError,
     operations::{mul_div, Rounding},

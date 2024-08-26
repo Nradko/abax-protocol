@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use abax_library::structs::FeeReductions;
 use ink::primitives::AccountId;
 

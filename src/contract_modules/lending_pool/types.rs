@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use abax_library::structs::AssetRules;
 use ink::prelude::vec::Vec;
 
