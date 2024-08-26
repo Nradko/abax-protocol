@@ -624,9 +624,8 @@ pub mod lending_pool {
 
     impl LendingPool {
         #[ink(constructor)]
-        pub fn new() -> Self {
+        pub fn new(admin: AccountId) -> Self {
             let mut instance = Self::default();
-            let caller = instance.env().caller();
             instance.lending_pool.next_asset_id.set(&0);
             instance.lending_pool.next_rule_id.set(&0);
             instance.lending_pool.flash_loan_fee_e6.set(&1000);
@@ -636,8 +635,8 @@ pub mod lending_pool {
                 },
             );
             instance
-                ._grant_role(Self::_default_admin(), Some(caller))
-                .expect("caller should become admin");
+                ._grant_role(Self::_default_admin(), Some(admin))
+                .expect("default admin role should be granted");
             instance
         }
     }
