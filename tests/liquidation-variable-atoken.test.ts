@@ -327,7 +327,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'Liquidation',
+            name: 'abax_contracts::lending_pool::events::Liquidation',
             args: {
               liquidator: liquidator.address,
               liquidatedAccount: borrower.address,

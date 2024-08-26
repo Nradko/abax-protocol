@@ -97,7 +97,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
           const txRes = await lendingPool.withSigner(account).tx.chooseMarketRule(1);
           expect(stringifyNumericProps(txRes.events)).to.deep.equal([
             {
-              name: 'MarketRuleChosen',
+              name: 'abax_contracts::lending_pool::events::MarketRuleChosen',
               args: {
                 caller: account.address,
                 marketRuleId: '1',
@@ -118,7 +118,7 @@ makeSuite('Market Rule tests. Create MarketRule for Stablecoins only with id 1',
               .tx.modifyAssetRule(1, usdcContract.address, { collateralCoefficientE6: 0, borrowCoefficientE6: 1030000, penaltyE6: 15000 });
             expect(stringifyNumericProps(txRes.events)).to.deep.equal([
               {
-                name: 'AssetRulesChanged',
+                name: 'abax_contracts::lending_pool::events::AssetRulesChanged',
                 args: {
                   marketRuleId: '1',
                   asset: testEnv.reserves['USDC'].underlying.address,

@@ -16,7 +16,7 @@ dependencies = [
 
 [[package]]
 name = "abax_contracts"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "abax_library",
  "ink",
@@ -27,7 +27,7 @@ dependencies = [
 
 [[package]]
 name = "abax_library"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "ink",
  "parity-scale-codec",

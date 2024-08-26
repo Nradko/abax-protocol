@@ -71,7 +71,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
 
       expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
         {
-          name: 'Borrow',
+          name: 'abax_contracts::lending_pool::events::Borrow',
           args: {
             amount: initialUsdaxDebt.toString(),
             onBehalfOf: alice.address,
@@ -141,7 +141,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         });
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'Repay',
+            name: 'abax_contracts::lending_pool::events::Repay',
             args: {
               amount: initialUsdaxDebt.toString(),
               onBehalfOf: alice.address,
