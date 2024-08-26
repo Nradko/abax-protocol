@@ -10,7 +10,7 @@ import { E6bn, toE } from '@c-forge/polkahat-network-helpers';
 import { ONE_HOUR, ONE_MIN, ONE_PERCENT_APR_E18, ONE_SEC } from './setup/tokensToDeployForTesting';
 import { time } from '@c-forge/polkahat-network-helpers';
 
-makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
+makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
@@ -22,6 +22,7 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
 
   let wethDeposit: BN;
   let usdcDeposit: BN;
+  let initialTimestamp: number;
 
   beforeEach('setup Env', async () => {
     testEnv = getTestEnv();
@@ -35,6 +36,7 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
 
     wethDeposit = toE(18, '100');
     usdcDeposit = toE(12, '1000000');
+    initialTimestamp = await time.latest();
 
     await usdcContract.tx.mint(borrower.address, usdcDeposit);
     await wethContract.tx.mint(supplier.address, wethDeposit);
@@ -46,7 +48,6 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
   it('the initial interest rate model is correct', async () => {
     const reserve = usdcContract;
     const interestRateModel: InterestRateModel = (await lendingPool.query.viewInterestRateModel(reserve.address)).value.ok!;
-    const timestamp = await time.latest();
 
     expect(stringifyNumericProps(interestRateModel)).to.deep.equal(
       stringifyNumericProps({
@@ -56,7 +57,7 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
         rateAtTargetUrE18: 2 * ONE_PERCENT_APR_E18,
         rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
         minimalTimeBetweenAdjustments: ONE_HOUR,
-        lastAdjustmentTimestamp: timestamp,
+        lastAdjustmentTimestamp: initialTimestamp,
       }),
     );
   });
