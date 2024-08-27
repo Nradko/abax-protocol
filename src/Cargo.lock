@@ -4,24 +4,13 @@ version = 3
 
 [[package]]
 name = "a_token"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
- "scale-info",
-]
-
-[[package]]
-name = "abax_contracts"
-version = "0.3.0"
-dependencies = [
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "ink",
- "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -31,21 +20,21 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b081885d050e714ef8ff4215c7f4eaa9e110e86744094e7f2cad589637d7f7c2"
 dependencies = [
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 0.2.4",
  "scale-info",
 ]
 
 [[package]]
-name = "abax_library"
-version = "0.3.0"
+name = "abax_contracts"
+version = "1.0.0"
 dependencies = [
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
- "primitive-types",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -57,7 +46,18 @@ checksum = "2ff58a8382cee73018135a6f2949d3a766efc6ad003ebd5df3bb4bafa538e176"
 dependencies = [
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 0.2.4",
+ "primitive-types",
+ "scale-info",
+]
+
+[[package]]
+name = "abax_library"
+version = "1.0.0"
+dependencies = [
+ "ink",
+ "parity-scale-codec",
+ "pendzl 1.0.1-v1calls",
  "primitive-types",
  "scale-info",
 ]
@@ -100,11 +100,11 @@ checksum = "f1fdabc7756949593fe60f30ec81974b613357de856987752631dea1e3394c80"
 name = "balance_viewer"
 version = "0.2.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -344,11 +344,11 @@ dependencies = [
 name = "dia_oracle"
 version = "0.2.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -391,11 +391,11 @@ checksum = "b90ca2580b73ab6a1f724b76ca11ab632df820fd6040c336200d2c1df7b3c82c"
 name = "fee_reduction_provider_mock"
 version = "0.2.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -421,11 +421,11 @@ dependencies = [
 name = "flash_loan_receiver_mock"
 version = "0.2.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -824,13 +824,13 @@ dependencies = [
 
 [[package]]
 name = "lending_pool"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -944,8 +944,21 @@ checksum = "2391b874732ca67f2919059c03e7506a2ff8b24078f77cfa2dec98a1b594d196"
 dependencies = [
  "ink",
  "parity-scale-codec",
- "pendzl_contracts",
- "pendzl_lang",
+ "pendzl_contracts 0.2.4",
+ "pendzl_lang 0.2.4",
+ "scale-info",
+]
+
+[[package]]
+name = "pendzl"
+version = "1.0.1-v1calls"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c79ba487736e2475e44ec917040cd87dc4ba9f27fddb8c95f4bf130b4ac6a65"
+dependencies = [
+ "ink",
+ "parity-scale-codec",
+ "pendzl_contracts 1.0.1-v1calls",
+ "pendzl_lang 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -958,7 +971,20 @@ dependencies = [
  "hex",
  "ink",
  "parity-scale-codec",
- "pendzl_lang",
+ "pendzl_lang 0.2.4",
+ "scale-info",
+]
+
+[[package]]
+name = "pendzl_contracts"
+version = "1.0.1-v1calls"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab692839aad45923200968ff94a3c64595f6a17f1059ae3d0e363a80a4837699"
+dependencies = [
+ "hex",
+ "ink",
+ "parity-scale-codec",
+ "pendzl_lang 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -972,7 +998,22 @@ dependencies = [
  "ethnum",
  "ink",
  "parity-scale-codec",
- "pendzl_lang_macro",
+ "pendzl_lang_macro 0.2.4",
+ "scale-info",
+ "xxhash-rust",
+]
+
+[[package]]
+name = "pendzl_lang"
+version = "1.0.1-v1calls"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df579ab11b77f1efacff5f4dea408927c264ad903de994b929206f3885832be7"
+dependencies = [
+ "const_format",
+ "ethnum",
+ "ink",
+ "parity-scale-codec",
+ "pendzl_lang_macro 1.0.1-v1calls",
  "scale-info",
  "xxhash-rust",
 ]
@@ -999,12 +1040,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "pendzl_lang_codegen"
+version = "1.0.1-v1calls"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3217fddc39db986a85aff5da5448bd2d6c296d93e51a8d267cbe26cb47f8dc5e"
+dependencies = [
+ "blake2",
+ "cargo_metadata",
+ "fs2",
+ "heck 0.3.3",
+ "ink_ir 4.3.0",
+ "ink_primitives 4.3.0",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn 1.0.109",
+ "synstructure 0.12.6",
+ "unwrap",
+]
+
+[[package]]
 name = "pendzl_lang_macro"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "172553c2fd78263c0281e85dfd2859b256458da221045bb162f39d146be78c02"
 dependencies = [
- "pendzl_lang_codegen",
+ "pendzl_lang_codegen 0.2.4",
+ "proc-macro2",
+ "syn 1.0.109",
+ "synstructure 0.12.6",
+]
+
+[[package]]
+name = "pendzl_lang_macro"
+version = "1.0.1-v1calls"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "680746c3225b7b0fadd7aa78a6fca44589ba16591a6a6889488110f5033888eb"
+dependencies = [
+ "pendzl_lang_codegen 1.0.1-v1calls",
  "proc-macro2",
  "syn 1.0.109",
  "synstructure 0.12.6",
@@ -1063,13 +1137,13 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "price_feed_provider"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -1442,13 +1516,13 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "stable_token"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -1525,10 +1599,10 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 name = "test_psp22"
 version = "0.2.0"
 dependencies = [
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -1536,10 +1610,10 @@ dependencies = [
 name = "test_reserves_minter"
 version = "0.2.0"
 dependencies = [
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 
@@ -1641,13 +1715,13 @@ checksum = "7e33648dd74328e622c7be51f3b40a303c63f93e6fa5f08778b6203a4c25c20f"
 
 [[package]]
 name = "v_token"
-version = "0.2.0"
+version = "1.0.0"
 dependencies = [
- "abax_contracts 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "abax_library 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "abax_contracts 0.3.0",
+ "abax_library 0.3.0",
  "ink",
  "parity-scale-codec",
- "pendzl",
+ "pendzl 1.0.1-v1calls",
  "scale-info",
 ]
 

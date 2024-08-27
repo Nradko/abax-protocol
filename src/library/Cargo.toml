@@ -1,6 +1,6 @@
 [package]
 name = "abax_library"
-version = "0.3.0"
+version = "1.0.0"
 authors = ["Łukasz Łakomy", "Konrad Wierzbik"]
 edition = "2021"
 description = "Library for the Abax Protocol containing shared logic and data structures"
@@ -15,7 +15,7 @@ scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { version = "0.2.4", default-features = false, features = [
+pendzl = { version = "1.0.1-v1calls", default-features = false, features = [
     "psp22",
     "ownable",
     "pausable",
