@@ -224,14 +224,14 @@ export enum PriceFeedProviderEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
+  OwnershipTransferred = 'OwnershipTransferred',
   Paused = 'Paused',
-  Unpaused = 'Unpaused'
+  Unpaused = 'Unpaused',
+  Transfer = 'Transfer',
+  Approval = 'Approval'
 
 }
 

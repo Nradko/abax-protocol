@@ -126,22 +126,6 @@ export interface StablecoinDebtRateChanged {
 	debtRateE18: BN;
 }
 
-export interface OwnershipTransferred {
-	new: ReturnTypes.AccountId | null;
-}
-
-export interface Transfer {
-	from: ReturnTypes.AccountId | null;
-	to: ReturnTypes.AccountId | null;
-	value: BN;
-}
-
-export interface Approval {
-	owner: ReturnTypes.AccountId;
-	spender: ReturnTypes.AccountId;
-	value: BN;
-}
-
 export interface RoleAdminChanged {
 	role: BN;
 	previous: BN;
@@ -160,12 +144,28 @@ export interface RoleRevoked {
 	sender: ReturnTypes.AccountId;
 }
 
+export interface OwnershipTransferred {
+	new: ReturnTypes.AccountId | null;
+}
+
 export interface Paused {
 	account: ReturnTypes.AccountId;
 }
 
 export interface Unpaused {
 	account: ReturnTypes.AccountId;
+}
+
+export interface Transfer {
+	from: ReturnTypes.AccountId | null;
+	to: ReturnTypes.AccountId | null;
+	value: BN;
+}
+
+export interface Approval {
+	owner: ReturnTypes.AccountId;
+	spender: ReturnTypes.AccountId;
+	value: BN;
 }
 
 
