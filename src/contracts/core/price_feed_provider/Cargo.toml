@@ -1,6 +1,6 @@
 [package]
 name = "price_feed_provider"
-version = "0.2.0"
+version = "1.0.0"
 authors = ["Łukasz Łakomy", "Konrad Wierzbik"]
 edition = "2021"
 
@@ -13,14 +13,14 @@ scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { version = "0.2.4", default-features = false, features = [
+pendzl = { version = "1.0.1-v1calls", default-features = false, features = [
     "access_control",
     "access_control_impl",
 ] }
 
 
-abax_library = { version = "0.3.0", default-features = false }
-abax_contracts = { version = "0.3.0", default-features = false }
+abax_library = { version = "1.0.0", default-features = false }
+abax_contracts = { version = "1.0.0", default-features = false }
 
 
 [lib]

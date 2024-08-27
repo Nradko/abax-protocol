@@ -1,6 +1,6 @@
 [package]
 name = "v_token"
-version = "0.2.0"
+version = "1.0.0"
 authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
 edition = "2021"
 
@@ -13,7 +13,7 @@ scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { version = "0.2.4", default-features = false, features = [
+pendzl = { version = "1.0.1-v1calls", default-features = false, features = [
     "psp22",
     "psp22_impl",
     "psp22_metadata",
@@ -21,8 +21,8 @@ pendzl = { version = "0.2.4", default-features = false, features = [
 ] }
 
 
-abax_contracts = { version = "0.3.0", default-features = false }
-abax_library = { version = "0.3.0", default-features = false }
+abax_contracts = { version = "1.0.0", default-features = false }
+abax_library = { version = "1.0.0", default-features = false }
 
 
 [lib]
