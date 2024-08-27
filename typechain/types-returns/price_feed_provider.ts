@@ -1,26 +1,28 @@
 import type BN from 'bn.js';
 
+export type Mapping = {
+	
+}
+
 export type AccountId = string | number[]
 
 export type Lazy = {
 	
 }
 
-export type Mapping = {
-	
-}
-
-export type OwnableData = {
-	owner: Lazy
+export type AccessControlData = {
+	adminRoles: Mapping,
+	members: Mapping
 }
 
 export enum LangError {
 	couldNotReadInput = 'CouldNotReadInput'
 }
 
-export enum OwnableError {
-	callerIsNotOwner = 'CallerIsNotOwner',
-	actionRedundant = 'ActionRedundant'
+export enum AccessControlError {
+	invalidCaller = 'InvalidCaller',
+	missingRole = 'MissingRole',
+	roleRedundant = 'RoleRedundant'
 }
 
 export enum PriceFeedError {

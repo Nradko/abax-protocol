@@ -56,7 +56,7 @@ export async function deployCoreContracts(
 
   const lendingPool = (await new LendingPoolDeployer(api, owner).new(owner.address)).contract;
 
-  const priceFeedProvider = (await new PriceFeedProviderDeployer(api, owner).new(oracle)).contract;
+  const priceFeedProvider = (await new PriceFeedProviderDeployer(api, owner).new(oracle, owner.address)).contract;
   return { priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
 }
 
