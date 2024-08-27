@@ -20,45 +20,6 @@ export default class EventsClass {
 		this.__api = api;
 	}
 
-	public subscribeOnOwnershipTransferredEvent(callback : (event : EventTypes.OwnershipTransferred) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.OwnershipTransferred);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9');
-	}
-
-	public subscribeOnTransferEvent(callback : (event : EventTypes.Transfer) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Transfer);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb');
-	}
-
-	public subscribeOnApprovalEvent(callback : (event : EventTypes.Approval) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Approval);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d');
-	}
-
 	public subscribeOnRoleAdminChangedEvent(callback : (event : EventTypes.RoleAdminChanged) => void) {
 		const callbackWrapper = (args: any[], event: any) => {
 			const _event: Record < string, any > = {};
@@ -122,6 +83,45 @@ export default class EventsClass {
 			callback(handleEventReturn(_event, getEventTypeDescription('0x29f037cd7cf467977af6c1d02a3c4ab9c868bb6ce539c0d87ea507d594709d41', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Unpaused);
 		};
 		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x29f037cd7cf467977af6c1d02a3c4ab9c868bb6ce539c0d87ea507d594709d41');
+	}
+
+	public subscribeOnTransferEvent(callback : (event : EventTypes.Transfer) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Transfer);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb');
+	}
+
+	public subscribeOnApprovalEvent(callback : (event : EventTypes.Approval) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Approval);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d');
+	}
+
+	public subscribeOnOwnershipTransferredEvent(callback : (event : EventTypes.OwnershipTransferred) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.OwnershipTransferred);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9');
 	}
 
 private __subscribeOnEvent(

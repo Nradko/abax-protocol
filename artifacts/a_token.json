@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x9f551fb48a712f66f80eade4e2cf5f7c438172609df058aeb379e2f4ad4d9bc4",
+    "hash": "0x5adc19dea0f4a33458d689bdec40124691060f14d72623fbfe2914955009bc92",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.2",
     "build_info": {
@@ -15,10 +15,12 @@
   },
   "contract": {
     "name": "a_token",
-    "version": "0.2.0",
+    "version": "1.0.0",
     "authors": [
       "Konrad Wierzbik <konrad.wierzbik@gmail.com>"
-    ]
+    ],
+    "description": "Abax Protocol AToken contract",
+    "license": "BUSL-1.1"
   },
   "image": "paritytech/contracts-verifiable:4.1.1",
   "spec": {
@@ -1079,104 +1081,6 @@
         "args": [
           {
             "docs": [
-              "The account from which the tokens are transferred. `None` for minting operations."
-            ],
-            "indexed": true,
-            "label": "from",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 46
-            }
-          },
-          {
-            "docs": [
-              "The account to which the tokens are transferred. `None` for burning operations."
-            ],
-            "indexed": true,
-            "label": "to",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 46
-            }
-          },
-          {
-            "docs": [
-              "The amount of tokens transferred."
-            ],
-            "indexed": false,
-            "label": "value",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when tokens are transferred, including zero value transfers."
-        ],
-        "label": "Transfer",
-        "module_path": "pendzl_contracts::token::psp22",
-        "signature_topic": "0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The account of the token owner."
-            ],
-            "indexed": true,
-            "label": "owner",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "docs": [
-              "The account of the authorized spender."
-            ],
-            "indexed": true,
-            "label": "spender",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 7
-            }
-          },
-          {
-            "docs": [
-              "The new allowance amount."
-            ],
-            "indexed": false,
-            "label": "value",
-            "type": {
-              "displayName": [
-                "Balance"
-              ],
-              "type": 0
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the allowance of a `spender` for an `owner` is set or changed."
-        ],
-        "label": "Approval",
-        "module_path": "pendzl_contracts::token::psp22",
-        "signature_topic": "0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d"
-      },
-      {
-        "args": [
-          {
-            "docs": [
               "The `RoleType` for which the admin role is changed. This is the role being modified."
             ],
             "indexed": true,
@@ -1351,6 +1255,104 @@
         "label": "OwnershipTransferred",
         "module_path": "pendzl_contracts::access::ownable",
         "signature_topic": "0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The account from which the tokens are transferred. `None` for minting operations."
+            ],
+            "indexed": true,
+            "label": "from",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 46
+            }
+          },
+          {
+            "docs": [
+              "The account to which the tokens are transferred. `None` for burning operations."
+            ],
+            "indexed": true,
+            "label": "to",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 46
+            }
+          },
+          {
+            "docs": [
+              "The amount of tokens transferred."
+            ],
+            "indexed": false,
+            "label": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when tokens are transferred, including zero value transfers."
+        ],
+        "label": "Transfer",
+        "module_path": "pendzl_contracts::token::psp22",
+        "signature_topic": "0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The account of the token owner."
+            ],
+            "indexed": true,
+            "label": "owner",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [
+              "The account of the authorized spender."
+            ],
+            "indexed": true,
+            "label": "spender",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 7
+            }
+          },
+          {
+            "docs": [
+              "The new allowance amount."
+            ],
+            "indexed": false,
+            "label": "value",
+            "type": {
+              "displayName": [
+                "Balance"
+              ],
+              "type": 0
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the allowance of a `spender` for an `owner` is set or changed."
+        ],
+        "label": "Approval",
+        "module_path": "pendzl_contracts::token::psp22",
+        "signature_topic": "0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d"
       }
     ],
     "lang_error": {

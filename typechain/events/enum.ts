@@ -24,152 +24,16 @@ export enum ATokenEvent {
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
   Paused = 'Paused',
   Unpaused = 'Unpaused',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
-  OwnershipTransferred = 'OwnershipTransferred'
+  OwnershipTransferred = 'OwnershipTransferred',
+  Transfer = 'Transfer',
+  Approval = 'Approval'
 
 }
 
 export enum BalanceViewerEvent {
-  Deposit = 'Deposit',
-  Withdraw = 'Withdraw',
-  MarketRuleChosen = 'MarketRuleChosen',
-  CollateralSet = 'CollateralSet',
-  Borrow = 'Borrow',
-  Repay = 'Repay',
-  FlashLoan = 'FlashLoan',
-  Liquidation = 'Liquidation',
-  InterestsAccumulated = 'InterestsAccumulated',
-  AssetRegistered = 'AssetRegistered',
-  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
-  FeeReductionChanged = 'FeeReductionChanged',
-  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
-  ReserveActivated = 'ReserveActivated',
-  ReserveFrozen = 'ReserveFrozen',
-  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
-  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
-  ReserveFeesChanged = 'ReserveFeesChanged',
-  AssetRulesChanged = 'AssetRulesChanged',
-  IncomeTaken = 'IncomeTaken',
-  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused',
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
-  Transfer = 'Transfer',
-  Approval = 'Approval'
-
-}
-
-export enum DiaOracleEvent {
-  Deposit = 'Deposit',
-  Withdraw = 'Withdraw',
-  MarketRuleChosen = 'MarketRuleChosen',
-  CollateralSet = 'CollateralSet',
-  Borrow = 'Borrow',
-  Repay = 'Repay',
-  FlashLoan = 'FlashLoan',
-  Liquidation = 'Liquidation',
-  InterestsAccumulated = 'InterestsAccumulated',
-  AssetRegistered = 'AssetRegistered',
-  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
-  FeeReductionChanged = 'FeeReductionChanged',
-  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
-  ReserveActivated = 'ReserveActivated',
-  ReserveFrozen = 'ReserveFrozen',
-  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
-  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
-  ReserveFeesChanged = 'ReserveFeesChanged',
-  AssetRulesChanged = 'AssetRulesChanged',
-  IncomeTaken = 'IncomeTaken',
-  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  OwnershipTransferred = 'OwnershipTransferred',
-  UpdaterChanged = 'UpdaterChanged',
-  TokenPriceChanged = 'TokenPriceChanged',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused',
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
-
-}
-
-export enum FeeReductionProviderMockEvent {
-  Deposit = 'Deposit',
-  Withdraw = 'Withdraw',
-  MarketRuleChosen = 'MarketRuleChosen',
-  CollateralSet = 'CollateralSet',
-  Borrow = 'Borrow',
-  Repay = 'Repay',
-  FlashLoan = 'FlashLoan',
-  Liquidation = 'Liquidation',
-  InterestsAccumulated = 'InterestsAccumulated',
-  AssetRegistered = 'AssetRegistered',
-  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
-  FeeReductionChanged = 'FeeReductionChanged',
-  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
-  ReserveActivated = 'ReserveActivated',
-  ReserveFrozen = 'ReserveFrozen',
-  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
-  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
-  ReserveFeesChanged = 'ReserveFeesChanged',
-  AssetRulesChanged = 'AssetRulesChanged',
-  IncomeTaken = 'IncomeTaken',
-  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused'
-
-}
-
-export enum FlashLoanReceiverMockEvent {
-  Deposit = 'Deposit',
-  Withdraw = 'Withdraw',
-  MarketRuleChosen = 'MarketRuleChosen',
-  CollateralSet = 'CollateralSet',
-  Borrow = 'Borrow',
-  Repay = 'Repay',
-  FlashLoan = 'FlashLoan',
-  Liquidation = 'Liquidation',
-  InterestsAccumulated = 'InterestsAccumulated',
-  AssetRegistered = 'AssetRegistered',
-  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
-  FeeReductionChanged = 'FeeReductionChanged',
-  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
-  ReserveActivated = 'ReserveActivated',
-  ReserveFrozen = 'ReserveFrozen',
-  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
-  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
-  ReserveFeesChanged = 'ReserveFeesChanged',
-  AssetRulesChanged = 'AssetRulesChanged',
-  IncomeTaken = 'IncomeTaken',
-  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
-  ExecutedWithSuccess = 'ExecutedWithSuccess',
-  ExecutedWithFail = 'ExecutedWithFail',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused',
-  RoleAdminChanged = 'RoleAdminChanged',
-  RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked',
-  Transfer = 'Transfer',
-  Approval = 'Approval'
-
-}
-
-export enum LendingPoolEvent {
   Deposit = 'Deposit',
   Withdraw = 'Withdraw',
   MarketRuleChosen = 'MarketRuleChosen',
@@ -199,6 +63,142 @@ export enum LendingPoolEvent {
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked'
+
+}
+
+export enum DiaOracleEvent {
+  Deposit = 'Deposit',
+  Withdraw = 'Withdraw',
+  MarketRuleChosen = 'MarketRuleChosen',
+  CollateralSet = 'CollateralSet',
+  Borrow = 'Borrow',
+  Repay = 'Repay',
+  FlashLoan = 'FlashLoan',
+  Liquidation = 'Liquidation',
+  InterestsAccumulated = 'InterestsAccumulated',
+  AssetRegistered = 'AssetRegistered',
+  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
+  FeeReductionChanged = 'FeeReductionChanged',
+  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
+  ReserveActivated = 'ReserveActivated',
+  ReserveFrozen = 'ReserveFrozen',
+  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
+  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
+  ReserveFeesChanged = 'ReserveFeesChanged',
+  AssetRulesChanged = 'AssetRulesChanged',
+  IncomeTaken = 'IncomeTaken',
+  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  OwnershipTransferred = 'OwnershipTransferred',
+  UpdaterChanged = 'UpdaterChanged',
+  TokenPriceChanged = 'TokenPriceChanged',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked',
+
+}
+
+export enum FeeReductionProviderMockEvent {
+  Deposit = 'Deposit',
+  Withdraw = 'Withdraw',
+  MarketRuleChosen = 'MarketRuleChosen',
+  CollateralSet = 'CollateralSet',
+  Borrow = 'Borrow',
+  Repay = 'Repay',
+  FlashLoan = 'FlashLoan',
+  Liquidation = 'Liquidation',
+  InterestsAccumulated = 'InterestsAccumulated',
+  AssetRegistered = 'AssetRegistered',
+  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
+  FeeReductionChanged = 'FeeReductionChanged',
+  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
+  ReserveActivated = 'ReserveActivated',
+  ReserveFrozen = 'ReserveFrozen',
+  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
+  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
+  ReserveFeesChanged = 'ReserveFeesChanged',
+  AssetRulesChanged = 'AssetRulesChanged',
+  IncomeTaken = 'IncomeTaken',
+  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
+  OwnershipTransferred = 'OwnershipTransferred'
+
+}
+
+export enum FlashLoanReceiverMockEvent {
+  Deposit = 'Deposit',
+  Withdraw = 'Withdraw',
+  MarketRuleChosen = 'MarketRuleChosen',
+  CollateralSet = 'CollateralSet',
+  Borrow = 'Borrow',
+  Repay = 'Repay',
+  FlashLoan = 'FlashLoan',
+  Liquidation = 'Liquidation',
+  InterestsAccumulated = 'InterestsAccumulated',
+  AssetRegistered = 'AssetRegistered',
+  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
+  FeeReductionChanged = 'FeeReductionChanged',
+  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
+  ReserveActivated = 'ReserveActivated',
+  ReserveFrozen = 'ReserveFrozen',
+  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
+  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
+  ReserveFeesChanged = 'ReserveFeesChanged',
+  AssetRulesChanged = 'AssetRulesChanged',
+  IncomeTaken = 'IncomeTaken',
+  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  ExecutedWithSuccess = 'ExecutedWithSuccess',
+  ExecutedWithFail = 'ExecutedWithFail',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
+  OwnershipTransferred = 'OwnershipTransferred',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked'
+
+}
+
+export enum LendingPoolEvent {
+  Deposit = 'Deposit',
+  Withdraw = 'Withdraw',
+  MarketRuleChosen = 'MarketRuleChosen',
+  CollateralSet = 'CollateralSet',
+  Borrow = 'Borrow',
+  Repay = 'Repay',
+  FlashLoan = 'FlashLoan',
+  Liquidation = 'Liquidation',
+  InterestsAccumulated = 'InterestsAccumulated',
+  AssetRegistered = 'AssetRegistered',
+  PriceFeedProviderChanged = 'PriceFeedProviderChanged',
+  FeeReductionChanged = 'FeeReductionChanged',
+  FlashLoanFeeChanged = 'FlashLoanFeeChanged',
+  ReserveActivated = 'ReserveActivated',
+  ReserveFrozen = 'ReserveFrozen',
+  ReserveInterestRateModelChanged = 'ReserveInterestRateModelChanged',
+  ReserveRestrictionsChanged = 'ReserveRestrictionsChanged',
+  ReserveFeesChanged = 'ReserveFeesChanged',
+  AssetRulesChanged = 'AssetRulesChanged',
+  IncomeTaken = 'IncomeTaken',
+  StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
+  RoleAdminChanged = 'RoleAdminChanged',
+  RoleGranted = 'RoleGranted',
+  RoleRevoked = 'RoleRevoked',
+  OwnershipTransferred = 'OwnershipTransferred'
 
 }
 
@@ -293,38 +293,38 @@ export enum StableTokenEvent {
   AssetRulesChanged = 'AssetRulesChanged',
   IncomeTaken = 'IncomeTaken',
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
+  OwnershipTransferred = 'OwnershipTransferred',
   Paused = 'Paused',
   Unpaused = 'Unpaused',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
-  RoleRevoked = 'RoleRevoked'
+  RoleRevoked = 'RoleRevoked',
+  Transfer = 'Transfer',
+  Approval = 'Approval'
 
 }
 
 export enum TestPsp22Event {
-  Transfer = 'Transfer',
-  Approval = 'Approval',
+  Paused = 'Paused',
+  Unpaused = 'Unpaused',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
-  OwnershipTransferred = 'OwnershipTransferred',
-  Paused = 'Paused',
-  Unpaused = 'Unpaused'
+  Transfer = 'Transfer',
+  Approval = 'Approval',
+  OwnershipTransferred = 'OwnershipTransferred'
 
 }
 
 export enum TestReservesMinterEvent {
-  OwnershipTransferred = 'OwnershipTransferred',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
   Paused = 'Paused',
-  Unpaused = 'Unpaused'
+  Unpaused = 'Unpaused',
+  Transfer = 'Transfer',
+  Approval = 'Approval',
+  OwnershipTransferred = 'OwnershipTransferred'
 
 }
 
@@ -352,12 +352,12 @@ export enum VTokenEvent {
   StablecoinDebtRateChanged = 'StablecoinDebtRateChanged',
   Paused = 'Paused',
   Unpaused = 'Unpaused',
-  Transfer = 'Transfer',
-  Approval = 'Approval',
   RoleAdminChanged = 'RoleAdminChanged',
   RoleGranted = 'RoleGranted',
   RoleRevoked = 'RoleRevoked',
-  OwnershipTransferred = 'OwnershipTransferred'
+  OwnershipTransferred = 'OwnershipTransferred',
+  Transfer = 'Transfer',
+  Approval = 'Approval'
 
 }
 export type AnyContractEvent = ATokenEvent | BalanceViewerEvent | DiaOracleEvent | FeeReductionProviderMockEvent | FlashLoanReceiverMockEvent | LendingPoolEvent | PriceFeedProviderEvent | Psp22EmitableEvent | Psp22ForAuditEvent | Psp22OwnableEvent | StableTokenEvent | TestPsp22Event | TestReservesMinterEvent | VTokenEvent;

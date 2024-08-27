@@ -3,6 +3,8 @@ name = "lending_pool"
 version = "1.0.0"
 authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
 edition = "2021"
+license = "BUSL-1.1"
+description = "Abax Protocol Lending Pool contract"
 
 [dependencies]
 ink = { version = "5.0.0", default-features = false }

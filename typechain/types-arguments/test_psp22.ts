@@ -85,7 +85,6 @@ export class PSP22ErrorBuilder {
 }
 
 export enum OwnableError {
-	callerIsNotOwner = 'CallerIsNotOwner',
-	actionRedundant = 'ActionRedundant'
+	callerIsNotOwner = 'CallerIsNotOwner'
 }
 

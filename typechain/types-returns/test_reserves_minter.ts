@@ -43,8 +43,7 @@ export class TestReservesMinterErrorBuilder {
 }
 
 export enum OwnableError {
-	callerIsNotOwner = 'CallerIsNotOwner',
-	actionRedundant = 'ActionRedundant'
+	callerIsNotOwner = 'CallerIsNotOwner'
 }
 
 export interface PSP22Error {
