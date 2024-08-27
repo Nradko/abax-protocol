@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x2dcd18206b0411215ec9b7c62926b9eef0208c685f2d49b5d302c5e49c6091b3",
+    "hash": "0x41d6a4ccbe35e543e3d9c37bd93a133159480226151cd1b48667e9453751aae7",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.2",
     "build_info": {
@@ -15,11 +15,13 @@
   },
   "contract": {
     "name": "price_feed_provider",
-    "version": "0.2.0",
+    "version": "1.0.0",
     "authors": [
       "Łukasz Łakomy",
       "Konrad Wierzbik"
-    ]
+    ],
+    "description": "Abax Protocol PriceFeedProvider contract",
+    "license": "BUSL-1.1"
   },
   "image": "paritytech/contracts-verifiable:4.1.1",
   "spec": {

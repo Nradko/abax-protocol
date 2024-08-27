@@ -1,22 +1,6 @@
 import BN from "bn.js";
 import type * as ReturnTypes from '../types-returns/test_reserves_minter';
 
-export interface OwnershipTransferred {
-	new: ReturnTypes.AccountId | null;
-}
-
-export interface Transfer {
-	from: ReturnTypes.AccountId | null;
-	to: ReturnTypes.AccountId | null;
-	value: BN;
-}
-
-export interface Approval {
-	owner: ReturnTypes.AccountId;
-	spender: ReturnTypes.AccountId;
-	value: BN;
-}
-
 export interface RoleAdminChanged {
 	role: BN;
 	previous: BN;
@@ -41,6 +25,22 @@ export interface Paused {
 
 export interface Unpaused {
 	account: ReturnTypes.AccountId;
+}
+
+export interface Transfer {
+	from: ReturnTypes.AccountId | null;
+	to: ReturnTypes.AccountId | null;
+	value: BN;
+}
+
+export interface Approval {
+	owner: ReturnTypes.AccountId;
+	spender: ReturnTypes.AccountId;
+	value: BN;
+}
+
+export interface OwnershipTransferred {
+	new: ReturnTypes.AccountId | null;
 }
 
 

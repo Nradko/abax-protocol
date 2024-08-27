@@ -1,6 +1,6 @@
 {
   "source": {
-    "hash": "0x7de92d8573e5a09328505a4f3bf06c4e60acb40b9f2c9d5d6c5e088c569dc042",
+    "hash": "0x9d0661fc3d611a2964851f42911c3c2735548ab4e0d599f49b246000f11f38c2",
     "language": "ink! 5.0.0",
     "compiler": "rustc 1.77.2",
     "build_info": {
@@ -15,10 +15,12 @@
   },
   "contract": {
     "name": "lending_pool",
-    "version": "0.2.0",
+    "version": "1.0.0",
     "authors": [
       "Konrad Wierzbik <konrad.wierzbik@gmail.com>"
-    ]
+    ],
+    "description": "Abax Protocol Lending Pool contract",
+    "license": "BUSL-1.1"
   },
   "image": "paritytech/contracts-verifiable:4.1.1",
   "spec": {
@@ -997,6 +999,52 @@
         "args": [
           {
             "docs": [
+              "The account that initiated the pause action."
+            ],
+            "indexed": true,
+            "label": "account",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 9
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the contract is paused."
+        ],
+        "label": "Paused",
+        "module_path": "pendzl_contracts::security::pausable",
+        "signature_topic": "0xcb560a184d13b48ac1ecc804d19fa57a64ef4facd0819dcac22a969c20fec081"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The account that initiated the unpause action."
+            ],
+            "indexed": true,
+            "label": "account",
+            "type": {
+              "displayName": [
+                "AccountId"
+              ],
+              "type": 9
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when the contract is unpaused."
+        ],
+        "label": "Unpaused",
+        "module_path": "pendzl_contracts::security::pausable",
+        "signature_topic": "0x29f037cd7cf467977af6c1d02a3c4ab9c868bb6ce539c0d87ea507d594709d41"
+      },
+      {
+        "args": [
+          {
+            "docs": [
               "The account from which the tokens are transferred. `None` for minting operations."
             ],
             "indexed": true,
@@ -1090,75 +1138,6 @@
         "label": "Approval",
         "module_path": "pendzl_contracts::token::psp22",
         "signature_topic": "0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The new owner's account address. `None` if ownership is renounced."
-            ],
-            "indexed": true,
-            "label": "new",
-            "type": {
-              "displayName": [
-                "Option"
-              ],
-              "type": 8
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when ownership of the contract is transferred."
-        ],
-        "label": "OwnershipTransferred",
-        "module_path": "pendzl_contracts::access::ownable",
-        "signature_topic": "0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The account that initiated the pause action."
-            ],
-            "indexed": true,
-            "label": "account",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 9
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the contract is paused."
-        ],
-        "label": "Paused",
-        "module_path": "pendzl_contracts::security::pausable",
-        "signature_topic": "0xcb560a184d13b48ac1ecc804d19fa57a64ef4facd0819dcac22a969c20fec081"
-      },
-      {
-        "args": [
-          {
-            "docs": [
-              "The account that initiated the unpause action."
-            ],
-            "indexed": true,
-            "label": "account",
-            "type": {
-              "displayName": [
-                "AccountId"
-              ],
-              "type": 9
-            }
-          }
-        ],
-        "docs": [
-          "Emitted when the contract is unpaused."
-        ],
-        "label": "Unpaused",
-        "module_path": "pendzl_contracts::security::pausable",
-        "signature_topic": "0x29f037cd7cf467977af6c1d02a3c4ab9c868bb6ce539c0d87ea507d594709d41"
       },
       {
         "args": [
@@ -1315,6 +1294,29 @@
         "label": "RoleRevoked",
         "module_path": "pendzl_contracts::access::access_control",
         "signature_topic": "0x00d57dbcb9a54f822039e86efe3513a9af40deb0e6a9ee6cecf39824f8d27e9b"
+      },
+      {
+        "args": [
+          {
+            "docs": [
+              "The new owner's account address. `None` if ownership is renounced."
+            ],
+            "indexed": true,
+            "label": "new",
+            "type": {
+              "displayName": [
+                "Option"
+              ],
+              "type": 8
+            }
+          }
+        ],
+        "docs": [
+          "Emitted when ownership of the contract is transferred."
+        ],
+        "label": "OwnershipTransferred",
+        "module_path": "pendzl_contracts::access::ownable",
+        "signature_topic": "0x5c626481ee232181dcfad24632520cc98608b23ed971378c0ad4504cab1b78c9"
       }
     ],
     "lang_error": {

@@ -293,6 +293,32 @@ export default class EventsClass {
 		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x4fde6d40bee7fd565c8e00072d605f588ed45a773a363365b8a433f641e54785');
 	}
 
+	public subscribeOnTransferEvent(callback : (event : EventTypes.Transfer) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Transfer);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb');
+	}
+
+	public subscribeOnApprovalEvent(callback : (event : EventTypes.Approval) => void) {
+		const callbackWrapper = (args: any[], event: any) => {
+			const _event: Record < string, any > = {};
+
+			for (let i = 0; i < args.length; i++) {
+				_event[event.args[i]!.name] = args[i]!.toJSON();
+			}
+
+			callback(handleEventReturn(_event, getEventTypeDescription('0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Approval);
+		};
+		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d');
+	}
+
 	public subscribeOnOwnershipTransferredEvent(callback : (event : EventTypes.OwnershipTransferred) => void) {
 		const callbackWrapper = (args: any[], event: any) => {
 			const _event: Record < string, any > = {};
@@ -369,32 +395,6 @@ export default class EventsClass {
 			callback(handleEventReturn(_event, getEventTypeDescription('0x00d57dbcb9a54f822039e86efe3513a9af40deb0e6a9ee6cecf39824f8d27e9b', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.RoleRevoked);
 		};
 		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x00d57dbcb9a54f822039e86efe3513a9af40deb0e6a9ee6cecf39824f8d27e9b');
-	}
-
-	public subscribeOnTransferEvent(callback : (event : EventTypes.Transfer) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Transfer);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0xb5b61a3e6a21a16be4f044b517c28ac692492f73c5bfd3f60178ad98c767f4cb');
-	}
-
-	public subscribeOnApprovalEvent(callback : (event : EventTypes.Approval) => void) {
-		const callbackWrapper = (args: any[], event: any) => {
-			const _event: Record < string, any > = {};
-
-			for (let i = 0; i < args.length; i++) {
-				_event[event.args[i]!.name] = args[i]!.toJSON();
-			}
-
-			callback(handleEventReturn(_event, getEventTypeDescription('0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d', EVENT_DATA_TYPE_DESCRIPTIONS)) as EventTypes.Approval);
-		};
-		return this.__subscribeOnEvent(callbackWrapper, (signatureTopic : string) => signatureTopic === '0x1a35e726f5feffda199144f6097b2ba23713e549bfcbe090c0981e3bcdfbcc1d');
 	}
 
 private __subscribeOnEvent(
