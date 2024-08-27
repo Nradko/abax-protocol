@@ -14,8 +14,8 @@ scale-info = { version = "2.11", default-features = false, features = [
 ], optional = true }
 
 pendzl = { version = "0.2.4", default-features = false, features = [
-    "ownable",
-    "ownable_impl",
+    "access_control",
+    "access_control_impl",
 ] }
 
 
