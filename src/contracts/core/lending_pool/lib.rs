@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 //! #LendingPoolContract
 //!
 //! This is the core contract of Abacus Lending Protocol that provide accounts the follwoing functionalities:
@@ -7,7 +8,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[pendzl::implementation(AccessControl)]
+#[pendzl::implementation(AccessControl, SetCodeHash)]
 #[ink::contract]
 pub mod lending_pool {
     use abax_contracts::account_registrar::AccountRegistrarView;
@@ -17,7 +18,6 @@ pub mod lending_pool {
         LendingPoolATokenInterface, LendingPoolActions, LendingPoolError,
         LendingPoolFlash, LendingPoolMaintain, LendingPoolManage,
         LendingPoolVTokenInterface, LendingPoolView, MarketRule, RuleId,
-        ROLE_ADMIN,
     };
     use abax_contracts::{
         account_registrar::implementation::AccountRegistrar,
@@ -624,9 +624,8 @@ pub mod lending_pool {
 
     impl LendingPool {
         #[ink(constructor)]
-        pub fn new() -> Self {
+        pub fn new(admin: AccountId) -> Self {
             let mut instance = Self::default();
-            let caller = instance.env().caller();
             instance.lending_pool.next_asset_id.set(&0);
             instance.lending_pool.next_rule_id.set(&0);
             instance.lending_pool.flash_loan_fee_e6.set(&1000);
@@ -636,30 +635,9 @@ pub mod lending_pool {
                 },
             );
             instance
-                ._grant_role(Self::_default_admin(), Some(caller))
-                .expect("caller should become admin");
+                ._grant_role(Self::_default_admin(), Some(admin))
+                .expect("default admin role should be granted");
             instance
-        }
-
-        #[ink(message)]
-        pub fn set_code(
-            &mut self,
-            code_hash: [u8; 32],
-        ) -> Result<(), LendingPoolError> {
-            access_control::AccessControlInternal::_ensure_has_role(
-                self,
-                ROLE_ADMIN,
-                Some(Self::env().caller()),
-            )?;
-            ink::env::set_code_hash::<DefaultEnvironment>(&code_hash.into())
-                .unwrap_or_else(|err| {
-                    panic!(
-                        "Failed to `set_code_hash` to {:?} due to {:?}",
-                        code_hash, err
-                    )
-                });
-
-            Ok(())
         }
     }
 }

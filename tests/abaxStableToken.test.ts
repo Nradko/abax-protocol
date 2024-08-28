@@ -1,7 +1,7 @@
 import { LendingPoolErrorBuilder } from '@abaxfinance/contract-helpers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Emitable from 'typechain/contracts/test_psp22';
 import StableToken from 'typechain/contracts/stable_token';
 import { Transfer } from 'typechain/event-types/a_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
@@ -71,7 +71,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
 
       expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
         {
-          name: 'Borrow',
+          name: 'abax_contracts::lending_pool::events::Borrow',
           args: {
             amount: initialUsdaxDebt.toString(),
             onBehalfOf: alice.address,
@@ -141,7 +141,7 @@ makeSuite('AbaxStableToken', (getTestEnv) => {
         });
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'Repay',
+            name: 'abax_contracts::lending_pool::events::Repay',
             args: {
               amount: initialUsdaxDebt.toString(),
               onBehalfOf: alice.address,

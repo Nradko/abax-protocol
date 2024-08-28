@@ -1,7 +1,7 @@
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
 import AToken from 'typechain/contracts/a_token';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Emitable from 'typechain/contracts/test_psp22';
 import VToken from 'typechain/contracts/v_token';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { convertToCurrencyDecimals } from './scenarios/utils/actions';
@@ -98,7 +98,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       const txRes = await tx;
       expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
         {
-          name: 'Transfer',
+          name: 'pendzl_contracts::token::psp22::Transfer',
           args: {
             from: alice.address,
             to: bob.address,
@@ -141,7 +141,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
       expect.soft(bobDepositAfter.deposit.toString()).to.equal(initialDaiBalance.muln(2).toString());
       expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
         {
-          name: 'Approval',
+          name: 'pendzl_contracts::token::psp22::Approval',
           args: {
             owner: alice.address,
             spender: charlie.address,
@@ -149,7 +149,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
           },
         },
         {
-          name: 'Transfer',
+          name: 'pendzl_contracts::token::psp22::Transfer',
           args: {
             from: alice.address,
             to: bob.address,
@@ -224,7 +224,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
             const txRes = await tx;
             expect(stringifyNumericProps(txRes.events)).to.deep.equal([
               {
-                name: 'Approval',
+                name: 'pendzl_contracts::token::psp22::Approval',
                 args: {
                   owner: bob.address,
                   spender: alice.address,
@@ -232,7 +232,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 },
               },
               {
-                name: 'Transfer',
+                name: 'pendzl_contracts::token::psp22::Transfer',
                 args: {
                   from: alice.address,
                   to: bob.address,
@@ -284,7 +284,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               const txRes = await tx;
               expect(stringifyNumericProps(txRes.events)).to.deep.equal([
                 {
-                  name: 'Approval',
+                  name: 'pendzl_contracts::token::psp22::Approval',
                   args: {
                     owner: bob.address,
                     spender: alice.address,
@@ -292,7 +292,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 },
                 {
-                  name: 'Transfer',
+                  name: 'pendzl_contracts::token::psp22::Transfer',
                   args: {
                     from: null,
                     to: alice.address,
@@ -300,7 +300,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 },
                 {
-                  name: 'Transfer',
+                  name: 'pendzl_contracts::token::psp22::Transfer',
                   args: {
                     from: null,
                     to: bob.address,
@@ -308,7 +308,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 },
                 {
-                  name: 'Transfer',
+                  name: 'pendzl_contracts::token::psp22::Transfer',
                   args: {
                     from: alice.address,
                     to: bob.address,
@@ -355,7 +355,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
               const txRes = await tx;
               expect(stringifyNumericProps(txRes.events), 'AWeth events').to.deep.equal([
                 {
-                  name: 'Transfer',
+                  name: 'pendzl_contracts::token::psp22::Transfer',
                   args: {
                     from: null,
                     to: charlie.address,
@@ -363,7 +363,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                   },
                 },
                 {
-                  name: 'Transfer',
+                  name: 'pendzl_contracts::token::psp22::Transfer',
                   args: {
                     from: charlie.address,
                     to: alice.address,
@@ -421,7 +421,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                 const txRes = await tx;
                 expect(stringifyNumericProps(txRes.events), 'VWeth events').to.deep.equal([
                   {
-                    name: 'Approval',
+                    name: 'pendzl_contracts::token::psp22::Approval',
                     args: {
                       owner: charlie.address,
                       spender: alice.address,
@@ -429,7 +429,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                     },
                   },
                   {
-                    name: 'Transfer',
+                    name: 'pendzl_contracts::token::psp22::Transfer',
                     args: {
                       from: null,
                       to: alice.address,
@@ -437,7 +437,7 @@ makeSuite('AbaxToken transfers', (getTestEnv) => {
                     },
                   },
                   {
-                    name: 'Transfer',
+                    name: 'pendzl_contracts::token::psp22::Transfer',
                     args: {
                       from: alice.address,
                       to: charlie.address,

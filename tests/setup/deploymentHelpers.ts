@@ -12,7 +12,7 @@ import BalanceViewerDeployer from 'typechain/deployers/balance_viewer';
 import DiaOracleDeployer from 'typechain/deployers/dia_oracle';
 import LendingPoolDeployer from 'typechain/deployers/lending_pool';
 import PriceFeedProviderDeployer from 'typechain/deployers/price_feed_provider';
-import Psp22EmitableDeployer from 'typechain/deployers/psp22_emitable';
+import Psp22EmitableDeployer from 'typechain/deployers/test_psp22';
 import StableTokenDeployer from 'typechain/deployers/stable_token';
 import VTokenDeployer from 'typechain/deployers/v_token';
 import { AssetRules, SetReserveFeesArgs, ReserveRestrictions, InterestRateModelParams } from 'typechain/types-arguments/lending_pool';
@@ -54,9 +54,10 @@ export async function deployCoreContracts(
   const aTokenCodeHash = aTokenCodeHashHex; //hexToBytes(aTokenCodeHashHex);
   const vTokenCodeHash = vTokenCodeHashHex; //hexToBytes(vTokenCodeHashHex);
 
-  const lendingPool = (await new LendingPoolDeployer(api, owner).new()).contract;
+  const lendingPool = (await new LendingPoolDeployer(api, owner).new(owner.address)).contract;
 
-  const priceFeedProvider = (await new PriceFeedProviderDeployer(api, owner).new(oracle)).contract;
+  const priceFeedProvider = (await new PriceFeedProviderDeployer(api, owner).new(oracle, owner.address)).contract;
+  await priceFeedProvider.withSigner(owner).tx.grantRole(ROLES['PARAMETERS_ADMIN'], owner.address);
   return { priceFeedProvider, lendingPool, aTokenCodeHash, vTokenCodeHash };
 }
 
@@ -115,6 +116,7 @@ export const deployAndConfigureSystem = async (
         reserveData.metadata.name,
         `Reserve ${reserveData.metadata.name} token `,
         reserveData.metadata.decimals,
+        owner.address,
       )
     ).contract;
     if (process.env.DEBUG) console.log(`${reserveData.metadata.name} | insert reserve token price, deploy A/S/V tokens and register as an asset`);

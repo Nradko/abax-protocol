@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use ink::prelude::vec::Vec;
 use pendzl::{
     contracts::psp22::PSP22Error,

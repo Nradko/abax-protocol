@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: BUSL-1.1
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
-#[pendzl::implementation(Ownable)]
+#[pendzl::implementation(AccessControl)]
 #[ink::contract]
 pub mod price_feed_provider {
     use abax_contracts::dia_oracle::{OracleGetters, OracleGettersRef};
@@ -11,25 +12,25 @@ pub mod price_feed_provider {
 
     use ink::storage::{Lazy, Mapping};
 
-    use pendzl::contracts::ownable;
+    use pendzl::contracts::access_control;
+    const PARAMETERS_ADMIN: RoleType = ink::selector_id!("PARAMETERS_ADMIN"); // 368_001_360_u32
 
     #[ink(storage)]
     #[derive(StorageFieldGetter, Default)]
     pub struct PriceFeedProvider {
         #[storage_field]
-        ownable: ownable::OwnableData,
+        access: access_control::AccessControlData,
         oracle: Lazy<OracleGettersRef>,
         account_to_symbol: Mapping<AccountId, String>,
     }
 
     impl PriceFeedProvider {
         #[ink(constructor)]
-        pub fn new(oracle: AccountId) -> Self {
+        pub fn new(oracle: AccountId, admin: AccountId) -> Self {
             let mut instance: PriceFeedProvider = Default::default();
-            ownable::OwnableInternal::_update_owner(
-                &mut instance,
-                &Some(Self::env().caller()),
-            );
+            instance
+                ._grant_role(Self::_default_admin(), Some(admin))
+                .expect("default admin role should be granted");
             let oracle_ref: OracleGettersRef = oracle.into();
             instance.oracle.set(&oracle_ref);
             instance
@@ -40,8 +41,10 @@ pub mod price_feed_provider {
             &mut self,
             asset: AccountId,
             symbol: String,
-        ) -> Result<(), OwnableError> {
-            self._only_owner()?;
+        ) -> Result<(), AccessControlError> {
+            let caller = Self::env().caller();
+            self._ensure_has_role(PARAMETERS_ADMIN, Some(caller))?;
+
             self.account_to_symbol.insert(asset, &symbol);
             Ok(())
         }

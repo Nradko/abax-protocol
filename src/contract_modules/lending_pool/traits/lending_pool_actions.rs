@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use abax_library::structs::Action;
 use ink::prelude::vec::Vec;
 use ink::{contract_ref, env::DefaultEnvironment, primitives::AccountId};

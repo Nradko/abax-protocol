@@ -1,7 +1,7 @@
 import { ONE_DAY, stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Emitable from 'typechain/contracts/test_psp22';
 import { InterestRateModel } from 'typechain/types-returns/lending_pool';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
 import { makeSuite, TestEnv, TestEnvReserves } from './scenarios/utils/make-suite';
@@ -22,6 +22,7 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
 
   let wethDeposit: BN;
   let usdcDeposit: BN;
+  let initialTimestamp: number;
 
   beforeEach('setup Env', async () => {
     testEnv = getTestEnv();
@@ -35,6 +36,7 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
 
     wethDeposit = toE(18, '100');
     usdcDeposit = toE(12, '1000000');
+    initialTimestamp = await time.latest();
 
     await usdcContract.tx.mint(borrower.address, usdcDeposit);
     await wethContract.tx.mint(supplier.address, wethDeposit);
@@ -46,7 +48,6 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
   it('the initial interest rate model is correct', async () => {
     const reserve = usdcContract;
     const interestRateModel: InterestRateModel = (await lendingPool.query.viewInterestRateModel(reserve.address)).value.ok!;
-    const timestamp = await time.latest();
 
     expect(stringifyNumericProps(interestRateModel)).to.deep.equal(
       stringifyNumericProps({
@@ -56,7 +57,7 @@ makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
         rateAtTargetUrE18: 2 * ONE_PERCENT_APR_E18,
         rateAtMaxUrE18: 100 * ONE_PERCENT_APR_E18,
         minimalTimeBetweenAdjustments: ONE_HOUR,
-        lastAdjustmentTimestamp: timestamp,
+        lastAdjustmentTimestamp: initialTimestamp,
       }),
     );
   });

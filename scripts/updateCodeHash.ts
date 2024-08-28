@@ -19,7 +19,7 @@ const COTNRACT_CONSTRUCTOR = LendingPool;
   //code
 
   const existingContract = getContractObject(COTNRACT_CONSTRUCTOR, CONTRACT_ADDR, signer, api);
-  const dummyDeploy = await new LendingPoolDeployer(api, signer).new();
+  const dummyDeploy = await new LendingPoolDeployer(api, signer).new(signer.address);
   console.log('query contract info');
   const { codeHash } = (await api.query.contracts.contractInfoOf(dummyDeploy.contract.address)).toHuman() as { codeHash: string };
   console.log('code hash', codeHash.toString());

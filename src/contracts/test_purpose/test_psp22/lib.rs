@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: BUSL-1.1
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[pendzl::implementation(PSP22, PSP22Mintable, PSP22Metadata, Ownable)]
 #[ink::contract]
-pub mod psp22_emitable {
+pub mod test_psp22 {
 
     use pendzl::contracts::ownable;
     use pendzl::contracts::psp22;
@@ -12,7 +13,7 @@ pub mod psp22_emitable {
 
     #[ink(storage)]
     #[derive(Default, pendzl::traits::StorageFieldGetter)]
-    pub struct PSP22OwnableContract {
+    pub struct TestPSP22Contract {
         #[storage_field]
         ownable: ownable::OwnableData,
         #[storage_field]
@@ -21,7 +22,7 @@ pub mod psp22_emitable {
         metadata: psp22::metadata::PSP22MetadataData,
     }
 
-    impl PSP22OwnableContract {
+    impl TestPSP22Contract {
         #[ink(constructor)]
         pub fn new(
             name: String,
@@ -38,6 +39,17 @@ pub mod psp22_emitable {
                 &Some(owner),
             );
             instance
+        }
+
+        //expose approve from to
+        #[ink(message)]
+        pub fn t_approve(
+            &mut self,
+            from: AccountId,
+            to: AccountId,
+            value: u128,
+        ) -> Result<(), PSP22Error> {
+            self._approve(&from, &to, &value)
         }
     }
 }

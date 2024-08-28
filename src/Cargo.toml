@@ -2,8 +2,16 @@
 members = [
     "library",
     "contract_modules",
-    "contracts/periphery/**",
-    "contracts/core/**",
-    "contracts/test_purpose/**",
+    "contracts/periphery/balance_viewer",
+    "contracts/core/a_token",
+    "contracts/core/v_token",
+    "contracts/core/stable_token",
+    "contracts/core/lending_pool",
+    "contracts/core/price_feed_provider",
+    "contracts/test_purpose/dia_oracle",
+    "contracts/test_purpose/fee_reduction_provider_mock",
+    "contracts/test_purpose/flash_loan_receiver_mock",
+    "contracts/test_purpose/test_psp22",
+    "contracts/test_purpose/test_reserves_minter"
 ]
 resolver = "2"

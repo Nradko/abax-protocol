@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use pendzl::{math::errors::MathError, traits::Timestamp};
 
 use crate::math::interest_rate_math::utilization_rate_to_interest_rate_e18;

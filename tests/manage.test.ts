@@ -56,7 +56,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'FlashLoanFeeChanged',
+            name: 'abax_contracts::lending_pool::events::FlashLoanFeeChanged',
             args: {
               flashLoanFeeE6: flashLoanFeeE6,
             },
@@ -77,7 +77,7 @@ makeSuite('Manage tests', (getTestEnv) => {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
       aTokenCodeHash: '',
       vTokenCodeHash: '',
-      name: 'TOKEN NAME XAYR',
+      name: 'abax_contracts::lending_pool::events::TOKEN NAME XAYR',
       symbol: 'XAYR',
       decimals: '6',
       assetRules: {
@@ -135,7 +135,7 @@ makeSuite('Manage tests', (getTestEnv) => {
 
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'AssetRegistered',
+            name: 'abax_contracts::lending_pool::events::AssetRegistered',
             args: {
               asset: PARAMS.asset,
               decimals: PARAMS.decimals,
@@ -148,7 +148,7 @@ makeSuite('Manage tests', (getTestEnv) => {
             },
           },
           {
-            name: 'ReserveInterestRateModelChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveInterestRateModelChanged',
             args: {
               asset: PARAMS.asset,
               interestRateModelParams: {
@@ -161,14 +161,14 @@ makeSuite('Manage tests', (getTestEnv) => {
             },
           },
           {
-            name: 'ReserveRestrictionsChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
               reserveRestrictions: PARAMS.reserveRestrictions,
             },
           },
           {
-            name: 'AssetRulesChanged',
+            name: 'abax_contracts::lending_pool::events::AssetRulesChanged',
             args: {
               marketRuleId: '0',
               asset: PARAMS.asset,
@@ -178,7 +178,7 @@ makeSuite('Manage tests', (getTestEnv) => {
             },
           },
           {
-            name: 'ReserveFeesChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveFeesChanged',
             args: {
               asset: PARAMS.asset,
               reserveFees: PARAMS.reserveFees,
@@ -239,7 +239,7 @@ makeSuite('Manage tests', (getTestEnv) => {
       asset: '5E2kzu11ycTw6kZG3XTj2ax8BTNA8ZfAPmex8jkT6CmCfBNy',
       aTokenCodeHash: '',
       vTokenCodeHash: '',
-      name: 'TOKEN NAME XAYR',
+      name: 'abax_contracts::lending_pool::events::TOKEN NAME XAYR',
       symbol: 'XAYR',
       decimals: '6',
       assetRules: {
@@ -293,7 +293,7 @@ makeSuite('Manage tests', (getTestEnv) => {
 
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'AssetRegistered',
+            name: 'abax_contracts::lending_pool::events::AssetRegistered',
             args: {
               asset: PARAMS.asset,
               decimals: PARAMS.decimals,
@@ -306,14 +306,14 @@ makeSuite('Manage tests', (getTestEnv) => {
             },
           },
           {
-            name: 'ReserveRestrictionsChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
               reserveRestrictions: PARAMS.reserveRestrictions,
             },
           },
           {
-            name: 'AssetRulesChanged',
+            name: 'abax_contracts::lending_pool::events::AssetRulesChanged',
             args: {
               marketRuleId: '0',
               asset: PARAMS.asset,
@@ -323,7 +323,7 @@ makeSuite('Manage tests', (getTestEnv) => {
             },
           },
           {
-            name: 'ReserveFeesChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveFeesChanged',
             args: {
               asset: PARAMS.asset,
               reserveFees: PARAMS.reserveFees,
@@ -392,7 +392,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'ReserveActivated',
+            name: 'abax_contracts::lending_pool::events::ReserveActivated',
             args: {
               asset: PARAMS.asset,
               active: PARAMS.active,
@@ -447,7 +447,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'ReserveFrozen',
+            name: 'abax_contracts::lending_pool::events::ReserveFrozen',
             args: {
               asset: PARAMS.asset,
               frozen: PARAMS.active,
@@ -505,7 +505,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'ReserveInterestRateModelChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveInterestRateModelChanged',
             args: {
               asset: PARAMS.asset,
               interestRateModelParams: {
@@ -567,7 +567,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'ReserveFeesChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveFeesChanged',
             args: {
               asset: PARAMS.asset,
               reserveFees: PARAMS.reserveFees,
@@ -614,7 +614,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'ReserveRestrictionsChanged',
+            name: 'abax_contracts::lending_pool::events::ReserveRestrictionsChanged',
             args: {
               asset: PARAMS.asset,
               reserveRestrictions: PARAMS.reserveRestrictions,
@@ -691,7 +691,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'AssetRulesChanged',
+            name: 'abax_contracts::lending_pool::events::AssetRulesChanged',
             args: {
               marketRuleId: PARAMS.marketRuleId,
               asset: PARAMS.asset,
@@ -740,7 +740,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'AssetRulesChanged',
+            name: 'abax_contracts::lending_pool::events::AssetRulesChanged',
             args: {
               marketRuleId: '1',
               asset: testEnv.reserves['USDC'].underlying.address,
@@ -750,7 +750,7 @@ makeSuite('Manage tests', (getTestEnv) => {
             },
           },
           {
-            name: 'AssetRulesChanged',
+            name: 'abax_contracts::lending_pool::events::AssetRulesChanged',
             args: {
               marketRuleId: '1',
               asset: testEnv.reserves['LINK'].underlying.address,
@@ -792,7 +792,7 @@ makeSuite('Manage tests', (getTestEnv) => {
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'StablecoinDebtRateChanged',
+            name: 'abax_contracts::lending_pool::events::StablecoinDebtRateChanged',
             args: {
               asset: stableAddress,
               debtRateE18: debtRateE18.toString(),

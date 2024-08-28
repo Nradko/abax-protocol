@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 /// Defines rules on which asset can be borrowed and used as collateral.
 #[derive(Debug, Default, scale::Encode, scale::Decode, Clone, Copy)]
 #[cfg_attr(

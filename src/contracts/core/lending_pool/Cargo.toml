@@ -1,8 +1,10 @@
 [package]
 name = "lending_pool"
-version = "0.2.0"
+version = "1.0.0"
 authors = ["Konrad Wierzbik <konrad.wierzbik@gmail.com>"]
 edition = "2021"
+license = "BUSL-1.1"
+description = "Abax Protocol Lending Pool contract"
 
 [dependencies]
 ink = { version = "5.0.0", default-features = false }
@@ -13,15 +15,16 @@ scale-info = { version = "2.11", default-features = false, features = [
     "derive",
 ], optional = true }
 
-pendzl = { version = "0.2.4", default-features = false, features = [
+pendzl = { version = "1.0.1-v1calls", default-features = false, features = [
     "psp22",
     "access_control",
     "access_control_impl",
+    "set_code_hash_impl",
 ] }
 
 
-abax_contracts = { path = "../../../contract_modules", default-features = false }
-abax_library = { path = "../../../library", default-features = false }
+abax_contracts = { version = "1.0.0", default-features = false }
+abax_library = { version = "1.0.0", default-features = false }
 
 [lib]
 name = "lending_pool"

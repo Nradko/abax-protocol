@@ -1,7 +1,7 @@
 import { stringifyNumericProps } from '@c-forge/polkahat-chai-matchers';
 import { KeyringPair } from '@polkadot/keyring/types';
 import BN from 'bn.js';
-import PSP22Emitable from 'typechain/contracts/psp22_emitable';
+import PSP22Emitable from 'typechain/contracts/test_psp22';
 import { LendingPoolErrorBuilder } from 'typechain/types-returns/lending_pool';
 import DiaOracle from '../typechain/contracts/dia_oracle';
 import LendingPoolContract from '../typechain/contracts/lending_pool';
@@ -327,7 +327,7 @@ makeSuite('LendingPool liquidation - liquidator receiving aToken', (getTestEnv) 
         const txRes = await tx;
         expect.soft(stringifyNumericProps(txRes.events)).to.deep.equal([
           {
-            name: 'Liquidation',
+            name: 'abax_contracts::lending_pool::events::Liquidation',
             args: {
               liquidator: liquidator.address,
               liquidatedAccount: borrower.address,

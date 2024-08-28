@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: BUSL-1.1
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
 #[pendzl::implementation(Ownable)]
 #[ink::contract]
-pub mod psp22_emitable {
+pub mod test_psp22 {
 
     use pendzl::contracts::{
         ownable,

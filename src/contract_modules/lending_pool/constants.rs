@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 use pendzl::contracts::access_control::RoleType;
 
 // can mint given asset
