@@ -10,7 +10,7 @@ import { E6bn, toE } from '@c-forge/polkahat-network-helpers';
 import { ONE_HOUR, ONE_MIN, ONE_PERCENT_APR_E18, ONE_SEC } from './setup/tokensToDeployForTesting';
 import { time } from '@c-forge/polkahat-network-helpers';
 
-makeSuite.only('LendingPool interest rate model tests', (getTestEnv) => {
+makeSuite('LendingPool interest rate model tests', (getTestEnv) => {
   let testEnv: TestEnv;
   let lendingPool: LendingPoolContract;
   let reserves: TestEnvReserves;
